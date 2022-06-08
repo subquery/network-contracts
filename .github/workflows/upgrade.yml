@@ -1,0 +1,60 @@
+name: "Upgrade"
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/workflows/**'
+  workflow_dispatch:
+    inputs:
+      endpoint:
+        description: 'endpoint used to deploy contracts'
+        default: https://tc7-eth.aca-dev.network
+        required: true
+
+jobs:
+  Upgrade-Contracts:
+    name: Upgrade-Contracts
+    if: "startsWith(github.event.head_commit.message, '[upgrade-testnet]') && github.repository == 'subquery/contracts' || github.event_name == 'workflow_dispatch'"
+    runs-on: ubuntu-latest
+    env:
+      SEED: ${{ secrets.MOONBASE_ALPHA_SEED }}
+    steps:
+      #Check out
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 100
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: yarn
+
+      - name: Bump & Build
+        run: npm version prerelease --no-git-tag-version && yarn build
+
+      # Deploy contracts to moonbeam alpha
+      - name: Upgrade Changed Contracts
+        run: yarn upgrade:testnet && scripts/copy_deployment_json.sh # Uses SEED env var
+        env:
+          ENDPOINT: ${{ github.event.inputs.endpoint }}
+          DEPLOY_PRINT: true
+
+      - uses: JS-DevTools/npm-publish@v1
+        name: Publish
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          tag: dev
+          access: public
+          package: build/build/package.json
+
+      # Commit updated contract addresses, this should trigger the prerelease action
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v5
+        with:
+          add: publish/testnet.json package.json
+          message: '[SKIP CI] Deploy to testnet and Prerelease'
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}

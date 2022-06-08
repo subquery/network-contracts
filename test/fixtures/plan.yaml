@@ -1,0 +1,9 @@
+
+- kind: PlanTemplate
+  period: 259200
+  dailyReqCap: 100000
+  rateLimit: 10
+  metadata:
+    planName: Basic Plan
+    period: 3 days
+    description: Best for starter teams

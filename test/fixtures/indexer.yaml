@@ -1,0 +1,24 @@
+- kind: Account
+  name: indexer1
+  seed: trick scale shop mountain any van develop blame sport grid equal garbage
+  derive: /0
+- kind: Account
+  name: controller1
+  seed: trick scale shop mountain any van develop blame sport grid equal garbage
+  derive: /2
+- kind: Faucet
+  account: indexer1
+  amounts:
+    SQT: 10000
+    Fee: 100
+- kind: Faucet
+  account: controller1
+  amounts:
+    Fee: 100
+- kind: Indexer
+  account: indexer1
+  stake: 1000
+  commissionRate: 0.2
+- kind: IndexerController
+  indexer: indexer1
+  controller: controller1

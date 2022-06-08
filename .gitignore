@@ -1,0 +1,19 @@
+node_modules/
+build/
+cache/
+.env
+.DS_Store
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+publish/local.json
+publish/contracts
+src/typechain
+artifacts
+
+/coverage
+coverage.json
