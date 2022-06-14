@@ -18,7 +18,7 @@ jobs:
     if: "startsWith(github.event.head_commit.message, '[deploy-testnet]') && github.repository == 'subquery/contracts' || github.event_name == 'workflow_dispatch'"
     runs-on: ubuntu-latest
     env:
-      SEED: ${{ secrets.MOONBASE_ALPHA_SEED }}
+      SEED: ${{ secrets.SEED }}
     steps:
       #Check out
       - uses: actions/checkout@v2
