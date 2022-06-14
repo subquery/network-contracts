@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 100
-          token: ${{ secrets.REPO_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v1
         with:
@@ -49,4 +49,4 @@ jobs:
           add: 'package.json'
           message: '[SKIP CI] Prerelease'
         env:
-          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
