@@ -7,7 +7,7 @@ interface IPurchaseOfferMarket {
     function createPurchaseOffer(
         bytes32 _deploymentId,
         uint256 _planTemplateId,
-        uint16 _deposit,
+        uint256 _deposit,
         uint16 _limit,
         uint256 _minimumAcceptHeight,
         uint256 _expireDate
