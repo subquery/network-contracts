@@ -8,7 +8,9 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/cryptography/ECDSA.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 
+import './interfaces/IConsumer.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IRewardsDistributer.sol';
@@ -46,6 +48,7 @@ struct QueryState {
 
 // The contact for Pay-as-you-go service for Indexer and Consumer.
 contract StateChannel is Initializable, OwnableUpgradeable {
+    using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
 
     // Settings info.
@@ -85,12 +88,14 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     // Indexer and Consumer open a channel for Pay-as-you-go service.
     // It will lock the amount of consumer and start a new channel.
     // Need consumer approve amount first.
+    // If consumer is contract, use callback to call paid.
     function open(
         uint256 channelId,
-        address payable indexer,
-        address payable consumer,
+        address indexer,
+        address consumer,
         uint256 amount,
         uint256 expiration,
+        bytes memory callback,
         bytes memory indexerSign,
         bytes memory consumerSign
     ) public {
@@ -103,11 +108,20 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address controller = indexerRegistry.indexerToController(indexer);
 
         // check sign
-        bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, amount, expiration));
-        _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
-
-        // transfer the balance to contract
-        IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
+        bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, amount, expiration, callback));
+        if (_isContract(consumer)) {
+            require(consumer.supportsInterface(type(IConsumer).interfaceId), 'Contract is not IConsumer');
+            IConsumer cConsumer = IConsumer(consumer);
+            address signer = cConsumer.signer();
+            _checkSign(payload, indexerSign, consumerSign, indexer, controller, signer);
+            // transfer the balance to contract
+            IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
+            cConsumer.paid(channelId, amount, callback);
+        } else {
+            _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
+            // transfer the balance to contract
+            IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
+        }
 
         // initial the channel
         channels[channelId].status = ChannelStatus.Open;
@@ -251,7 +265,12 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address indexer = channels[channelId].indexer;
         address controller = IIndexerRegistry(settings.getIndexerRegistry()).indexerToController(indexer);
         address consumer = channels[channelId].consumer;
-        _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
+        if (_isContract(consumer)) {
+            address signer = IConsumer(consumer).signer();
+            _checkSign(payload, indexerSign, consumerSign, indexer, controller, signer);
+        } else {
+            _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
+        }
     }
 
     // Check the signature of the hash with given addresses.
@@ -311,6 +330,9 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         if (remain > 0) {
             IERC20(settings.getSQToken()).safeTransfer(consumer, remain);
+            if (_isContract(consumer)) {
+                IConsumer(consumer).claimed(channelId, remain);
+            }
         }
 
         // set the channel to Finalized status
@@ -318,5 +340,13 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         channels[channelId].balance = 0;
 
         emit ChannelFinalize(channelId);
+    }
+
+    function _isContract(address _addr) private view returns (bool) {
+        uint32 size;
+        assembly {
+            size := extcodesize(_addr)
+        }
+        return (size > 0);
     }
 }
