@@ -2,6 +2,18 @@ import type CONTRACTS from './contracts';
 
 export type SubqueryNetwork = 'mainnet' | 'testnet' | 'local';
 
+export type HardhatDeploymentConfig = {
+    readonly network: {
+        name: SubqueryNetwork;
+        endpoint?: string;
+        platform: 'hardhat';
+        providerConfig: {
+            chainId: number;
+            name: 'hardhat-local';
+        };
+    };
+    readonly contracts: {[contract: string]: any[]};
+};
 export type MoonbeamDeploymentConfig = {
     readonly network: {
         name: SubqueryNetwork;
@@ -23,7 +35,7 @@ export type AcalaDeploymentConfig = {
     readonly contracts: {[contract: string]: any[]};
 };
 
-export type DeploymentConfig = AcalaDeploymentConfig | MoonbeamDeploymentConfig;
+export type DeploymentConfig = AcalaDeploymentConfig | MoonbeamDeploymentConfig | HardhatDeploymentConfig;
 
 export type ContractDeploymentDetail = {
     address: string;
