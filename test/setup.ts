@@ -45,7 +45,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
         Staking: [1000],
         EraManager: [60 * 60 * 24],
         PurchaseOfferMarket: [1e5, ZERO_ADDRESS],
-    });
+    }, {}, true);
 
     return contracts;
 };
