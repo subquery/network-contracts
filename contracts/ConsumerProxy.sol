@@ -10,18 +10,18 @@ import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-import '../interfaces/IConsumer.sol';
+import './interfaces/IConsumer.sol';
 
 /**
- * @title Consumer Hoster Contract for DEMO
+ * @title Consumer Proxy Contract
  * @dev
  * ## Overview
- * The ConsumerHoster contract store and track all registered Consumers.
+ * The ConsumerProxy contract store and track all registered Consumers.
  * Consumer can deposit and withdraw SQT.
  * Other contracts can verify the consumer and safeTransfer SQT.
  *
  */
-contract ConsumerHoster is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
+contract ConsumerProxy is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     using SafeERC20 for IERC20;
 
     // -- Storage --
@@ -29,37 +29,34 @@ contract ConsumerHoster is Initializable, OwnableUpgradeable, IConsumer, ERC165 
     // The SQT contract address
     address public SQT;
 
-    // The Signer address
-    address public signer;
-
     // The StateChannel address
     address public channel;
 
-    // Consumers' balances that hosting in this contract.
-    mapping(address => uint256) public balances;
+    // The Consumer address
+    address public consumer;
 
-    // StateChannels' belongs to consumer.
-    mapping(uint256 => address) public channels;
-
-    // -- Events --
-
-    // Emitted when consumer deposit.
-    event Deposit(address indexed consumer, uint256 amount);
+    // The Signer address
+    address public signer;
 
     // Emitted when consumer withdraw.
     event Withdraw(address indexed consumer, uint256 amount);
 
     // Emitted when consumer pay for open a state channel
-    event Paid(address indexed consumer, address target, uint256 amount);
+    event Paid(address indexed consumer, uint256 amount);
 
     // Emitted when consumer pay for open a state channel
-    event Claimed(address indexed consumer, address from, uint256 amount);
+    event Claimed(address indexed consumer, uint256 amount);
 
     // Initialize this contract.
-    function initialize(address _sqt, address _channel) external initializer {
+    function initialize(
+        address _sqt,
+        address _channel,
+        address _consumer
+    ) external initializer {
         __Ownable_init();
         SQT = _sqt;
         channel = _channel;
+        consumer = _consumer;
         signer = msg.sender;
 
         // Approve Token to State Channel.
@@ -73,31 +70,28 @@ contract ConsumerHoster is Initializable, OwnableUpgradeable, IConsumer, ERC165 
     }
 
     // Update signer.
-    function setSigner(address _signer) external onlyOwner {
-        signer = _signer;
-    }
-
-    // Update signer.
     function setChannel(address _channel) external onlyOwner {
         channel = _channel;
     }
 
-    // Deposit amount to hosting.
-    function deposit(uint256 amount) external {
-        // transfer the balance to contract
-        IERC20(SQT).safeTransferFrom(msg.sender, address(this), amount);
-        balances[msg.sender] += amount;
+    // Update signer.
+    function setConsumer(address _consumer) external onlyOwner {
+        consumer = _consumer;
+    }
 
-        emit Deposit(msg.sender, amount);
+    // Update signer.
+    function setSigner(address _signer) external onlyOwner {
+        signer = _signer;
     }
 
     // Withdraw amount to consumer.
     function withdraw(uint256 amount) external {
-        require(balances[msg.sender] >= amount, 'Insufficient balance');
+        require(msg.sender == consumer, 'Must Consumer');
+        IERC20 sqt = IERC20(SQT);
+        require(sqt.balanceOf(address(this)) >= amount, 'Insufficient balance');
 
         // transfer the balance to consumer
-        IERC20(SQT).safeTransferFrom(address(this), msg.sender, amount);
-        balances[msg.sender] -= amount;
+        sqt.safeTransferFrom(address(this), msg.sender, amount);
 
         emit Withdraw(msg.sender, amount);
     }
@@ -106,32 +100,24 @@ contract ConsumerHoster is Initializable, OwnableUpgradeable, IConsumer, ERC165 
     function paid(
         uint256 channelId,
         uint256 amount,
-        bytes memory callback
+        bytes memory sign
     ) external {
         require(msg.sender == channel, 'Only Channel Contract');
-        (address consumer, bytes memory sign) = abi.decode(callback, (address, bytes));
-        require(balances[consumer] >= amount, 'Insufficient balance');
 
         bytes32 payload = keccak256(abi.encode(channelId, amount));
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
         address msgSigner = ECDSA.recover(hash, sign);
-        require(msgSigner == consumer, 'Invalid Hoster signature');
+        require(msgSigner == consumer, 'Invalid Proxy signature');
 
-        balances[consumer] -= amount;
-        channels[channelId] = consumer;
-
-        emit Paid(consumer, msg.sender, amount);
+        emit Paid(msg.sender, amount);
     }
 
     // Claimed callback function.
-    function claimed(uint256 channelId, uint256 amount) external {
-        require(msg.sender == channel, 'Only Channel Contract');
-
-        address consumer = channels[channelId];
-        balances[consumer] += amount;
-        channels[channelId] = address(0);
-
-        emit Claimed(consumer, msg.sender, amount);
+    function claimed(
+        uint256, /* _channelId */
+        uint256 amount
+    ) external {
+        emit Claimed(msg.sender, amount);
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
