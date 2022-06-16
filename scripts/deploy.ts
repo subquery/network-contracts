@@ -10,10 +10,12 @@ import {deployContracts} from './deployContracts';
 
 const main = async () => {
     let config: DeploymentConfig;
+    let dev = true;
 
     switch (process.argv[2]) {
         case '--mainnet':
             config = mainnetConfig as DeploymentConfig;
+            dev = false;
             break;
         case '--testnet':
             config = testnetConfig as DeploymentConfig;
@@ -35,7 +37,7 @@ const main = async () => {
     }
 
     const {wallet, provider, overrides} = await setup(config.network);
-    const [deployment] = await deployContracts(wallet, config.contracts, overrides);
+    const [deployment] = await deployContracts(wallet, config.contracts, overrides, dev);
 
     const filePath = `${__dirname}/../publish/${config.network.name}.json`;
     writeFileSync(filePath, JSON.stringify(deployment, null, 4));
