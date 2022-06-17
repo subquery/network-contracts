@@ -1,6 +1,6 @@
 import type CONTRACTS from './contracts';
 
-export type SubqueryNetwork = 'mainnet' | 'testnet' | 'local';
+export type SubqueryNetwork = 'mainnet' | 'testnet' | 'local' | 'hardhat';
 
 export type HardhatDeploymentConfig = {
     readonly network: {
