@@ -3,7 +3,6 @@
 
 import {expect} from 'chai';
 import {ethers, waffle} from 'hardhat';
-
 import {deployContracts} from './setup';
 import {time, startNewEra} from './helper';
 import {InflationController, EraManager, SQToken} from '../src';

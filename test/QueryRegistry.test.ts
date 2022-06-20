@@ -6,7 +6,7 @@ import {Wallet} from 'ethers';
 import {ethers, waffle} from 'hardhat';
 
 import {deployContracts} from './setup';
-import {constants, timeTravel, lastestTime, createPurchaseOffer, delay} from './helper';
+import {constants, timeTravel, etherParse, lastestTime, registerIndexer, createPurchaseOffer, delay, futureTimestamp} from './helper';
 import {metadatas, versions, deploymentIds, mmrRoot, METADATA_HASH} from './constants';
 import {IndexerRegistry, QueryRegistry, Staking, SQToken, PurchaseOfferMarket, PlanManager} from '../src';
 
@@ -30,13 +30,6 @@ describe('Query Registry Contract', () => {
     // create query project
     const createQueryProject = async () => {
         await queryRegistry.createQueryProject(metadatas[0], versions[0], deploymentIds[0]);
-    };
-
-    // register indexer
-    const registerIndexer = async (wallet: Wallet) => {
-        await token.connect(wallet_0).transfer(wallet.address, 1000000000);
-        await token.connect(wallet).increaseAllowance(staking.address, 1000000000);
-        await indexerRegistry.connect(wallet).registerIndexer(1000000000, metadatas[0], 0);
     };
 
     const reportStatus = async (timestamp: number, height: number = 10, wallet: Wallet = wallet_1) => {
@@ -154,7 +147,7 @@ describe('Query Registry Contract', () => {
 
     describe('Indexing Query Project', () => {
         beforeEach(async () => {
-            await registerIndexer(wallet_0);
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, "10");
             await indexerRegistry.setControllerAccount(wallet_1.address);
         });
 
@@ -323,9 +316,9 @@ describe('Query Registry Contract', () => {
             // have ongoing service agreement
             await queryRegistry.startIndexing(deploymentId);
             await queryRegistry.updateIndexingStatusToReady(deploymentId);
-            await token.increaseAllowance(purchaseOfferMarket.address, 1000000000);
+            await token.increaseAllowance(purchaseOfferMarket.address, etherParse("5"));
             await planManager.createPlanTemplate(1000, 1000, 100, METADATA_HASH);
-            await createPurchaseOffer(mockProvider, purchaseOfferMarket, deploymentId);
+            await createPurchaseOffer(purchaseOfferMarket, token, deploymentId, await futureTimestamp(mockProvider));
             await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
             await expect(queryRegistry.stopIndexing(deploymentId)).to.be.revertedWith(
                 'cannot stop indexing with an ongoing service agreement'

@@ -6,9 +6,9 @@ import {expect} from 'chai';
 import {BigNumber} from 'ethers';
 import {ethers, waffle} from 'hardhat';
 
-import {IndexerRegistry, EraManager, SQToken, Staking, RewardsDistributer} from '../src';
+import {IndexerRegistry, EraManager, SQToken, Staking} from '../src';
 import {deployContracts} from './setup';
-import {lastestTime, registerIndexer, startNewEra, timeTravel} from './helper';
+import {lastestTime, registerIndexer, startNewEra, timeTravel, etherParse} from './helper';
 
 describe('Staking Contract', () => {
     const mockProvider = waffle.provider;
@@ -17,17 +17,16 @@ describe('Staking Contract', () => {
     let staking: Staking;
     let eraManager: EraManager;
     let indexerRegistry: IndexerRegistry;
-    let rewardsDistributor: RewardsDistributer;
 
-    const amount = 1000000000;
+    const amount = etherParse("10");
 
-    const checkDelegation = async (_delegator: string, indexerAddress: string, valueAfter: number, era: number) => {
+    const checkDelegation = async (_delegator: string, indexerAddress: string, valueAfter: BigNumber, era: number) => {
         const stakingAmount = await staking.getStakingAmount(_delegator, indexerAddress);
         expect(stakingAmount.valueAfter).to.equal(valueAfter);
         expect(await eraManager.eraNumber()).to.equal(era);
     };
 
-    const checkStakingAmount = async (indexerAddress: string, valueAfter: number, era: number) => {
+    const checkStakingAmount = async (indexerAddress: string, valueAfter: BigNumber, era: number) => {
         const totalStakingAmount = await staking.getTotalStakingAmount(indexerAddress);
         expect(totalStakingAmount).to.equal(valueAfter);
         expect(await eraManager.eraNumber()).to.equal(era);
@@ -42,8 +41,8 @@ describe('Staking Contract', () => {
     };
 
     const configWallet = async () => {
-        await registerIndexer(token, indexerRegistry, staking, indexer, indexer);
-        await registerIndexer(token, indexerRegistry, staking, indexer, indexer2);
+        await registerIndexer(token, indexerRegistry, staking, indexer, indexer, "20");
+        await registerIndexer(token, indexerRegistry, staking, indexer, indexer2, "20");
         await token.connect(indexer).transfer(delegator.address, amount);
         await token.connect(delegator).increaseAllowance(staking.address, amount);
     };
@@ -55,7 +54,6 @@ describe('Staking Contract', () => {
         staking = deployment.staking;
         eraManager = deployment.eraManager;
         indexerRegistry = deployment.indexerRegistry;
-        rewardsDistributor = deployment.rewardsDistributer;
         await configWallet();
     });
 
@@ -107,87 +105,87 @@ describe('Staking Contract', () => {
             expect(stakingAmount.valueAt).to.equal(amount);
             expect(stakingAmount.valueAfter).to.equal(amount);
             await checkStakingAmount(indexer.address, amount, 2);
-            expect(await token.balanceOf(staking.address)).to.equal(amount * 2);
+            expect(await token.balanceOf(staking.address)).to.equal(amount.mul(2));
         });
 
         it('staking by indexer should work', async () => {
-            await token.connect(indexer).increaseAllowance(staking.address, 1000);
-            await staking.connect(indexer).stake(indexer.address, 1000);
+            await token.connect(indexer).increaseAllowance(staking.address, etherParse("1"));
+            await staking.connect(indexer).stake(indexer.address, etherParse("1"));
             // check staking changes
-            expect(await staking.getDelegationAmount(indexer.address, indexer.address)).to.equal(1000001000);
+            expect(await staking.getDelegationAmount(indexer.address, indexer.address)).to.equal(etherParse("11"));
         });
 
         it('unstaking by indexer should work', async () => {
-            await staking.connect(indexer).unstake(indexer.address, 1000);
+            await staking.connect(indexer).unstake(indexer.address, etherParse("1"));
             // check staking changes
-            expect(await staking.getDelegationAmount(indexer.address, indexer.address)).to.equal(999999000);
+            expect(await staking.getDelegationAmount(indexer.address, indexer.address)).to.equal(etherParse("9"));
         });
 
         it('staking by indexer with invalid caller should fail', async () => {
             // not indexer
-            await expect(staking.connect(indexer2).stake(indexer.address, 1000)).to.be.revertedWith(
+            await expect(staking.connect(indexer2).stake(indexer.address, etherParse("1"))).to.be.revertedWith(
                 'only indexer can call stake()'
             );
         });
 
         it('unstaking by indexer with invalid params should fail', async () => {
             // not indexer
-            await expect(staking.connect(indexer2).unstake(indexer.address, 1000)).to.be.revertedWith(
+            await expect(staking.connect(indexer2).unstake(indexer.address, etherParse("1"))).to.be.revertedWith(
                 'only indexer can unstake()'
             );
             // amount execess minum requirement
-            await expect(staking.connect(indexer).unstake(indexer.address, 1000000000)).to.be.revertedWith(
+            await expect(staking.connect(indexer).unstake(indexer.address, await staking.getDelegationAmount(indexer.address, indexer.address))).to.be.revertedWith(
                 'staked amount should be greater than minimum amount'
             );
         });
 
         it('staking to unregisted indexer should fail', async () => {
-            await expect(staking.connect(delegator).stake(delegator.address, 1000)).to.be.revertedWith(
+            await expect(staking.connect(delegator).stake(delegator.address, etherParse("1"))).to.be.revertedWith(
                 'Caller is not indexerRegistry'
             );
         });
 
         it('redelegate with invalid params should fail', async () => {
             // self delegation
-            await expect(staking.redelegate(indexer.address, indexer2.address, 1000)).to.be.revertedWith(
+            await expect(staking.redelegate(indexer.address, indexer2.address, etherParse("1"))).to.be.revertedWith(
                 'Self delegation can not be redelegated'
             );
             // out of amount
-            await staking.connect(delegator).delegate(indexer.address, 1000);
+            await staking.connect(delegator).delegate(indexer.address, etherParse("1"));
             await expect(
-                staking.connect(delegator).redelegate(indexer.address, indexer2.address, 1001)
+                staking.connect(delegator).redelegate(indexer.address, indexer2.address, etherParse("2"))
             ).to.be.revertedWith('Removed delegation cannot be greater than current amount');
         });
 
         it('staking by delegator should work', async () => {
             const delegatorBalance = await token.balanceOf(delegator.address);
             const contractBalance = await token.balanceOf(staking.address);
-            await staking.connect(delegator).delegate(indexer.address, 1000);
+            await staking.connect(delegator).delegate(indexer.address, etherParse("1"));
 
             await startNewEra(mockProvider, eraManager);
             expect(await staking.getStakingIndexersLength(delegator.address)).to.equal(1);
-            await checkDelegation(delegator.address, indexer.address, 1000, 3);
-            await checkStakingAmount(indexer.address, amount + 1000, 3);
+            await checkDelegation(delegator.address, indexer.address, etherParse("1"), 3);
+            await checkStakingAmount(indexer.address, amount.add(etherParse("1")), 3);
 
-            expect(await token.balanceOf(delegator.address)).to.equal(delegatorBalance.sub(1000));
-            expect(await token.balanceOf(staking.address)).to.equal(contractBalance.add(1000));
+            expect(await token.balanceOf(delegator.address)).to.equal(delegatorBalance.sub(etherParse("1")));
+            expect(await token.balanceOf(staking.address)).to.equal(contractBalance.add(etherParse("1")));
         });
 
         it('redelegate should work', async () => {
             const [from_indexer, to_indexer] = [indexer.address, indexer2.address];
-            await staking.connect(delegator).delegate(from_indexer, 1000);
-            await staking.connect(delegator).redelegate(from_indexer, to_indexer, 1000);
+            await staking.connect(delegator).delegate(from_indexer, etherParse("1"));
+            await staking.connect(delegator).redelegate(from_indexer, to_indexer, etherParse("1"));
 
             await startNewEra(mockProvider, eraManager);
             expect(await staking.getStakingIndexersLength(delegator.address)).to.equal(2);
-            await checkDelegation(delegator.address, from_indexer, 0, 3);
+            await checkDelegation(delegator.address, from_indexer, etherParse("0"), 3);
             await checkStakingAmount(from_indexer, amount, 3);
-            await checkDelegation(delegator.address, to_indexer, 1000, 3);
-            await checkStakingAmount(to_indexer, amount + 1000, 3);
+            await checkDelegation(delegator.address, to_indexer, etherParse("1"), 3);
+            await checkStakingAmount(to_indexer, amount.add(etherParse("1")), 3);
         });
 
         it('delegate by indexer should fail', async () => {
-            await expect(staking.connect(indexer).delegate(indexer.address, 1000)).to.be.revertedWith(
+            await expect(staking.connect(indexer).delegate(indexer.address, etherParse("1"))).to.be.revertedWith(
                 'indexer can not call delegate() use stake() instead'
             );
         });
@@ -205,7 +203,7 @@ describe('Staking Contract', () => {
 
     describe('Request Undelegate', () => {
         beforeEach(async () => {
-            await staking.connect(delegator).delegate(indexer.address, 2000);
+            await staking.connect(delegator).delegate(indexer.address, etherParse("2"));
         });
 
         const checkUnbondingAmount = async (
@@ -220,14 +218,14 @@ describe('Staking Contract', () => {
         };
 
         it('request unbond by indexer registry should work', async () => {
-            await staking.connect(indexer).unstake(indexer.address, 1000, {gasLimit: '1000000'});
+            await staking.connect(indexer).unstake(indexer.address, etherParse("1"), {gasLimit: '1000000'});
             const startTime = await lastestTime(mockProvider);
 
             // check changes of staking storage
             await startNewEra(mockProvider, eraManager);
-            await checkDelegation(indexer.address, indexer.address, amount - 1000, 3);
-            await checkStakingAmount(indexer.address, amount + 1000, 3);
-            await checkUnbondingAmount(indexer.address, 0, startTime, 1000);
+            await checkDelegation(indexer.address, indexer.address, amount.sub(etherParse("1")), 3);
+            await checkStakingAmount(indexer.address, amount.add(etherParse("1")), 3);
+            await checkUnbondingAmount(indexer.address, 0, startTime, etherParse("1"));
 
             // check changes of unbonding storage
             expect(await staking.unbondingLength(indexer.address)).to.equal(1);
@@ -248,16 +246,16 @@ describe('Staking Contract', () => {
 
         it('request undelegate by delegator should work', async () => {
             // request the first unbond
-            await expect(staking.connect(delegator).undelegate(indexer.address, 1000))
+            await expect(staking.connect(delegator).undelegate(indexer.address, etherParse("1")))
                 .to.be.emit(staking, 'UnbondRequested')
-                .withArgs(delegator.address, indexer.address, 1000, 0);
+                .withArgs(delegator.address, indexer.address, etherParse("1"), 0);
             const startTime = await lastestTime(mockProvider);
 
             // check changes of staking storage
             await startNewEra(mockProvider, eraManager);
-            await checkDelegation(delegator.address, indexer.address, 1000, 3);
-            await checkStakingAmount(indexer.address, amount + 1000, 3);
-            await checkUnbondingAmount(delegator.address, 0, startTime, 1000);
+            await checkDelegation(delegator.address, indexer.address, etherParse("1"), 3);
+            await checkStakingAmount(indexer.address, amount.add(etherParse("1")), 3);
+            await checkUnbondingAmount(delegator.address, 0, startTime, etherParse("1"));
 
             // check changes of unbonding storage
             expect(await staking.unbondingLength(delegator.address)).to.equal(1);
@@ -265,14 +263,14 @@ describe('Staking Contract', () => {
         });
 
         it('multiple undelegate request by delegator should work', async () => {
-            await staking.connect(delegator).undelegate(indexer.address, 500);
-            await staking.connect(delegator).undelegate(indexer.address, 500);
-            await staking.connect(delegator).undelegate(indexer.address, 500);
+            await staking.connect(delegator).undelegate(indexer.address, etherParse("0.5"));
+            await staking.connect(delegator).undelegate(indexer.address, etherParse("0.5"));
+            await staking.connect(delegator).undelegate(indexer.address, etherParse("0.5"));
 
             // check changes of staking storage
             await startNewEra(mockProvider, eraManager);
-            await checkDelegation(delegator.address, indexer.address, 500, 3);
-            await checkStakingAmount(indexer.address, amount + 500, 3);
+            await checkDelegation(delegator.address, indexer.address, etherParse("0.5"), 3);
+            await checkStakingAmount(indexer.address, amount.add(etherParse("0.5")), 3);
 
             // check all unbondingAmounts
             const unbondingAmounts = await staking.getUnbondingAmounts(delegator.address);
@@ -292,18 +290,18 @@ describe('Staking Contract', () => {
                 'Self delegation can not unbond from staking'
             );
             // amount should be positive
-            await expect(staking.connect(delegator).undelegate(indexer.address, 0)).to.be.revertedWith(
+            await expect(staking.connect(delegator).undelegate(indexer.address, etherParse("0"))).to.be.revertedWith(
                 'Amount should be positive'
             );
             // delegator undelegate out of balance
-            await expect(staking.connect(delegator).undelegate(indexer.address, 2001)).to.be.revertedWith(
+            await expect(staking.connect(delegator).undelegate(indexer.address, etherParse("4"))).to.be.revertedWith(
                 'Removed delegation cannot be greater than current amount'
             );
         });
 
         it('request unstake with invalid caller should fail', async () => {
             // invalid caller
-            await expect(staking.connect(indexer2).unstake(indexer.address, 1000)).to.be.revertedWith(
+            await expect(staking.connect(indexer2).unstake(indexer.address, etherParse("1"))).to.be.revertedWith(
                 'only indexer can unstake()'
             );
         });
@@ -317,7 +315,7 @@ describe('Staking Contract', () => {
         };
 
         beforeEach(async () => {
-            await staking.connect(delegator).delegate(indexer.address, 10000);
+            await staking.connect(delegator).delegate(indexer.address, etherParse("5"));
         });
 
         it('withdraw from single indexer should work', async () => {
@@ -326,10 +324,10 @@ describe('Staking Contract', () => {
             const contractBalance = await token.balanceOf(staking.address);
 
             // request undelegate
-            await staking.connect(delegator).undelegate(indexer.address, 1000);
+            await staking.connect(delegator).undelegate(indexer.address, etherParse("1"));
             await timeTravel(mockProvider, 1000);
             // request another undelegate
-            await staking.connect(delegator).undelegate(indexer.address, 1000);
+            await staking.connect(delegator).undelegate(indexer.address, etherParse("1"));
             expect(await staking.unbondingLength(delegator.address)).to.equal(2);
 
             // withdraw an undelegate
@@ -348,22 +346,22 @@ describe('Staking Contract', () => {
 
         it('withdraw from multi indexers should work', async () => {
             // delegate to another indexer
-            await staking.connect(delegator).delegate(indexer2.address, 10000);
+            await staking.connect(delegator).delegate(indexer2.address, etherParse("1"));
 
             // undelegate from 2 indexers
-            await staking.connect(delegator).undelegate(indexer.address, 500);
-            await staking.connect(delegator).undelegate(indexer2.address, 500);
-            await staking.connect(delegator).undelegate(indexer.address, 500);
+            await staking.connect(delegator).undelegate(indexer.address, etherParse("0.1"));
+            await staking.connect(delegator).undelegate(indexer2.address, etherParse("0.1"));
+            await staking.connect(delegator).undelegate(indexer.address, etherParse("0.1"));
             await timeTravel(mockProvider, 1000);
-            await staking.connect(delegator).undelegate(indexer2.address, 500);
-            await staking.connect(delegator).undelegate(indexer.address, 500);
+            await staking.connect(delegator).undelegate(indexer2.address, etherParse("0.1"));
+            await staking.connect(delegator).undelegate(indexer.address, etherParse("0.1"));
 
             let delegatorBalance = await token.balanceOf(delegator.address);
             await checkUnbondingChanges(delegatorBalance, 5, 0);
 
             // widthdraw the fist 3 requests
             await staking.connect(delegator).widthdraw();
-            const {availableAmount} = await availableWidthdraw(BigNumber.from(500));
+            const {availableAmount} = await availableWidthdraw(BigNumber.from(etherParse("0.1")));
             delegatorBalance = delegatorBalance.add(availableAmount.mul(3));
             await checkUnbondingChanges(delegatorBalance, 5, 3);
 
@@ -377,7 +375,7 @@ describe('Staking Contract', () => {
         it('withdraw max 10 undelegate requests should work', async () => {
             // request 12 undelegate requests
             for (let i = 0; i < 12; i++) {
-                await staking.connect(delegator).undelegate(indexer.address, 500);
+                await staking.connect(delegator).undelegate(indexer.address, etherParse("0.1"));
             }
             let delegatorBalance = await token.balanceOf(delegator.address);
             await checkUnbondingChanges(delegatorBalance, 12, 0);
@@ -386,14 +384,14 @@ describe('Staking Contract', () => {
             await timeTravel(mockProvider, 1000);
             // request extra 3 undelegate requests
             for (let i = 0; i < 3; i++) {
-                await staking.connect(delegator).undelegate(indexer.address, 500);
+                await staking.connect(delegator).undelegate(indexer.address, etherParse("0.1"));
             }
             await checkUnbondingChanges(delegatorBalance, 15, 0);
 
             // first withdraw only claim the first 10 requests
             await staking.connect(delegator).widthdraw();
             // check balance and unbonding storage
-            const {availableAmount} = await availableWidthdraw(BigNumber.from(500));
+            const {availableAmount} = await availableWidthdraw(BigNumber.from(etherParse("0.1")));
             delegatorBalance = delegatorBalance.add(availableAmount.mul(10));
             await checkUnbondingChanges(delegatorBalance, 15, 10);
 
