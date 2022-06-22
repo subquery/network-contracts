@@ -11,6 +11,7 @@ import {utils, Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
 
 describe('StateChannel Contract', () => {
     const mockProvider = waffle.provider;
+    const deploymentId = deploymentIds[0];
     let wallet_0, indexer, consumer, consumer2, signer, consumerProxy, consumerHoster;
 
     let token: SQToken;
@@ -36,8 +37,8 @@ describe('StateChannel Contract', () => {
     ) => {
         const abi = ethers.utils.defaultAbiCoder;
         const msg = abi.encode(
-            ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
-            [channelId, indexer.address, consumer.address, amount, expiration, '0x']
+            ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes32', 'bytes'],
+            [channelId, indexer.address, consumer.address, amount, expiration, deploymentId, '0x']
         );
         let payloadHash = ethers.utils.keccak256(msg);
 
@@ -56,6 +57,7 @@ describe('StateChannel Contract', () => {
             consumer.address,
             amount,
             expiration,
+            deploymentId,
             '0x',
             indexerSign,
             consumerSign
@@ -350,8 +352,8 @@ describe('StateChannel Contract', () => {
             let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash1));
 
             const msg = abi.encode(
-                ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
-                [channelId, indexer.address, consumerProxy.address, amount, expiration, consumerSign]
+                ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes32', 'bytes'],
+                [channelId, indexer.address, consumerProxy.address, amount, expiration, deploymentId, consumerSign]
             );
             let payloadHash = ethers.utils.keccak256(msg);
             let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
@@ -363,6 +365,7 @@ describe('StateChannel Contract', () => {
                 consumerProxy.address,
                 amount,
                 expiration,
+                deploymentId,
                 consumerSign,
                 indexerSign,
                 signerSign
@@ -419,8 +422,8 @@ describe('StateChannel Contract', () => {
             const callback = abi.encode(['address', 'bytes'], [consumer.address, consumerSign]);
 
             const msg = abi.encode(
-                ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
-                [channelId, indexer.address, consumerHoster.address, amount, expiration, callback]
+                ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes32', 'bytes'],
+                [channelId, indexer.address, consumerHoster.address, amount, expiration, deploymentId, callback]
             );
             let payloadHash = ethers.utils.keccak256(msg);
             let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
@@ -432,6 +435,7 @@ describe('StateChannel Contract', () => {
                 consumerHoster.address,
                 amount,
                 expiration,
+                deploymentId,
                 callback,
                 indexerSign,
                 signerSign

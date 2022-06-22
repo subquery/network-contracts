@@ -34,6 +34,7 @@ struct ChannelState {
     uint256 balance;
     uint256 expirationAt;
     uint256 challengeAt;
+    bytes32 deploymentId;
 }
 
 // The state for checkpoint Query.
@@ -95,6 +96,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address consumer,
         uint256 amount,
         uint256 expiration,
+        bytes32 deploymentId,
         bytes memory callback,
         bytes memory indexerSign,
         bytes memory consumerSign
@@ -108,12 +110,11 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address controller = indexerRegistry.indexerToController(indexer);
 
         // check sign
-        bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, amount, expiration, callback));
+        bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, amount, expiration, deploymentId, callback));
         if (_isContract(consumer)) {
             require(consumer.supportsInterface(type(IConsumer).interfaceId), 'Contract is not IConsumer');
             IConsumer cConsumer = IConsumer(consumer);
-            address signer = cConsumer.signer();
-            _checkSign(payload, indexerSign, consumerSign, indexer, controller, signer);
+            _checkSign(payload, indexerSign, consumerSign, indexer, controller, cConsumer.signer());
             // transfer the balance to contract
             IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
             cConsumer.paid(channelId, amount, callback);
@@ -131,6 +132,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         channels[channelId].count = 0;
         channels[channelId].balance = amount;
         channels[channelId].challengeAt = 0;
+        channels[channelId].deploymentId = deploymentId;
 
         emit ChannelOpen(channelId, indexer, consumer);
     }
