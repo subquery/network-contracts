@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
+import {ethers} from 'hardhat';
 import {deployContracts} from './setup';
 import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
 import {IndexerRegistry, RewardsDistributer, EraManager, SQToken, Staking, StateChannel} from '../src';
@@ -10,7 +10,6 @@ import {constants, registerIndexer, startNewEra, time, delay, etherParse} from '
 import {utils, Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
 
 describe('StateChannel Contract', () => {
-    const mockProvider = waffle.provider;
     const deploymentId = deploymentIds[0];
     let wallet_0, indexer, consumer, consumer2, signer, consumerProxy, consumerHoster;
 
@@ -176,15 +175,15 @@ describe('StateChannel Contract', () => {
 
         it('checkpoint State Channel three steps', async () => {
             const balance = await token.balanceOf(consumer.address);
-            expect(balance).to.equal(etherParse("5")); 
+            expect(balance).to.equal(etherParse("5"));
 
             const channelId = ethers.utils.randomBytes(32);
             await openChannel(channelId, indexer, consumer, etherParse("1"), 60);
 
             const balance1 = await token.balanceOf(consumer.address);
-            expect(balance1).to.equal(etherParse("4")); 
+            expect(balance1).to.equal(etherParse("4"));
 
-            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, etherParse("0.01")); 
+            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, etherParse("0.01"));
             await stateChannel.checkpoint(query1);
             expect((await stateChannel.channel(channelId)).balance).to.equal(etherParse("0.9"));
 
@@ -210,16 +209,16 @@ describe('StateChannel Contract', () => {
             expect(eraReward).to.be.eq(0);
             expect(totalReward).to.be.eq(etherParse("0.1"));
 
-            const query2 = await buildQueryState(channelId, indexer, consumer, false, 20, etherParse("0.01")); 
+            const query2 = await buildQueryState(channelId, indexer, consumer, false, 20, etherParse("0.01"));
             await stateChannel.checkpoint(query2);
-            expect((await stateChannel.channel(channelId)).balance).to.equal(etherParse("0.8")); 
+            expect((await stateChannel.channel(channelId)).balance).to.equal(etherParse("0.8"));
 
-            const query3 = await buildQueryState(channelId, indexer, consumer, true, 40, etherParse("0.02")); 
+            const query3 = await buildQueryState(channelId, indexer, consumer, true, 40, etherParse("0.02"));
             await stateChannel.checkpoint(query3);
-            expect((await stateChannel.channel(channelId)).balance).to.equal(0); 
+            expect((await stateChannel.channel(channelId)).balance).to.equal(0);
 
             const balance2 = await token.balanceOf(consumer.address);
-            expect(balance2).to.equal(etherParse("4.4")); 
+            expect(balance2).to.equal(etherParse("4.4"));
         });
     });
 
@@ -317,7 +316,7 @@ describe('StateChannel Contract', () => {
 
     describe('State Channel IConsumer', () => {
         beforeEach(async () => {
-            await registerIndexer(indexer);
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '10');
             await token.connect(wallet_0).transfer(consumer.address, 10000);
             await token.connect(wallet_0).transfer(consumer2.address, 10000);
             const ConsumerProxy = await ethers.getContractFactory('ConsumerProxy');
@@ -364,10 +363,10 @@ describe('StateChannel Contract', () => {
                 signerSign
             );
 
-            const query1 = await buildQueryState(channelId, indexer, signer, false, 2, 10);
-            const query2 = await buildQueryState(channelId, indexer, signer, false, 4, 10);
-            const query3 = await buildQueryState(channelId, indexer, signer, false, 5, 10);
-            const query4 = await buildQueryState(channelId, indexer, signer, true, 8, 10);
+            const query1 = await buildQueryState(channelId, indexer, signer, false, 2, BigNumber.from(10));
+            const query2 = await buildQueryState(channelId, indexer, signer, false, 4, BigNumber.from(10));
+            const query3 = await buildQueryState(channelId, indexer, signer, false, 5, BigNumber.from(10));
+            const query4 = await buildQueryState(channelId, indexer, signer, true, 8, BigNumber.from(10));
 
             // checkpoint
             await stateChannel.checkpoint(query1);
@@ -435,10 +434,10 @@ describe('StateChannel Contract', () => {
             );
             expect(await consumerHoster.channels(channelId)).to.equal(consumer.address);
 
-            const query1 = await buildQueryState(channelId, indexer, signer, false, 2, 10);
-            const query2 = await buildQueryState(channelId, indexer, signer, false, 4, 10);
-            const query3 = await buildQueryState(channelId, indexer, signer, false, 5, 10);
-            const query4 = await buildQueryState(channelId, indexer, signer, true, 8, 10);
+            const query1 = await buildQueryState(channelId, indexer, signer, false, 2, BigNumber.from(10));
+            const query2 = await buildQueryState(channelId, indexer, signer, false, 4, BigNumber.from(10));
+            const query3 = await buildQueryState(channelId, indexer, signer, false, 5, BigNumber.from(10));
+            const query4 = await buildQueryState(channelId, indexer, signer, true, 8, BigNumber.from(10));
 
             // checkpoint
             await stateChannel.checkpoint(query1);
