@@ -2,33 +2,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {Wallet} from 'ethers';
+import {ethers} from 'hardhat';
 import {deployContracts} from './setup';
 import {METADATA_HASH, METADATA_1_HASH, VERSION, DEPLOYMENT_ID} from './constants';
-import {EraManager, IndexerRegistry, SQToken, QueryRegistry, Staking, RewardsDistributer} from '../src';
+import {IndexerRegistry, SQToken, QueryRegistry, Staking, RewardsDistributer} from '../src';
+import {etherParse, registerIndexer} from './helper'
 
 const {constants} = require('@openzeppelin/test-helpers');
 
 describe('IndexerRegistry Contract', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
-    const COMMISSION_RATE_MULTIPLIER = 1e3;
-    let indexer;
 
     let token: SQToken;
     let staking: Staking;
     let queryRegistry: QueryRegistry;
     let indexerRegistry: IndexerRegistry;
-    let eraManager: EraManager;
     let rewardsDistributer: RewardsDistributer;
 
-    const registerIndexer = async (wallet: Wallet) => {
-        await token.connect(wallet_0).transfer(wallet.address, 2000000000);
-        await token.connect(wallet).increaseAllowance(staking.address, 2000000000);
-        const tx = await indexerRegistry.connect(wallet).registerIndexer(1000000000, METADATA_HASH, 0);
-        return tx;
-    };
 
     const checkControllerIsEmpty = async () => {
         expect(await indexerRegistry.indexerToController(wallet_0.address)).to.equal(constants.ZERO_ADDRESS);
@@ -37,36 +27,34 @@ describe('IndexerRegistry Contract', () => {
 
     beforeEach(async () => {
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
-        indexer = wallet_0.address;
         const deployment = await deployContracts(wallet_0, wallet_1);
         token = deployment.token;
         staking = deployment.staking;
         queryRegistry = deployment.queryRegistry;
         indexerRegistry = deployment.indexerRegistry;
-        eraManager = deployment.eraManager;
         rewardsDistributer = deployment.rewardsDistributer;
-        await registerIndexer(wallet_0);
+        await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, "10");
     });
 
     describe('Indexer Registry', () => {
         it('register indexer should work', async () => {
-            await expect(registerIndexer(wallet_1))
+            await expect(registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, "10"))
                 .to.be.emit(indexerRegistry, 'RegisterIndexer')
-                .withArgs(wallet_1.address, 1000000000, METADATA_HASH);
+                .withArgs(wallet_1.address, etherParse("5"), METADATA_HASH);
 
             // check state changes
             expect(await indexerRegistry.isIndexer(wallet_1.address)).to.equal(true);
             expect(await indexerRegistry.metadataByIndexer(wallet_1.address)).to.equal(METADATA_HASH);
-            expect(await staking.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(1000000000);
+            expect(await staking.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(etherParse("5"));
             expect(await staking.getCommissionRate(wallet_1.address)).to.equal(0);
             expect(await rewardsDistributer.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
-                1000000000
+                etherParse("5")
             );
             expect(await rewardsDistributer.commissionRates(wallet_1.address)).to.equal(0);
         });
 
         it('registered indexer reregister should fail', async () => {
-            await expect(indexerRegistry.registerIndexer(1000000000, METADATA_HASH, 0)).to.be.revertedWith(
+            await expect(indexerRegistry.registerIndexer(etherParse("5"), METADATA_HASH, 0)).to.be.revertedWith(
                 'Already registered'
             );
         });
@@ -121,7 +109,7 @@ describe('IndexerRegistry Contract', () => {
         it('set controller with used account should fail', async () => {
             // wallet_0 add wallet_2 as controller
             await indexerRegistry.setControllerAccount(wallet_2.address);
-            await registerIndexer(wallet_1);
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, "10");
             // wallet_1 try to add wallet_2 as controller should fail
             await expect(indexerRegistry.connect(wallet_1).setControllerAccount(wallet_2.address)).to.be.revertedWith(
                 'Controller account is used by an indexer already'

@@ -6,7 +6,7 @@ import {ethers, waffle} from 'hardhat';
 import {deployContracts} from './setup';
 import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
 import {IndexerRegistry, RewardsDistributer, EraManager, SQToken, Staking, StateChannel} from '../src';
-import {constants, registerIndexer, startNewEra, time, delay} from './helper';
+import {constants, registerIndexer, startNewEra, time, delay, etherParse} from './helper';
 import {utils, Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
 
 describe('StateChannel Contract', () => {
@@ -21,18 +21,11 @@ describe('StateChannel Contract', () => {
     let rewardsDistributor: RewardsDistributer;
     let stateChannel: StateChannel;
 
-    const registerIndexer = async (wallet: Wallet) => {
-        await token.connect(wallet_0).transfer(wallet.address, 2000000000);
-        await token.connect(wallet).increaseAllowance(staking.address, 2000000000);
-        const tx = await indexerRegistry.connect(wallet).registerIndexer(1000000000, METADATA_HASH, 0);
-        return tx;
-    };
-
     const openChannel = async (
         channelId: Uint8Array,
         indexer: Wallet,
         consumer: Wallet,
-        amount: number,
+        amount: BigNumber,
         expiration: number
     ) => {
         const abi = ethers.utils.defaultAbiCoder;
@@ -70,7 +63,7 @@ describe('StateChannel Contract', () => {
         consumer: Wallet,
         isFinal: boolean,
         count: number,
-        price: number
+        price: BigNumber
     ): Promise<{
         channelId: BigNumberish;
         isFinal: boolean;
@@ -129,71 +122,71 @@ describe('StateChannel Contract', () => {
 
     describe('State Channel Open', () => {
         beforeEach(async () => {
-            await registerIndexer(indexer);
-            await token.connect(wallet_0).transfer(consumer.address, 10000);
-            await token.connect(consumer).increaseAllowance(stateChannel.address, 10000);
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '10');
+            await token.connect(wallet_0).transfer(consumer.address, etherParse("5"));
+            await token.connect(consumer).increaseAllowance(stateChannel.address, etherParse("5"));
         });
 
         it('open a State Channel should work', async () => {
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, 100, 60);
+            await openChannel(channelId, indexer, consumer, etherParse("1"), 60);
 
             const channel = await stateChannel.channel(channelId);
             expect(channel.status).to.equal(1); // 0 is Finalized, 1 is Open, 2 is Challenge
             expect(channel.indexer).to.equal(indexer.address);
             expect(channel.consumer).to.equal(consumer.address);
-            expect(channel.balance).to.equal(100);
+            expect(channel.balance).to.equal(etherParse("1"));
         });
 
         it('repeat same channel Id State Channel should not work', async () => {
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, 10, 6);
-            await expect(openChannel(channelId, indexer, consumer, 100, 60)).to.be.revertedWith(
+            await openChannel(channelId, indexer, consumer, etherParse("0.5"), 6);
+            await expect(openChannel(channelId, indexer, consumer, etherParse("0.5"), 60)).to.be.revertedWith(
                 'ChannelId already existed'
             );
         });
 
         it('repeat same channel Id after channel is finalized', async () => {
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, 1000, 60);
+            await openChannel(channelId, indexer, consumer, etherParse("1"), 60);
 
             const balance = await token.balanceOf(stateChannel.address);
-            expect(balance).to.equal(1000);
+            expect(balance).to.equal(etherParse("1"));
 
-            const query = await buildQueryState(channelId, indexer, consumer, true, 10, 10);
+            const query = await buildQueryState(channelId, indexer, consumer, true, 10, etherParse("0.1"));
             await stateChannel.checkpoint(query);
             expect((await stateChannel.channel(channelId)).status).to.equal(0);
 
             const balance2 = await token.balanceOf(stateChannel.address);
             expect(balance2).to.equal(0);
 
-            await openChannel(channelId, indexer, consumer, 10, 6);
+            await openChannel(channelId, indexer, consumer, etherParse("0.1"), 6);
             const channel = await stateChannel.channel(channelId);
             expect(channel.status).to.equal(1);
-            expect(channel.balance).to.equal(10);
+            expect(channel.balance).to.equal(etherParse("0.1"));
         });
     });
 
     describe('State Channel Checkpoint', () => {
         beforeEach(async () => {
-            await registerIndexer(indexer);
-            await token.connect(wallet_0).transfer(consumer.address, 10000);
-            await token.connect(consumer).increaseAllowance(stateChannel.address, 10000);
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '10');
+            await token.connect(wallet_0).transfer(consumer.address, etherParse("5"));
+            await token.connect(consumer).increaseAllowance(stateChannel.address, etherParse("5"));
         });
 
         it('checkpoint State Channel three steps', async () => {
             const balance = await token.balanceOf(consumer.address);
-            expect(balance).to.equal(10000); // 10000
+            expect(balance).to.equal(etherParse("5")); 
 
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, 1000, 60);
+            await openChannel(channelId, indexer, consumer, etherParse("1"), 60);
 
             const balance1 = await token.balanceOf(consumer.address);
-            expect(balance1).to.equal(9000); // 10000 - 1000
+            expect(balance1).to.equal(etherParse("4")); 
 
-            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, 10); // 10 * 10
+            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, etherParse("0.01")); 
             await stateChannel.checkpoint(query1);
-            expect((await stateChannel.channel(channelId)).balance).to.equal(900); // 1000 - 100
+            expect((await stateChannel.channel(channelId)).balance).to.equal(etherParse("0.9"));
 
             const currentEar = await (await eraManager.eraNumber()).toNumber();
             const rewardsAddTable = await rewardsDistributor.getRewardsAddTable(
@@ -209,44 +202,44 @@ describe('StateChannel Contract', () => {
             const [eraReward, totalReward] = rewardsAddTable.reduce(
                 (acc, val, idx) => {
                     let [eraReward, total] = acc;
-                    eraReward += val.toNumber() - rewardsRemoveTable[idx].toNumber();
-                    return [eraReward, total + eraReward];
+                    eraReward = eraReward.add(val.sub(rewardsRemoveTable[idx]));
+                    return [eraReward, total.add(eraReward)];
                 },
-                [0, 0]
+                [BigNumber.from(0), BigNumber.from(0)]
             );
             expect(eraReward).to.be.eq(0);
-            expect(totalReward).to.be.eq(100);
+            expect(totalReward).to.be.eq(etherParse("0.1"));
 
-            const query2 = await buildQueryState(channelId, indexer, consumer, false, 20, 4); // (20 - 10) * 4
+            const query2 = await buildQueryState(channelId, indexer, consumer, false, 20, etherParse("0.01")); 
             await stateChannel.checkpoint(query2);
-            expect((await stateChannel.channel(channelId)).balance).to.equal(860); // 900 - 40
+            expect((await stateChannel.channel(channelId)).balance).to.equal(etherParse("0.8")); 
 
-            const query3 = await buildQueryState(channelId, indexer, consumer, true, 40, 8); // (40 - 20) * 8
+            const query3 = await buildQueryState(channelId, indexer, consumer, true, 40, etherParse("0.02")); 
             await stateChannel.checkpoint(query3);
-            expect((await stateChannel.channel(channelId)).balance).to.equal(0); // remain 860 - 160
+            expect((await stateChannel.channel(channelId)).balance).to.equal(0); 
 
             const balance2 = await token.balanceOf(consumer.address);
-            expect(balance2).to.equal(9700); // 9000 + 700
+            expect(balance2).to.equal(etherParse("4.4")); 
         });
     });
 
     describe('State Channel Challenge', () => {
         beforeEach(async () => {
-            await registerIndexer(indexer);
-            await token.connect(wallet_0).transfer(consumer.address, 10000);
-            await token.connect(consumer).increaseAllowance(stateChannel.address, 10000);
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '10');
+            await token.connect(wallet_0).transfer(consumer.address, etherParse("5"));
+            await token.connect(consumer).increaseAllowance(stateChannel.address, etherParse("5"));
         });
 
         it('challenge State Channel success', async () => {
             await stateChannel.setChallengeExpiration(5); // 5s
 
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, 1000, 60);
+            await openChannel(channelId, indexer, consumer, etherParse("1"), 60);
 
-            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, 10);
+            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, etherParse("0.01"));
             await stateChannel.challenge(query1);
             const state1 = await stateChannel.channel(channelId);
-            expect(state1.balance).to.equal(900); // 1000 - 100
+            expect(state1.balance).to.equal(etherParse("0.9"));
             expect(state1.status).to.equal(2); // Challenge
 
             await expect(stateChannel.claim(channelId)).to.be.revertedWith('Channel not expired');
@@ -255,25 +248,25 @@ describe('StateChannel Contract', () => {
             await stateChannel.claim(channelId);
 
             const balance2 = await token.balanceOf(consumer.address);
-            expect(balance2).to.equal(9900);
+            expect(balance2).to.equal(etherParse("4.9"));
         });
 
         it('challenge State Channel failure with respond', async () => {
             await stateChannel.setChallengeExpiration(5); // 5s
 
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, 1000, 60);
+            await openChannel(channelId, indexer, consumer, etherParse("1"), 60);
 
-            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, 10);
+            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, etherParse("0.01"));
             await stateChannel.challenge(query1);
             const state1 = await stateChannel.channel(channelId);
-            expect(state1.balance).to.equal(900); // 1000 - 100
+            expect(state1.balance).to.equal(etherParse("0.9")); // 1000 - 100
             expect(state1.status).to.equal(2); // Challenge
 
-            const query2 = await buildQueryState(channelId, indexer, consumer, false, 20, 10);
+            const query2 = await buildQueryState(channelId, indexer, consumer, false, 20, etherParse("0.01"));
             await stateChannel.respond(query2);
             const state2 = await stateChannel.channel(channelId);
-            expect(state2.balance).to.equal(800); // 900 - 100
+            expect(state2.balance).to.equal(etherParse("0.8")); // 900 - 100
             expect(state2.status).to.equal(1); // Open
 
             await expect(stateChannel.claim(channelId)).to.be.revertedWith('Channel not expired');
@@ -281,21 +274,21 @@ describe('StateChannel Contract', () => {
 
         it('challenge State Channel with continue fund', async () => {
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, 1000, 5); // 5s expiration
+            await openChannel(channelId, indexer, consumer, etherParse("1"), 5); // 5s expiration
 
             await delay(6); // channel is expirationAt
 
             const abi = ethers.utils.defaultAbiCoder;
             const msg = abi.encode(
                 ['uint256', 'address', 'address', 'uint256'],
-                [channelId, indexer.address, consumer.address, 100]
+                [channelId, indexer.address, consumer.address, etherParse("0.1")]
             );
             let payload = ethers.utils.keccak256(msg);
             let sign = await consumer.signMessage(ethers.utils.arrayify(payload));
             const recover = ethers.utils.verifyMessage(ethers.utils.arrayify(payload), sign);
             expect(consumer.address).to.equal(recover);
 
-            await expect(stateChannel.fund(channelId, 100, sign)).to.be.revertedWith('Channel lost efficacy');
+            await expect(stateChannel.fund(channelId, etherParse("0.1"), sign)).to.be.revertedWith('Channel lost efficacy');
 
             // extend the expiration
             const state = await stateChannel.channel(channelId);
@@ -312,9 +305,9 @@ describe('StateChannel Contract', () => {
             await stateChannel.extend(channelId, preExpirationAt, nextExpiration, indexerSign, consumerSign);
 
             // fund again when renewal expirationAt.
-            await stateChannel.fund(channelId, 100, sign);
+            await stateChannel.fund(channelId, etherParse("0.1"), sign);
             const state2 = await stateChannel.channel(channelId);
-            expect(state2.balance).to.equal(1100);
+            expect(state2.balance).to.equal(etherParse("1.1"));
 
             await expect(
                 stateChannel.extend(channelId, preExpirationAt, nextExpiration, indexerSign, consumerSign)

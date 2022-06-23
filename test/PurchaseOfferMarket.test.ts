@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import {expect} from 'chai';
-import {Contract, Wallet} from 'ethers';
+import {Wallet} from 'ethers';
 import {ethers, waffle} from 'hardhat';
 import {deployContracts} from './setup';
 import {DEPLOYMENT_ID, METADATA_HASH, VERSION, mmrRoot} from './constants';
-import {futureTimestamp, timeTravel, time} from './helper';
+import {futureTimestamp, timeTravel, time, createPurchaseOffer, registerIndexer, etherParse} from './helper';
 import {
     IndexerRegistry,
     PurchaseOfferMarket,
@@ -32,30 +32,11 @@ describe('Purchase Offer Market Contract', () => {
     let planManager: PlanManager;
 
     let futureDate;
-    const deposit = 100;
+    const contractPeriod = 1000;
+    const deposit = etherParse("2");
     const limit = 1;
     const minimumAcceptHeight = 100;
-    const contractPeriod = 1000;
     const planTemplateId = 0;
-
-    const createPurchaseOffer = async (expireDate: number) => {
-        await token.increaseAllowance(purchaseOfferMarket.address, 10000);
-        await purchaseOfferMarket.createPurchaseOffer(
-            DEPLOYMENT_ID,
-            planTemplateId,
-            deposit,
-            limit,
-            minimumAcceptHeight,
-            expireDate
-        );
-    };
-
-    const registerIndexer = async (wallet: Wallet, controller: string) => {
-        await token.connect(wallet_0).transfer(wallet.address, 1000000000);
-        await token.connect(wallet).increaseAllowance(staking.address, 1000000000);
-        await indexerRegistry.connect(wallet).registerIndexer(1000000000, METADATA_HASH, 0);
-        await indexerRegistry.connect(wallet).setControllerAccount(controller);
-    };
 
     beforeEach(async () => {
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
@@ -70,7 +51,7 @@ describe('Purchase Offer Market Contract', () => {
         rewardsDistributor = deployment.rewardsDistributer;
         planManager = deployment.planManager;
         await planManager.createPlanTemplate(contractPeriod, 1000, 100, METADATA_HASH);
-        await createPurchaseOffer(futureDate);
+        await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
     });
 
     describe('Purchase Offer Market', () => {
@@ -88,7 +69,7 @@ describe('Purchase Offer Market Contract', () => {
                 expect((await planManager.getPlanTemplate(offer.planTemplateId)).period).to.equal(contractPeriod);
                 expect(offer.cancelled).to.equal(false);
                 expect(await purchaseOfferMarket.numOffers()).to.be.equal(1);
-                expect(await token.balanceOf(purchaseOfferMarket.address)).to.equal(deposit * limit);
+                expect(await token.balanceOf(purchaseOfferMarket.address)).to.equal(deposit.mul(limit));
             });
 
             it('create offer with invalid params should fail ', async () => {
@@ -141,7 +122,7 @@ describe('Purchase Offer Market Contract', () => {
                 expect(offer.cancelled).to.equal(true);
 
                 // check balance changed
-                const amount = deposit * limit;
+                const amount = deposit.mul(limit);
                 expect(await token.balanceOf(purchaseOfferMarket.address)).to.equal(offerMarketBalance.sub(amount));
                 expect(await token.balanceOf(wallet_0.address)).to.equal(consumerBalance.add(amount));
             });
@@ -158,9 +139,9 @@ describe('Purchase Offer Market Contract', () => {
                 expect(offer.cancelled).to.equal(true);
 
                 // check balance changed
-                const amount = deposit * limit;
-                const penalty = amount * 0.1;
-                const rest = amount - penalty;
+                const amount = deposit.mul(limit);
+                const penalty = amount.div(10);
+                const rest = amount.sub(penalty);
                 expect(await token.balanceOf(purchaseOfferMarket.address)).to.equal(offerMarketBalance.sub(amount));
                 expect(await token.balanceOf(wallet_0.address)).to.equal(consumerBalance.add(rest));
                 expect(await token.totalSupply()).to.equal(totalSupply.sub(penalty));
@@ -195,10 +176,12 @@ describe('Purchase Offer Market Contract', () => {
         describe('Accept Purchase Offer', () => {
             beforeEach(async () => {
                 // create second offer
-                await createPurchaseOffer(await futureTimestamp(mockProvider));
+                await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
                 // register indexers
-                await registerIndexer(wallet_0, wallet_1.address);
-                await registerIndexer(wallet_1, wallet_0.address);
+                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, "10");
+                await indexerRegistry.connect(wallet_0).setControllerAccount(wallet_1.address);
+                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, "10");
+                await indexerRegistry.connect(wallet_1).setControllerAccount(wallet_0.address);
                 // create query project
                 await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
                 // wallet_0 start project

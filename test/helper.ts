@@ -6,6 +6,7 @@ import {BigNumber, Contract, Wallet, utils} from 'ethers';
 import {IndexerRegistry, EraManager, ClosedServiceAgreement__factory} from '../src';
 import {METADATA_HASH} from './constants';
 const {constants, time} = require('@openzeppelin/test-helpers');
+import web3 from 'web3';
 
 export {constants, time};
 
@@ -39,21 +40,35 @@ export async function registerIndexer(
     indexerRegistry: IndexerRegistry,
     staking: Contract,
     rootWallet: Wallet,
-    wallet: Wallet
+    wallet: Wallet,
+    amount: string
 ) {
-    const amount = 1000000000;
-    await token.connect(rootWallet).transfer(wallet.address, amount);
-    await token.connect(wallet).increaseAllowance(staking.address, amount);
-    await indexerRegistry.connect(wallet).registerIndexer(amount, METADATA_HASH, 0, {gasLimit: '2000000'});
+    await token.connect(rootWallet).transfer(wallet.address, etherParse(amount));
+    await token.connect(wallet).increaseAllowance(staking.address, etherParse(amount));
+    const tx = await indexerRegistry.connect(wallet).registerIndexer(etherParse(amount).div(2), METADATA_HASH, 0, {gasLimit: '2000000'});
+    return tx;
 }
 
 export async function createPurchaseOffer(
-    mockProvider: MockProvider,
     purchaseOfferMarket: Contract,
+    token: Contract,
     deploymentId: string,
-    lockPeriod = 1000
+    expireDate
 ) {
-    await purchaseOfferMarket.createPurchaseOffer(deploymentId, 0, 100, 2, 100, await futureTimestamp(mockProvider));
+    const deposit = etherParse("2");
+    const limit = 1;
+    const minimumAcceptHeight = 100;
+    const planTemplateId = 0;
+
+    await token.increaseAllowance(purchaseOfferMarket.address, etherParse("2"));
+    await purchaseOfferMarket.createPurchaseOffer(
+        deploymentId,
+        planTemplateId,
+        deposit,
+        limit,
+        minimumAcceptHeight,
+        expireDate
+    );
 }
 
 export async function startNewEra(mockProvider: MockProvider, eraManager: EraManager): Promise<BigNumber> {
@@ -77,7 +92,7 @@ export async function generateAgreement(
     indexerAddr: string,
     consumerAddr: string,
     period: number,
-    value: number,
+    value: BigNumber,
     root,
     mockProvider: MockProvider,
     DEPLOYMENT_ID,
@@ -96,4 +111,8 @@ export async function generateAgreement(
     );
     await csAgreement.deployTransaction.wait();
     return csAgreement;
+}
+
+export function etherParse(etherNum: string) {
+    return BigNumber.from(web3.utils.toWei(etherNum, 'ether'));
 }
