@@ -15,7 +15,7 @@ on:
 jobs:
   Upgrade-Contracts:
     name: Upgrade-Contracts
-    if: "startsWith(github.event.head_commit.message, '[upgrade-testnet]') && github.repository == 'subquery/contracts' || github.event_name == 'workflow_dispatch'"
+    if: "startsWith(github.event.head_commit.message, '[upgrade-testnet]') && github.repository == 'subquery/network-contracts ' || github.event_name == 'workflow_dispatch'"
     runs-on: ubuntu-latest
     env:
       SEED: ${{ secrets.SEED }}
