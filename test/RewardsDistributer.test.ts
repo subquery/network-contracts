@@ -18,7 +18,7 @@ import {
     Settings,
     InflationController,
 } from '../src';
-import {startNewEra, time, generateAgreement, etherParse} from './helper';
+import {startNewEra, time, generateAgreement, etherParse, timeTravel} from './helper';
 
 describe('RewardsDistributer Contract', () => {
     const mockProvider = waffle.provider;
@@ -99,7 +99,6 @@ describe('RewardsDistributer Contract', () => {
 
     describe('Rewards Split', async () => {
         beforeEach(async () => {
-            //a 30 days agreement with 400 rewards come in at Era2
             const agreement = await generateAgreement(
                 indexer.address,
                 consumer.address,
@@ -113,6 +112,20 @@ describe('RewardsDistributer Contract', () => {
             //await timeTravel(mockProvider, 1000);
             await rewardsDistributor.connect(root).increaseAgreementRewards(indexer.address, agreement.address);
         });
+        it('split rewards into 2 eras should work', async () => {
+            await timeTravel(mockProvider, 60*60*24*4);
+            const agreement = await generateAgreement(
+                indexer.address,
+                consumer.address,
+                5,
+                etherParse("3"),
+                root,
+                mockProvider,
+                DEPLOYMENT_ID,
+                settings
+            );
+            await rewardsDistributor.connect(root).increaseAgreementRewards(indexer.address, agreement.address);
+        })
         it('split rewards into eras should work', async () => {
             const currentEar = await (await eraManager.eraNumber()).toNumber();
 
