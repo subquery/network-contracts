@@ -353,6 +353,8 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         rewardInfo.lastClaimEra++;
         rewardInfo.eraReward += rewardInfo.eraRewardAddTable[rewardInfo.lastClaimEra];
         rewardInfo.eraReward -= rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
+        delete rewardInfo.eraRewardAddTable[rewardInfo.lastClaimEra];
+        delete rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
         if (rewardInfo.eraReward != 0) {
             distributeRewards(indexer, rewardInfo.eraReward);
             emit DistributeRewards(indexer, currentEra);

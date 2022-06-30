@@ -160,8 +160,9 @@ describe('RewardsDistributer Contract', () => {
         it('rewards should be able to collect and distribute', async () => {
             //move to Era3
             await startNewEra(mockProvider, eraManager);
-
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
+            expect((await rewardsDistributor.getRewardsAddTable(indexer.address, 2, 1))[0]).to.be.eq(etherParse("0"));
+            expect((await rewardsDistributor.getRewardsRemoveTable(indexer.address, 2, 1))[0]).to.be.eq(etherParse("0"));
             //commission for indexer be 6
             expect(await token.balanceOf(indexer.address)).to.be.eq(etherParse("0.05"));
             //staking rewards for indexer be 60
@@ -171,6 +172,8 @@ describe('RewardsDistributer Contract', () => {
             //move to Era 4
             await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
+            expect((await rewardsDistributor.getRewardsAddTable(indexer.address, 3, 1))[0]).to.be.eq(etherParse("0"));
+            expect((await rewardsDistributor.getRewardsRemoveTable(indexer.address, 3, 1))[0]).to.be.eq(etherParse("0"));
             expect(await token.balanceOf(indexer.address)).to.be.eq(etherParse("0.55"));
             await rewardsDistributor.connect(indexer).claim(indexer.address);
             expect(await token.balanceOf(indexer.address)).to.be.eq(etherParse("1"));
@@ -178,6 +181,8 @@ describe('RewardsDistributer Contract', () => {
             //move to Era 5
             await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
+            expect((await rewardsDistributor.getRewardsAddTable(indexer.address, 4, 1))[0]).to.be.eq(etherParse("0"));
+            expect((await rewardsDistributor.getRewardsRemoveTable(indexer.address, 4, 1))[0]).to.be.eq(etherParse("0"));
             expect(await token.balanceOf(indexer.address)).to.be.eq(etherParse("1.05"));
             await rewardsDistributor.connect(indexer).claim(indexer.address);
             expect(await token.balanceOf(indexer.address)).to.be.eq(etherParse("1.5"));
