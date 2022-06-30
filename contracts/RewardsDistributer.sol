@@ -227,7 +227,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             rewardInfo.eraRewardAddTable[agreementStartEra] += firstEraReward;
 
             uint256 postEndEra = agreementStartEra + 2;
-            rewardInfo.eraRewardAddTable[agreementStartEra + 1] += lastEraReward < lastEraReward
+            rewardInfo.eraRewardAddTable[agreementStartEra + 1] += firstEraReward < lastEraReward
                 ? lastEraReward - firstEraReward
                 : firstEraReward - lastEraReward;
             rewardInfo.eraRewardRemoveTable[postEndEra] += lastEraReward;
