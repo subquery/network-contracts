@@ -11,7 +11,6 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IPlanManager.sol';
-import './ClosedServiceAgreement.sol';
 
 /**
  * @title Plan Manager Contract
@@ -214,8 +213,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         );
 
         // create closed service agreement contract
-        ClosedServiceAgreement serviceAgreement = new ClosedServiceAgreement(
-            address(settings),
+        ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
             msg.sender,
             _indexer,
             _deploymentId,
@@ -229,7 +227,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         IERC20(settings.getSQToken()).transferFrom(msg.sender, settings.getServiceAgreementRegistry(), plan.price);
 
         IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).establishServiceAgreement(
-            address(serviceAgreement)
+            agreement
         );
     }
 

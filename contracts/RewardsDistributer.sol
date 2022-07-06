@@ -13,7 +13,7 @@ import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IRewardsDistributer.sol';
-import './interfaces/IServiceAgreement.sol';
+import './interfaces/IServiceAgreementRegistry.sol';
 import './Constants.sol';
 
 /**
@@ -192,17 +192,16 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * Rewards split into more then two eras handled by splitEraSpanMore;
      * Use eraRewardAddTable and eraRewardRemoveTable to store and track reward split info at RewardInfo.
      * Only be called by ServiceAgreementRegistry contract when new agreement accepted.
-     * @param indexer indexer adress
-     * @param agreementContract serviceAgreement address
+     * @param agreement agreement from serviceAgreementRegistry
      */
-    function increaseAgreementRewards(address indexer, address agreementContract) external {
+    function increaseAgreementRewards(ClosedServiceAgreementInfo memory agreement) external {
         require(settings.getServiceAgreementRegistry() == msg.sender, 'only from service agreement');
         IEraManager eraManager = IEraManager(settings.getEraManager());
-        IServiceAgreement agreement = IServiceAgreement(agreementContract);
 
-        uint256 agreementPeriod = agreement.period();
-        uint256 agreementValue = agreement.value();
-        uint256 agreementStartDate = agreement.startDate();
+        address indexer = agreement.indexer;
+        uint256 agreementPeriod = agreement.period;
+        uint256 agreementValue = agreement.lockedAmount;
+        uint256 agreementStartDate = agreement.startDate;
         uint256 agreementStartEra = eraManager.timestampToEraNumber(agreementStartDate);
         uint256 eraPeriod = eraManager.eraPeriod();
 
