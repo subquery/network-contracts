@@ -9,6 +9,7 @@ import PlanManager from './artifacts/contracts/PlanManager.sol/PlanManager.json'
 import PurchaseOfferMarket from './artifacts/contracts/PurchaseOfferMarket.sol/PurchaseOfferMarket.json';
 import EraManager from './artifacts/contracts/EraManager.sol/EraManager.json';
 import RewardsDistributer from './artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json';
+import RewardsHelper from './artifacts/contracts/RewardsHelper.sol/RewardsHelper.json';
 import ProxyAdmin from './artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json';
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
 
@@ -24,6 +25,7 @@ export default {
     PurchaseOfferMarket,
     EraManager,
     RewardsDistributer,
+    RewardsHelper,
     ProxyAdmin,
     StateChannel,
 };

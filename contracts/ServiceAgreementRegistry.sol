@@ -88,6 +88,8 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
 
         settings = _settings;
 
+        nextServiceAgreementId = 1;
+
         for (uint256 i; i < _whitelist.length; i++) {
             establisherWhitelist[_whitelist[i]] = true;
         }
@@ -136,6 +138,16 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         return period > SECONDS_IN_DAY ? period / SECONDS_IN_DAY : 1;
     }
 
+    function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement) external returns (uint256) {
+        if (msg.sender != address(this)) {
+            require(establisherWhitelist[msg.sender], 'Address is not authorised to create agreement');
+        }
+        closedServiceAgreements[nextServiceAgreementId] = agreement;
+        uint256 agreementId = nextServiceAgreementId;
+        nextServiceAgreementId += 1;
+        return agreementId;
+    }
+
     /**
      * @dev Establish the generated service agreement.
      * For now only establish the close service agreement generated from PlanManager and PurchsaseOfferMarket.
@@ -149,14 +161,13 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
      * at the same time, it also encourages Indexer to provide better more stable services.
      *
      */
-    function establishServiceAgreement(ClosedServiceAgreementInfo memory agreement) external {
+    function establishServiceAgreement(uint256 agreementId) external {
         if (msg.sender != address(this)) {
             require(establisherWhitelist[msg.sender], 'Address is not authorised to establish agreements');
         }
         //for now only support closed service agreement
-        closedServiceAgreements[nextServiceAgreementId] = agreement;
-        uint256 agreementId = nextServiceAgreementId;
-        nextServiceAgreementId += 1;
+        ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
+        require(agreement.consumer!=address(0),"Only support closedServiceAgreement for now");
 
         address indexer = agreement.indexer;
         address consumer = agreement.consumer;
@@ -188,7 +199,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
 
         // increase agreement rewards
         IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getRewardsDistributer());
-        rewardsDistributer.increaseAgreementRewards(agreement);
+        rewardsDistributer.increaseAgreementRewards(agreementId);
 
         emit ClosedAgreementCreated(consumer, indexer, deploymentId, agreementId);
     }
@@ -226,10 +237,11 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
             agreement.planId,
             agreement.planTemplateId
         );
+        uint256 newAgreementId = this.createClosedServiceAgreement(newAgreement);
 
         // deposit SQToken into serviceAgreementRegistry contract
         IERC20(settings.getSQToken()).transferFrom(msg.sender, address(this), agreement.lockedAmount);
-        this.establishServiceAgreement(newAgreement);
+        this.establishServiceAgreement(newAgreementId);
     }
 
     function clearEndedAgreement(address indexer, uint256 id) public {
@@ -276,7 +288,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         return indexerDeploymentCsaLength[indexer][deploymentId] > 0;
     }
 
-    function getClosedServiceAgreements(uint256 agreementId) external view returns (ClosedServiceAgreementInfo memory) {
+    function getClosedServiceAgreement(uint256 agreementId) external view returns (ClosedServiceAgreementInfo memory) {
         return closedServiceAgreements[agreementId];
     }
 

@@ -7,7 +7,6 @@ import {BigNumber} from 'ethers';
 import {deployContracts} from './setup';
 import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
 import {
-    ClosedServiceAgreement__factory,
     IndexerRegistry,
     PlanManager,
     QueryRegistry,
@@ -220,24 +219,23 @@ describe('PlanManger Contract', () => {
             const tx = await planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, planId);
             const receipt = await tx.wait();
             const evt = receipt.events.find(
-                (log) => log.topics[0] === utils.id('ClosedAgreementCreated(address,address,bytes32,address)')
+                (log) => log.topics[0] === utils.id('ClosedAgreementCreated(address,address,bytes32,uint256)')
             );
-            const agreementAddress = serviceAgreementRegistry.interface.decodeEventLog(
+            const agreementId = serviceAgreementRegistry.interface.decodeEventLog(
                 serviceAgreementRegistry.interface.getEvent('ClosedAgreementCreated'),
                 evt.data
-            ).serviceAgreement;
+            ).serviceAgreementId;
 
             // check balances
-            expect(await token.balanceOf(agreementAddress)).to.equal(0);
             expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(plan.price));
             expect(await token.balanceOf(consumer.address)).to.equal(balance.sub(plan.price));
-            return agreementAddress;
+            return agreementId;
         };
 
         it('accept plan with default plan should work', async () => {
-            const agreementAddr = await checkAcceptPlan(1);
-            const agreement = ClosedServiceAgreement__factory.connect(agreementAddr, mockProvider);
-            expect(await agreement.value()).to.be.eq(etherParse("2"));
+            const agreementId = await checkAcceptPlan(1);
+            const agreement = serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
+            expect(await (await agreement).lockedAmount).to.be.eq(etherParse("2"));
         });
 
         it('claim and distribute rewards by an indexer should work', async () => {
@@ -248,8 +246,6 @@ describe('PlanManger Contract', () => {
             // console.log(`lastClaimed: ${await rewardsDistributor.getLastClaimEra(indexer.address)}`);
             const rewardsAddTable = await rewardsDistributor.getRewardsAddTable(indexer.address, era.sub(1), 5);
             const rewardsRemoveTable = await rewardsDistributor.getRewardsRemoveTable(indexer.address, era.sub(1), 5);
-            console.log(rewardsAddTable);
-            console.log(rewardsRemoveTable);
             const [eraReward, totalReward] = rewardsAddTable.reduce(
                 (acc, val, idx) => {
                     let [eraReward, total] = acc;

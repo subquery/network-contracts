@@ -21,7 +21,7 @@ struct ClosedServiceAgreementInfo {
 
 interface IServiceAgreementRegistry {
 
-    function establishServiceAgreement(ClosedServiceAgreementInfo memory agreement) external;
+    function establishServiceAgreement(uint256 agreementId) external;
 
     function hasOngoingClosedServiceAgreement(address indexer, bytes32 deploymentId) external view returns (bool);
 
@@ -29,8 +29,10 @@ interface IServiceAgreementRegistry {
 
     function removeUser(address consumer, address user) external;
 
-    function getClosedServiceAgreements(uint256 agreementId) external view returns (ClosedServiceAgreementInfo memory);
+    function getClosedServiceAgreement(uint256 agreementId) external view returns (ClosedServiceAgreementInfo memory);
 
     function nextServiceAgreementId() external view returns (uint256);
+
+    function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement) external returns (uint256);
 
 }

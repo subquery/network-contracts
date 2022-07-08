@@ -6,13 +6,14 @@ pragma solidity ^0.8.10;
 import './IServiceAgreementRegistry.sol';
 
 interface IRewardsDistributer {
+    
     function collectAndDistributeRewards(address indexer) external;
 
     function onStakeChange(address indexer, address user) external;
 
     function onICRChange(address indexer, uint256 startEra) external;
 
-    function increaseAgreementRewards(ClosedServiceAgreementInfo memory agreement) external;
+    function increaseAgreementRewards(uint256 agreementId) external;
 
     function addInstantRewards(
         address indexer,
@@ -25,4 +26,5 @@ interface IRewardsDistributer {
     function userRewards(address indexer, address user) external view returns (uint256);
 
     function getTotalStakingAmount(address _indexer) external view returns (uint256);
+    
 }

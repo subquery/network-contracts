@@ -263,19 +263,19 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
             0,
             offer.planTemplateId
         );
+        uint256 agreementId = IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).createClosedServiceAgreement(agreement);
 
         offerMmrRoot[_offerId][msg.sender] = _mmrRoot;
 
         // deposit SQToken into the service agreement registry contract
         IERC20(settings.getSQToken()).transfer(settings.getServiceAgreementRegistry(), offer.deposit);
-
         // Register agreement globally
         IServiceAgreementRegistry serviceAgreementRegistry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
         serviceAgreementRegistry.establishServiceAgreement(
-            agreement
+            agreementId
         );
 
-        emit OfferAccepted(msg.sender, _offerId, serviceAgreementRegistry.nextServiceAgreementId());
+        emit OfferAccepted(msg.sender, _offerId, agreementId);
     }
 
     function isExpired(uint256 _offerId) public view returns (bool) {

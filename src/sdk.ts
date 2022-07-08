@@ -22,6 +22,8 @@ import {
     PlanManager__factory,
     RewardsDistributer,
     RewardsDistributer__factory,
+    RewardsHelper,
+    RewardsHelper__factory,
     PurchaseOfferMarket,
     PurchaseOfferMarket__factory,
     StateChannel,
@@ -47,6 +49,7 @@ export class ContractSDK {
     private _eraManager?: EraManager;
     private _planManager?: PlanManager;
     private _rewardsDistributor?: RewardsDistributer;
+    private _rewardsHelper?: RewardsHelper;
     private _purchaseOfferMarket?: PurchaseOfferMarket;
     private _stateChannel?: StateChannel;
 
@@ -126,6 +129,13 @@ export class ContractSDK {
         return this._rewardsDistributor;
     }
 
+    get rewardsHelper(): RewardsHelper {
+        if (!this._rewardsHelper) {
+            throw new Error(`_rewardsHelper address not found`);
+        }
+        return this._rewardsHelper;
+    }
+
     get purchaseOfferMarket(): PurchaseOfferMarket {
         if (!this._purchaseOfferMarket) {
             throw new Error(`_purchaseOfferMarket address not found`);
@@ -166,6 +176,7 @@ export class ContractSDK {
             eraManager,
             planManager,
             rewardsDistributor,
+            rewardsHelper,
             purchaseOfferMarket,
             stateChannel,
         ] = await Promise.all([
@@ -182,6 +193,7 @@ export class ContractSDK {
             this.initContract(EraManager__factory, this._contractDeployments.EraManager.address),
             this.initContract(PlanManager__factory, this._contractDeployments.PlanManager.address),
             this.initContract(RewardsDistributer__factory, this._contractDeployments.RewardsDistributer.address),
+            this.initContract(RewardsHelper__factory, this._contractDeployments.RewardsHelper.address),
             this.initContract(PurchaseOfferMarket__factory, this._contractDeployments.PurchaseOfferMarket.address),
             this.initContract(StateChannel__factory, this._contractDeployments.StateChannel.address),
         ]);
@@ -195,6 +207,7 @@ export class ContractSDK {
         this._eraManager = eraManager;
         this._planManager = planManager;
         this._rewardsDistributor = rewardsDistributor;
+        this._rewardsHelper = rewardsHelper;
         this._purchaseOfferMarket = purchaseOfferMarket;
         this._stateChannel = stateChannel;
     }

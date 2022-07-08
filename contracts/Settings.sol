@@ -16,8 +16,9 @@ contract Settings is ISettings, Ownable {
     address public planManager;
     address public serviceAgreementRegistry;
     address public rewardsDistributer;
+    address public rewardsHelper;
     address public inflationController;
-
+    
     constructor() Ownable() {}
 
     function setAllAddresses(
@@ -29,6 +30,7 @@ contract Settings is ISettings, Ownable {
         address _planManager,
         address _serviceAgreementRegistry,
         address _rewardsDistributer,
+        address _rewardsHelper,
         address _inflationController
     ) external override onlyOwner {
         sqToken = _sqToken;
@@ -39,6 +41,7 @@ contract Settings is ISettings, Ownable {
         planManager = _planManager;
         serviceAgreementRegistry = _serviceAgreementRegistry;
         rewardsDistributer = _rewardsDistributer;
+        rewardsHelper = _rewardsHelper;
         inflationController = _inflationController;
     }
 
@@ -100,6 +103,14 @@ contract Settings is ISettings, Ownable {
 
     function getRewardsDistributer() external view returns (address) {
         return rewardsDistributer;
+    }
+
+    function setRewardsHelper(address _rewardsHelper) external override onlyOwner {
+        rewardsHelper = _rewardsHelper;
+    }
+
+    function getRewardsHelper() external view returns (address) {
+        return rewardsHelper;
     }
 
     function setInflationController(address _inflationController) external override onlyOwner {

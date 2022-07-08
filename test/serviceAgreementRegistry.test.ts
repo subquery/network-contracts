@@ -8,7 +8,6 @@ import {deployContracts} from './setup';
 import {deploymentIds, DEPLOYMENT_ID, METADATA_HASH, VERSION, mmrRoot} from './constants';
 import {createPurchaseOffer, futureTimestamp, time, timeTravel, etherParse} from './helper';
 import {
-    ClosedServiceAgreement__factory,
     SQToken,
     Staking,
     IndexerRegistry,
@@ -44,16 +43,16 @@ describe('Service Agreement Registry Contract', () => {
                 )
             );
             expect(
-                await serviceAgreementRegistry.getServiceAgreement(wallet.address, agreementInfo.index)
-            ).to.not.equal(agreementInfo.address);
+                await serviceAgreementRegistry.closedServiceAgreementIds(wallet.address, agreementInfo.index)
+            ).to.not.equal(agreementInfo.agreementId);
         } else {
             expect(newValue).to.equal(
                 stateInfo.sumDailyReward.add(
                     BigNumber.from(agreementInfo.value).div(agreementInfo.period / 60 / 60 / 24)
                 )
             );
-            expect(await serviceAgreementRegistry.getServiceAgreement(wallet.address, agreementInfo.index)).to.equal(
-                agreementInfo.address
+            expect(await serviceAgreementRegistry.closedServiceAgreementIds(wallet.address, agreementInfo.index)).to.equal(
+                agreementInfo.agreementId
             );
         }
     };
@@ -139,10 +138,10 @@ describe('Service Agreement Registry Contract', () => {
 
         it('should estabish service agressment successfully', async () => {
             await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
-            const serviceAgreement = await serviceAgreementRegistry.getServiceAgreement(wallet.address, 0);
-            expect(serviceAgreement).to.be.not.equal(constants.ZERO_ADDRESS);
+            const serviceAgreement = await serviceAgreementRegistry.closedServiceAgreementIds(wallet.address, 0);
+            expect(serviceAgreement).to.be.not.equal(0);
             expect(
-                await serviceAgreementRegistry.hasOngoingServiceAgreement(wallet.address, deploymentIds[0])
+                await serviceAgreementRegistry.hasOngoingClosedServiceAgreement(wallet.address, deploymentIds[0])
             ).to.be.equal(true);
         });
 
@@ -182,7 +181,7 @@ describe('Service Agreement Registry Contract', () => {
 
             await expect(
                 serviceAgreementRegistry.connect(wallet1).establishServiceAgreement(serviceAgreementRegistry.address)
-            ).to.be.revertedWith('Contract is not a service agreement');
+            ).to.be.revertedWith('Only support closedServiceAgreement for now');
         });
     });
 
@@ -203,20 +202,20 @@ describe('Service Agreement Registry Contract', () => {
         it('should clear service agressment successfully', async () => {
             await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, await futureTimestamp(mockProvider));
             expect(
-                await serviceAgreementRegistry.hasOngoingServiceAgreement(wallet.address, DEPLOYMENT_ID)
+                await serviceAgreementRegistry.hasOngoingClosedServiceAgreement(wallet.address, DEPLOYMENT_ID)
             ).to.be.equal(false);
 
             await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
-            const serviceAgreement = await serviceAgreementRegistry.getServiceAgreement(wallet.address, 0);
-            expect(serviceAgreement).to.be.not.equal(constants.ZERO_ADDRESS);
+            const serviceAgreement = await serviceAgreementRegistry.closedServiceAgreementIds(wallet.address, 0);
+            expect(serviceAgreement).to.be.not.equal(0);
             expect(
-                await serviceAgreementRegistry.hasOngoingServiceAgreement(wallet.address, DEPLOYMENT_ID)
+                await serviceAgreementRegistry.hasOngoingClosedServiceAgreement(wallet.address, DEPLOYMENT_ID)
             ).to.be.equal(true);
 
             await timeTravel(mockProvider, 2000);
             await serviceAgreementRegistry.clearEndedAgreement(wallet.address, 0);
             expect(
-                await serviceAgreementRegistry.hasOngoingServiceAgreement(wallet.address, DEPLOYMENT_ID)
+                await serviceAgreementRegistry.hasOngoingClosedServiceAgreement(wallet.address, DEPLOYMENT_ID)
             ).to.be.equal(false);
         });
 
@@ -239,29 +238,29 @@ describe('Service Agreement Registry Contract', () => {
                 );
 
                 await purchaseOfferMarket.acceptPurchaseOffer(i, mmrRoot);
-                const agreementContract = await serviceAgreementRegistry.getServiceAgreement(wallet.address, i);
+                const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet.address, i);
                 const agreementInfo = {
                     value: etherParse("2"),
                     period: period,
                     indexer: wallet.address,
-                    address: agreementContract,
+                    agreementId: agreementId,
                     index: i,
                 };
-                Object.assign(agreements, {[agreementContract]: agreementInfo});
+                Object.assign(agreements, {[agreementId.toNumber()]: agreementInfo});
                 await checkStateChange(agreementInfo, stateInfo, false);
             }
 
-            expect(await serviceAgreementRegistry.indexerSaLength(wallet.address)).to.equal(6);
+            expect(await serviceAgreementRegistry.indexerCsaLength(wallet.address)).to.equal(6);
             //time pass 9 days
             await timeTravel(mockProvider, 60 * 60 * 24 * 9);
 
             // get all the expired agreements
             const expiredAgreements = {};
             for (let i = 0; i < 6; i++) {
-                const agreementContract = await serviceAgreementRegistry.getServiceAgreement(wallet.address, i);
-                const agreementExpired = await serviceAgreementRegistry.serviceAgreementExpired(agreementContract);
+                const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet.address, i);
+                const agreementExpired = await serviceAgreementRegistry.closedServiceAgreementExpired(agreementId);
                 if (agreementExpired) {
-                    Object.assign(expiredAgreements, {[agreementContract]: agreementContract});
+                    Object.assign(expiredAgreements, {[agreementId.toNumber()]: agreementId});
                 }
             }
 
@@ -271,24 +270,24 @@ describe('Service Agreement Registry Contract', () => {
             const removeExpiredAgreements = async () => {
                 if (Object.keys(expiredAgreements).length === 0) return;
 
-                const agreementCount = await serviceAgreementRegistry.indexerSaLength(wallet.address);
+                const agreementCount = await serviceAgreementRegistry.indexerCsaLength(wallet.address);
                 for (let i = 0; i < agreementCount.toNumber(); i++) {
-                    const agreementContract = await serviceAgreementRegistry.getServiceAgreement(wallet.address, i);
-                    if (expiredAgreements[agreementContract]) {
+                    const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet.address, i);
+                    if (expiredAgreements[agreementId.toNumber()]) {
                         const sumDailyReward = await serviceAgreementRegistry.sumDailyReward(wallet.address);
                         const stateInfo = {
                             sumDailyReward: await serviceAgreementRegistry.sumDailyReward(wallet.address),
                         };
                         await serviceAgreementRegistry.clearEndedAgreement(wallet.address, i);
                         const agreementInfo = {
-                            value: agreements[agreementContract].value,
-                            period: agreements[agreementContract].period,
+                            value: agreements[agreementId.toNumber()].value,
+                            period: agreements[agreementId.toNumber()].period,
                             indexer: wallet.address,
-                            address: agreementContract,
+                            agreementId: agreementId.toNumber(),
                             index: i,
                         };
                         await checkStateChange(agreementInfo, stateInfo, true);
-                        delete expiredAgreements[agreementContract];
+                        delete expiredAgreements[agreementId.toNumber()];
                         break;
                     }
                 }
@@ -298,7 +297,7 @@ describe('Service Agreement Registry Contract', () => {
 
             await removeExpiredAgreements();
 
-            expect(await serviceAgreementRegistry.indexerSaLength(wallet.address)).to.equal(6 - expiredAgreementCount);
+            expect(await serviceAgreementRegistry.indexerCsaLength(wallet.address)).to.equal(6 - expiredAgreementCount);
         });
 
         it('clearAllEndedAgreements for an indexer should work', async () => {
@@ -310,15 +309,15 @@ describe('Service Agreement Registry Contract', () => {
                 await purchaseOfferMarket.acceptPurchaseOffer(i, mmrRoot);
             }
 
-            expect(await serviceAgreementRegistry.indexerSaLength(wallet.address)).to.equal(6);
+            expect(await serviceAgreementRegistry.indexerCsaLength(wallet.address)).to.equal(6);
             //time pass 5 days
             await timeTravel(mockProvider, 60 * 60 * 24 * 5);
 
             // get all the expired agreements
             const expiredAgreementIds = [];
             for (let i = 0; i < 6; i++) {
-                const agreementContract = await serviceAgreementRegistry.getServiceAgreement(wallet.address, i);
-                const agreementExpired = await serviceAgreementRegistry.serviceAgreementExpired(agreementContract);
+                const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet.address, i);
+                const agreementExpired = await serviceAgreementRegistry.closedServiceAgreementExpired(agreementId);
                 if (agreementExpired) {
                     expiredAgreementIds.push(i);
                 }
@@ -326,7 +325,7 @@ describe('Service Agreement Registry Contract', () => {
 
             await serviceAgreementRegistry.clearAllEndedAgreements(wallet.address);
 
-            expect(await serviceAgreementRegistry.indexerSaLength(wallet.address)).to.equal(
+            expect(await serviceAgreementRegistry.indexerCsaLength(wallet.address)).to.equal(
                 6 - expiredAgreementIds.length
             );
         });
@@ -370,9 +369,9 @@ describe('Service Agreement Registry Contract', () => {
 
         it('renew agreement generated from purchaseOfferMarket should fail', async () => {
             await purchaseOfferMarket.connect(wallet1).acceptPurchaseOffer(0, mmrRoot);
-            const agreementAddress = await serviceAgreementRegistry.getServiceAgreement(wallet1.address, 0);
+            const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(3).toNumber());
-            await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementAddress)).to.be.revertedWith(
+            await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
                 'Agreement cannot renew without planId'
             );
         });
@@ -382,24 +381,24 @@ describe('Service Agreement Registry Contract', () => {
             const addTable = await rewardsDistributor.getRewardsAddTable(wallet1.address, 2, 10);
             const removeTable = await rewardsDistributor.getRewardsRemoveTable(wallet1.address, 2, 12);
 
-            let agreementAddress = await serviceAgreementRegistry.getServiceAgreement(wallet1.address, 0);
+            let agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             expect(
-                await serviceAgreementRegistry.getIndexerDeploymentSaLength(wallet1.address, deploymentIds[0])
+                await serviceAgreementRegistry.indexerDeploymentCsaLength(wallet1.address, deploymentIds[0])
             ).to.be.eq(1);
-            let agreement = ClosedServiceAgreement__factory.connect(agreementAddress, mockProvider);
-            const oldEndDate = (await agreement.startDate()).toNumber() + (await agreement.period()).toNumber();
+            let agreement = await serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
+            const oldEndDate = (await agreement.startDate).toNumber() + (await agreement.period).toNumber();
             await timeTravel(mockProvider, time.duration.days(3).toNumber());
-            await serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementAddress);
-            agreementAddress = await serviceAgreementRegistry.getServiceAgreement(wallet1.address, 1);
-            agreement = ClosedServiceAgreement__factory.connect(agreementAddress, mockProvider);
-            const period = await agreement.period();
-            expect(await agreement.value()).to.be.eq(100);
-            expect(await agreement.startDate()).to.be.eq(oldEndDate);
-            expect((await agreement.startDate()).toNumber() + (await agreement.period()).toNumber()).to.be.eq(
+            await serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId);
+            agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 1);
+            agreement = await serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
+            const period = await agreement.period;
+            expect(await agreement.lockedAmount).to.be.eq(100);
+            expect(await agreement.startDate).to.be.eq(oldEndDate);
+            expect((await agreement.startDate).toNumber() + (await agreement.period).toNumber()).to.be.eq(
                 Number(oldEndDate) + Number(period)
             );
             expect(
-                await serviceAgreementRegistry.getIndexerDeploymentSaLength(wallet1.address, deploymentIds[0])
+                await serviceAgreementRegistry.indexerDeploymentCsaLength(wallet1.address, deploymentIds[0])
             ).to.be.eq(2);
 
             const agreementStartEra = await eraManager.timestampToEraNumber(oldEndDate);
@@ -412,44 +411,44 @@ describe('Service Agreement Registry Contract', () => {
 
         it('Indexers should be able to trun off renew', async () => {
             await planManager.connect(wallet2).acceptPlan(wallet1.address, deploymentIds[0], 1);
-            const agreementAddress = await serviceAgreementRegistry.getServiceAgreement(wallet1.address, 0);
+            const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             expect((await planManager.getPlan(wallet1.address, 1))[3]).to.be.eq(true);
             await planManager.connect(wallet1).removePlan(1);
             expect((await planManager.getPlan(wallet1.address, 1))[3]).to.be.eq(false);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
-            await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementAddress)).to.be.revertedWith(
+            await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
                 'Plan is inactive'
             );
         });
 
         it('customer cannot renew expired agreement', async () => {
             await planManager.connect(wallet2).acceptPlan(wallet1.address, deploymentIds[0], 1);
-            const agreementAddress = await serviceAgreementRegistry.getServiceAgreement(wallet1.address, 0);
+            const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(20).toNumber());
-            await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementAddress)).to.be.revertedWith(
+            await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
                 'Agreement ended'
             );
         });
 
         it('only customer can renew agreement', async () => {
             await planManager.connect(wallet2).acceptPlan(wallet1.address, deploymentIds[0], 1);
-            const agreementAddress = await serviceAgreementRegistry.getServiceAgreement(wallet1.address, 0);
+            const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
-            await expect(serviceAgreementRegistry.connect(wallet1).renewAgreement(agreementAddress)).to.be.revertedWith(
+            await expect(serviceAgreementRegistry.connect(wallet1).renewAgreement(agreementId)).to.be.revertedWith(
                 'sender is not consumer'
             );
         });
 
         it('cannot renew upcoming agreement', async () => {
             await planManager.connect(wallet2).acceptPlan(wallet1.address, deploymentIds[0], 1);
-            const agreementAddress = await serviceAgreementRegistry.getServiceAgreement(wallet1.address, 0);
+            const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
-            await serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementAddress);
-            const upcomingAgreementAddress = await serviceAgreementRegistry.getServiceAgreement(wallet1.address, 1);
+            await serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId);
+            const upcomingAgreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 1);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await expect(
-                serviceAgreementRegistry.connect(wallet2).renewAgreement(upcomingAgreementAddress)
+                serviceAgreementRegistry.connect(wallet2).renewAgreement(upcomingAgreementId)
             ).to.be.revertedWith('cannot renew upcoming agreement');
         });
     });

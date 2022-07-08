@@ -223,11 +223,14 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
             _planId,
             plan.planTemplateId
         );
+
+        uint256 agreementId = IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).createClosedServiceAgreement(agreement);
+
         // deposit SQToken into serviceAgreementRegistry contract
         IERC20(settings.getSQToken()).transferFrom(msg.sender, settings.getServiceAgreementRegistry(), plan.price);
 
         IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).establishServiceAgreement(
-            agreement
+            agreementId
         );
     }
 
