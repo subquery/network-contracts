@@ -187,7 +187,6 @@ describe('RewardsDistributer Contract', () => {
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             expect((await rewardsDistributor.getRewardsAddTable(indexer.address, 2, 1))[0]).to.be.eq(etherParse("0"));
             expect((await rewardsDistributor.getRewardsRemoveTable(indexer.address, 2, 1))[0]).to.be.eq(etherParse("0"));
-            //staking rewards for indexer
             await rewardsDistributor.connect(indexer).claim(indexer.address);
 
             //move to Era 4

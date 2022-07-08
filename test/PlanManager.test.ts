@@ -246,6 +246,8 @@ describe('PlanManger Contract', () => {
             // console.log(`lastClaimed: ${await rewardsDistributor.getLastClaimEra(indexer.address)}`);
             const rewardsAddTable = await rewardsDistributor.getRewardsAddTable(indexer.address, era.sub(1), 5);
             const rewardsRemoveTable = await rewardsDistributor.getRewardsRemoveTable(indexer.address, era.sub(1), 5);
+            console.log(rewardsAddTable);
+            console.log(rewardsRemoveTable);
             const [eraReward, totalReward] = rewardsAddTable.reduce(
                 (acc, val, idx) => {
                     let [eraReward, total] = acc;
