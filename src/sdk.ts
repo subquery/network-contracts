@@ -26,6 +26,10 @@ import {
     PurchaseOfferMarket__factory,
     StateChannel,
     StateChannel__factory,
+    ConsumerProxy,
+    ConsumerProxy__factory,
+    ConsumerHoster,
+    ConsumerHoster__factory,
 } from './typechain';
 
 export class ContractSDK {
@@ -49,6 +53,8 @@ export class ContractSDK {
     private _rewardsDistributor?: RewardsDistributer;
     private _purchaseOfferMarket?: PurchaseOfferMarket;
     private _stateChannel?: StateChannel;
+    private _consumerProxy?: ConsumerProxy;
+    private _consumerHoster?: ConsumerHoster;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options?: SdkOptions) {
         this._contractDeployments =
@@ -144,6 +150,20 @@ export class ContractSDK {
         return this._stateChannel;
     }
 
+    get consumerProxy(): ConsumerProxy {
+        if (!this._consumerProxy) {
+            throw new Error(`_consumerProxy address not found`);
+        }
+        return this._consumerProxy;
+    }
+
+    get consumerHoster(): ConsumerHoster {
+        if (!this._consumerHoster) {
+            throw new Error(`_consumerHoster address not found`);
+        }
+        return this._consumerHoster;
+    }
+
     public async initContract<C extends Contract>(
         factory: { connect: (address: string, signerOrProvider: AbstractProvider | Signer) => C },
         address?: string
@@ -168,6 +188,8 @@ export class ContractSDK {
             rewardsDistributor,
             purchaseOfferMarket,
             stateChannel,
+            consumerProxy,
+            consumerHoster,
         ] = await Promise.all([
             this.initContract(Settings__factory, this._contractDeployments.Settings?.address),
             this.initContract(SQToken__factory, this._contractDeployments.SQToken?.address),
@@ -184,6 +206,8 @@ export class ContractSDK {
             this.initContract(RewardsDistributer__factory, this._contractDeployments.RewardsDistributer.address),
             this.initContract(PurchaseOfferMarket__factory, this._contractDeployments.PurchaseOfferMarket.address),
             this.initContract(StateChannel__factory, this._contractDeployments.StateChannel.address),
+            this.initContract(ConsumerProxy__factory, this._contractDeployments.ConsumerProxy.address),
+            this.initContract(ConsumerHoster__factory, this._contractDeployments.ConsumerHoster.address),
         ]);
         this._settings = settings;
         this._sqToken = sqToken;
@@ -197,5 +221,7 @@ export class ContractSDK {
         this._rewardsDistributor = rewardsDistributor;
         this._purchaseOfferMarket = purchaseOfferMarket;
         this._stateChannel = stateChannel;
+        this._consumerProxy = consumerProxy;
+        this._consumerHoster = consumerHoster;
     }
 }

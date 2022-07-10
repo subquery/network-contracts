@@ -12,6 +12,9 @@ import RewardsDistributer from './artifacts/contracts/RewardsDistributer.sol/Rew
 import ProxyAdmin from './artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json';
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
 
+import ConsumerProxy from './artifacts/contracts/ConsumerProxy.sol/ConsumerProxy.json';
+import ConsumerHoster from './artifacts/contracts/ConsumerHoster.sol/ConsumerHoster.json';
+
 export default {
     Settings,
     SQToken,
@@ -26,4 +29,6 @@ export default {
     RewardsDistributer,
     ProxyAdmin,
     StateChannel,
+    ConsumerProxy,
+    ConsumerHoster,
 };
