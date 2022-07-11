@@ -32,7 +32,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     struct Pool {
         // the indexer count.
         uint256 count;
-        // total amount of project.
+        // total amount of deploymentId.
         uint256 reward;
         // total amount of stake.
         uint256 totalStake;
@@ -42,7 +42,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         mapping(address => uint256) labor;
     }
 
-    // Rewards Pools: project => (era => Pool).
+        // Rewards Pools: deployment id => (era => Pool).
     mapping(bytes32 => mapping(uint256 => Pool)) private pools;
 
     // Settings info.
@@ -53,9 +53,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     int32 public alphaDenominator;
 
     event Alpha(int32 alphaNumerator, int32 alphaDenominator);
-    event AddStake(bytes32 project, address indexer, uint256 amount, uint256 total);
-    event AddLabor(bytes32 project, address indexer, uint256 amount, uint256 total);
-    event Claim(bytes32 project, address indexer, uint256 era, uint256 amount);
+    event AddStake(bytes32 deploymentId, address indexer, uint256 amount, uint256 total);
+    event AddLabor(bytes32 deploymentId, address indexer, uint256 amount, uint256 total);
+    event Claim(bytes32 deploymentId, address indexer, uint256 era, uint256 amount);
 
     // Initial.
     function initialize(ISettings _settings) external initializer {
@@ -87,86 +87,86 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     }
 
     /**
-     * @dev get the Pool info by project, era and indexer.
-     * @param project byte32.
+     * @dev get the Pool info by deploymentId, era and indexer.
+     * @param deploymentId byte32.
      * @param era uint256.
      * @param indexer address.
      */
-    function getPool(bytes32 project, uint256 era, address indexer) public view returns (uint256, uint256, uint256, uint256, uint256) {
-        Pool storage pool = pools[project][era];
+    function getPool(bytes32 deploymentId, uint256 era, address indexer) public view returns (uint256, uint256, uint256, uint256, uint256) {
+        Pool storage pool = pools[deploymentId][era];
         return (pool.count, pool.reward, pool.totalStake, pool.stake[indexer], pool.labor[indexer]);
     }
 
     /**
      * @dev Add stake for next era pool.
-     * @param project bytes32.
+     * @param deploymentId bytes32.
      * @param indexer address.
      * @param amount uint256. need stake.
      */
-    function addStake(bytes32 project, address indexer, address sender, uint256 amount) external {
+    function addStake(bytes32 deploymentId, address indexer, address sender, uint256 amount) external {
         IERC20(settings.getSQToken()).safeTransferFrom(sender, address(this), amount);
 
         uint256 nextEra = IEraManager(settings.getEraManager()).eraNumber() + 1;
-        Pool storage pool = pools[project][nextEra];
+        Pool storage pool = pools[deploymentId][nextEra];
         if (pool.stake[indexer] == 0) {
             pool.count += 1;
         }
         pool.stake[indexer] += amount;
         pool.totalStake += amount;
 
-        emit AddStake(project, indexer, amount, pool.totalStake);
+        emit AddStake(deploymentId, indexer, amount, pool.totalStake);
     }
 
     /**
      * @dev Add Labor(reward) for current era pool.
-     * @param project byte32.
+     * @param deploymentId byte32.
      * @param indexer address.
      * @param sender address.
      * @param amount uint256. the labor of services.
      */
-    function addLabor(bytes32 project, address indexer, address sender, uint256 amount) external {
+    function addLabor(bytes32 deploymentId, address indexer, address sender, uint256 amount) external {
         IERC20(settings.getSQToken()).safeTransferFrom(sender, address(this), amount);
 
         uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
-        Pool storage pool = pools[project][currentEra];
+        Pool storage pool = pools[deploymentId][currentEra];
         pool.labor[indexer] += amount;
         pool.reward += amount;
 
-        emit AddLabor(project, indexer, amount, pool.reward);
+        emit AddLabor(deploymentId, indexer, amount, pool.reward);
     }
 
     /**
      * @dev Claim reward (stake) from previous era Pool.
-     * @param project byte32.
+     * @param deploymentId byte32.
      * @param indexer address.
      * @param restake bool. if re-stake to next era (current era + 1).
      */
-    function claim(bytes32 project, address indexer, bool restake) external {
+    function claim(bytes32 deploymentId, address indexer, bool restake) external {
         uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
         require(currentEra > 0, 'Wait Era');
         uint256 era = currentEra - 1;
-        uint256 amount = _claim(project, indexer, era, currentEra + 1, restake);
+        uint256 amount = _claim(deploymentId, indexer, era, currentEra + 1, restake);
 
-        emit Claim(project, indexer, era, amount);
+        emit Claim(deploymentId, indexer, era, amount);
     }
 
     /**
      * @dev Claim reward (stake) from special era Pool.
-     * @param project byte32.
+     * @param deploymentId byte32.
      * @param indexer address.
      * @param era uint256.
      * @param restake bool. if re-stake to next era (current era + 1).
      */
-    function claim_era(bytes32 project, address indexer, uint256 era, bool restake) external {
+    function claim_era(bytes32 deploymentId, address indexer, uint256 era, bool restake) external {
         uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
         require(currentEra > era, 'Wait Era');
-        uint256 amount = _claim(project, indexer, era, currentEra + 1, restake);
+        uint256 amount = _claim(deploymentId, indexer, era, currentEra + 1, restake);
 
-        emit Claim(project, indexer, era, amount);
+        emit Claim(deploymentId, indexer, era, amount);
     }
 
-    function _claim(bytes32 project, address indexer, uint256 era, uint256 nextEra, bool restake) private returns (uint256) {
-        Pool storage pool = pools[project][era];
+    function _claim(bytes32 deploymentId, address indexer, uint256 era, uint256 nextEra, bool restake) private returns (uint256) {
+        Pool storage pool = pools[deploymentId][era];
         require(pool.reward > 0 || pool.totalStake > 0, 'No reward or stake');
 
         uint256 myStake = pool.stake[indexer];
@@ -176,7 +176,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         IERC20 token = IERC20(settings.getSQToken());
         if (restake) {
             // re-stake SQT to next era.
-            Pool storage nextPool = pools[project][nextEra];
+            Pool storage nextPool = pools[deploymentId][nextEra];
             if (nextPool.stake[indexer] == 0) {
                 nextPool.count += 1;
             }
@@ -192,9 +192,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         delete pool.labor[indexer];
         pool.count -= 1;
 
-        // delete pools[project][era];
+        // delete pools[deploymentId][era];
         if (pool.count == 0) {
-            delete pools[project][era];
+            delete pools[deploymentId][era];
         }
 
         // reward distributer
