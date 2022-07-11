@@ -8,7 +8,6 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
-import './MathUtil.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
@@ -17,6 +16,7 @@ import './interfaces/IPurchaseOfferMarket.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IPlanManager.sol';
 import './Constants.sol';
+import './utils/MathUtil.sol';
 
 /**
  * @title Purchase Offer Market Contract

@@ -22,6 +22,8 @@ import {
     PlanManager__factory,
     RewardsDistributer,
     RewardsDistributer__factory,
+    RewardsPool,
+    RewardsPool__factory,
     PurchaseOfferMarket,
     PurchaseOfferMarket__factory,
     StateChannel,
@@ -51,6 +53,7 @@ export class ContractSDK {
     private _eraManager?: EraManager;
     private _planManager?: PlanManager;
     private _rewardsDistributor?: RewardsDistributer;
+    private _rewardsPool?: RewardsPool;
     private _purchaseOfferMarket?: PurchaseOfferMarket;
     private _stateChannel?: StateChannel;
     private _consumerProxy?: ConsumerProxy;
@@ -132,6 +135,13 @@ export class ContractSDK {
         return this._rewardsDistributor;
     }
 
+    get rewardsPool(): RewardsPool {
+        if (!this._rewardsPool) {
+            throw new Error(`_rewardsPool address not found`);
+        }
+        return this._rewardsPool;
+    }
+
     get purchaseOfferMarket(): PurchaseOfferMarket {
         if (!this._purchaseOfferMarket) {
             throw new Error(`_purchaseOfferMarket address not found`);
@@ -186,6 +196,7 @@ export class ContractSDK {
             eraManager,
             planManager,
             rewardsDistributor,
+            rewardsPool,
             purchaseOfferMarket,
             stateChannel,
             consumerProxy,
@@ -204,6 +215,7 @@ export class ContractSDK {
             this.initContract(EraManager__factory, this._contractDeployments.EraManager.address),
             this.initContract(PlanManager__factory, this._contractDeployments.PlanManager.address),
             this.initContract(RewardsDistributer__factory, this._contractDeployments.RewardsDistributer.address),
+            this.initContract(RewardsPool__factory, this._contractDeployments.RewardsPool.address),
             this.initContract(PurchaseOfferMarket__factory, this._contractDeployments.PurchaseOfferMarket.address),
             this.initContract(StateChannel__factory, this._contractDeployments.StateChannel.address),
             this.initContract(ConsumerProxy__factory, this._contractDeployments.ConsumerProxy.address),
@@ -219,6 +231,7 @@ export class ContractSDK {
         this._eraManager = eraManager;
         this._planManager = planManager;
         this._rewardsDistributor = rewardsDistributor;
+        this._rewardsPool = rewardsPool;
         this._purchaseOfferMarket = purchaseOfferMarket;
         this._stateChannel = stateChannel;
         this._consumerProxy = consumerProxy;

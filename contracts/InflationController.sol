@@ -13,7 +13,7 @@ import './interfaces/ISettings.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IEraManager.sol';
 import './Constants.sol';
-import './MathUtil.sol';
+import './utils/MathUtil.sol';
 
 contract InflationController is Initializable, OwnableUpgradeable, Constants {
     using MathUtil for uint256;

@@ -15,7 +15,7 @@ import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISQToken.sol';
 import './Constants.sol';
-import './MathUtil.sol';
+import './utils/MathUtil.sol';
 
 /**
  * @title Staking Contract
