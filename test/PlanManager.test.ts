@@ -288,7 +288,7 @@ describe('PlanManger Contract', () => {
 
             await expect(
                 planManager.connect(consumer).acceptPlan(consumer.address, DEPLOYMENT_ID, 1)
-            ).to.be.revertedWith('Indexing service is not available to establish agreements');
+            ).to.be.revertedWith('Indexing service is not available');
             // inactive plan
             await expect(
                 planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, 2)

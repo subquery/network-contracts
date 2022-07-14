@@ -140,7 +140,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
 
     function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement) external returns (uint256) {
         if (msg.sender != address(this)) {
-            require(establisherWhitelist[msg.sender], 'Address is not authorised to create agreement');
+            require(establisherWhitelist[msg.sender], 'No access');
         }
         closedServiceAgreements[nextServiceAgreementId] = agreement;
         uint256 agreementId = nextServiceAgreementId;
@@ -163,11 +163,12 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
      */
     function establishServiceAgreement(uint256 agreementId) external {
         if (msg.sender != address(this)) {
-            require(establisherWhitelist[msg.sender], 'Address is not authorised to establish agreements');
+            require(establisherWhitelist[msg.sender], 'No access');
         }
+
         //for now only support closed service agreement
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
-        require(agreement.consumer!=address(0),"Only support closedServiceAgreement for now");
+        require(agreement.consumer != address(0), 'Agreement does not exist');
 
         address indexer = agreement.indexer;
         address consumer = agreement.consumer;
@@ -175,7 +176,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
 
         require(
             IQueryRegistry(settings.getQueryRegistry()).isIndexingAvailable(deploymentId, indexer),
-            'Indexing service is not available to establish agreements'
+            'Indexing service is not available'
         );
 
         IStaking staking = IStaking(settings.getStaking());
@@ -216,11 +217,10 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
     function renewAgreement(uint256 agreementId) external {
         //for now only support closed service agreement
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
-        require(agreement.consumer!=address(0), 'aggrement not exist');
-
-        require(msg.sender == agreement.consumer, 'sender is not consumer');
-        require(agreement.startDate < block.timestamp, 'cannot renew upcoming agreement');
+        require(msg.sender == agreement.consumer, 'Sender is not the consumer');
+        require(agreement.startDate < block.timestamp, 'Cannot renew upcoming agreement');
         require(agreement.planId != 0, 'Agreement cannot renew without planId');
+
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         (, , , bool active) = planManager.getPlan(agreement.indexer, agreement.planId);
         require(active, 'Plan is inactive');
@@ -239,18 +239,18 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         );
         uint256 newAgreementId = this.createClosedServiceAgreement(newAgreement);
 
-        // deposit SQToken into serviceAgreementRegistry contract
+        // deposit SQToken into service agreement registry contract
         IERC20(settings.getSQToken()).transferFrom(msg.sender, address(this), agreement.lockedAmount);
         this.establishServiceAgreement(newAgreementId);
     }
 
     function clearEndedAgreement(address indexer, uint256 id) public {
-        require(id < indexerCsaLength[indexer], 'service agreement id not existing for the indexer');
+        require(id < indexerCsaLength[indexer], 'Agreement does not exist');
+
         uint256 agreementId = closedServiceAgreementIds[indexer][id];
         ClosedServiceAgreementInfo memory agreement =  closedServiceAgreements[agreementId];
-        require(agreement.consumer!=address(0), 'aggrement not exist');
-
-        require(block.timestamp > (agreement.startDate + agreement.period), 'service agreement not complete');
+        require(agreement.consumer != address(0), 'Agreement does not exist');
+        require(block.timestamp > (agreement.startDate + agreement.period), 'Agreement not complete');
 
         uint256 lockedAmount = agreement.lockedAmount;
         uint256 period = periodInDay(agreement.period);

@@ -170,18 +170,18 @@ describe('Service Agreement Registry Contract', () => {
                 (await futureTimestamp(mockProvider)) + 86400
             );
             await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(4, mmrRoot)).to.be.revertedWith(
-                'Indexing service is not available to establish agreements'
+                'Indexing service is not available'
             );
 
             await expect(
                 serviceAgreementRegistry.connect(wallet1).establishServiceAgreement(serviceAgreementRegistry.address)
-            ).to.be.revertedWith('Address is not authorised to establish agreements');
+            ).to.be.revertedWith('No access');
 
             await serviceAgreementRegistry.addEstablisher(wallet1.address);
 
             await expect(
                 serviceAgreementRegistry.connect(wallet1).establishServiceAgreement(serviceAgreementRegistry.address)
-            ).to.be.revertedWith('Only support closedServiceAgreement for now');
+            ).to.be.revertedWith('Agreement does not exist');
         });
     });
 
@@ -436,7 +436,7 @@ describe('Service Agreement Registry Contract', () => {
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet1).renewAgreement(agreementId)).to.be.revertedWith(
-                'sender is not consumer'
+                'Sender is not the consumer'
             );
         });
 
@@ -449,7 +449,7 @@ describe('Service Agreement Registry Contract', () => {
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await expect(
                 serviceAgreementRegistry.connect(wallet2).renewAgreement(upcomingAgreementId)
-            ).to.be.revertedWith('cannot renew upcoming agreement');
+            ).to.be.revertedWith('Cannot renew upcoming agreement');
         });
     });
 

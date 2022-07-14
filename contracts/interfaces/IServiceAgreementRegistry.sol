@@ -6,8 +6,8 @@ pragma solidity ^0.8.10;
 // -- Data --
 
 /**
-    * @dev closed service agreement information
-    */
+ * @dev closed service agreement information
+ */
 struct ClosedServiceAgreementInfo {
     address consumer;
     address indexer;
@@ -20,7 +20,6 @@ struct ClosedServiceAgreementInfo {
 }
 
 interface IServiceAgreementRegistry {
-
     function establishServiceAgreement(uint256 agreementId) external;
 
     function hasOngoingClosedServiceAgreement(address indexer, bytes32 deploymentId) external view returns (bool);

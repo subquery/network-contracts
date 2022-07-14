@@ -212,6 +212,9 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
             'Plan not match with the deployment'
         );
 
+        // deposit SQToken into service agreement registry contract
+        IERC20(settings.getSQToken()).transferFrom(msg.sender, settings.getServiceAgreementRegistry(), plan.price);
+
         // create closed service agreement contract
         ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
             msg.sender,
@@ -224,14 +227,11 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
             plan.planTemplateId
         );
 
-        uint256 agreementId = IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).createClosedServiceAgreement(agreement);
 
-        // deposit SQToken into serviceAgreementRegistry contract
-        IERC20(settings.getSQToken()).transferFrom(msg.sender, settings.getServiceAgreementRegistry(), plan.price);
-
-        IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).establishServiceAgreement(
-            agreementId
-        );
+        // register the agreement to service agreement registry contract
+        IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
+        uint256 agreementId = registry.createClosedServiceAgreement(agreement);
+        registry.establishServiceAgreement(agreementId);
     }
 
     // view function

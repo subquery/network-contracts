@@ -252,6 +252,9 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         (uint256 period, , , , ) = planManager.getPlanTemplate(offer.planTemplateId);
 
+        // deposit SQToken into the service agreement registry contract
+        IERC20(settings.getSQToken()).transfer(settings.getServiceAgreementRegistry(), offer.deposit);
+
         // create closed service agreement contract
         ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
             offer.consumer,
@@ -263,17 +266,13 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
             0,
             offer.planTemplateId
         );
-        uint256 agreementId = IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).createClosedServiceAgreement(agreement);
+
+        // register the agreement to service agreement registry contract
+        IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
+        uint256 agreementId = registry.createClosedServiceAgreement(agreement);
+        registry.establishServiceAgreement(agreementId);
 
         offerMmrRoot[_offerId][msg.sender] = _mmrRoot;
-
-        // deposit SQToken into the service agreement registry contract
-        IERC20(settings.getSQToken()).transfer(settings.getServiceAgreementRegistry(), offer.deposit);
-        // Register agreement globally
-        IServiceAgreementRegistry serviceAgreementRegistry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
-        serviceAgreementRegistry.establishServiceAgreement(
-            agreementId
-        );
 
         emit OfferAccepted(msg.sender, _offerId, agreementId);
     }
