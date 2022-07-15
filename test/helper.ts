@@ -1,10 +1,12 @@
+import { QueryRegistry } from './../src/typechain/QueryRegistry';
+import { ServiceAgreementRegistry } from './../src/typechain/ServiceAgreementRegistry';
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import {MockProvider} from 'ethereum-waffle';
 import {BigNumber, Contract, Wallet, utils} from 'ethers';
-import {IndexerRegistry, EraManager, ClosedServiceAgreement__factory} from '../src';
-import {METADATA_HASH} from './constants';
+import {IndexerRegistry, EraManager, PlanManager} from '../src';
+import {METADATA_HASH, VERSION} from './constants';
 const {constants, time} = require('@openzeppelin/test-helpers');
 import web3 from 'web3';
 
@@ -88,29 +90,19 @@ export function cidToBytes32(cid: string): string {
 
 //generate CSAgreement with indexer, consumer, agreement period and agreement value
 //instead of checkAcceptPlan in PlanManager
-export async function generateAgreement(
-    indexerAddr: string,
-    consumerAddr: string,
+export async function acceptPlan(
+    indexer,
+    consumer,
     period: number,
     value: BigNumber,
-    root,
-    mockProvider: MockProvider,
     DEPLOYMENT_ID,
-    settings
+    serviceAgreementRegistry: ServiceAgreementRegistry,
+    planManager: PlanManager,
 ) {
-    const csAgreement = await new ClosedServiceAgreement__factory(root).deploy(
-        settings.address,
-        consumerAddr,
-        indexerAddr,
-        DEPLOYMENT_ID,
-        value,
-        await lastestTime(mockProvider),
-        time.duration.days(period).toString(),
-        0,
-        0
-    );
-    await csAgreement.deployTransaction.wait();
-    return csAgreement;
+    await planManager.createPlanTemplate(time.duration.days(period).toString(), 1000, 100, METADATA_HASH);
+    await planManager.connect(indexer).createPlan(value, 0, DEPLOYMENT_ID);
+    
+    await planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, 1);
 }
 
 export function etherParse(etherNum: string) {
