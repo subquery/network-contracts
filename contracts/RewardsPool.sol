@@ -7,11 +7,11 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 
 import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
-import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IServiceAgreement.sol';
 import './Constants.sol';
@@ -25,25 +25,27 @@ import './utils/MathUtil.sol';
  * The Rewards Pool using the Cobb-Douglas production function for PAYG and Open Agreement.
  */
 contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constants {
+    using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
-    // Reward Pool.
-    struct Pool {
-        // the indexer count.
-        uint256 count;
-        // total amount of deploymentId.
-        uint256 reward;
-        // total amount of stake.
-        uint256 totalStake;
-        // stake: indexer => amount
-        mapping(address => uint256) stake;
-        // labor: indexer => amount
-        mapping(address => uint256) labor;
+    // Labor and Reward for indexer.
+    struct LaborReward {
+        uint256 labor;
+        uint256 accSQTPerStake;
+        uint256 unclaim;
     }
 
-        // Rewards Pools: deployment id => (era => Pool).
-    mapping(bytes32 => mapping(uint256 => Pool)) private pools;
+    // Deployment Reward Pool.
+    struct Pool {
+        // total amount of the deployment.
+        uint256 totalReward;
+        // labor: indexer => LaborReward
+        mapping(address => LaborReward) labor;
+    }
+
+    // Era Rewards Pools: era => deployment => Pool.
+    mapping(uint256 => mapping(bytes32 => Pool)) private pools;
 
     // Settings info.
     ISettings public settings;
@@ -53,8 +55,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     int32 public alphaDenominator;
 
     event Alpha(int32 alphaNumerator, int32 alphaDenominator);
-    event AddStake(bytes32 deploymentId, address indexer, uint256 amount, uint256 total);
-    event AddLabor(bytes32 deploymentId, address indexer, uint256 amount, uint256 total);
+    event Labor(bytes32 deploymentId, address indexer, uint256 amount, uint256 total);
     event Claim(bytes32 deploymentId, address indexer, uint256 era, uint256 amount);
 
     // Initial.
@@ -86,129 +87,93 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         emit Alpha(alphaNumerator, alphaDenominator);
     }
 
-    /**
-     * @dev get the Pool info by deploymentId, era and indexer.
-     * @param deploymentId byte32.
-     * @param era uint256.
-     * @param indexer address.
-     */
-    function getPool(bytes32 deploymentId, uint256 era, address indexer) public view returns (uint256, uint256, uint256, uint256, uint256) {
-        Pool storage pool = pools[deploymentId][era];
-        return (pool.count, pool.reward, pool.totalStake, pool.stake[indexer], pool.labor[indexer]);
-    }
-
-    /**
-     * @dev Add stake for next era pool.
-     * @param deploymentId bytes32.
-     * @param indexer address.
-     * @param amount uint256. need stake.
-     */
-    function addStake(bytes32 deploymentId, address indexer, address sender, uint256 amount) external {
-        IERC20(settings.getSQToken()).safeTransferFrom(sender, address(this), amount);
-
-        uint256 nextEra = IEraManager(settings.getEraManager()).eraNumber() + 1;
-        Pool storage pool = pools[deploymentId][nextEra];
-        if (pool.stake[indexer] == 0) {
-            pool.count += 1;
-        }
-        pool.stake[indexer] += amount;
-        pool.totalStake += amount;
-
-        emit AddStake(deploymentId, indexer, amount, pool.totalStake);
-    }
+    /* /\** */
+    /*  * @dev get the Pool info by deploymentId, era and indexer. */
+    /*  * @param deploymentId byte32. */
+    /*  * @param era uint256. */
+    /*  * @param indexer address. */
+    /*  *\/ */
+    /* function getPool(bytes32 deploymentId, uint256 era, address indexer) public view returns (uint256, uint256, uint256, uint256, uint256) { */
+    /*     Pool storage pool = pools[deploymentId][era]; */
+    /*     return (pool.count, pool.reward, pool.totalStake, pool.stake[indexer], pool.labor[indexer]); */
+    /* } */
 
     /**
      * @dev Add Labor(reward) for current era pool.
      * @param deploymentId byte32.
      * @param indexer address.
-     * @param sender address.
      * @param amount uint256. the labor of services.
      */
-    function addLabor(bytes32 deploymentId, address indexer, address sender, uint256 amount) external {
-        IERC20(settings.getSQToken()).safeTransferFrom(sender, address(this), amount);
+    function labor(bytes32 deploymentId, address indexer, uint256 amount) external {
+        IERC20(settings.getSQToken()).safeTransferFrom(msg.sender, address(this), amount);
 
-        uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
-        Pool storage pool = pools[deploymentId][currentEra];
-        pool.labor[indexer] += amount;
-        pool.reward += amount;
+        uint256 era = IEraManager(settings.getEraManager()).eraNumber();
+        Pool storage pool = pools[era][deploymentId];
+        pool.labor[indexer].labor += amount;
+        pool.totalReward += amount;
 
-        emit AddLabor(deploymentId, indexer, amount, pool.reward);
+        emit Labor(deploymentId, indexer, amount, pool.totalReward);
     }
 
     /**
      * @dev Claim reward (stake) from previous era Pool.
      * @param deploymentId byte32.
      * @param indexer address.
-     * @param restake bool. if re-stake to next era (current era + 1).
      */
-    function claim(bytes32 deploymentId, address indexer, bool restake) external {
+    function claim(bytes32 deploymentId, address indexer) external {
         uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
         require(currentEra > 0, 'Wait Era');
         uint256 era = currentEra - 1;
-        uint256 amount = _claim(deploymentId, indexer, era, currentEra + 1, restake);
+
+        // TODO clear previous pool info, and burn unclaim reward.
+        // delete pools[era - 1];
+
+        Pool storage pool = pools[era][deploymentId];
+        require(pool.totalReward > 0, 'No reward');
+
+        IStaking staking = IStaking(settings.getStaking());
+        uint256 totalStake = staking.getPreviousTotalStake();
+        uint256 myStake = staking.getPreviousStake(indexer);
+        uint256 commission = staking.getPreviousCommission(indexer);
+        LaborReward storage myLabor = pool.labor[indexer];
+        uint256 amount = _cobbDouglas(pool.totalReward, myLabor.labor, myStake, totalStake);
+
+        // distribute reward to indexer and delegators.
+        uint256 indexerAmount = MathUtil.mulDiv(commission, amount, PER_MILL);
+        myLabor.unclaim = amount - indexerAmount;
+        myLabor.accSQTPerStake = MathUtil.mulDiv(amount - indexerAmount, PER_TRILL, myStake);
+
+        IERC20 token = IERC20(settings.getSQToken());
+        token.safeTransfer(indexer, indexerAmount);
 
         emit Claim(deploymentId, indexer, era, amount);
     }
 
     /**
-     * @dev Claim reward (stake) from special era Pool.
+     * @dev Claim delegator reward from previous era Pool.
      * @param deploymentId byte32.
      * @param indexer address.
-     * @param era uint256.
-     * @param restake bool. if re-stake to next era (current era + 1).
+     * @param delegator address.
      */
-    function claim_era(bytes32 deploymentId, address indexer, uint256 era, bool restake) external {
+    function claim_delegation(bytes32 deploymentId, address indexer, address delegator) external {
         uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
-        require(currentEra > era, 'Wait Era');
-        uint256 amount = _claim(deploymentId, indexer, era, currentEra + 1, restake);
+        require(currentEra > 0, 'Wait Era');
+        uint256 era = currentEra - 1;
+        LaborReward storage myLabor = pools[era][deploymentId].labor[indexer];
+        require(myLabor.unclaim > 0, 'No reward');
 
-        emit Claim(deploymentId, indexer, era, amount);
-    }
-
-    function _claim(bytes32 deploymentId, address indexer, uint256 era, uint256 nextEra, bool restake) private returns (uint256) {
-        Pool storage pool = pools[deploymentId][era];
-        require(pool.reward > 0 || pool.totalStake > 0, 'No reward or stake');
-
-        uint256 myStake = pool.stake[indexer];
-        uint256 myLabor = pool.labor[indexer];
-        uint256 amount = _cobbDouglas(pool.reward, myLabor, myStake, pool.totalStake);
+        IStaking staking = IStaking(settings.getStaking());
+        uint256 delegation = staking.getPreviousDelegation(indexer, delegator);
+        uint256 reward = delegation * myLabor.accSQTPerStake;
+        myLabor.unclaim -= reward;
 
         IERC20 token = IERC20(settings.getSQToken());
-        if (restake) {
-            // re-stake SQT to next era.
-            Pool storage nextPool = pools[deploymentId][nextEra];
-            if (nextPool.stake[indexer] == 0) {
-                nextPool.count += 1;
-            }
-            nextPool.stake[indexer] += myStake;
-            nextPool.totalStake += myStake;
-        } else {
-            // send stake SQT to indexer.
-            token.safeTransfer(indexer, myStake);
-        }
-
-        // clear pool info
-        delete pool.stake[indexer];
-        delete pool.labor[indexer];
-        pool.count -= 1;
-
-        // delete pools[deploymentId][era];
-        if (pool.count == 0) {
-            delete pools[deploymentId][era];
-        }
-
-        // reward distributer
-        address rewardDistributerAddress = settings.getRewardsDistributer();
-        token.approve(rewardDistributerAddress, amount);
-        IRewardsDistributer rewardsDistributer = IRewardsDistributer(rewardDistributerAddress);
-        rewardsDistributer.addInstantRewards(indexer, address(this), amount);
-
-        return amount;
+        token.safeTransfer(delegator, reward);
     }
 
-    function _cobbDouglas(uint256 reward, uint256 labor, uint256 stake, uint256 totalStake) private view returns (uint256) {
-        int256 feeRatio = FixedMath.toFixed(labor, reward);
-        int256 stakeRatio = FixedMath.toFixed(stake, totalStake);
+    function _cobbDouglas(uint256 reward, uint256 myLabor, uint256 myStake, uint256 totalStake) private view returns (uint256) {
+        int256 feeRatio = FixedMath.toFixed(myLabor, reward);
+        int256 stakeRatio = FixedMath.toFixed(myStake, totalStake);
         if (feeRatio == 0 || stakeRatio == 0) {
             return 0;
         }
@@ -246,5 +211,54 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
             : FixedMath.div(stakeRatio, n);
         // Multiply the above with reward.
         return FixedMath.uintMul(n, reward);
+    }
+
+    function getPreviousTotalStake() external view override returns (uint256) {
+        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
+        IStaking staking = IStaking(settings.getStaking());
+        StakingAmount memory amount = staking.totalStaking;
+        if (amount.era == eraNumber) {
+            return amount.valueBefore;
+        } else if ((amount.era + 1) == eraNumber) {
+            return amount.valueAt;
+        } else {
+            return amount.valueAfter;
+        }
+    }
+
+    function getPreviousStake(address _indexer) external view override returns (uint256) {
+        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
+        StakingAmount memory amount = totalStakingAmount[_indexer];
+        if (amount.era == eraNumber) {
+            return amount.valueBefore;
+        } else if ((amount.era + 1) == eraNumber) {
+            return amount.valueAt;
+        } else {
+            return amount.valueAfter;
+        }
+    }
+
+    function getPreviousCommission(address _indexer) external view override returns (uint256) {
+        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
+        CommissionRate memory rate = commissionRates[_indexer];
+        if ((rate.era + 1) <= eraNumber) {
+            return rate.valueBefore;
+        } else if ((rate.era + 2) == eraNumber) {
+            return rate.valueAt;
+        } else {
+            return rate.valueAfter;
+        }
+    }
+
+    function getPreviousDelegation(address _indexer, address _delegator) external view override returns (uint256) {
+        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
+        StakingAmount memory amount = delegation[_delegator][_indexer];
+        if (amount.era == eraNumber) {
+            return amount.valueBefore;
+        } else if ((amount.era + 1) == eraNumber) {
+            return amount.valueAt;
+        } else {
+            return amount.valueAfter;
+        }
     }
 }

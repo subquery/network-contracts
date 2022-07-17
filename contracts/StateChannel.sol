@@ -321,7 +321,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address rewardPoolAddress = settings.getRewardsPool();
         IERC20(settings.getSQToken()).approve(rewardPoolAddress, amount);
         IRewardsPool rewardsPool = IRewardsPool(rewardPoolAddress);
-        rewardsPool.addLabor(channels[query.channelId].deploymentId, indexer, address(this), amount);
+        rewardsPool.labor(channels[query.channelId].deploymentId, indexer, amount);
     }
 
     // Finalize the channel.
