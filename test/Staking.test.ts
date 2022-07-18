@@ -307,6 +307,41 @@ describe('Staking Contract', () => {
         });
     });
 
+    describe('Request cancel unbond', () => {
+        beforeEach(async () => {
+            await staking.connect(delegator).delegate(indexer.address, etherParse("2"));
+            await staking.connect(indexer).stake(indexer.address, etherParse("2"));
+        });
+
+        it('cancelUnbonding should work', async () => {
+            let delegateAmount = await staking.getDelegationAmount(delegator.address, indexer.address);
+            const delegatorBalance = await token.balanceOf(delegator.address);
+            const contractBalance = await token.balanceOf(staking.address);
+            await staking.connect(delegator).undelegate(indexer.address, etherParse("1"));
+            expect(await staking.getDelegationAmount(delegator.address, indexer.address)).to.equal(delegateAmount.sub(etherParse("1")));
+            expect((await staking.getUnbondingAmount(delegator.address,0)).amount).to.equal(etherParse("1"));
+            await staking.connect(delegator).cancelUnbonding(0);
+            expect((await staking.getUnbondingAmount(delegator.address,0)).amount).to.equal(etherParse("0"));
+            expect(await staking.getDelegationAmount(delegator.address, indexer.address)).to.equal(delegateAmount);
+            await timeTravel(mockProvider, 1000);
+            await staking.connect(delegator).widthdraw();
+            expect(await token.balanceOf(delegator.address)).to.equal(delegatorBalance);
+            expect(await token.balanceOf(staking.address)).to.equal(contractBalance);
+        });
+
+        it('late cancelUnbonding should fail', async () => {
+            await staking.connect(delegator).undelegate(indexer.address, etherParse("1"));
+            await timeTravel(mockProvider, 60*60*24*10);
+            await expect(staking.connect(delegator).cancelUnbonding(0)).to.be.revertedWith("unable to cancel");
+        });
+
+        it('cancelUnbonding should follow delegation limitation', async () => {
+            await staking.connect(delegator).undelegate(indexer.address, etherParse("1"));
+            await staking.setIndexerLeverageLimit(1);
+            await expect(staking.connect(delegator).cancelUnbonding(0)).to.be.revertedWith("Delegation limitation reached");
+        });
+    });
+
     describe('Withdraw Undelegate', () => {
         const checkUnbondingChanges = async (balance: BigNumber, unbondingLength: number, withdrawnLength: number) => {
             expect(await token.balanceOf(delegator.address)).to.equal(balance);

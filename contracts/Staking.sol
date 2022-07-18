@@ -78,6 +78,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * Delegator can withdraw the unbond amount after the lockPeriod.
      */
     struct UnbondAmount {
+        address indexer;
         uint256 amount; //pending unbonding amount
         uint256 startTime; //unbond start time
     }
@@ -300,7 +301,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             indexerNo[_indexer] = indexerLength;
             indexerLength++;
         } else {
-            require(msg.sender == _indexer, 'only indexer can call stake()');
+            require(msg.sender == _indexer, 'only indexer allowed');
         }
         _delegateToIndexer(_indexer, _indexer, _amount);
     }
@@ -309,7 +310,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * @dev Delegator stake to Indexer, Indexer cannot call this.
      */
     function delegate(address _indexer, uint256 _amount) external override {
-        require(msg.sender != _indexer, 'indexer can not call delegate() use stake() instead');
+        require(msg.sender != _indexer, 'indexer not allowed');
         reflectEraUpdate(msg.sender, _indexer);
         // delegation limit should not exceed
         require(
@@ -359,7 +360,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     ) external override {
         address _source = msg.sender;
 
-        require(from_indexer != msg.sender, 'Self delegation can not be redelegated');
+        require(from_indexer != msg.sender, 'indexer cannot redelegate');
 
         // delegation limit should not exceed
         require(
@@ -386,9 +387,26 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         uint256 index = unbondingLength[_source];
         unbondingAmount[_source][index].amount = _amount;
         unbondingAmount[_source][index].startTime = block.timestamp;
+        unbondingAmount[_source][index].indexer = _indexer;
         unbondingLength[_source]++;
 
         emit UnbondRequested(_source, _indexer, _amount, index);
+    }
+
+    function cancelUnbonding(uint256 unbondReqId) external {
+        UnbondAmount memory unbond = unbondingAmount[msg.sender][unbondReqId];
+        uint256 time = block.timestamp - unbond.startTime;
+        require(time < lockPeriod, 'unable to cancel');
+        delete unbondingAmount[msg.sender][unbondReqId];
+
+        if (msg.sender != unbond.indexer){
+            require(
+                delegation[unbond.indexer][unbond.indexer].valueAfter * indexerLeverageLimit >=
+                    totalStakingAmount[unbond.indexer].valueAfter + unbond.amount,
+                'Delegation limitation reached'
+            );
+        }
+        _addDelegation(msg.sender, unbond.indexer, unbond.amount);
     }
 
     /**
@@ -460,6 +478,10 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
             time = block.timestamp - unbondingAmount[msg.sender][i].startTime;
             if (time < lockPeriod) {
+                break;
+            }
+            if (time == block.timestamp){
+                withdrawnLength[msg.sender]++;
                 break;
             }
 
