@@ -13,10 +13,10 @@ import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IRewardsPool.sol';
-import './interfaces/IServiceAgreement.sol';
 import './Constants.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
+import './utils/StakingUtil.sol';
 
 /**
  * @title Rewards Pool Contract
@@ -124,6 +124,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
         require(currentEra > 0, 'Wait Era');
         uint256 era = currentEra - 1;
+        IStaking staking = IStaking(settings.getStaking());
 
         // TODO clear previous pool info, and burn unclaim reward.
         // delete pools[era - 1];
@@ -131,15 +132,15 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         Pool storage pool = pools[era][deploymentId];
         require(pool.totalReward > 0, 'No reward');
 
-        IStaking staking = IStaking(settings.getStaking());
-        uint256 totalStake = staking.getPreviousTotalStake();
-        uint256 myStake = staking.getPreviousStake(indexer);
-        uint256 commission = staking.getPreviousCommission(indexer);
+        uint256 totalStake = StakingUtil.previous_staking(staking.getStaking(), currentEra);
+        uint256 myStake = StakingUtil.previous_staking(staking.getStaking(indexer), currentEra);
+        uint256 myCommission = StakingUtil.previous_commission(staking.getCommission(indexer), currentEra);
+
         LaborReward storage myLabor = pool.labor[indexer];
         uint256 amount = _cobbDouglas(pool.totalReward, myLabor.labor, myStake, totalStake);
 
         // distribute reward to indexer and delegators.
-        uint256 indexerAmount = MathUtil.mulDiv(commission, amount, PER_MILL);
+        uint256 indexerAmount = MathUtil.mulDiv(myCommission, amount, PER_MILL);
         myLabor.unclaim = amount - indexerAmount;
         myLabor.accSQTPerStake = MathUtil.mulDiv(amount - indexerAmount, PER_TRILL, myStake);
 
@@ -152,18 +153,20 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     /**
      * @dev Claim delegator reward from previous era Pool.
      * @param deploymentId byte32.
-     * @param indexer address.
      * @param delegator address.
+     * @param indexer address.
      */
-    function claim_delegation(bytes32 deploymentId, address indexer, address delegator) external {
+    function claim_delegation(bytes32 deploymentId, address delegator, address indexer) external {
         uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
         require(currentEra > 0, 'Wait Era');
         uint256 era = currentEra - 1;
         LaborReward storage myLabor = pools[era][deploymentId].labor[indexer];
         require(myLabor.unclaim > 0, 'No reward');
-
         IStaking staking = IStaking(settings.getStaking());
-        uint256 delegation = staking.getPreviousDelegation(indexer, delegator);
+
+        StakingAmount memory amount = staking.getDelegation(delegator, indexer);
+        uint256 delegation = StakingUtil.previous_delegation(amount, currentEra);
+
         uint256 reward = delegation * myLabor.accSQTPerStake;
         myLabor.unclaim -= reward;
 
@@ -211,54 +214,5 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
             : FixedMath.div(stakeRatio, n);
         // Multiply the above with reward.
         return FixedMath.uintMul(n, reward);
-    }
-
-    function getPreviousTotalStake() external view override returns (uint256) {
-        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
-        IStaking staking = IStaking(settings.getStaking());
-        StakingAmount memory amount = staking.totalStaking;
-        if (amount.era == eraNumber) {
-            return amount.valueBefore;
-        } else if ((amount.era + 1) == eraNumber) {
-            return amount.valueAt;
-        } else {
-            return amount.valueAfter;
-        }
-    }
-
-    function getPreviousStake(address _indexer) external view override returns (uint256) {
-        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
-        StakingAmount memory amount = totalStakingAmount[_indexer];
-        if (amount.era == eraNumber) {
-            return amount.valueBefore;
-        } else if ((amount.era + 1) == eraNumber) {
-            return amount.valueAt;
-        } else {
-            return amount.valueAfter;
-        }
-    }
-
-    function getPreviousCommission(address _indexer) external view override returns (uint256) {
-        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
-        CommissionRate memory rate = commissionRates[_indexer];
-        if ((rate.era + 1) <= eraNumber) {
-            return rate.valueBefore;
-        } else if ((rate.era + 2) == eraNumber) {
-            return rate.valueAt;
-        } else {
-            return rate.valueAfter;
-        }
-    }
-
-    function getPreviousDelegation(address _indexer, address _delegator) external view override returns (uint256) {
-        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
-        StakingAmount memory amount = delegation[_delegator][_indexer];
-        if (amount.era == eraNumber) {
-            return amount.valueBefore;
-        } else if ((amount.era + 1) == eraNumber) {
-            return amount.valueAt;
-        } else {
-            return amount.valueAfter;
-        }
     }
 }

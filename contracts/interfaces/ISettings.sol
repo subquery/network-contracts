@@ -13,7 +13,7 @@ interface ISettings {
         address _planManager,
         address _serviceAgreementRegistry,
         address _rewardsDistributer,
-        address _rewardsPool
+        address _rewardsPool,
         address _rewardsHelper,
         address _inflationController
     ) external;

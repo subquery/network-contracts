@@ -61,39 +61,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
-    // -- Data structure --
-
-    /**
-     * @dev Total staking amount information. One per Indexer.
-     * Stake amount change need to be applied at next Era.
-     */
-    struct StakingAmount {
-        uint256 era;         // last update era
-        uint256 valueAt;     // value at the era
-        uint256 valueBefore; // value at previous era
-        uint256 valueAfter;  // value to be refreshed from next era
-    }
-
-    /**
-     * @dev Unbond amount information. One per request per Delegator.
-     * Delegator can withdraw the unbond amount after the lockPeriod.
-     */
-    struct UnbondAmount {
-        uint256 amount;    // pending unbonding amount
-        uint256 startTime; // unbond start time
-    }
-
-    /**
-     * @dev Commission rate information. One per Indexer.
-     * Commission rate change need to be applied at the Era after next Era.
-     */
-    struct CommissionRate {
-        uint256 era;         // last update era
-        uint256 valueAt;     // value at the era
-        uint256 valueBefore; // value at previous era
-        uint256 valueAfter;  // value to be refreshed from next era
-    }
-
     // -- Storage --
 
     ISettings public settings;
@@ -520,6 +487,26 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         return amount.valueAt;
     }
 
+    function getStaking() external view override returns (StakingAmount memory) {
+        return totalStaking;
+    }
+
+    function getStaking(address _indexer) external view override returns (StakingAmount memory) {
+        return totalStakingAmount[_indexer];
+    }
+
+    function getCommission(address _indexer) external view override returns (CommissionRate memory) {
+        return commissionRates[_indexer];
+    }
+
+    function getDelegation(address _delegator, address _indexer) external view override returns (StakingAmount memory) {
+        return delegation[_delegator][_indexer];
+    }
+
+    function getTotalStakingAmount(address _indexer) external view override returns (uint256) {
+        return _parseStakingAmount(totalStakingAmount[_indexer]);
+    }
+
     function getTotalEffectiveStake(address _indexer) external view override returns (uint256) {
         uint256 effectiveStake = _parseStakingAmount(totalStakingAmount[_indexer]);
         uint256 selfDelegation = _parseStakingAmount(delegation[_indexer][_indexer]);
@@ -527,10 +514,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             effectiveStake = selfDelegation * indexerLeverageLimit;
         }
         return effectiveStake;
-    }
-
-    function getTotalStakingAmount(address _indexer) external view override returns (uint256) {
-        return _parseStakingAmount(totalStakingAmount[_indexer]);
     }
 
     function getDelegationAmount(address _source, address _indexer) external view override returns (uint256) {

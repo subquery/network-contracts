@@ -6,10 +6,10 @@ pragma solidity ^0.8.10;
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-import './MathUtil.sol';
-import './RewardsDistributer.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
+import './RewardsDistributer.sol';
+import './utils/MathUtil.sol';
 
 contract RewardsHelper is Initializable, OwnableUpgradeable {
     using MathUtil for uint256;
