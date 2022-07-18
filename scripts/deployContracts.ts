@@ -32,6 +32,8 @@ import {
     RewardsDistributer__factory,
     RewardsPool,
     RewardsPool__factory,
+    RewardsHelper,
+    RewardsHelper__factory,
     StateChannel,
     StateChannel__factory,
     ConsumerProxy,
@@ -59,6 +61,7 @@ type Contracts = {
     serviceAgreementRegistry: ServiceAgreementRegistry;
     rewardsDistributer: RewardsDistributer;
     rewardsPool: RewardsPool;
+    rewardsHelper: RewardsHelper;
     stateChannel: StateChannel;
     consumerProxy: ConsumerProxy;
     consumerHoster: ConsumerHoster;
@@ -71,6 +74,7 @@ const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: s
     QueryRegistry: [CONTRACTS.QueryRegistry, QueryRegistry__factory],
     RewardsDistributer: [CONTRACTS.RewardsDistributer, RewardsDistributer__factory],
     RewardsPool: [CONTRACTS.RewardsPool, RewardsPool__factory],
+    RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
     ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
     EraManager: [CONTRACTS.EraManager, EraManager__factory],
@@ -288,6 +292,11 @@ export async function deployContracts(
         rewardsPool.deployTransaction.hash
     );
 
+    const rewardsHelper = await deployProxy<RewardsHelper>(proxyAdmin, RewardsHelper__factory, wallet, overrides);
+    const initRewardsHelper = await rewardsHelper.initialize(deployment.Settings.address, overrides);
+    await initRewardsHelper.wait();
+    updateDeployment(deployment, 'RewardsHelper', rewardsHelper.address, rewardsHelper.deployTransaction.hash);
+
     const stateChannel = await deployProxy<StateChannel>(proxyAdmin, StateChannel__factory, wallet, overrides);
     const initStateChannel = await stateChannel.initialize(deployment.Settings.address, overrides);
     await initStateChannel.wait();
@@ -319,6 +328,7 @@ export async function deployContracts(
         deployment.ServiceAgreementRegistry.address,
         deployment.RewardsDistributer.address,
         deployment.RewardsPool.address,
+        deployment.RewardsHelper.address,
         deployment.InflationController.address,
         overrides as any
     );
@@ -340,6 +350,7 @@ export async function deployContracts(
             serviceAgreementRegistry,
             rewardsDistributer,
             rewardsPool,
+            rewardsHelper,
             proxyAdmin,
             stateChannel,
             consumerProxy,

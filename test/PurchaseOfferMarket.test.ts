@@ -195,15 +195,7 @@ describe('Purchase Offer Market Contract', () => {
                 const rewardsDistrBalance = await token.balanceOf(rewardsDistributor.address);
 
                 // accept offer
-                const tx = await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
-                const receipt = await tx.wait();
-                const evt = receipt.events.find(
-                    (log) => log.topics[0] === utils.id('ClosedAgreementCreated(address,address,bytes32,address)')
-                );
-                const CSAContractAddress = serviceAgreementRegistry.interface.decodeEventLog(
-                    serviceAgreementRegistry.interface.getEvent('ClosedAgreementCreated'),
-                    evt.data
-                ).serviceAgreement;
+                await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
 
                 // check updates for the offer
                 offer = await purchaseOfferMarket.offers(0);
@@ -211,7 +203,6 @@ describe('Purchase Offer Market Contract', () => {
                 expect(await purchaseOfferMarket.acceptedOffer(0, wallet_0.address)).to.equal(true);
                 expect(offer.numAcceptedContracts).to.equal(1);
                 expect(await token.balanceOf(purchaseOfferMarket.address)).to.equal(offerMarketBalance.sub(deposit));
-                expect(await token.balanceOf(CSAContractAddress)).to.equal(0);
                 expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(deposit));
             });
 

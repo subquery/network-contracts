@@ -13,8 +13,9 @@ interface ISettings {
         address _planManager,
         address _serviceAgreementRegistry,
         address _rewardsDistributer,
-        address _inflationController,
         address _rewardsPool
+        address _rewardsHelper,
+        address _inflationController
     ) external;
 
     function setSQToken(address _sqToken) external;
@@ -50,6 +51,10 @@ interface ISettings {
     function setRewardsPool(address _rewardsPool) external;
 
     function getRewardsPool() external view returns (address);
+
+    function setRewardsHelper(address _rewardsHelper) external;
+
+    function getRewardsHelper() external view returns (address);
 
     function setInflationController(address _inflationController) external;
 

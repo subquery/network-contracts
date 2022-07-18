@@ -12,7 +12,7 @@ import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IRewardsDistributer.sol';
-import './interfaces/IServiceAgreement.sol';
+import './interfaces/IServiceAgreementRegistry.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
 
@@ -192,17 +192,18 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * Rewards split into more then two eras handled by splitEraSpanMore;
      * Use eraRewardAddTable and eraRewardRemoveTable to store and track reward split info at RewardInfo.
      * Only be called by ServiceAgreementRegistry contract when new agreement accepted.
-     * @param indexer indexer adress
-     * @param agreementContract serviceAgreement address
+     * @param agreementId agreement Id
      */
-    function increaseAgreementRewards(address indexer, address agreementContract) external {
-        require(settings.getServiceAgreementRegistry() == msg.sender, 'only from service agreement');
+    function increaseAgreementRewards(uint256 agreementId) external {
+        require(settings.getServiceAgreementRegistry() == msg.sender, 'invalid caller');
+        ClosedServiceAgreementInfo memory agreement = IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).getClosedServiceAgreement(agreementId);
+        require(agreement.consumer!=address(0), "invalid agreemenrt");
         IEraManager eraManager = IEraManager(settings.getEraManager());
-        IServiceAgreement agreement = IServiceAgreement(agreementContract);
 
-        uint256 agreementPeriod = agreement.period();
-        uint256 agreementValue = agreement.value();
-        uint256 agreementStartDate = agreement.startDate();
+        address indexer = agreement.indexer;
+        uint256 agreementPeriod = agreement.period;
+        uint256 agreementValue = agreement.lockedAmount;
+        uint256 agreementStartDate = agreement.startDate;
         uint256 agreementStartEra = eraManager.timestampToEraNumber(agreementStartDate);
         uint256 eraPeriod = eraManager.eraPeriod();
 
@@ -306,21 +307,21 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     /**
      * @dev collect and distribute rewards with specific indexer and batch size
      */
-    function batchCollectAndDistributeRewards(address indexer, uint256 batchSize) public {
-        // check current era is after lastClaimEra
-        uint256 currentEra = _getCurrentEra();
-        uint256 loopCount = MathUtil.min(batchSize, currentEra - info[indexer].lastClaimEra - 1);
-        for (uint256 i = 0; i < loopCount; i++) {
-            _collectAndDistributeRewards(currentEra, indexer);
-        }
-    }
+    // function batchCollectAndDistributeRewards(address indexer, uint256 batchSize) public {
+    //     // check current era is after lastClaimEra
+    //     uint256 currentEra = _getCurrentEra();
+    //     uint256 loopCount = MathUtil.min(batchSize, currentEra - info[indexer].lastClaimEra - 1);
+    //     for (uint256 i = 0; i < loopCount; i++) {
+    //         _collectAndDistributeRewards(currentEra, indexer);
+    //     }
+    // }
 
     /**
      * @dev Calculate and distribute the rewards for the next Era of the lastClaimEra.
      * Calculate by eraRewardAddTable and eraRewardRemoveTable.
      * Distribute by distributeRewards method.
      */
-    function _collectAndDistributeRewards(uint256 currentEra, address indexer) private returns (uint256) {
+    function _collectAndDistributeRewards(uint256 currentEra, address indexer) public returns (uint256) {
         RewardInfo storage rewardInfo = info[indexer];
         require(rewardInfo.lastClaimEra > 0, 'invalid indexer');
         // skip when it has been claimed for currentEra - 1, no throws
@@ -423,11 +424,11 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     /**
      * @dev Apply a list of stakers' StakeChanges, call applyStakeChange one by one.
      */
-    function applyStakeChanges(address indexer, address[] memory stakers) public {
-        for (uint256 i = 0; i < stakers.length; i++) {
-            applyStakeChange(indexer, stakers[i]);
-        }
-    }
+    // function applyStakeChanges(address indexer, address[] memory stakers) public {
+    //     for (uint256 i = 0; i < stakers.length; i++) {
+    //         applyStakeChange(indexer, stakers[i]);
+    //     }
+    // }
 
     /**
      * @dev Apply the stake change and calaulate the new rewardDebt for staker.
@@ -479,7 +480,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     /**
      * @dev Claculate the Rewards for user and tranfrer token to user.
      */
-    function _claim(address indexer, address user) internal returns (uint256) {
+    function _claim(address indexer, address user) public returns (uint256) {
         uint256 rewards = userRewards(indexer, user);
         if (rewards == 0) return 0;
         IERC20(settings.getSQToken()).safeTransfer(user, rewards);
