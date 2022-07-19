@@ -175,7 +175,7 @@ export async function deployContracts(
     updateDeployment(deployment, 'SQToken', sqtToken.address, sqtToken.deployTransaction.hash);
 
     //deploy Airdropper contract
-    const airdropper = await new Airdropper__factory(wallet).deploy();
+    const airdropper = await new Airdropper__factory(wallet).deploy(overrides);
     await airdropper.deployTransaction.wait();
     updateDeployment(deployment, 'Airdropper', airdropper.address, airdropper.deployTransaction.hash);
 
