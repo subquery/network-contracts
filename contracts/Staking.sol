@@ -180,7 +180,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     }
 
     function setUnbondFeeRateBP(uint256 _unbondFeeRate) external onlyOwner {
-        require(_unbondFeeRate < PER_MILL, 'fee rate can not be larger than 1e6');
+        require(_unbondFeeRate < PER_MILL, 'invaild unbondFeeRate');
         unbondFeeRate = _unbondFeeRate;
     }
 
@@ -254,7 +254,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         address _indexer,
         uint256 _amount
     ) internal {
-        require(_amount > 0, 'delegation amount need to be a positive number');
+        require(_amount > 0, 'invaild delegation amount');
         if (_isEmptyDelegation(_source, _indexer)) {
             stakingIndexerNos[_source][_indexer] = stakingIndexerLengths[_source];
             stakingIndexers[_source][stakingIndexerLengths[_source]] = _indexer;
@@ -327,11 +327,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         address _indexer,
         uint256 _amount
     ) internal {
-        require(_amount > 0, 'Amount should be positive');
-        require(
-            delegation[_source][_indexer].valueAfter >= _amount,
-            'Removed delegation cannot be greater than current amount'
-        );
+        require(_amount > 0, 'invaild amount');
+        require(delegation[_source][_indexer].valueAfter >= _amount, 'invaild amount');
 
         delegation[_source][_indexer].valueAfter -= _amount;
         totalStakingAmount[_indexer].valueAfter -= _amount;
@@ -399,7 +396,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         require(time < lockPeriod, 'unable to cancel');
         delete unbondingAmount[msg.sender][unbondReqId];
 
-        if (msg.sender != unbond.indexer){
+        if (msg.sender != unbond.indexer) {
             require(
                 delegation[unbond.indexer][unbond.indexer].valueAfter * indexerLeverageLimit >=
                     totalStakingAmount[unbond.indexer].valueAfter + unbond.amount,
@@ -421,11 +418,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             indexerNo[indexers[indexerLength - 1]] = indexerNo[_indexer];
             indexerLength--;
         } else {
-            require(msg.sender == _indexer, 'only indexer can unstake()');
+            require(msg.sender == _indexer, 'invaild caller');
             require(
                 this.getDelegationAmount(_indexer, _indexer) - _amount >
                     IIndexerRegistry(settings.getIndexerRegistry()).minimumStakingAmount(),
-                'staked amount should be greater than minimum amount'
+                'invaild unstaked amount'
             );
         }
         _startUnbond(_indexer, _indexer, _amount);
@@ -436,7 +433,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      */
     function undelegate(address _indexer, uint256 _amount) external override {
         // check if called by an indexer
-        require(_indexer != msg.sender, 'Self delegation can not unbond from staking');
+        require(_indexer != msg.sender, 'invaild caller');
         reflectEraUpdate(msg.sender, _indexer);
         _startUnbond(msg.sender, _indexer, _amount);
     }
@@ -466,7 +463,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      */
     function widthdraw() external override {
         uint256 withdrawingLength = unbondingLength[msg.sender] - withdrawnLength[msg.sender];
-        require(withdrawingLength > 0, 'Need to request unbond before withdraw');
+        require(withdrawingLength > 0, 'Nothing withdraw');
 
         // withdraw the max top 10 requests
         if (withdrawingLength > 10) {
@@ -480,7 +477,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             if (time < lockPeriod) {
                 break;
             }
-            if (time == block.timestamp){
+            if (time == block.timestamp) {
                 withdrawnLength[msg.sender]++;
                 break;
             }
