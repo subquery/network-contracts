@@ -13,6 +13,7 @@ import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IRewardsPool.sol';
+import './interfaces/IRewardsDistributer.sol';
 import './Constants.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
@@ -29,19 +30,12 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
-    // Labor and Reward for indexer.
-    struct LaborReward {
-        uint256 labor;
-        uint256 accSQTPerStake;
-        uint256 unclaim;
-    }
-
     // Deployment Reward Pool.
     struct Pool {
         // total amount of the deployment.
         uint256 totalReward;
-        // labor: indexer => LaborReward
-        mapping(address => LaborReward) labor;
+        // labor: indexer => Labor reward
+        mapping(address => uint256) labor;
     }
 
     // Era Rewards Pools: era => deployment => Pool.
@@ -56,7 +50,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
 
     event Alpha(int32 alphaNumerator, int32 alphaDenominator);
     event Labor(bytes32 deploymentId, address indexer, uint256 amount, uint256 total);
-    event Claim(bytes32 deploymentId, address indexer, uint256 era, uint256 amount);
+    event Collect(bytes32 deploymentId, address indexer, uint256 era, uint256 amount);
 
     // Initial.
     function initialize(ISettings _settings) external initializer {
@@ -109,18 +103,18 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
 
         uint256 era = IEraManager(settings.getEraManager()).eraNumber();
         Pool storage pool = pools[era][deploymentId];
-        pool.labor[indexer].labor += amount;
+        pool.labor[indexer] += amount;
         pool.totalReward += amount;
 
         emit Labor(deploymentId, indexer, amount, pool.totalReward);
     }
 
     /**
-     * @dev Claim reward (stake) from previous era Pool.
+     * @dev Collect reward (stake) from previous era Pool.
      * @param deploymentId byte32.
      * @param indexer address.
      */
-    function claim(bytes32 deploymentId, address indexer) external {
+    function collect(bytes32 deploymentId, address indexer) external {
         uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
         require(currentEra > 0, 'Wait Era');
         uint256 era = currentEra - 1;
@@ -134,44 +128,13 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
 
         uint256 totalStake = StakingUtil.previous_staking(staking.getStaking(), currentEra);
         uint256 myStake = StakingUtil.previous_staking(staking.getStaking(indexer), currentEra);
-        uint256 myCommission = StakingUtil.previous_commission(staking.getCommission(indexer), currentEra);
 
-        LaborReward storage myLabor = pool.labor[indexer];
-        uint256 amount = _cobbDouglas(pool.totalReward, myLabor.labor, myStake, totalStake);
+        uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[indexer], myStake, totalStake);
 
-        // distribute reward to indexer and delegators.
-        uint256 indexerAmount = MathUtil.mulDiv(myCommission, amount, PER_MILL);
-        myLabor.unclaim = amount - indexerAmount;
-        myLabor.accSQTPerStake = MathUtil.mulDiv(amount - indexerAmount, PER_TRILL, myStake);
+        IRewardsDistributer distributer = IRewardsDistributer(settings.getRewardsDistributer());
+        distributer.addInstantRewards(indexer, address(this), amount);
 
-        IERC20 token = IERC20(settings.getSQToken());
-        token.safeTransfer(indexer, indexerAmount);
-
-        emit Claim(deploymentId, indexer, era, amount);
-    }
-
-    /**
-     * @dev Claim delegator reward from previous era Pool.
-     * @param deploymentId byte32.
-     * @param delegator address.
-     * @param indexer address.
-     */
-    function claim_delegation(bytes32 deploymentId, address delegator, address indexer) external {
-        uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
-        require(currentEra > 0, 'Wait Era');
-        uint256 era = currentEra - 1;
-        LaborReward storage myLabor = pools[era][deploymentId].labor[indexer];
-        require(myLabor.unclaim > 0, 'No reward');
-        IStaking staking = IStaking(settings.getStaking());
-
-        StakingAmount memory amount = staking.getDelegation(delegator, indexer);
-        uint256 delegation = StakingUtil.previous_delegation(amount, currentEra);
-
-        uint256 reward = delegation * myLabor.accSQTPerStake;
-        myLabor.unclaim -= reward;
-
-        IERC20 token = IERC20(settings.getSQToken());
-        token.safeTransfer(delegator, reward);
+        emit Collect(deploymentId, indexer, era, amount);
     }
 
     function _cobbDouglas(uint256 reward, uint256 myLabor, uint256 myStake, uint256 totalStake) private view returns (uint256) {

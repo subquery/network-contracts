@@ -4,7 +4,7 @@
 pragma solidity ^0.8.10;
 
 interface IRewardsPool {
-    function labor(bytes32 project, address indexer, uint256 amount) external;
+    function labor(bytes32 deploymentId, address indexer, uint256 amount) external;
 
-    function claim(bytes32 project, address indexer) external;
+    function collect(bytes32 deploymentId, address indexer) external;
 }

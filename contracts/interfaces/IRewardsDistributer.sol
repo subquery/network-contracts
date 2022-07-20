@@ -14,6 +14,8 @@ interface IRewardsDistributer {
 
     function increaseAgreementRewards(uint256 agreementId) external;
 
+    function addInstantRewards(address indexer, address sender, uint256 amount) external;
+
     function claim(address indexer) external;
 
     function userRewards(address indexer, address user) external view returns (uint256);

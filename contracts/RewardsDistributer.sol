@@ -260,6 +260,23 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         _emitRewardsChangedEvent(indexer, agreementStartEra + 1, rewardInfo);
     }
 
+    function addInstantRewards(address indexer, address sender, uint256 amount) external {
+        IERC20(settings.getSQToken()).safeTransferFrom(sender, address(this), amount);
+
+        IEraManager eraManager = IEraManager(settings.getEraManager());
+        uint256 currentEra = eraManager.safeUpdateAndGetEra();
+
+        RewardInfo storage rewardInfo = info[indexer];
+        rewardInfo.eraRewardAddTable[currentEra] += amount;
+        rewardInfo.eraRewardRemoveTable[currentEra + 1] += amount;
+
+        // Current era will always change
+        _emitRewardsChangedEvent(indexer, currentEra, rewardInfo);
+
+        // Next era will always change
+        _emitRewardsChangedEvent(indexer, currentEra + 1, rewardInfo);
+    }
+
     /**
      * @dev Handle split rewards into more then two Eras,
      * private method called by increaseAgreementRewards.
