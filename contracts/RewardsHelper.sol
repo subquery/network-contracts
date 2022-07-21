@@ -48,7 +48,7 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
         // check current era is after lastClaimEra
         IEraManager eraManager = IEraManager(settings.getEraManager());
         uint256 currentEra = eraManager.safeUpdateAndGetEra();
-        uint256 loopCount = MathUtil.min(batchSize, currentEra - rewardsDistributer.getLastClaimEra(indexer) - 1);
+        uint256 loopCount = MathUtil.min(batchSize, currentEra - rewardsDistributer.getRewardInfo(indexer).lastClaimEra - 1);
         for (uint256 i = 0; i < loopCount; i++) {
             rewardsDistributer._collectAndDistributeRewards(currentEra, indexer);
         }

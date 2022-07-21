@@ -240,10 +240,11 @@ describe('PlanManger Contract', () => {
 
         it('claim and distribute rewards by an indexer should work', async () => {
             await checkAcceptPlan(1);
-            expect(await rewardsDistributor.getAccSQTPerStake(indexer.address)).eq(0);
+
+
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).accSQTPerStake).eq(0);
             const era = await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.connect(indexer).collectAndDistributeRewards(indexer.address);
-            // console.log(`lastClaimed: ${await rewardsDistributor.getLastClaimEra(indexer.address)}`);
             const rewardsAddTable = await rewardsDistributor.getRewardsAddTable(indexer.address, era.sub(1), 5);
             const rewardsRemoveTable = await rewardsDistributor.getRewardsRemoveTable(indexer.address, era.sub(1), 5);
             console.log(rewardsAddTable);
@@ -254,12 +255,12 @@ describe('PlanManger Contract', () => {
                     eraReward = eraReward.add(val.sub(rewardsRemoveTable[idx]));
                     return [eraReward, total.add(eraReward)];
                 },
-                [await rewardsDistributor.getEraReward(indexer.address), BigNumber.from(0)]
+                [(await rewardsDistributor.getRewardInfo(indexer.address)).eraReward, BigNumber.from(0)]
             );
 
             expect(eraReward).to.be.eq(0);
             expect(totalReward).to.be.eq(etherParse("2"));
-            expect(await rewardsDistributor.getAccSQTPerStake(indexer.address)).gt(0);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).accSQTPerStake).gt(0);
             expect(await rewardsDistributor.userRewards(indexer.address, indexer.address)).gt(0);
         });
 

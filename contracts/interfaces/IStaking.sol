@@ -51,9 +51,6 @@ interface IStaking {
 
     function widthdraw() external;
 
-    // Get total staking amount.
-    function getStaking() external view returns (StakingAmount memory);
-
     // Get indexer total staking amount.
     function getStaking(address _indexer) external view returns (StakingAmount memory);
 

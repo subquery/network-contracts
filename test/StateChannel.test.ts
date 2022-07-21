@@ -191,9 +191,9 @@ describe('StateChannel Contract', () => {
 
             // check rewards
             const currentEra = await (await eraManager.eraNumber()).toNumber();
-            const infos = await rewardsPool.getPool(deploymentId, currentEra, indexer.address);
+            const infos = await rewardsPool.getReward(deploymentId, currentEra, indexer.address);
+            expect(infos[0]).to.be.eq(etherParse("0.1")); // labor
             expect(infos[1]).to.be.eq(etherParse("0.1")); // reward
-            expect(infos[4]).to.be.eq(etherParse("0.1")); // labor
 
             const query2 = await buildQueryState(channelId, indexer, consumer, false, 20, etherParse("0.01"));
             await stateChannel.checkpoint(query2);

@@ -50,7 +50,7 @@ describe('RewardsDistributer Contract', () => {
         expect(await token.balanceOf(indexer.address)).to.be.equal(_indexerBalance);
         expect(await token.balanceOf(delegator.address)).to.be.equal(_delegatorBalance);
         expect(await rewardsDistributor.getTotalStakingAmount(indexer.address)).to.be.equal(_totalStakingAmount);
-        expect(await rewardsDistributor.getEraReward(indexer.address)).to.be.equal(_eraReward);
+        expect((await rewardsDistributor.getRewardInfo(indexer.address)).eraReward).to.be.equal(_eraReward);
     };
 
     beforeEach(async () => {
@@ -100,7 +100,7 @@ describe('RewardsDistributer Contract', () => {
     describe('initialization', async () => {
         it('rewardsDistributor contract should initialize correctly', async () => {
             expect(await eraManager.eraNumber()).to.be.eq(2);
-            expect(await rewardsDistributor.getLastClaimEra(indexer.address)).to.be.eq(1);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
         });
 
         it('commissionRates and stakingAmount of new indexer should be load to rewardsDistributor contract', async () => {
@@ -208,14 +208,14 @@ describe('RewardsDistributer Contract', () => {
 
         it('should be able to batch collect and distribute rewards', async () => {
             expect(await eraManager.eraNumber()).to.be.eq(2);
-            expect(await rewardsDistributor.getLastClaimEra(indexer.address)).to.be.eq(1);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
             //move to Era5
             await startNewEra(mockProvider, eraManager);
             await startNewEra(mockProvider, eraManager);
             await startNewEra(mockProvider, eraManager);
             await rewardsHelper.batchCollectAndDistributeRewards(indexer.address, 10);
             expect(await eraManager.eraNumber()).to.be.eq(5);
-            expect(await rewardsDistributor.getLastClaimEra(indexer.address)).to.be.eq(4);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(4);
             await rewardsDistributor.connect(indexer).claim(indexer.address);
             expect(await (await token.balanceOf(indexer.address)).div(1e14)).to.be.eq(14999);
         });
@@ -300,9 +300,9 @@ describe('RewardsDistributer Contract', () => {
             //for now only era2 rewards not be distributed
 
             //delegatior delegate 1000 SQT
-            expect(await rewardsDistributor.getLastClaimEra(indexer.address)).to.be.eq(1);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
             await staking.connect(delegator).delegate(indexer.address, etherParse("1"));
-            expect(await rewardsDistributor.getLastClaimEra(indexer.address)).to.be.eq(2);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(2);
         });
 
         it('delegate at more then one Era reward not be distributed should fail', async () => {
@@ -356,7 +356,7 @@ describe('RewardsDistributer Contract', () => {
             await rewardsDistributor.applyStakeChange(indexer.address, delegator.address);
             expect(await rewardsDistributor.getTotalStakingAmount(indexer.address)).to.be.eq(etherParse("11"));
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
-            expect(await rewardsDistributor.getLastClaimEra(indexer.address)).to.be.eq(4);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(4);
         });
 
         it('applyStakeChange should claim accrued rewrads for delegator', async () => {
@@ -481,7 +481,7 @@ describe('RewardsDistributer Contract', () => {
             // 1. indexer try to reregister immediately should revert with `Last unregistry not settled`: era[n]
             await expect(
                 indexerRegistry.connect(indexer).registerIndexer(etherParse("1"), METADATA_HASH, 100, {gasLimit: '2000000'})
-            ).to.be.revertedWith('Last registry not settled');
+            ).to.be.revertedWith('Registry not settled');
             // 2. start new era -> indexer `collectAndDistributeRewards` -> `applyStakeChange`: era[n+1]
             await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
@@ -493,13 +493,13 @@ describe('RewardsDistributer Contract', () => {
             // 4. indexer try to register still revert with `Last unregistry not settled`
             await expect(
                 indexerRegistry.connect(indexer).registerIndexer(etherParse("1"), METADATA_HASH, 100, {gasLimit: '2000000'})
-            ).to.be.revertedWith('Last registry not settled');
+            ).to.be.revertedWith('Registry not settled');
             // 5. delegator undelegate all the Tokens
             await staking.connect(delegator).undelegate(indexer.address, etherParse("1"));
             // 6. indexer try to register revert with `Last unregistry not settled`
             await expect(
                 indexerRegistry.connect(indexer).registerIndexer(etherParse("1"), METADATA_HASH, 100, {gasLimit: '2000000'})
-            ).to.be.revertedWith('Last registry not settled');
+            ).to.be.revertedWith('Registry not settled');
         });
 
         it('indexer without delegators can reregister', async () => {

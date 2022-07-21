@@ -574,17 +574,16 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     // -- Views --
-
-    function getAccSQTPerStake(address indexer) public view returns (uint256) {
-        return info[indexer].accSQTPerStake;
+    // Reward info for query.
+    struct IndexerRewardInfo {
+        uint256 accSQTPerStake;
+        uint256 lastClaimEra;
+        uint256 eraReward;
     }
 
-    function getRewardDebt(address indexer, address staker) public view returns (uint256) {
-        return info[indexer].rewardDebt[staker];
-    }
-
-    function getLastClaimEra(address indexer) public view returns (uint256) {
-        return info[indexer].lastClaimEra;
+    function getRewardInfo(address indexer) public view returns (IndexerRewardInfo memory) {
+        RewardInfo storage reward = info[indexer];
+        return IndexerRewardInfo(reward.accSQTPerStake, reward.lastClaimEra, reward.eraReward);
     }
 
     function getLastSettledEra(address indexer) public view returns (uint256) {
@@ -602,10 +601,6 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         }
 
         return _stakers;
-    }
-
-    function getEraReward(address indexer) public view returns (uint256) {
-        return info[indexer].eraReward;
     }
 
     function getTotalStakingAmount(address _indexer) public view returns (uint256) {

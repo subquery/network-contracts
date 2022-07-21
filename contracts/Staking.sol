@@ -81,9 +81,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     // Number of registered indexers.
     uint256 public indexerLength;
 
-    // Total staking amount of all indexers and delegators.
-    StakingAmount public totalStaking;
-
     // Staking address by indexer number.
     mapping(uint256 => address) public indexers;
 
@@ -233,7 +230,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     ) private {
         _reflectStakingAmount(eraNumber, delegation[_source][_indexer]);
         _reflectStakingAmount(eraNumber, totalStakingAmount[_indexer]);
-        _reflectStakingAmount(eraNumber, totalStaking);
     }
 
     function _reflectStakingAmount(uint256 eraNumber, StakingAmount storage stakeAmount) private {
@@ -268,13 +264,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         } else {
             delegation[_source][_indexer].valueAfter += _amount;
             totalStakingAmount[_indexer].valueAfter += _amount;
-        }
-
-        if (totalStaking.valueAt == 0) {
-            totalStaking.valueAt = _amount;
-            totalStaking.valueAfter = _amount;
-        } else {
-            totalStaking.valueAfter += _amount;
         }
 
         _onDelegationChange(_source, _indexer);
@@ -338,7 +327,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
 
         delegation[_source][_indexer].valueAfter -= _amount;
         totalStakingAmount[_indexer].valueAfter -= _amount;
-        totalStaking.valueAfter -= _amount;
 
         _onDelegationChange(_source, _indexer);
 
@@ -485,10 +473,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             return amount.valueAfter;
         }
         return amount.valueAt;
-    }
-
-    function getStaking() external view override returns (StakingAmount memory) {
-        return totalStaking;
     }
 
     function getStaking(address _indexer) external view override returns (StakingAmount memory) {
