@@ -7,4 +7,6 @@ interface IRewardsPool {
     function labor(bytes32 deploymentId, address indexer, uint256 amount) external;
 
     function collect(bytes32 deploymentId, address indexer) external;
+
+    function isClaimed(uint256 era, address indexer) external returns (bool);
 }

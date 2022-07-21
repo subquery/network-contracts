@@ -14,6 +14,7 @@ import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IRewardsDistributer.sol';
+import './interfaces/ISQToken.sol';
 import './Constants.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
@@ -34,12 +35,27 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     struct Pool {
         // total amount of the deployment.
         uint256 totalReward;
+        // total unclaimed labor;
+        uint256 unclaimTotalLabor;
+        // total unclaimed reward.
+        uint256 unclaimTotalReward;
+        // remain unclaimed reward.
+        uint256 unclaimReward;
         // labor: indexer => Labor reward
         mapping(address => uint256) labor;
     }
 
-    // Era Rewards Pools: era => deployment => Pool.
-    mapping(uint256 => mapping(bytes32 => Pool)) private pools;
+    // Era Reward Pool.
+    struct EraPool {
+        // record the unclaimed deployment.
+        uint256 unclaimDeployment;
+        // record the indexer joined deployments, and check if all is claimed.
+        mapping(address => uint256) indexerUnclaimDeployments;
+        mapping(bytes32 => Pool) pools;
+    }
+
+    // Era Rewards Pools: era => Era Pool.
+    mapping(uint256 => EraPool) private pools;
 
     // Settings info.
     ISettings public settings;
@@ -99,12 +115,23 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      * @param amount uint256. the labor of services.
      */
     function labor(bytes32 deploymentId, address indexer, uint256 amount) external {
+        require(amount > 0, 'Invalid amount');
         IERC20(settings.getSQToken()).safeTransferFrom(msg.sender, address(this), amount);
 
         uint256 era = IEraManager(settings.getEraManager()).eraNumber();
-        Pool storage pool = pools[era][deploymentId];
+        EraPool storage eraPool = pools[era];
+        Pool storage pool = eraPool.pools[deploymentId];
+        if (pool.totalReward == 0) {
+            eraPool.unclaimDeployment += 1;
+        }
+        if (pool.labor[indexer] == 0) {
+            eraPool.indexerUnclaimDeployments[indexer] += 1;
+        }
         pool.labor[indexer] += amount;
         pool.totalReward += amount;
+        pool.unclaimTotalLabor += amount;
+        pool.unclaimTotalReward += amount;
+        pool.unclaimReward += amount;
 
         emit Labor(deploymentId, indexer, amount, pool.totalReward);
     }
@@ -120,10 +147,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         uint256 era = currentEra - 1;
         IStaking staking = IStaking(settings.getStaking());
 
-        // TODO clear previous pool info, and burn unclaim reward.
-        // delete pools[era - 1];
-
-        Pool storage pool = pools[era][deploymentId];
+        EraPool storage eraPool = pools[era];
+        Pool storage pool = eraPool.pools[deploymentId];
         require(pool.totalReward > 0, 'No reward');
 
         uint256 totalStake = StakingUtil.previous_staking(staking.getStaking(), currentEra);
@@ -134,7 +159,64 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         IRewardsDistributer distributer = IRewardsDistributer(settings.getRewardsDistributer());
         distributer.addInstantRewards(indexer, address(this), amount);
 
+        eraPool.indexerUnclaimDeployments[indexer] -= 1;
+        pool.unclaimTotalLabor -= pool.labor[indexer];
+        pool.unclaimTotalReward -= amount;
+        pool.unclaimReward -= amount;
+
+        if (pool.unclaimTotalLabor == 0) {
+            // burn the remained
+            if (pool.unclaimReward > 0) {
+                ISQToken token = ISQToken(settings.getSQToken());
+                token.burn(pool.unclaimReward);
+            }
+
+            delete eraPool.pools[deploymentId];
+            eraPool.unclaimDeployment -= 1;
+
+            // if unclaimed pool == 0, delete the era
+            if (eraPool.unclaimDeployment == 0) {
+                delete pools[era];
+            }
+        }
+
         emit Collect(deploymentId, indexer, era, amount);
+    }
+
+    function collect_era(uint256 era, bytes32 deploymentId, address indexer) external {
+        // read staking info from rewards distributer
+        uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
+        require(currentEra - 1 > era, 'Use collect');
+
+        EraPool storage eraPool = pools[era];
+        Pool storage pool = eraPool.pools[deploymentId];
+        require(pool.unclaimReward > 0, 'All claimed');
+
+        // unclaimed total reward * (labor/total reward)
+        uint256 amount = pool.unclaimTotalReward * (pool.labor[indexer] / pool.unclaimTotalLabor);
+
+        IRewardsDistributer distributer = IRewardsDistributer(settings.getRewardsDistributer());
+        distributer.addInstantRewards(indexer, address(this), amount);
+
+        eraPool.indexerUnclaimDeployments[indexer] -= 1;
+        pool.unclaimReward -= amount;
+
+        // if unclaimed == 0, delete the pool
+        if (pool.unclaimReward == 0) {
+            delete eraPool.pools[deploymentId];
+            eraPool.unclaimDeployment -= 1;
+
+            // if unclaimed pool == 0, delete the era
+            if (eraPool.unclaimDeployment == 0) {
+                delete pools[era];
+            }
+        }
+
+        emit Collect(deploymentId, indexer, era, amount);
+    }
+
+    function isClaimed(uint256 era, address indexer) external returns (bool) {
+        return pools[era].indexerUnclaimDeployments[indexer] == 0;
     }
 
     function _cobbDouglas(uint256 reward, uint256 myLabor, uint256 myStake, uint256 totalStake) private view returns (uint256) {
