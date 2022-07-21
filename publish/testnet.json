@@ -76,5 +76,11 @@
         "bytecodeHash": "417a56f21d4ce0eb23dc13dd4df1583ef6211f45215ecf9c18edf79afc492e98",
         "txHash": "0xf0e868499d18d6b36047f819d933eb6aa77994ba499e2976563dd1a9355df36f",
         "lastUpdate": "Sun, 26 Jun 2022 01:02:08 GMT"
+    },
+    "Airdropper": {
+        "address": "0xA16a799D863206f5c165759DAd83A612da39a773",
+        "bytecodeHash": "bf16fc36f0a5cc4a7364680cbab707a4242894a090aea087c988cb2c94bad37f",
+        "txHash": "0x8dc0eda87edf0913ccd0aff3d933c438ca58cb4b50c8b45d1bff1de2541a0b3e",
+        "lastUpdate": "Tue, 19 Jul 2022 21:40:37 GMT"
     }
 }

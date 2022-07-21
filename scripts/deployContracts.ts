@@ -32,6 +32,8 @@ import {
     RewardsDistributer__factory,
     StateChannel,
     StateChannel__factory,
+    Airdropper,
+    Airdropper__factory,
 } from '../src';
 
 interface FactoryContstructor {
@@ -53,6 +55,7 @@ type Contracts = {
     serviceAgreementRegistry: ServiceAgreementRegistry;
     rewardsDistributer: RewardsDistributer;
     stateChannel: StateChannel;
+    airdropper: Airdropper;
 };
 
 const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: string}, FactoryContstructor]>> = {
@@ -170,6 +173,11 @@ export async function deployContracts(
     const sqtToken = await new SQToken__factory(wallet).deploy(deployment.InflationController.address, overrides);
     await sqtToken.deployTransaction.wait();
     updateDeployment(deployment, 'SQToken', sqtToken.address, sqtToken.deployTransaction.hash);
+
+    //deploy Airdropper contract
+    const airdropper = await new Airdropper__factory(wallet).deploy(overrides);
+    await airdropper.deployTransaction.wait();
+    updateDeployment(deployment, 'Airdropper', airdropper.address, airdropper.deployTransaction.hash);
 
     // deploy Staking contract
     const staking = await deployProxy<Staking>(proxyAdmin, Staking__factory, wallet, overrides);
@@ -297,6 +305,7 @@ export async function deployContracts(
             rewardsDistributer,
             proxyAdmin,
             stateChannel,
+            airdropper,
         },
     ];
 }
