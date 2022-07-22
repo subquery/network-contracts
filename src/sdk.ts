@@ -26,6 +26,8 @@ import {
     PurchaseOfferMarket__factory,
     StateChannel,
     StateChannel__factory,
+    Airdropper,
+    Airdropper__factory,
 } from './typechain';
 
 export class ContractSDK {
@@ -49,6 +51,7 @@ export class ContractSDK {
     private _rewardsDistributor?: RewardsDistributer;
     private _purchaseOfferMarket?: PurchaseOfferMarket;
     private _stateChannel?: StateChannel;
+    private _airdropper?: Airdropper;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options?: SdkOptions) {
         this._contractDeployments =
@@ -144,8 +147,15 @@ export class ContractSDK {
         return this._stateChannel;
     }
 
+    get airdropper(): Airdropper {
+        if (!this._airdropper) {
+            throw new Error(`_airdropper address not found`);
+        }
+        return this._airdropper;
+    }
+
     public async initContract<C extends Contract>(
-        factory: { connect: (address: string, signerOrProvider: AbstractProvider | Signer) => C },
+        factory: {connect: (address: string, signerOrProvider: AbstractProvider | Signer) => C},
         address?: string
     ): Promise<C | undefined> {
         if (!address) {
@@ -168,6 +178,7 @@ export class ContractSDK {
             rewardsDistributor,
             purchaseOfferMarket,
             stateChannel,
+            airdropper,
         ] = await Promise.all([
             this.initContract(Settings__factory, this._contractDeployments.Settings?.address),
             this.initContract(SQToken__factory, this._contractDeployments.SQToken?.address),
@@ -184,6 +195,7 @@ export class ContractSDK {
             this.initContract(RewardsDistributer__factory, this._contractDeployments.RewardsDistributer.address),
             this.initContract(PurchaseOfferMarket__factory, this._contractDeployments.PurchaseOfferMarket.address),
             this.initContract(StateChannel__factory, this._contractDeployments.StateChannel.address),
+            this.initContract(Airdropper__factory, this._contractDeployments.Airdropper.address),
         ]);
         this._settings = settings;
         this._sqToken = sqToken;
@@ -197,5 +209,6 @@ export class ContractSDK {
         this._rewardsDistributor = rewardsDistributor;
         this._purchaseOfferMarket = purchaseOfferMarket;
         this._stateChannel = stateChannel;
+        this._airdropper = airdropper;
     }
 }

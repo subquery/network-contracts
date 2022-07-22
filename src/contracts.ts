@@ -12,6 +12,7 @@ import EraManager from './artifacts/contracts/EraManager.sol/EraManager.json';
 import RewardsDistributer from './artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json';
 import ProxyAdmin from './artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json';
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
+import Airdropper from './artifacts/contracts/Airdropper.sol/Airdropper.json';
 
 export default {
     Settings,
@@ -28,4 +29,5 @@ export default {
     RewardsDistributer,
     ProxyAdmin,
     StateChannel,
+    Airdropper,
 };
