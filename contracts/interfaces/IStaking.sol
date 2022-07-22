@@ -32,6 +32,8 @@ interface IStaking {
 
     function getCommissionRate(address indexer) external view returns (uint256);
 
+    function stakedAmount(address _delegator) external view returns (uint256);
+
     //    function checkAndReflectSettlement(uint256 currentEra, address indexer)
     //        external
     //        returns (bool);
