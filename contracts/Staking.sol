@@ -115,21 +115,21 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     //Staking amount per indexer address.
     mapping(address => StakingAmount) totalStakingAmount;
     //delegator address -> unbond request index -> amount&startTime
-    mapping(address => mapping(uint256 => UnbondAmount)) unbondingAmount;
+    mapping(address => mapping(uint256 => UnbondAmount)) public unbondingAmount;
     //delegator address -> length of unbond requests
     mapping(address => uint256) public unbondingLength;
     //delegator address -> length of widthdrawn requests
     mapping(address => uint256) public withdrawnLength;
     //active delegation from delegator to indexer, delegator->indexer->amount
-    mapping(address => mapping(address => StakingAmount)) delegation;
+    mapping(address => mapping(address => StakingAmount)) public delegation;
     //actively staking indexers by delegator
     mapping(address => mapping(uint256 => address)) public stakingIndexers;
     //delegating indexer number by delegator and indexer
     mapping(address => mapping(address => uint256)) public stakingIndexerNos;
     //staking indexer lengths
-    mapping(address => uint256) stakingIndexerLengths;
+    mapping(address => uint256) public stakingIndexerLengths;
     //delegation tax rate per indexer
-    mapping(address => CommissionRate) public commissionRates;
+    mapping(address => CommissionRate) commissionRates;
 
     // -- Events --
 
@@ -391,11 +391,12 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     }
 
     function cancelUnbonding(uint256 unbondReqId) external {
+        require(unbondReqId >= withdrawnLength[msg.sender], 'already withdrawed');
         UnbondAmount memory unbond = unbondingAmount[msg.sender][unbondReqId];
-        uint256 time = block.timestamp - unbond.startTime;
-        require(time < lockPeriod, 'unable to cancel');
-        delete unbondingAmount[msg.sender][unbondReqId];
+        IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
+        require(indexerRegistry.isIndexer(unbond.indexer), 'indexer unregistered');
 
+        delete unbondingAmount[msg.sender][unbondReqId];
         if (msg.sender != unbond.indexer) {
             require(
                 delegation[unbond.indexer][unbond.indexer].valueAfter * indexerLeverageLimit >=
@@ -518,17 +519,17 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         return delegation[_source][_indexer].valueAfter;
     }
 
-    function getStakingIndexersLength(address _address) external view returns (uint256) {
-        return stakingIndexerLengths[_address];
-    }
+    // function getStakingIndexersLength(address _address) external view returns (uint256) {
+    //     return stakingIndexerLengths[_address];
+    // }
 
-    function getStakingAmount(address _source, address _indexer) external view returns (StakingAmount memory) {
-        return delegation[_source][_indexer];
-    }
+    // function getStakingAmount(address _source, address _indexer) external view returns (StakingAmount memory) {
+    //     return delegation[_source][_indexer];
+    // }
 
-    function getUnbondingAmount(address _source, uint256 _id) external view returns (UnbondAmount memory) {
-        return unbondingAmount[_source][_id];
-    }
+    // function getUnbondingAmount(address _source, uint256 _id) external view returns (UnbondAmount memory) {
+    //     return unbondingAmount[_source][_id];
+    // }
 
     function getUnbondingAmounts(address _source) external view returns (UnbondAmount[] memory) {
         uint256 withdrawingLength = unbondingLength[_source] - withdrawnLength[_source];
