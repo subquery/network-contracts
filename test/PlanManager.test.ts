@@ -234,8 +234,8 @@ describe('PlanManger Contract', () => {
 
         it('accept plan with default plan should work', async () => {
             const agreementId = await checkAcceptPlan(1);
-            const agreement = serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
-            expect(await (await agreement).lockedAmount).to.be.eq(etherParse("2"));
+            const agreement = await serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
+            expect (agreement.lockedAmount).to.be.eq(etherParse("2"));
         });
 
         it('claim and distribute rewards by an indexer should work', async () => {
@@ -243,11 +243,9 @@ describe('PlanManger Contract', () => {
             expect(await rewardsDistributor.getAccSQTPerStake(indexer.address)).eq(0);
             const era = await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.connect(indexer).collectAndDistributeRewards(indexer.address);
-            // console.log(`lastClaimed: ${await rewardsDistributor.getLastClaimEra(indexer.address)}`);
+
             const rewardsAddTable = await rewardsDistributor.getRewardsAddTable(indexer.address, era.sub(1), 5);
             const rewardsRemoveTable = await rewardsDistributor.getRewardsRemoveTable(indexer.address, era.sub(1), 5);
-            console.log(rewardsAddTable);
-            console.log(rewardsRemoveTable);
             const [eraReward, totalReward] = rewardsAddTable.reduce(
                 (acc, val, idx) => {
                     let [eraReward, total] = acc;
