@@ -54,4 +54,14 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
         }
     }
 
+    function batchCollectWithPool(address indexer, bytes32[] memory deployments) public {
+        IRewardsPool rewardsPool = IRewardsPool(settings.getRewardsPool());
+        for (uint256 i = 0; i < deployments.length; i++) {
+            rewardsPool.collect(deployments[i], indexer);
+        }
+
+        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getRewardsDistributer());
+        rewardsDistributer.collectAndDistributeRewards(indexer);
+    }
+
 }

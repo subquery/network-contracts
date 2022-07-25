@@ -133,6 +133,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
 
             IStaking staking = IStaking(settings.getStaking());
             uint256 myStake = StakingUtil.current_staking(staking.getStaking(indexer), era);
+            require(myStake > 0, 'No indexer');
             pool.stake[indexer] = myStake;
             pool.totalStake += myStake;
         }
@@ -150,7 +151,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      * @param indexer address.
      */
     function collect(bytes32 deploymentId, address indexer) external {
-        uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
+        uint256 currentEra = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
         require(currentEra > 0, 'Waiting Era');
         _collect(currentEra - 1, deploymentId, indexer);
 
@@ -162,7 +163,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      * @param indexer address.
      */
     function collect_era(uint256 era, bytes32 deploymentId, address indexer) external {
-        uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
+        uint256 currentEra = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
         require(currentEra > era, 'Waiting Era');
         _collect(era, deploymentId, indexer);
     }
@@ -170,16 +171,20 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     function _collect(uint256 era, bytes32 deploymentId, address indexer) private {
         EraPool storage eraPool = pools[era];
         Pool storage pool = eraPool.pools[deploymentId];
-        require(pool.totalReward > 0, 'No reward');
+        require(pool.totalReward > 0 && pool.labor[indexer] > 0, 'No reward');
 
         uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[indexer], pool.stake[indexer], pool.totalStake);
 
-        IRewardsDistributer distributer = IRewardsDistributer(settings.getRewardsDistributer());
+        address rewardDistributer = settings.getRewardsDistributer();
+        IRewardsDistributer distributer = IRewardsDistributer(rewardDistributer);
+        IERC20(settings.getSQToken()).approve(rewardDistributer, amount);
         distributer.addInstantRewards(indexer, address(this), amount);
 
         eraPool.indexerUnclaimDeployments[indexer] -= 1;
         pool.unclaimTotalLabor -= pool.labor[indexer];
         pool.unclaimReward -= amount;
+        delete pool.labor[indexer];
+        delete pool.stake[indexer];
 
         if (pool.unclaimTotalLabor == 0) {
             // burn the remained
@@ -200,7 +205,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         emit Collect(deploymentId, indexer, era, amount);
     }
 
-    function isClaimed(uint256 era, address indexer) external returns (bool) {
+    function isClaimed(uint256 era, address indexer) external view returns (bool) {
         return pools[era].indexerUnclaimDeployments[indexer] == 0;
     }
 

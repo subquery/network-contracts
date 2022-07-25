@@ -455,9 +455,9 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         uint256 currentEra = _getCurrentEra();
         uint256 lastClaimEra = info[indexer].lastClaimEra;
         require(_pendingStakeChange(indexer, staker), 'No pending');
-        require(lastSettledEra[indexer] < lastClaimEra, 'Rewards should be collected');
+        require(lastSettledEra[indexer] < lastClaimEra, 'Rewards not collected');
         IRewardsPool rewardsPool = IRewardsPool(settings.getRewardsPool());
-        require(rewardsPool.isClaimed(lastClaimEra, indexer), 'Rewards Pool should be collected');
+        require(rewardsPool.isClaimed(lastClaimEra, indexer), 'Rewards Pool not collected');
 
         _claim(indexer, staker);
 
@@ -482,7 +482,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             'No pending'
         );
 
-        require(lastSettledEra[indexer] < info[indexer].lastClaimEra, 'Rewards should be collected');
+        require(lastSettledEra[indexer] < info[indexer].lastClaimEra, 'Rewards not collected');
 
         IStaking staking = IStaking(settings.getStaking());
         uint256 newCommissionRate = staking.getCommissionRate(indexer);

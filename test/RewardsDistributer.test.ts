@@ -328,7 +328,7 @@ describe('RewardsDistributer Contract', () => {
             await startNewEra(mockProvider, eraManager);
             //distribute era3
             await expect(rewardsDistributor.applyStakeChange(indexer.address, delegator.address)).to.be.revertedWith(
-                'Rewards should be collected'
+                'Rewards not collected'
             );
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             await rewardsDistributor.applyStakeChange(indexer.address, delegator.address);
