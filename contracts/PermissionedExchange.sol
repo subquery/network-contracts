@@ -8,10 +8,13 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
+import './MathUtil.sol';
+import './Constants.sol';
 import './interfaces/ISettings.sol';
 
-contract PermissionedExchange is Initializable, OwnableUpgradeable {
+contract PermissionedExchange is Initializable, OwnableUpgradeable, Constants {
     using SafeERC20 for IERC20;
+    using MathUtil for uint256;
 
     struct ExchangeOrder {
         address tokenGive;
@@ -82,7 +85,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         require(tradeQuota[order.tokenGet][msg.sender] >= _amount, 'tradeQuota reached');
         require(order.expireDate > block.timestamp, 'order expired');
         require(order.amountGet >= _amount, 'trade amount exceed order balance');
-        uint256 amount = order.amountGive / (order.amountGet / _amount);
+        uint256 amount = (order.amountGive * _amount * PER_MILL) / order.amountGet / PER_MILL;
         order.amountGet -= _amount;
         order.amountGive -= amount;
         IERC20(order.tokenGet).safeTransferFrom(msg.sender, order.sender, _amount);
