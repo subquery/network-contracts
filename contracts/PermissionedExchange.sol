@@ -23,8 +23,10 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable, Constants {
         uint256 amountGet;
         address sender;
         uint256 expireDate;
+        uint256 amountGiveLeft;
     }
 
+    ISettings public settings;
     uint256 public nextOrderId;
     mapping(address => mapping(address => uint256)) public tradeQuota;
     mapping(address => bool) public exchangeController;
@@ -48,8 +50,9 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable, Constants {
         uint256 amountGet
     );
 
-    function initialize() external initializer {
+    function initialize(ISettings _settings) external initializer {
         __Ownable_init();
+        settings = _settings;
     }
 
     function addController(address _controller) external onlyOwner {
@@ -75,19 +78,28 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable, Constants {
         require(_expireDate > block.timestamp, 'invalid expireDate');
         require(_amountGive > 0 && _amountGet > 0, 'invalid amount');
         IERC20(_tokenGive).safeTransferFrom(msg.sender, address(this), _amountGive);
-        orders[nextOrderId] = ExchangeOrder(_tokenGive, _tokenGet, _amountGive, _amountGet, msg.sender, _expireDate);
+        orders[nextOrderId] = ExchangeOrder(
+            _tokenGive,
+            _tokenGet,
+            _amountGive,
+            _amountGet,
+            msg.sender,
+            _expireDate,
+            _amountGive
+        );
         emit ExchangeOrderSent(nextOrderId, msg.sender, _tokenGive, _tokenGet, _amountGive, _amountGet, _expireDate);
         nextOrderId += 1;
     }
 
     function trade(uint256 _orderId, uint256 _amount) public {
         ExchangeOrder storage order = orders[_orderId];
-        require(tradeQuota[order.tokenGet][msg.sender] >= _amount, 'tradeQuota reached');
+        if (order.tokenGet == settings.getSQToken()) {
+            require(tradeQuota[order.tokenGet][msg.sender] >= _amount, 'tradeQuota reached');
+        }
         require(order.expireDate > block.timestamp, 'order expired');
-        require(order.amountGet >= _amount, 'trade amount exceed order balance');
-        uint256 amount = (order.amountGive * _amount * PER_MILL) / order.amountGet / PER_MILL;
-        order.amountGet -= _amount;
-        order.amountGive -= amount;
+        uint256 amount = (order.amountGive * _amount) / order.amountGet;
+        require(amount <= order.amountGiveLeft, 'trade amount exceed order balance');
+        order.amountGiveLeft -= amount;
         IERC20(order.tokenGet).safeTransferFrom(msg.sender, order.sender, _amount);
         IERC20(order.tokenGive).safeTransfer(msg.sender, amount);
         emit Trade(_orderId, order.tokenGet, _amount, order.tokenGive, amount);
@@ -96,10 +108,32 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable, Constants {
     function settleExpiredOrder(uint256 _orderId) public {
         ExchangeOrder memory order = orders[_orderId];
         require(order.expireDate < block.timestamp, 'order not expired');
-        if (order.amountGive != 0) {
-            IERC20(order.tokenGive).safeTransfer(order.sender, order.amountGive);
+        if (order.amountGiveLeft != 0) {
+            IERC20(order.tokenGive).safeTransfer(order.sender, order.amountGiveLeft);
         }
-        emit OrderSettled(_orderId, order.tokenGive, order.amountGive, order.tokenGet, order.amountGet);
+        emit OrderSettled(
+            _orderId,
+            order.tokenGive,
+            order.amountGive - order.amountGiveLeft,
+            order.tokenGet,
+            order.amountGet - ((order.amountGet * order.amountGiveLeft) / order.amountGive)
+        );
+        delete orders[_orderId];
+    }
+
+    function cancelOrder(uint256 _orderId) public {
+        ExchangeOrder memory order = orders[_orderId];
+        require(msg.sender == order.sender, 'only order sender allowed');
+        if (order.amountGiveLeft != 0) {
+            IERC20(order.tokenGive).safeTransfer(order.sender, order.amountGiveLeft);
+        }
+        emit OrderSettled(
+            _orderId,
+            order.tokenGive,
+            order.amountGive - order.amountGiveLeft,
+            order.tokenGet,
+            order.amountGet - ((order.amountGet * order.amountGiveLeft) / order.amountGive)
+        );
         delete orders[_orderId];
     }
 }
