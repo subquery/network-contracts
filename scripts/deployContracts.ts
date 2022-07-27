@@ -34,6 +34,8 @@ import {
     StateChannel__factory,
     Airdropper,
     Airdropper__factory,
+    PermissionedExchange,
+    PermissionedExchange__factory,
 } from '../src';
 
 interface FactoryContstructor {
@@ -56,6 +58,7 @@ type Contracts = {
     rewardsDistributer: RewardsDistributer;
     stateChannel: StateChannel;
     airdropper: Airdropper;
+    permissionedExchange: PermissionedExchange;
 };
 
 const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: string}, FactoryContstructor]>> = {
@@ -69,6 +72,7 @@ const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: s
     EraManager: [CONTRACTS.EraManager, EraManager__factory],
     PurchaseOfferMarket: [CONTRACTS.PurchaseOfferMarket, PurchaseOfferMarket__factory],
     StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
+    PermissionedExchange: [CONTRACTS.PermissionedExchange, PermissionedExchange__factory],
 };
 
 export const deployProxy = async <C extends Contract>(
@@ -273,6 +277,21 @@ export async function deployContracts(
     await initStateChannel.wait();
     updateDeployment(deployment, 'StateChannel', stateChannel.address, stateChannel.deployTransaction.hash);
 
+    const permissionedExchange = await deployProxy<PermissionedExchange>(
+        proxyAdmin,
+        PermissionedExchange__factory,
+        wallet,
+        overrides
+    );
+    const initPermissionedExchange = await permissionedExchange.initialize(deployment.Settings.address, overrides);
+    await initPermissionedExchange.wait();
+    updateDeployment(
+        deployment,
+        'PermissionedExchange',
+        permissionedExchange.address,
+        permissionedExchange.deployTransaction.hash
+    );
+
     // Register addresses on settings contract
     const txObj = await settings.setAllAddresses(
         deployment.SQToken.address,
@@ -306,6 +325,7 @@ export async function deployContracts(
             proxyAdmin,
             stateChannel,
             airdropper,
+            permissionedExchange,
         },
     ];
 }

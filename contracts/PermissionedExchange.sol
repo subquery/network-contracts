@@ -8,13 +8,10 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
-import './MathUtil.sol';
-import './Constants.sol';
 import './interfaces/ISettings.sol';
 
-contract PermissionedExchange is Initializable, OwnableUpgradeable, Constants {
+contract PermissionedExchange is Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
-    using MathUtil for uint256;
 
     struct ExchangeOrder {
         address tokenGive;
@@ -27,9 +24,13 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable, Constants {
     }
 
     ISettings public settings;
+    //next order Id
     uint256 public nextOrderId;
+    //record trade quota for traders for specific token: address => trader address => trade Quota
     mapping(address => mapping(address => uint256)) public tradeQuota;
+    //record address is controller or not
     mapping(address => bool) public exchangeController;
+    //record orders: orderId => ExchangeOrder
     mapping(uint256 => ExchangeOrder) public orders;
 
     event ExchangeOrderSent(
@@ -55,10 +56,16 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable, Constants {
         settings = _settings;
     }
 
-    function addController(address _controller) external onlyOwner {
-        exchangeController[_controller] = true;
+    /**
+     * @dev Set controller role for this contract, controller have the permission to addQuota for trader
+     */
+    function setController(address _controller, bool _isController) external onlyOwner {
+        exchangeController[_controller] = _isController;
     }
 
+    /**
+     * @dev allow controllers to add the trade quota to traders on specific token
+     */
     function addQuota(
         address _token,
         address _account,
@@ -68,6 +75,10 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable, Constants {
         tradeQuota[_token][_account] += _amount;
     }
 
+    /**
+     * @dev only onwer have the permission to send the order for now,
+     * traders can do exchanges on onwer sent order
+     */
     function sendOrder(
         address _tokenGive,
         address _tokenGet,
@@ -91,22 +102,33 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable, Constants {
         nextOrderId += 1;
     }
 
+    /**
+     * @dev traders do exchange on traders order, but need to trade under the trade quota.
+     */
     function trade(uint256 _orderId, uint256 _amount) public {
         ExchangeOrder storage order = orders[_orderId];
         if (order.tokenGet == settings.getSQToken()) {
             require(tradeQuota[order.tokenGet][msg.sender] >= _amount, 'tradeQuota reached');
         }
-        require(order.expireDate > block.timestamp, 'order expired');
+        require(order.expireDate > block.timestamp, 'order invalid');
         uint256 amount = (order.amountGive * _amount) / order.amountGet;
         require(amount <= order.amountGiveLeft, 'trade amount exceed order balance');
         order.amountGiveLeft -= amount;
+        if (order.tokenGet == settings.getSQToken()) {
+            tradeQuota[order.tokenGet][msg.sender] -= amount;
+        }
         IERC20(order.tokenGet).safeTransferFrom(msg.sender, order.sender, _amount);
         IERC20(order.tokenGive).safeTransfer(msg.sender, amount);
         emit Trade(_orderId, order.tokenGet, _amount, order.tokenGive, amount);
     }
 
+    /**
+     * @dev everyone allowed to call settleExpiredOrder to settled expired order
+     * this will return left given token back to order sender.
+     */
     function settleExpiredOrder(uint256 _orderId) public {
         ExchangeOrder memory order = orders[_orderId];
+        require(order.expireDate != 0, 'order not exist');
         require(order.expireDate < block.timestamp, 'order not expired');
         if (order.amountGiveLeft != 0) {
             IERC20(order.tokenGive).safeTransfer(order.sender, order.amountGiveLeft);
@@ -121,8 +143,13 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable, Constants {
         delete orders[_orderId];
     }
 
+    /**
+     * @dev order sender can cancel the sent order anytime, and this will return left
+     * given token back to order sender.
+     */
     function cancelOrder(uint256 _orderId) public {
         ExchangeOrder memory order = orders[_orderId];
+        require(order.expireDate != 0, 'order not exist');
         require(msg.sender == order.sender, 'only order sender allowed');
         if (order.amountGiveLeft != 0) {
             IERC20(order.tokenGive).safeTransfer(order.sender, order.amountGiveLeft);
