@@ -1,7 +1,7 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
@@ -76,21 +76,21 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
     ISettings private settings;
     //Reward information: indexer => rewardInfo
-    mapping(address => RewardInfo) info;
+    mapping(address => RewardInfo) private info;
     //Pending staker address: indexer => indexNumber => staker
-    mapping(address => mapping(uint256 => address)) pendingStakers;
+    mapping(address => mapping(uint256 => address)) private pendingStakers;
     //Pending staker's index number: indexer => staker => indexNumber
-    mapping(address => mapping(address => uint256)) pendingStakerNos;
+    mapping(address => mapping(address => uint256)) private pendingStakerNos;
     //Numbers of pending stake changes: indexer => pendingStakeChangeLength
-    mapping(address => uint256) pendingStakeChangeLength;
+    mapping(address => uint256) private pendingStakeChangeLength;
     //Era number of CommissionRateChange should apply: indexer => CommissionRateChange Era number
-    mapping(address => uint256) pendingCommissionRateChange;
+    mapping(address => uint256) private pendingCommissionRateChange;
     //Last settled Era number: indexer => lastSettledEra
-    mapping(address => uint256) lastSettledEra;
+    mapping(address => uint256) private lastSettledEra;
     //total staking amount per indexer: indexer => totalStakingAmount
-    mapping(address => uint256) totalStakingAmount;
+    mapping(address => uint256) private totalStakingAmount;
     //delegator's delegation amount to indexer: delegator => indexer => delegationAmount
-    mapping(address => mapping(address => uint256)) delegation;
+    mapping(address => mapping(address => uint256)) private delegation;
     //rewards commission rates per indexer: indexer => commissionRates
     mapping(address => uint256) public commissionRates;
 
@@ -158,13 +158,13 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * @param reward Rewards amount
      */
     function distributeRewards(address indexer, uint256 reward) private {
-        uint256 commission = MathUtil.mulDiv(commissionRates[indexer], reward, PER_MILL);
-        IERC20(settings.getSQToken()).safeTransfer(indexer, commission);
-
         uint256 totalStake = getTotalStakingAmount(indexer);
         require(totalStake > 0, 'non-indexer');
 
+        uint256 commission = MathUtil.mulDiv(commissionRates[indexer], reward, PER_MILL);
+
         info[indexer].accSQTPerStake += MathUtil.mulDiv(reward - commission, PER_TRILL, totalStake);
+        IERC20(settings.getSQToken()).safeTransfer(indexer, commission);
     }
 
     /**
@@ -179,8 +179,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         address indexer,
         uint256 currentEra
     ) private {
-        bool settled = checkAndReflectSettlement(currentEra, indexer, info[indexer].lastClaimEra);
-        if (settled) {
+        if (checkAndReflectSettlement(currentEra, indexer, info[indexer].lastClaimEra)) {
             totalStakingAmount[indexer] = staking.getTotalStakingAmount(indexer);
         }
     }
@@ -503,8 +502,10 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     function _claim(address indexer, address user) internal returns (uint256) {
         uint256 rewards = userRewards(indexer, user);
         if (rewards == 0) return 0;
-        IERC20(settings.getSQToken()).safeTransfer(user, rewards);
         info[indexer].rewardDebt[user] += rewards;
+
+        IERC20(settings.getSQToken()).safeTransfer(user, rewards);
+
         emit ClaimRewards(indexer, user, rewards);
         return rewards;
     }

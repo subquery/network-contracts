@@ -1,11 +1,10 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import './MathUtil.sol';
@@ -123,6 +122,8 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         address _penaltyDestination
     ) external initializer {
         __Ownable_init();
+        require(_penaltyRate < PER_MILL, 'Invalid penalty rate');
+
         settings = _settings;
         penaltyRate = _penaltyRate;
         penaltyDestination = _penaltyDestination;
@@ -132,7 +133,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * @dev allow owner the set the Penalty Rate for cancel unexpired offer.
      */
     function setPenaltyRate(uint256 _penaltyRate) external onlyOwner {
-        require(_penaltyRate <= PER_MILL, 'Invalid penalty rate');
+        require(_penaltyRate < PER_MILL, 'Invalid penalty rate');
         penaltyRate = _penaltyRate;
     }
 
@@ -163,9 +164,6 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         (, , , , bool active) = planManager.getPlanTemplate(_planTemplateId);
         require(active, 'PlanTemplate inactive');
 
-        // send SQToken from msg.sender to the contract (this) - deposit * limit
-        IERC20(settings.getSQToken()).transferFrom(msg.sender, address(this), _deposit * _limit);
-
         offers[numOffers] = PurchaseOffer(
             _deposit,
             _minimumAcceptHeight,
@@ -176,6 +174,12 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
             false,
             _limit,
             0
+        );
+
+        // send SQToken from msg.sender to the contract (this) - deposit * limit
+        require(
+            IERC20(settings.getSQToken()).transferFrom(msg.sender, address(this), _deposit * _limit),
+            'transfer fail'
         );
 
         emit PurchaseOfferCreated(
@@ -219,7 +223,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         }
 
         // send remaining SQToken from the contract to consumer (this)
-        IERC20(settings.getSQToken()).transfer(msg.sender, unfulfilledValue);
+        require(IERC20(settings.getSQToken()).transfer(msg.sender, unfulfilledValue), 'transfer fail');
 
         emit PurchaseOfferCancelled(msg.sender, _offerId, penalty);
     }
@@ -244,15 +248,13 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
 
         // increate number of accepted contracts
         offers[_offerId].numAcceptedContracts++;
-
         // flag offer accept to avoid double accept
         acceptedOffer[_offerId][msg.sender] = true;
-
         PurchaseOffer memory offer = offers[_offerId];
+        offerMmrRoot[_offerId][msg.sender] = _mmrRoot;
 
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         (uint256 period, , , , ) = planManager.getPlanTemplate(offer.planTemplateId);
-
         // create closed service agreement contract
         ClosedServiceAgreement subsContract = new ClosedServiceAgreement(
             address(settings),
@@ -266,10 +268,11 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
             offer.planTemplateId
         );
 
-        offerMmrRoot[_offerId][msg.sender] = _mmrRoot;
-
         // deposit SQToken into the service agreement registry contract
-        IERC20(settings.getSQToken()).transfer(settings.getServiceAgreementRegistry(), offer.deposit);
+        require(
+            IERC20(settings.getSQToken()).transfer(settings.getServiceAgreementRegistry(), offer.deposit),
+            'transfer fail'
+        );
 
         // Register agreement globally
         IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).establishServiceAgreement(

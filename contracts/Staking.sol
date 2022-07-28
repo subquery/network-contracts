@@ -1,7 +1,7 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
@@ -112,21 +112,21 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     //Indexer number by staking address.
     mapping(address => uint256) public indexerNo;
     //Staking amount per indexer address.
-    mapping(address => StakingAmount) totalStakingAmount;
+    mapping(address => StakingAmount) private totalStakingAmount;
     //delegator address -> unbond request index -> amount&startTime
-    mapping(address => mapping(uint256 => UnbondAmount)) unbondingAmount;
+    mapping(address => mapping(uint256 => UnbondAmount)) private unbondingAmount;
     //delegator address -> length of unbond requests
     mapping(address => uint256) public unbondingLength;
     //delegator address -> length of widthdrawn requests
     mapping(address => uint256) public withdrawnLength;
     //active delegation from delegator to indexer, delegator->indexer->amount
-    mapping(address => mapping(address => StakingAmount)) delegation;
+    mapping(address => mapping(address => StakingAmount)) private delegation;
     //actively staking indexers by delegator
     mapping(address => mapping(uint256 => address)) public stakingIndexers;
     //delegating indexer number by delegator and indexer
     mapping(address => mapping(address => uint256)) public stakingIndexerNos;
     //staking indexer lengths
-    mapping(address => uint256) stakingIndexerLengths;
+    mapping(address => uint256) private stakingIndexerLengths;
     //delegation tax rate per indexer
     mapping(address => CommissionRate) public commissionRates;
 
@@ -187,7 +187,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * @dev Set initial commissionRate only called by indexerRegistry contract,
      * when indexer do registration. The commissionRate need to apply at once.
      */
-    function setInitialCommissionRate(address indexer, uint256 rate) public {
+    function setInitialCommissionRate(address indexer, uint256 rate) external {
         require(msg.sender == settings.getIndexerRegistry(), 'Caller is not indexerRegistry');
         IRewardsDistributer rewardDistributer = IRewardsDistributer(settings.getRewardsDistributer());
         require(rewardDistributer.getTotalStakingAmount(indexer) == 0, 'Last registry not settled');
@@ -203,7 +203,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * @dev Set commissionRate only called by Indexer.
      * The commissionRate need to apply at two Eras after.
      */
-    function setCommissionRate(uint256 rate) public {
+    function setCommissionRate(uint256 rate) external {
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
         IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getRewardsDistributer());
         require(indexerRegistry.isIndexer(msg.sender), 'Not an indexer');

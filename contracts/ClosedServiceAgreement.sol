@@ -1,20 +1,16 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
-import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 
 import './interfaces/IServiceAgreement.sol';
-import './interfaces/ISettings.sol';
-import './interfaces/IIndexerRegistry.sol';
 
 // This contract is the place Consumer publish a purchase offer or accept a plan for a specific deployment.
 // And also the place indexers can search and take these purchase offer.
 contract ClosedServiceAgreement is IServiceAgreement, IClosedServiceAgreement, ERC165 {
-    address settings;
+    address public settings;
 
     address public consumer;
     address public indexer;

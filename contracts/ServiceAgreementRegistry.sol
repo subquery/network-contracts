@@ -1,7 +1,7 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
@@ -13,7 +13,6 @@ import './interfaces/IServiceAgreement.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IQueryRegistry.sol';
-import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IStaking.sol';
 import './interfaces/IPlanManager.sol';
@@ -49,11 +48,12 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
     mapping(address => uint256) public sumDailyReward;
     //users authorised by consumer that can request access token from indexer, for closed agreements only.
     //user address => consumer address => bool
+    //We are using the statu `consumerAuthAllows` offchain.
     mapping(address => mapping(address => bool)) public consumerAuthAllows;
     //Multipler used to calculate Indexer reward limit
     uint256 public threshold;
     //second in a day
-    uint256 constant SECONDS_IN_DAY = 86400;
+    uint256 private constant SECONDS_IN_DAY = 86400;
 
     // -- Events --
 
@@ -106,6 +106,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
 
     /**
      * @dev Consumer add users can request access token from indexer.
+     * We are using the statu `consumerAuthAllows` offchain.
      */
     function addUser(address consumer, address user) external {
         require(msg.sender == consumer, 'Only consumer can add user');
@@ -273,12 +274,17 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         );
     }
 
-    function clearAllEndedAgreements(address indexer) public {
+    function clearAllEndedAgreements(address indexer) external {
+        uint256 count = 0;
         for (uint256 i = indexerSaLength[indexer]; i >= 1; i--) {
             address agreementContract = getServiceAgreement(indexer, i - 1);
             IServiceAgreement agreement = IServiceAgreement(agreementContract);
             if (agreement.hasEnded()) {
                 clearEndedAgreement(indexer, i - 1);
+                count++;
+                if (count >= 10) {
+                    break;
+                }
             }
         }
     }
@@ -287,7 +293,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         return serviceAgreements[indexer][id];
     }
 
-    function serviceAgreementExpired(address agreement) public view returns (bool) {
+    function serviceAgreementExpired(address agreement) external view returns (bool) {
         return IServiceAgreement(agreement).hasEnded();
     }
 
@@ -295,7 +301,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         return indexerDeploymentSaLength[indexer][deploymentId] > 0;
     }
 
-    function getIndexerDeploymentSaLength(address indexer, bytes32 deploymentId) public view returns (uint256) {
+    function getIndexerDeploymentSaLength(address indexer, bytes32 deploymentId) external view returns (uint256) {
         return indexerDeploymentSaLength[indexer][deploymentId];
     }
 }

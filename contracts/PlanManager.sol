@@ -1,7 +1,7 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
@@ -162,7 +162,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         bytes32 _deploymentId
     ) external {
         require(_price > 0, 'Price need to be positive');
-        require(planTemplates[_planTemplateId].active == true, 'Inactive plan template');
+        require(planTemplates[_planTemplateId].active, 'Inactive plan template');
         require(planIds[msg.sender][_deploymentId].length < indexerPlanLimit, 'Indexer plan limitation reached');
 
         //make the planId start from 1
@@ -178,7 +178,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @dev Allow Indexer to remove actived Plan.
      */
     function removePlan(uint256 _planId) external {
-        require(plans[msg.sender][_planId].active == true, 'Inactive plan can not be removed');
+        require(plans[msg.sender][_planId].active, 'Inactive plan can not be removed');
 
         plans[msg.sender][_planId].active = false;
         bytes32 deploymentId = plans[msg.sender][_planId].deploymentId;
@@ -191,6 +191,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
                 planIds[msg.sender][deploymentId].push(_planId);
             }
         }
+        planCount[msg.sender]--;
 
         emit PlanRemoved(msg.sender, _planId, deploymentId);
     }
@@ -206,7 +207,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         uint256 _planId
     ) external {
         Plan memory plan = plans[_indexer][_planId];
-        require(plan.active == true, 'Inactive plan');
+        require(plan.active, 'Inactive plan');
         require(_deploymentId != bytes32(0), 'DeploymentId can not be empty');
         require(
             plan.deploymentId == ((planIds[_indexer][_deploymentId].length == 0) ? bytes32(0) : _deploymentId),
@@ -226,7 +227,10 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
             plan.planTemplateId
         );
         // deposit SQToken into serviceAgreementRegistry contract
-        IERC20(settings.getSQToken()).transferFrom(msg.sender, settings.getServiceAgreementRegistry(), plan.price);
+        require(
+            IERC20(settings.getSQToken()).transferFrom(msg.sender, settings.getServiceAgreementRegistry(), plan.price),
+            'transfer fail'
+        );
 
         IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).establishServiceAgreement(
             address(serviceAgreement)
