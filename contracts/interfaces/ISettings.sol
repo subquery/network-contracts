@@ -36,6 +36,8 @@ interface ISettings {
 
     function getEraManager() external view returns (address);
 
+    function setPlanManager(address _planManager) external;
+
     function getPlanManager() external view returns (address);
 
     function setServiceAgreementRegistry(address _serviceAgreementRegistry) external;

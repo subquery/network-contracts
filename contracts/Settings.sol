@@ -98,7 +98,7 @@ contract Settings is ISettings, Ownable, Constants {
         return eraManager;
     }
 
-    function setPlanManager(_planManager) external override onlyOwner {
+    function setPlanManager(address _planManager) external override onlyOwner {
         require(_planManager != ZERO_ADDRESS);
         planManager = _planManager;
     }
