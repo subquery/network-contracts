@@ -112,10 +112,11 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         }
         require(order.expireDate > block.timestamp, 'order invalid');
         uint256 amount = (order.amountGive * _amount) / order.amountGet;
+        require(amount > 0, 'trade amount too small');
         require(amount <= order.amountGiveLeft, 'trade amount exceed order balance');
         order.amountGiveLeft -= amount;
         if (order.tokenGet == settings.getSQToken()) {
-            tradeQuota[order.tokenGet][msg.sender] -= amount;
+            tradeQuota[order.tokenGet][msg.sender] -= _amount;
         }
         IERC20(order.tokenGet).safeTransferFrom(msg.sender, order.sender, _amount);
         IERC20(order.tokenGive).safeTransfer(msg.sender, amount);
