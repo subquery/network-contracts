@@ -24,14 +24,22 @@ import {
     PurchaseOfferMarket__factory,
     Settings,
     SQToken,
+    VSQToken,
+    VSQToken__factory,
     EraManager,
     IndexerRegistry,
     PlanManager,
     PurchaseOfferMarket,
     RewardsDistributer,
     RewardsDistributer__factory,
+    RewardsHelper,
+    RewardsHelper__factory,
     StateChannel,
     StateChannel__factory,
+    ConsumerProxy,
+    ConsumerProxy__factory,
+    ConsumerHoster,
+    ConsumerHoster__factory,
     Airdropper,
     Airdropper__factory,
 } from '../src';
@@ -46,6 +54,7 @@ type Contracts = {
     settings: Settings;
     inflationController: InflationController;
     token: SQToken;
+    vtoken: VSQToken;
     staking: Staking;
     eraManager: EraManager;
     indexerRegistry: IndexerRegistry;
@@ -54,7 +63,10 @@ type Contracts = {
     purchaseOfferMarket: PurchaseOfferMarket;
     serviceAgreementRegistry: ServiceAgreementRegistry;
     rewardsDistributer: RewardsDistributer;
+    rewardsHelper: RewardsHelper;
     stateChannel: StateChannel;
+    consumerProxy: ConsumerProxy;
+    consumerHoster: ConsumerHoster;
     airdropper: Airdropper;
 };
 
@@ -64,11 +76,14 @@ const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: s
     PlanManager: [CONTRACTS.PlanManager, PlanManager__factory],
     QueryRegistry: [CONTRACTS.QueryRegistry, QueryRegistry__factory],
     RewardsDistributer: [CONTRACTS.RewardsDistributer, RewardsDistributer__factory],
+    RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
     ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
     EraManager: [CONTRACTS.EraManager, EraManager__factory],
     PurchaseOfferMarket: [CONTRACTS.PurchaseOfferMarket, PurchaseOfferMarket__factory],
     StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
+    ConsumerProxy: [CONTRACTS.ConsumerProxy, ConsumerProxy__factory],
+    ConsumerHoster: [CONTRACTS.ConsumerHoster, ConsumerHoster__factory],
 };
 
 export const deployProxy = async <C extends Contract>(
@@ -133,7 +148,8 @@ function updateDeployment(
 export async function deployContracts(
     wallet: Wallet,
     config: DeploymentConfig['contracts'],
-    overrides: Overrides | {} = {}
+    overrides: Overrides | {} = {},
+    dev: boolean | true
 ): Promise<[Partial<ContractDeployment>, Contracts]> {
     const deployment: Partial<ContractDeployment> = {};
     if (process.env.DEBUG) {
@@ -173,6 +189,12 @@ export async function deployContracts(
     const sqtToken = await new SQToken__factory(wallet).deploy(deployment.InflationController.address, overrides);
     await sqtToken.deployTransaction.wait();
     updateDeployment(deployment, 'SQToken', sqtToken.address, sqtToken.deployTransaction.hash);
+
+    // deploy VSQToken contract
+    const vsqtToken = await new VSQToken__factory(wallet).deploy(overrides);
+    const initVsqtToken = await vsqtToken.initialize(deployment.Settings.address, overrides);
+    await initVsqtToken.wait();
+    updateDeployment(deployment, 'VSQToken', vsqtToken.address, vsqtToken.deployTransaction.hash);
 
     //deploy Airdropper contract
     const airdropper = await new Airdropper__factory(wallet).deploy(overrides);
@@ -268,10 +290,35 @@ export async function deployContracts(
         rewardsDistributer.deployTransaction.hash
     );
 
+    const rewardsHelper = await deployProxy<RewardsHelper>(proxyAdmin, RewardsHelper__factory, wallet, overrides);
+    const initRewardsHelper = await rewardsHelper.initialize(deployment.Settings.address, overrides);
+    await initRewardsHelper.wait();
+    updateDeployment(deployment, 'RewardsHelper', rewardsHelper.address, rewardsHelper.deployTransaction.hash);
+
     const stateChannel = await deployProxy<StateChannel>(proxyAdmin, StateChannel__factory, wallet, overrides);
     const initStateChannel = await stateChannel.initialize(deployment.Settings.address, overrides);
     await initStateChannel.wait();
     updateDeployment(deployment, 'StateChannel', stateChannel.address, stateChannel.deployTransaction.hash);
+
+    // only local & test deploy.
+    let consumerProxy;
+    let consumerHoster;
+    if (dev) {
+        consumerProxy = await deployProxy<ConsumerProxy>(proxyAdmin, ConsumerProxy__factory, wallet, overrides);
+        const initConsumerProxy = await consumerProxy.initialize(
+            sqtToken.address,
+            stateChannel.address,
+            wallet.address,
+            overrides
+        );
+        await initConsumerProxy.wait();
+        updateDeployment(deployment, 'ConsumerProxy', consumerProxy.address, consumerProxy.deployTransaction.hash);
+
+        consumerHoster = await deployProxy<ConsumerHoster>(proxyAdmin, ConsumerHoster__factory, wallet, overrides);
+        const initConsumerHoster = await consumerHoster.initialize(sqtToken.address, stateChannel.address, overrides);
+        await initConsumerHoster.wait();
+        updateDeployment(deployment, 'ConsumerHoster', consumerHoster.address, consumerHoster.deployTransaction.hash);
+    }
 
     // Register addresses on settings contract
     const txObj = await settings.setAllAddresses(
@@ -283,6 +330,7 @@ export async function deployContracts(
         deployment.PlanManager.address,
         deployment.ServiceAgreementRegistry.address,
         deployment.RewardsDistributer.address,
+        deployment.RewardsHelper.address,
         deployment.InflationController.address,
         overrides as any
     );
@@ -295,6 +343,7 @@ export async function deployContracts(
             settings,
             inflationController,
             token: sqtToken,
+            vtoken: vsqtToken,
             staking,
             eraManager,
             indexerRegistry,
@@ -303,8 +352,11 @@ export async function deployContracts(
             purchaseOfferMarket,
             serviceAgreementRegistry,
             rewardsDistributer,
+            rewardsHelper,
             proxyAdmin,
             stateChannel,
+            consumerProxy,
+            consumerHoster,
             airdropper,
         },
     ];

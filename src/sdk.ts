@@ -22,12 +22,18 @@ import {
     PlanManager__factory,
     RewardsDistributer,
     RewardsDistributer__factory,
+    RewardsHelper,
+    RewardsHelper__factory,
     PurchaseOfferMarket,
     PurchaseOfferMarket__factory,
     StateChannel,
     StateChannel__factory,
+    ConsumerProxy,
+    ConsumerProxy__factory,
+    ConsumerHoster,
+    ConsumerHoster__factory,
     Airdropper,
-    Airdropper__factory
+    Airdropper__factory,
 } from './typechain';
 
 export class ContractSDK {
@@ -49,8 +55,11 @@ export class ContractSDK {
     private _eraManager?: EraManager;
     private _planManager?: PlanManager;
     private _rewardsDistributor?: RewardsDistributer;
+    private _rewardsHelper?: RewardsHelper;
     private _purchaseOfferMarket?: PurchaseOfferMarket;
     private _stateChannel?: StateChannel;
+    private _consumerProxy?: ConsumerProxy;
+    private _consumerHoster?: ConsumerHoster;
     private _airdropper?: Airdropper;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options?: SdkOptions) {
@@ -129,6 +138,13 @@ export class ContractSDK {
         return this._rewardsDistributor;
     }
 
+    get rewardsHelper(): RewardsHelper {
+        if (!this._rewardsHelper) {
+            throw new Error(`_rewardsHelper address not found`);
+        }
+        return this._rewardsHelper;
+    }
+
     get purchaseOfferMarket(): PurchaseOfferMarket {
         if (!this._purchaseOfferMarket) {
             throw new Error(`_purchaseOfferMarket address not found`);
@@ -147,6 +163,20 @@ export class ContractSDK {
         return this._stateChannel;
     }
 
+    get consumerProxy(): ConsumerProxy {
+        if (!this._consumerProxy) {
+            throw new Error(`_consumerProxy address not found`);
+        }
+        return this._consumerProxy;
+    }
+
+    get consumerHoster(): ConsumerHoster {
+        if (!this._consumerHoster) {
+            throw new Error(`_consumerHoster address not found`);
+        }
+        return this._consumerHoster;
+    }
+
     get airdropper(): Airdropper {
         if (!this._airdropper) {
             throw new Error(`_airdropper address not found`);
@@ -155,7 +185,7 @@ export class ContractSDK {
     }
 
     public async initContract<C extends Contract>(
-        factory: { connect: (address: string, signerOrProvider: AbstractProvider | Signer) => C },
+        factory: {connect: (address: string, signerOrProvider: AbstractProvider | Signer) => C},
         address?: string
     ): Promise<C | undefined> {
         if (!address) {
@@ -176,8 +206,11 @@ export class ContractSDK {
             eraManager,
             planManager,
             rewardsDistributor,
+            rewardsHelper,
             purchaseOfferMarket,
             stateChannel,
+            consumerProxy,
+            consumerHoster,
             airdropper,
         ] = await Promise.all([
             this.initContract(Settings__factory, this._contractDeployments.Settings?.address),
@@ -193,8 +226,11 @@ export class ContractSDK {
             this.initContract(EraManager__factory, this._contractDeployments.EraManager.address),
             this.initContract(PlanManager__factory, this._contractDeployments.PlanManager.address),
             this.initContract(RewardsDistributer__factory, this._contractDeployments.RewardsDistributer.address),
+            this.initContract(RewardsHelper__factory, this._contractDeployments.RewardsHelper.address),
             this.initContract(PurchaseOfferMarket__factory, this._contractDeployments.PurchaseOfferMarket.address),
             this.initContract(StateChannel__factory, this._contractDeployments.StateChannel.address),
+            this.initContract(ConsumerProxy__factory, this._contractDeployments.ConsumerProxy.address),
+            this.initContract(ConsumerHoster__factory, this._contractDeployments.ConsumerHoster.address),
             this.initContract(Airdropper__factory, this._contractDeployments.Airdropper.address),
         ]);
         this._settings = settings;
@@ -207,8 +243,11 @@ export class ContractSDK {
         this._eraManager = eraManager;
         this._planManager = planManager;
         this._rewardsDistributor = rewardsDistributor;
+        this._rewardsHelper = rewardsHelper;
         this._purchaseOfferMarket = purchaseOfferMarket;
         this._stateChannel = stateChannel;
+        this._consumerProxy = consumerProxy;
+        this._consumerHoster = consumerHoster;
         this._airdropper = airdropper;
     }
 }
