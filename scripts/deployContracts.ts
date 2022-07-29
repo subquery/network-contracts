@@ -24,6 +24,8 @@ import {
     PurchaseOfferMarket__factory,
     Settings,
     SQToken,
+    VSQToken,
+    VSQToken__factory,
     EraManager,
     IndexerRegistry,
     PlanManager,
@@ -48,6 +50,7 @@ type Contracts = {
     settings: Settings;
     inflationController: InflationController;
     token: SQToken;
+    vtoken: VSQToken;
     staking: Staking;
     eraManager: EraManager;
     indexerRegistry: IndexerRegistry;
@@ -177,6 +180,12 @@ export async function deployContracts(
     const sqtToken = await new SQToken__factory(wallet).deploy(deployment.InflationController.address, overrides);
     await sqtToken.deployTransaction.wait();
     updateDeployment(deployment, 'SQToken', sqtToken.address, sqtToken.deployTransaction.hash);
+
+    // deploy VSQToken contract
+    const vsqtToken = await new VSQToken__factory(wallet).deploy(overrides);
+    const initVsqtToken = await vsqtToken.initialize(deployment.Settings.address, overrides);
+    await initVsqtToken.wait();
+    updateDeployment(deployment, 'VSQToken', vsqtToken.address, vsqtToken.deployTransaction.hash);
 
     //deploy Airdropper contract
     const airdropper = await new Airdropper__factory(wallet).deploy(overrides);
@@ -314,6 +323,7 @@ export async function deployContracts(
             settings,
             inflationController,
             token: sqtToken,
+            vtoken: vsqtToken,
             staking,
             eraManager,
             indexerRegistry,
