@@ -121,8 +121,9 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     mapping(address => uint256) public withdrawnLength;
     //active delegation from delegator to indexer, delegator->indexer->amount
     mapping(address => mapping(address => StakingAmount)) delegation;
-    //each delegator total staking amount, delegator->amount
-    mapping(address => uint256) public stakedAmount;
+    //each delegator total locked amount, delegator->amount
+    //lockedAmount include stakedAmount + amount in locked period
+    mapping(address => uint256) public lockedAmount;
     //actively staking indexers by delegator
     mapping(address => mapping(uint256 => address)) public stakingIndexers;
     //delegating indexer number by delegator and indexer
@@ -275,7 +276,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             delegation[_source][_indexer].valueAfter += _amount;
             totalStakingAmount[_indexer].valueAfter += _amount;
         }
-        stakedAmount[_source] += _amount;
+        lockedAmount[_source] += _amount;
         _onDelegationChange(_source, _indexer);
 
         emit DelegationAdded(_source, _indexer, _amount);
@@ -440,7 +441,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         ISQToken(SQToken).burn(burnAmount);
         IERC20(SQToken).safeTransfer(msg.sender, availableAmount);
 
-        stakedAmount[msg.sender] -= amount;
+        lockedAmount[msg.sender] -= amount;
 
         withdrawnLength[msg.sender]++;
 

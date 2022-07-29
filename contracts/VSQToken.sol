@@ -33,7 +33,7 @@ contract VSQToken is Initializable {
 
     function balanceOf(address account) public view returns (uint256) {
         uint256 balanceAmount = IERC20(settings.getSQToken()).balanceOf(account);
-        uint256 stakeAmount = IStaking(settings.getStaking()).stakedAmount(account);
+        uint256 stakeAmount = IStaking(settings.getStaking()).lockedAmount(account);
         return balanceAmount + stakeAmount;
     }
 }

@@ -47,6 +47,7 @@ describe('VSQToken Contract', () => {
 
         await staking.connect(delegator).undelegate(indexer.address, etherParse('2'));
         await startNewEra(mockProvider, eraManager);
+        expect(await vtoken.balanceOf(delegator.address)).to.equal(etherParse('15'));
         await staking.connect(delegator).widthdraw();
         expect(await token.balanceOf(delegator.address)).to.equal(etherParse('6.998'));
         expect(await vtoken.balanceOf(delegator.address)).to.equal(etherParse('14.998'));
