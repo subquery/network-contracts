@@ -13,6 +13,7 @@ import RewardsDistributer from './artifacts/contracts/RewardsDistributer.sol/Rew
 import ProxyAdmin from './artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json';
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
 import Airdropper from './artifacts/contracts/Airdropper.sol/Airdropper.json';
+import PermissionedExchange from './artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json';
 
 export default {
     Settings,
@@ -30,4 +31,5 @@ export default {
     ProxyAdmin,
     StateChannel,
     Airdropper,
+    PermissionedExchange,
 };
