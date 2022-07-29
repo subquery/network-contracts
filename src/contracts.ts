@@ -1,4 +1,5 @@
 import SQToken from './artifacts/contracts/SQToken.sol/SQToken.json';
+import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import Settings from './artifacts/contracts/Settings.sol/Settings.json';
 import Staking from './artifacts/contracts/Staking.sol/Staking.json';
 import IndexerRegistry from './artifacts/contracts/IndexerRegistry.sol/IndexerRegistry.json';
@@ -16,6 +17,7 @@ import Airdropper from './artifacts/contracts/Airdropper.sol/Airdropper.json';
 export default {
     Settings,
     SQToken,
+    VSQToken,
     Staking,
     IndexerRegistry,
     QueryRegistry,

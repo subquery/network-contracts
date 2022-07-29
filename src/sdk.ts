@@ -27,7 +27,7 @@ import {
     StateChannel,
     StateChannel__factory,
     Airdropper,
-    Airdropper__factory
+    Airdropper__factory,
 } from './typechain';
 
 export class ContractSDK {
@@ -155,7 +155,7 @@ export class ContractSDK {
     }
 
     public async initContract<C extends Contract>(
-        factory: { connect: (address: string, signerOrProvider: AbstractProvider | Signer) => C },
+        factory: {connect: (address: string, signerOrProvider: AbstractProvider | Signer) => C},
         address?: string
     ): Promise<C | undefined> {
         if (!address) {
