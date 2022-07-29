@@ -205,7 +205,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         require(currentStatus != IndexingServiceStatus.NOTINDEXING, 'can not stop indexing for NOTINDEXING services');
 
         require(
-            !IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).hasOngoingServiceAgreement(
+            !IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).hasOngoingClosedServiceAgreement(
                 msg.sender,
                 deploymentId
             ),

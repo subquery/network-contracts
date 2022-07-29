@@ -12,7 +12,6 @@ import './MathUtil.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
-import './ClosedServiceAgreement.sol';
 import './interfaces/IPurchaseOfferMarket.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IPlanManager.sol';
@@ -107,7 +106,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     /**
      * @dev Emitted when Indexer accept an offer
      */
-    event OfferAccepted(address indexed indexer, uint256 offerId, address agreement);
+    event OfferAccepted(address indexed indexer, uint256 offerId, uint256 agreementId);
 
     modifier onlyIndexer() {
         require(IIndexerRegistry(settings.getIndexerRegistry()).isIndexer(msg.sender), 'caller is not an indexer');
@@ -253,9 +252,11 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         (uint256 period, , , , ) = planManager.getPlanTemplate(offer.planTemplateId);
 
+        // deposit SQToken into the service agreement registry contract
+        IERC20(settings.getSQToken()).transfer(settings.getServiceAgreementRegistry(), offer.deposit);
+
         // create closed service agreement contract
-        ClosedServiceAgreement subsContract = new ClosedServiceAgreement(
-            address(settings),
+        ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
             offer.consumer,
             msg.sender,
             offer.deploymentId,
@@ -266,17 +267,14 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
             offer.planTemplateId
         );
 
+        // register the agreement to service agreement registry contract
+        IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
+        uint256 agreementId = registry.createClosedServiceAgreement(agreement);
+        registry.establishServiceAgreement(agreementId);
+
         offerMmrRoot[_offerId][msg.sender] = _mmrRoot;
 
-        // deposit SQToken into the service agreement registry contract
-        IERC20(settings.getSQToken()).transfer(settings.getServiceAgreementRegistry(), offer.deposit);
-
-        // Register agreement globally
-        IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).establishServiceAgreement(
-            address(subsContract)
-        );
-
-        emit OfferAccepted(msg.sender, _offerId, address(subsContract));
+        emit OfferAccepted(msg.sender, _offerId, agreementId);
     }
 
     function isExpired(uint256 _offerId) public view returns (bool) {
