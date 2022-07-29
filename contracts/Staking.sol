@@ -249,6 +249,14 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         }
     }
 
+    function _checkDelegateLimitation(address _indexer, uint256 _amount) private view {
+        require(
+            delegation[_indexer][_indexer].valueAfter * indexerLeverageLimit >=
+                totalStakingAmount[_indexer].valueAfter + _amount,
+            'Delegation limitation reached'
+        );
+    }
+
     function _addDelegation(
         address _source,
         address _indexer,
@@ -313,12 +321,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         require(msg.sender != _indexer, 'indexer not allowed');
         reflectEraUpdate(msg.sender, _indexer);
         // delegation limit should not exceed
-        require(
-            delegation[_indexer][_indexer].valueAfter * indexerLeverageLimit >=
-                totalStakingAmount[_indexer].valueAfter + _amount,
-            'Delegation limitation reached'
-        );
-
+        _checkDelegateLimitation(_indexer, _amount);
         _delegateToIndexer(msg.sender, _indexer, _amount);
     }
 
@@ -360,11 +363,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         require(from_indexer != msg.sender, 'indexer cannot redelegate');
 
         // delegation limit should not exceed
-        require(
-            delegation[to_indexer][to_indexer].valueAfter * indexerLeverageLimit >=
-                totalStakingAmount[to_indexer].valueAfter + _amount,
-            'Delegation limitation reached'
-        );
+        _checkDelegateLimitation(to_indexer, _amount);
 
         IEraManager eraManager = IEraManager(settings.getEraManager());
         uint256 eraNumber = eraManager.safeUpdateAndGetEra();
@@ -393,16 +392,13 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     function cancelUnbonding(uint256 unbondReqId) external {
         require(unbondReqId >= withdrawnLength[msg.sender], 'already withdrawed');
         UnbondAmount memory unbond = unbondingAmount[msg.sender][unbondReqId];
+        require(unbond.amount > 0, 'invalid unbond request');
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
         require(indexerRegistry.isIndexer(unbond.indexer), 'indexer unregistered');
 
         delete unbondingAmount[msg.sender][unbondReqId];
         if (msg.sender != unbond.indexer) {
-            require(
-                delegation[unbond.indexer][unbond.indexer].valueAfter * indexerLeverageLimit >=
-                    totalStakingAmount[unbond.indexer].valueAfter + unbond.amount,
-                'Delegation limitation reached'
-            );
+            _checkDelegateLimitation(unbond.indexer, unbond.amount);
         }
         _addDelegation(msg.sender, unbond.indexer, unbond.amount);
     }
@@ -518,18 +514,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     function getDelegationAmount(address _source, address _indexer) external view override returns (uint256) {
         return delegation[_source][_indexer].valueAfter;
     }
-
-    // function getStakingIndexersLength(address _address) external view returns (uint256) {
-    //     return stakingIndexerLengths[_address];
-    // }
-
-    // function getStakingAmount(address _source, address _indexer) external view returns (StakingAmount memory) {
-    //     return delegation[_source][_indexer];
-    // }
-
-    // function getUnbondingAmount(address _source, uint256 _id) external view returns (UnbondAmount memory) {
-    //     return unbondingAmount[_source][_id];
-    // }
 
     function getUnbondingAmounts(address _source) external view returns (UnbondAmount[] memory) {
         uint256 withdrawingLength = unbondingLength[_source] - withdrawnLength[_source];
