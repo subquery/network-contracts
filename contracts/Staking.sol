@@ -474,7 +474,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             if (time < lockPeriod) {
                 break;
             }
-            if (time == block.timestamp) {
+            //skip withdraw zero amount unbond request (canceled unbond request)
+            if (unbondingAmount[msg.sender][i].amount == 0) {
                 withdrawnLength[msg.sender]++;
                 break;
             }
