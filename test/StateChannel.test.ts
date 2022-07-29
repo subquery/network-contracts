@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
+import {ethers} from 'hardhat';
 import {deployContracts} from './setup';
 import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
 import {IndexerRegistry, RewardsDistributer, EraManager, SQToken, Staking, StateChannel} from '../src';
@@ -10,8 +10,8 @@ import {constants, registerIndexer, startNewEra, time, delay, etherParse} from '
 import {utils, Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
 
 describe('StateChannel Contract', () => {
-    const mockProvider = waffle.provider;
-    let wallet_0, indexer, consumer;
+    const deploymentId = deploymentIds[0];
+    let wallet_0, indexer, consumer, consumer2, signer, consumerProxy, consumerHoster;
 
     let token: SQToken;
     let staking: Staking;
@@ -29,8 +29,8 @@ describe('StateChannel Contract', () => {
     ) => {
         const abi = ethers.utils.defaultAbiCoder;
         const msg = abi.encode(
-            ['uint256', 'address', 'address', 'uint256', 'uint256'],
-            [channelId, indexer.address, consumer.address, amount, expiration]
+            ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes32', 'bytes'],
+            [channelId, indexer.address, consumer.address, amount, expiration, deploymentId, '0x']
         );
         let payloadHash = ethers.utils.keccak256(msg);
 
@@ -49,6 +49,8 @@ describe('StateChannel Contract', () => {
             consumer.address,
             amount,
             expiration,
+            deploymentId,
+            '0x',
             indexerSign,
             consumerSign
         );
@@ -93,7 +95,7 @@ describe('StateChannel Contract', () => {
     };
 
     beforeEach(async () => {
-        [wallet_0, indexer, consumer] = await ethers.getSigners();
+        [wallet_0, indexer, consumer, consumer2, signer] = await ethers.getSigners();
         const deployment = await deployContracts(wallet_0, indexer);
         indexerRegistry = deployment.indexerRegistry;
         staking = deployment.staking;
@@ -173,15 +175,15 @@ describe('StateChannel Contract', () => {
 
         it('checkpoint State Channel three steps', async () => {
             const balance = await token.balanceOf(consumer.address);
-            expect(balance).to.equal(etherParse("5")); 
+            expect(balance).to.equal(etherParse("5"));
 
             const channelId = ethers.utils.randomBytes(32);
             await openChannel(channelId, indexer, consumer, etherParse("1"), 60);
 
             const balance1 = await token.balanceOf(consumer.address);
-            expect(balance1).to.equal(etherParse("4")); 
+            expect(balance1).to.equal(etherParse("4"));
 
-            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, etherParse("0.01")); 
+            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, etherParse("0.01"));
             await stateChannel.checkpoint(query1);
             expect((await stateChannel.channel(channelId)).balance).to.equal(etherParse("0.9"));
 
@@ -207,16 +209,16 @@ describe('StateChannel Contract', () => {
             expect(eraReward).to.be.eq(0);
             expect(totalReward).to.be.eq(etherParse("0.1"));
 
-            const query2 = await buildQueryState(channelId, indexer, consumer, false, 20, etherParse("0.01")); 
+            const query2 = await buildQueryState(channelId, indexer, consumer, false, 20, etherParse("0.01"));
             await stateChannel.checkpoint(query2);
-            expect((await stateChannel.channel(channelId)).balance).to.equal(etherParse("0.8")); 
+            expect((await stateChannel.channel(channelId)).balance).to.equal(etherParse("0.8"));
 
-            const query3 = await buildQueryState(channelId, indexer, consumer, true, 40, etherParse("0.02")); 
+            const query3 = await buildQueryState(channelId, indexer, consumer, true, 40, etherParse("0.02"));
             await stateChannel.checkpoint(query3);
-            expect((await stateChannel.channel(channelId)).balance).to.equal(0); 
+            expect((await stateChannel.channel(channelId)).balance).to.equal(0);
 
             const balance2 = await token.balanceOf(consumer.address);
-            expect(balance2).to.equal(etherParse("4.4")); 
+            expect(balance2).to.equal(etherParse("4.4"));
         });
     });
 
@@ -309,6 +311,159 @@ describe('StateChannel Contract', () => {
             await expect(
                 stateChannel.extend(channelId, preExpirationAt, nextExpiration, indexerSign, consumerSign)
             ).to.be.revertedWith('Request is expired');
+        });
+    });
+
+    describe('State Channel IConsumer', () => {
+        beforeEach(async () => {
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '10');
+            await token.connect(wallet_0).transfer(consumer.address, 10000);
+            await token.connect(wallet_0).transfer(consumer2.address, 10000);
+            const ConsumerProxy = await ethers.getContractFactory('ConsumerProxy');
+            consumerProxy = await ConsumerProxy.deploy();
+            await consumerProxy.deployed();
+            await consumerProxy.initialize(token.address, stateChannel.address, consumer.address);
+            await consumerProxy.setSigner(signer.address);
+            const ConsumerHoster = await ethers.getContractFactory('ConsumerHoster');
+            consumerHoster = await ConsumerHoster.deploy();
+            await consumerHoster.deployed();
+            await consumerHoster.initialize(token.address, stateChannel.address);
+            await consumerHoster.setSigner(signer.address);
+        });
+
+        it('Consumer proxy workflow', async () => {
+            await token.connect(consumer).transfer(consumerProxy.address, 10000);
+            const channelId = ethers.utils.randomBytes(32);
+            const amount = 100;
+            const expiration = 60;
+            const abi = ethers.utils.defaultAbiCoder;
+
+            // open
+            const msg1 = abi.encode(['uint256', 'uint256'], [channelId, amount]);
+            let payloadHash1 = ethers.utils.keccak256(msg1);
+            let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash1));
+
+            const msg = abi.encode(
+                ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes32', 'bytes'],
+                [channelId, indexer.address, consumerProxy.address, amount, expiration, deploymentId, consumerSign]
+            );
+            let payloadHash = ethers.utils.keccak256(msg);
+            let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+            let signerSign = await signer.signMessage(ethers.utils.arrayify(payloadHash));
+
+            await stateChannel.open(
+                channelId,
+                indexer.address,
+                consumerProxy.address,
+                amount,
+                expiration,
+                deploymentId,
+                consumerSign,
+                indexerSign,
+                signerSign
+            );
+
+            const query1 = await buildQueryState(channelId, indexer, signer, false, 2, BigNumber.from(10));
+            const query2 = await buildQueryState(channelId, indexer, signer, false, 4, BigNumber.from(10));
+            const query3 = await buildQueryState(channelId, indexer, signer, false, 5, BigNumber.from(10));
+            const query4 = await buildQueryState(channelId, indexer, signer, true, 8, BigNumber.from(10));
+
+            // checkpoint
+            await stateChannel.checkpoint(query1);
+            const state1 = await stateChannel.channel(channelId);
+            expect(state1.balance).to.equal(80);
+
+            // challenge
+            await stateChannel.challenge(query2);
+            const state2 = await stateChannel.channel(channelId);
+            expect(state2.balance).to.equal(60);
+            expect(state2.status).to.equal(2); // Challenge
+
+            // respond
+            await stateChannel.respond(query3);
+            const state3 = await stateChannel.channel(channelId);
+            expect(state3.balance).to.equal(50);
+            expect(state3.status).to.equal(1); // Active
+
+            // finalized
+            await stateChannel.checkpoint(query4);
+            const state4 = await stateChannel.channel(channelId);
+            expect(state4.balance).to.equal(0);
+
+            expect(await token.balanceOf(consumerProxy.address)).to.equal(9920); // 10000-100+20
+        });
+
+        it('Consumer hoster workflow', async () => {
+            // deposit
+            await token.connect(consumer).increaseAllowance(consumerHoster.address, 10000);
+            await consumerHoster.connect(consumer).deposit(10000);
+            await token.connect(consumer2).increaseAllowance(consumerHoster.address, 10000);
+            await consumerHoster.connect(consumer2).deposit(10000);
+            expect(await token.balanceOf(consumerHoster.address)).to.equal(20000);
+
+            const channelId = ethers.utils.randomBytes(32);
+            const channelId2 = ethers.utils.randomBytes(32);
+            const amount = 100;
+            const expiration = 60;
+            const abi = ethers.utils.defaultAbiCoder;
+
+            // open
+            const msg1 = abi.encode(['uint256', 'uint256'], [channelId, amount]);
+            let payloadHash1 = ethers.utils.keccak256(msg1);
+            let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash1));
+            const callback = abi.encode(['address', 'bytes'], [consumer.address, consumerSign]);
+
+            const msg = abi.encode(
+                ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes32', 'bytes'],
+                [channelId, indexer.address, consumerHoster.address, amount, expiration, deploymentId, callback]
+            );
+            let payloadHash = ethers.utils.keccak256(msg);
+            let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+            let signerSign = await signer.signMessage(ethers.utils.arrayify(payloadHash));
+
+            await stateChannel.open(
+                channelId,
+                indexer.address,
+                consumerHoster.address,
+                amount,
+                expiration,
+                deploymentId,
+                callback,
+                indexerSign,
+                signerSign
+            );
+            expect(await consumerHoster.channels(channelId)).to.equal(consumer.address);
+
+            const query1 = await buildQueryState(channelId, indexer, signer, false, 2, BigNumber.from(10));
+            const query2 = await buildQueryState(channelId, indexer, signer, false, 4, BigNumber.from(10));
+            const query3 = await buildQueryState(channelId, indexer, signer, false, 5, BigNumber.from(10));
+            const query4 = await buildQueryState(channelId, indexer, signer, true, 8, BigNumber.from(10));
+
+            // checkpoint
+            await stateChannel.checkpoint(query1);
+            const state1 = await stateChannel.channel(channelId);
+            expect(state1.balance).to.equal(80);
+
+            // challenge
+            await stateChannel.challenge(query2);
+            const state2 = await stateChannel.channel(channelId);
+            expect(state2.balance).to.equal(60);
+            expect(state2.status).to.equal(2); // Challenge
+
+            // respond
+            await stateChannel.respond(query3);
+            const state3 = await stateChannel.channel(channelId);
+            expect(state3.balance).to.equal(50);
+            expect(state3.status).to.equal(1); // Active
+
+            // finalized
+            await stateChannel.checkpoint(query4);
+            const state4 = await stateChannel.channel(channelId);
+            expect(state4.balance).to.equal(0);
+
+            expect(await token.balanceOf(consumerHoster.address)).to.equal(19920); // 20000-100+20
+            expect(await consumerHoster.balances(consumer2.address)).to.equal(10000);
+            expect(await consumerHoster.balances(consumer.address)).to.equal(9920); // 10000-100+20
         });
     });
 });

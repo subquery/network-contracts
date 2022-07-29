@@ -3,6 +3,8 @@
 
 pragma solidity ^0.8.10;
 
+import './IServiceAgreementRegistry.sol';
+
 interface IRewardsDistributer {
     function collectAndDistributeRewards(address indexer) external;
 
@@ -10,7 +12,7 @@ interface IRewardsDistributer {
 
     function onICRChange(address indexer, uint256 startEra) external;
 
-    function increaseAgreementRewards(address indexer, address agreementContract) external;
+    function increaseAgreementRewards(uint256 agreementId) external;
 
     function addInstantRewards(
         address indexer,
