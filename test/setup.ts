@@ -40,12 +40,17 @@ const setup = async () => {
 };
 
 export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
-    const [_, contracts] = await deploy(wallet, {
-        InflationController: [1000, wallet1.address],
-        Staking: [1000],
-        EraManager: [60 * 60 * 24],
-        PurchaseOfferMarket: [1e5, ZERO_ADDRESS],
-    }, {}, true);
+    const [_, contracts] = await deploy(
+        wallet,
+        {
+            InflationController: [1000, wallet1.address],
+            Staking: [1000],
+            EraManager: [60 * 60 * 24],
+            PurchaseOfferMarket: [1e5, ZERO_ADDRESS],
+        },
+        {},
+        true
+    );
 
     return contracts;
 };

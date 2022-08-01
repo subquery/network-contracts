@@ -1,7 +1,7 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 interface ISettings {
     function setAllAddresses(
@@ -36,6 +36,8 @@ interface ISettings {
     function setEraManager(address _eraManager) external;
 
     function getEraManager() external view returns (address);
+
+    function setPlanManager(address _planManager) external;
 
     function getPlanManager() external view returns (address);
 

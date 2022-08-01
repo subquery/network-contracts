@@ -1,10 +1,9 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 pragma experimental ABIEncoderV2;
-
 
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
@@ -14,7 +13,6 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IQueryRegistry.sol';
-import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IStaking.sol';
 import './interfaces/IPlanManager.sol';
@@ -53,11 +51,12 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
     mapping(address => uint256) public sumDailyReward;
     //users authorised by consumer that can request access token from indexer, for closed agreements only.
     //user address => consumer address => bool
+    //We are using the statu `consumerAuthAllows` offchain.
     mapping(address => mapping(address => bool)) public consumerAuthAllows;
     //Multipler used to calculate Indexer reward limit
     uint256 public threshold;
     //second in a day
-    uint256 constant SECONDS_IN_DAY = 86400;
+    uint256 private constant SECONDS_IN_DAY = 86400;
 
     // -- Events --
 
@@ -112,6 +111,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
 
     /**
      * @dev Consumer add users can request access token from indexer.
+     * We are using the statu `consumerAuthAllows` offchain.
      */
     function addUser(address consumer, address user) external {
         require(msg.sender == consumer, 'Only consumer can add user');
@@ -248,39 +248,39 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         require(id < indexerCsaLength[indexer], 'Agreement does not exist');
 
         uint256 agreementId = closedServiceAgreementIds[indexer][id];
-        ClosedServiceAgreementInfo memory agreement =  closedServiceAgreements[agreementId];
+        ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(agreement.consumer != address(0), 'Agreement does not exist');
         require(block.timestamp > (agreement.startDate + agreement.period), 'Agreement not complete');
 
         uint256 lockedAmount = agreement.lockedAmount;
         uint256 period = periodInDay(agreement.period);
-        sumDailyReward[indexer] =  MathUtil.sub(sumDailyReward[indexer], (lockedAmount / period));
+        sumDailyReward[indexer] = MathUtil.sub(sumDailyReward[indexer], (lockedAmount / period));
 
         closedServiceAgreementIds[indexer][id] = closedServiceAgreementIds[indexer][indexerCsaLength[indexer] - 1];
         delete closedServiceAgreementIds[indexer][indexerCsaLength[indexer] - 1];
         indexerCsaLength[indexer] -= 1;
         indexerDeploymentCsaLength[indexer][agreement.deploymentId] -= 1;
 
-        emit ClosedAgreementRemoved(
-            agreement.consumer,
-            agreement.indexer,
-            agreement.deploymentId,
-            agreementId
-        );
+        emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
     }
 
     function clearAllEndedAgreements(address indexer) public {
+        uint256 count = 0;
         for (uint256 i = indexerCsaLength[indexer]; i >= 1; i--) {
             uint256 agreementId = closedServiceAgreementIds[indexer][i - 1];
-            ClosedServiceAgreementInfo memory agreement =  closedServiceAgreements[agreementId];
+            ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
             if (block.timestamp > (agreement.startDate + agreement.period)) {
                 clearEndedAgreement(indexer, i - 1);
+                count++;
+                if (count >= 10) {
+                    break;
+                }
             }
         }
     }
 
     function closedServiceAgreementExpired(uint256 agreementId) public view returns (bool) {
-        ClosedServiceAgreementInfo memory agreement =  closedServiceAgreements[agreementId];
+        ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         return block.timestamp > (agreement.startDate + agreement.period);
     }
 
@@ -291,5 +291,4 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
     function getClosedServiceAgreement(uint256 agreementId) external view returns (ClosedServiceAgreementInfo memory) {
         return closedServiceAgreements[agreementId];
     }
-
 }

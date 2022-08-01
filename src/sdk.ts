@@ -176,7 +176,7 @@ export class ContractSDK {
         }
         return this._consumerHoster;
     }
-    
+
     get airdropper(): Airdropper {
         if (!this._airdropper) {
             throw new Error(`_airdropper address not found`);

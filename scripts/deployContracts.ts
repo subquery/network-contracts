@@ -305,7 +305,12 @@ export async function deployContracts(
     let consumerHoster;
     if (dev) {
         consumerProxy = await deployProxy<ConsumerProxy>(proxyAdmin, ConsumerProxy__factory, wallet, overrides);
-        const initConsumerProxy = await consumerProxy.initialize(sqtToken.address, stateChannel.address, wallet.address, overrides);
+        const initConsumerProxy = await consumerProxy.initialize(
+            sqtToken.address,
+            stateChannel.address,
+            wallet.address,
+            overrides
+        );
         await initConsumerProxy.wait();
         updateDeployment(deployment, 'ConsumerProxy', consumerProxy.address, consumerProxy.deployTransaction.hash);
 

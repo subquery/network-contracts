@@ -53,5 +53,4 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
             rewardsDistributer._collectAndDistributeRewards(currentEra, indexer);
         }
     }
-
 }
