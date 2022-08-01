@@ -1,19 +1,17 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IQueryRegistry.sol';
 import './interfaces/IEraManager.sol';
-import './interfaces/IRewardsDistributer.sol';
 import './Constants.sol';
 
 /**
@@ -117,12 +115,12 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
         require(!isIndexer[msg.sender], 'Already registered');
         require(_amount >= minimumStakingAmount, 'Not meet the minimum staking amount');
 
+        isIndexer[msg.sender] = true;
+        metadataByIndexer[msg.sender] = _metadata;
+
         IStaking staking = IStaking(settings.getStaking());
         staking.setInitialCommissionRate(msg.sender, _rate);
         staking.stake(msg.sender, _amount);
-
-        isIndexer[msg.sender] = true;
-        metadataByIndexer[msg.sender] = _metadata;
 
         emit RegisterIndexer(msg.sender, _amount, _metadata);
     }
@@ -140,13 +138,13 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
             'Can not unregister from the network due to running indexing projects'
         );
 
-        IStaking staking = IStaking(settings.getStaking());
-        uint256 amount = staking.getDelegationAmount(msg.sender, msg.sender);
-        staking.unstake(msg.sender, amount);
-
         removeControllerAccount();
         isIndexer[msg.sender] = false;
         delete metadataByIndexer[msg.sender];
+
+        IStaking staking = IStaking(settings.getStaking());
+        uint256 amount = staking.getDelegationAmount(msg.sender, msg.sender);
+        staking.unstake(msg.sender, amount);
 
         emit UnregisterIndexer(msg.sender);
     }

@@ -1,4 +1,5 @@
 import SQToken from './artifacts/contracts/SQToken.sol/SQToken.json';
+import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import Settings from './artifacts/contracts/Settings.sol/Settings.json';
 import Staking from './artifacts/contracts/Staking.sol/Staking.json';
 import IndexerRegistry from './artifacts/contracts/IndexerRegistry.sol/IndexerRegistry.json';
@@ -13,6 +14,7 @@ import RewardsPool from './artifacts/contracts/RewardsPool.sol/RewardsPool.json'
 import RewardsHelper from './artifacts/contracts/RewardsHelper.sol/RewardsHelper.json';
 import ProxyAdmin from './artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json';
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
+import Airdropper from './artifacts/contracts/Airdropper.sol/Airdropper.json';
 
 import ConsumerProxy from './artifacts/contracts/ConsumerProxy.sol/ConsumerProxy.json';
 import ConsumerHoster from './artifacts/contracts/ConsumerHoster.sol/ConsumerHoster.json';
@@ -20,6 +22,7 @@ import ConsumerHoster from './artifacts/contracts/ConsumerHoster.sol/ConsumerHos
 export default {
     Settings,
     SQToken,
+    VSQToken,
     Staking,
     IndexerRegistry,
     QueryRegistry,
@@ -35,4 +38,5 @@ export default {
     StateChannel,
     ConsumerProxy,
     ConsumerHoster,
+    Airdropper,
 };

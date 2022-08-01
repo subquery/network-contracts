@@ -63,5 +63,4 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
         RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getRewardsDistributer());
         rewardsDistributer.collectAndDistributeRewards(indexer);
     }
-
 }

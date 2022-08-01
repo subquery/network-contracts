@@ -24,6 +24,8 @@ import {
     PurchaseOfferMarket__factory,
     Settings,
     SQToken,
+    VSQToken,
+    VSQToken__factory,
     EraManager,
     IndexerRegistry,
     PlanManager,
@@ -40,6 +42,8 @@ import {
     ConsumerProxy__factory,
     ConsumerHoster,
     ConsumerHoster__factory,
+    Airdropper,
+    Airdropper__factory,
 } from '../src';
 
 interface FactoryContstructor {
@@ -52,6 +56,7 @@ type Contracts = {
     settings: Settings;
     inflationController: InflationController;
     token: SQToken;
+    vtoken: VSQToken;
     staking: Staking;
     eraManager: EraManager;
     indexerRegistry: IndexerRegistry;
@@ -65,6 +70,7 @@ type Contracts = {
     stateChannel: StateChannel;
     consumerProxy: ConsumerProxy;
     consumerHoster: ConsumerHoster;
+    airdropper: Airdropper;
 };
 
 const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: string}, FactoryContstructor]>> = {
@@ -188,6 +194,17 @@ export async function deployContracts(
     await sqtToken.deployTransaction.wait();
     updateDeployment(deployment, 'SQToken', sqtToken.address, sqtToken.deployTransaction.hash);
 
+    // deploy VSQToken contract
+    const vsqtToken = await new VSQToken__factory(wallet).deploy(overrides);
+    const initVsqtToken = await vsqtToken.initialize(deployment.Settings.address, overrides);
+    await initVsqtToken.wait();
+    updateDeployment(deployment, 'VSQToken', vsqtToken.address, vsqtToken.deployTransaction.hash);
+
+    //deploy Airdropper contract
+    const airdropper = await new Airdropper__factory(wallet).deploy(overrides);
+    await airdropper.deployTransaction.wait();
+    updateDeployment(deployment, 'Airdropper', airdropper.address, airdropper.deployTransaction.hash);
+
     // deploy Staking contract
     const staking = await deployProxy<Staking>(proxyAdmin, Staking__factory, wallet, overrides);
     const initStaking = await staking.initialize(
@@ -307,7 +324,12 @@ export async function deployContracts(
     let consumerHoster;
     if (dev) {
         consumerProxy = await deployProxy<ConsumerProxy>(proxyAdmin, ConsumerProxy__factory, wallet, overrides);
-        const initConsumerProxy = await consumerProxy.initialize(sqtToken.address, stateChannel.address, wallet.address, overrides);
+        const initConsumerProxy = await consumerProxy.initialize(
+            sqtToken.address,
+            stateChannel.address,
+            wallet.address,
+            overrides
+        );
         await initConsumerProxy.wait();
         updateDeployment(deployment, 'ConsumerProxy', consumerProxy.address, consumerProxy.deployTransaction.hash);
 
@@ -341,6 +363,7 @@ export async function deployContracts(
             settings,
             inflationController,
             token: sqtToken,
+            vtoken: vsqtToken,
             staking,
             eraManager,
             indexerRegistry,
@@ -355,6 +378,7 @@ export async function deployContracts(
             stateChannel,
             consumerProxy,
             consumerHoster,
+            airdropper,
         },
     ];
 }

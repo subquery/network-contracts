@@ -1,5 +1,5 @@
-import { QueryRegistry } from './../src/typechain/QueryRegistry';
-import { ServiceAgreementRegistry } from './../src/typechain/ServiceAgreementRegistry';
+import {QueryRegistry} from './../src/typechain/QueryRegistry';
+import {ServiceAgreementRegistry} from './../src/typechain/ServiceAgreementRegistry';
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -47,7 +47,9 @@ export async function registerIndexer(
 ) {
     await token.connect(rootWallet).transfer(wallet.address, etherParse(amount));
     await token.connect(wallet).increaseAllowance(staking.address, etherParse(amount));
-    const tx = await indexerRegistry.connect(wallet).registerIndexer(etherParse(amount).div(2), METADATA_HASH, 0, {gasLimit: '2000000'});
+    const tx = await indexerRegistry
+        .connect(wallet)
+        .registerIndexer(etherParse(amount).div(2), METADATA_HASH, 0, {gasLimit: '2000000'});
     return tx;
 }
 
@@ -57,12 +59,12 @@ export async function createPurchaseOffer(
     deploymentId: string,
     expireDate
 ) {
-    const deposit = etherParse("2");
+    const deposit = etherParse('2');
     const limit = 1;
     const minimumAcceptHeight = 100;
     const planTemplateId = 0;
 
-    await token.increaseAllowance(purchaseOfferMarket.address, etherParse("2"));
+    await token.increaseAllowance(purchaseOfferMarket.address, etherParse('2'));
     await purchaseOfferMarket.createPurchaseOffer(
         deploymentId,
         planTemplateId,
@@ -97,11 +99,11 @@ export async function acceptPlan(
     value: BigNumber,
     DEPLOYMENT_ID,
     serviceAgreementRegistry: ServiceAgreementRegistry,
-    planManager: PlanManager,
+    planManager: PlanManager
 ) {
     await planManager.createPlanTemplate(time.duration.days(period).toString(), 1000, 100, METADATA_HASH);
     await planManager.connect(indexer).createPlan(value, 0, DEPLOYMENT_ID);
-    
+
     await planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, 1);
 }
 

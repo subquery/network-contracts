@@ -1,7 +1,7 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
@@ -110,7 +110,9 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address controller = indexerRegistry.indexerToController(indexer);
 
         // check sign
-        bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, amount, expiration, deploymentId, callback));
+        bytes32 payload = keccak256(
+            abi.encode(channelId, indexer, consumer, amount, expiration, deploymentId, callback)
+        );
         if (_isContract(consumer)) {
             require(consumer.supportsInterface(type(IConsumer).interfaceId), 'Contract is not IConsumer');
             IConsumer cConsumer = IConsumer(consumer);

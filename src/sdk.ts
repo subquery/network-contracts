@@ -34,6 +34,8 @@ import {
     ConsumerProxy__factory,
     ConsumerHoster,
     ConsumerHoster__factory,
+    Airdropper,
+    Airdropper__factory,
 } from './typechain';
 
 export class ContractSDK {
@@ -61,6 +63,7 @@ export class ContractSDK {
     private _stateChannel?: StateChannel;
     private _consumerProxy?: ConsumerProxy;
     private _consumerHoster?: ConsumerHoster;
+    private _airdropper?: Airdropper;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options?: SdkOptions) {
         this._contractDeployments =
@@ -184,8 +187,15 @@ export class ContractSDK {
         return this._consumerHoster;
     }
 
+    get airdropper(): Airdropper {
+        if (!this._airdropper) {
+            throw new Error(`_airdropper address not found`);
+        }
+        return this._airdropper;
+    }
+
     public async initContract<C extends Contract>(
-        factory: { connect: (address: string, signerOrProvider: AbstractProvider | Signer) => C },
+        factory: {connect: (address: string, signerOrProvider: AbstractProvider | Signer) => C},
         address?: string
     ): Promise<C | undefined> {
         if (!address) {
@@ -212,6 +222,7 @@ export class ContractSDK {
             stateChannel,
             consumerProxy,
             consumerHoster,
+            airdropper,
         ] = await Promise.all([
             this.initContract(Settings__factory, this._contractDeployments.Settings?.address),
             this.initContract(SQToken__factory, this._contractDeployments.SQToken?.address),
@@ -232,6 +243,7 @@ export class ContractSDK {
             this.initContract(StateChannel__factory, this._contractDeployments.StateChannel.address),
             this.initContract(ConsumerProxy__factory, this._contractDeployments.ConsumerProxy.address),
             this.initContract(ConsumerHoster__factory, this._contractDeployments.ConsumerHoster.address),
+            this.initContract(Airdropper__factory, this._contractDeployments.Airdropper.address),
         ]);
         this._settings = settings;
         this._sqToken = sqToken;
@@ -249,5 +261,6 @@ export class ContractSDK {
         this._stateChannel = stateChannel;
         this._consumerProxy = consumerProxy;
         this._consumerHoster = consumerHoster;
+        this._airdropper = airdropper;
     }
 }

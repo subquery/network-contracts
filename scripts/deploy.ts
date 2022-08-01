@@ -30,7 +30,7 @@ const main = async () => {
     if (process.env.ENDPOINT) {
         console.log(`use overridden endpoint ${process.env.ENDPOINT}`);
         if (config.network.platform === 'acala') {
-            config.network.endpoint = { ...config.network.endpoint, eth: process.env.ENDPOINT };
+            config.network.endpoint = {...config.network.endpoint, eth: process.env.ENDPOINT};
         } else {
             config.network.endpoint = process.env.ENDPOINT;
         }

@@ -120,7 +120,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         require(amount > 0, 'Invalid amount');
         IERC20(settings.getSQToken()).safeTransferFrom(msg.sender, address(this), amount);
 
-        uint256 era = IEraManager(settings.getEraManager()).eraNumber();
+        uint256 era = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
         EraPool storage eraPool = pools[era];
         Pool storage pool = eraPool.pools[deploymentId];
         // deployment created firstly.
@@ -132,7 +132,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
             eraPool.indexerUnclaimDeployments[indexer] += 1;
 
             IStaking staking = IStaking(settings.getStaking());
-            uint256 myStake = StakingUtil.current_staking(staking.getStaking(indexer), era);
+            uint256 myStake = staking.getTotalStakingAmount(indexer);
             require(myStake > 0, 'No indexer');
             pool.stake[indexer] = myStake;
             pool.totalStake += myStake;
