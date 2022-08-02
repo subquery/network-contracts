@@ -378,7 +378,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
             IStaking staking = IStaking(settings.getStaking());
             //apply first onStakeChange
-            uint256 newDelegation = staking.getDelegationAmount(_indexer, _indexer);
+            uint256 newDelegation = staking.getAfterDelegationAmount(_indexer, _indexer);
             delegation[_indexer][_indexer] = newDelegation;
 
             info[_indexer].rewardDebt[_indexer] = MathUtil.mulDiv(
@@ -462,7 +462,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
         // run hook for delegation change
         IStaking staking = IStaking(settings.getStaking());
-        uint256 newDelegation = staking.getDelegationAmount(staker, indexer);
+        uint256 newDelegation = staking.getAfterDelegationAmount(staker, indexer);
         delegation[staker][indexer] = newDelegation;
 
         info[indexer].rewardDebt[staker] = MathUtil.mulDiv(newDelegation, info[indexer].accSQTPerStake, PER_TRILL);

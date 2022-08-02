@@ -53,6 +53,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         uint256 unclaimDeployment;
         // record the indexer joined deployments, and check if all is claimed.
         mapping(address => uint256) indexerUnclaimDeployments;
+        // storage all pools by deployment: deployment => Pool.
         mapping(bytes32 => Pool) pools;
     }
 
@@ -133,7 +134,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
 
             IStaking staking = IStaking(settings.getStaking());
             uint256 myStake = staking.getTotalStakingAmount(indexer);
-            require(myStake > 0, 'No indexer');
+            require(myStake > 0, 'Not indexer');
             pool.stake[indexer] = myStake;
             pool.totalStake += myStake;
         }
@@ -152,7 +153,6 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      */
     function collect(bytes32 deploymentId, address indexer) external {
         uint256 currentEra = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
-        require(currentEra > 0, 'Waiting Era');
         _collect(currentEra - 1, deploymentId, indexer);
 
     }

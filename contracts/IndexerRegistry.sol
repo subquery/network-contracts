@@ -143,7 +143,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
         delete metadataByIndexer[msg.sender];
 
         IStaking staking = IStaking(settings.getStaking());
-        uint256 amount = staking.getDelegationAmount(msg.sender, msg.sender);
+        uint256 amount = staking.getAfterDelegationAmount(msg.sender, msg.sender);
         staking.unstake(msg.sender, amount);
 
         emit UnregisterIndexer(msg.sender);

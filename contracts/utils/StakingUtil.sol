@@ -10,14 +10,14 @@ import '../interfaces/IStaking.sol';
  * @dev
  */
 library StakingUtil {
-    function current_staking(StakingAmount memory amount, uint256 era) internal pure returns (uint256) {
+    function currentStaking(StakingAmount memory amount, uint256 era) internal pure returns (uint256) {
         if (amount.era < era) {
             return amount.valueAfter;
         }
         return amount.valueAt;
     }
 
-    function current_commission(CommissionRate memory rate, uint256 era) internal pure returns (uint256) {
+    function currentCommission(CommissionRate memory rate, uint256 era) internal pure returns (uint256) {
         if ((rate.era + 1) < era) {
             return rate.valueAfter;
         } else {
@@ -25,7 +25,7 @@ library StakingUtil {
         }
     }
 
-    function current_delegation(StakingAmount memory amount, uint256 era) internal pure returns (uint256) {
+    function currentDelegation(StakingAmount memory amount, uint256 era) internal pure returns (uint256) {
         if (amount.era < era) {
             return amount.valueAfter;
         }
