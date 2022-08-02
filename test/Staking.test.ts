@@ -474,7 +474,7 @@ describe('Staking Contract', () => {
 
         it('set commission rate with invalid params should fail', async () => {
             // not an indexer
-            await expect(staking.connect(delegator).setCommissionRate(100)).to.be.revertedWith('No indexer');
+            await expect(staking.connect(delegator).setCommissionRate(100)).to.be.revertedWith('Not indexer');
             // rate greater than COMMISSION_RATE_MULTIPLIER
             await expect(staking.connect(indexer).setCommissionRate(1e7)).to.be.revertedWith('Invalid rate');
         });
