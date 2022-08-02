@@ -15,7 +15,8 @@ import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISQToken.sol';
 import './Constants.sol';
-import './MathUtil.sol';
+import './utils/MathUtil.sol';
+import './utils/StakingUtil.sol';
 
 /**
  * @title Staking Contract
@@ -35,7 +36,7 @@ import './MathUtil.sol';
  *
  * ## Detail
  * Since The change of stake or delegate amount and commission rate affects the rewards distribution. So when
- * users make these changes, we call onStakeChange()/onICRChnage() from rewardsDistributer contract to notify it to
+ * users make these changes, we call onStakeChange()/onICRChnage() from rewardsDistributer/rewardsPool contract to notify it to
  * apply these changes for future distribution.
  * In our design rewardsDistributer contract apply the first stake change and commission rate change immediately when
  * an Indexer make registration. Later on all the stake change apply at next Era, commission rate apply at two Eras later.
@@ -61,78 +62,62 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
-    // -- Data --
-
-    /**
-     * @dev Total staking amount information. One per Indexer.
-     * Stake amount change need to be applied at next Era.
-     */
-    struct StakingAmount {
-        uint256 era; //last update era
-        uint256 valueAt; //value at the era
-        uint256 valueAfter; //value to be refresed from next era
-    }
-
-    /**
-     * @dev Unbond amount information. One per request per Delegator.
-     * Delegator can withdraw the unbond amount after the lockPeriod.
-     */
-    struct UnbondAmount {
-        address indexer;
-        uint256 amount; //pending unbonding amount
-        uint256 startTime; //unbond start time
-    }
-
-    /**
-     * @dev Commission rate information. One per Indexer.
-     * Commission rate change need to be applied at the Era after next Era.
-     */
-    struct CommissionRate {
-        uint256 era; //last update era
-        uint256 valueAt; //value at the era
-        uint256 valueAfter; //value to be refresed from next era
-    }
-
     // -- Storage --
 
     ISettings public settings;
+
     /**
      * The ratio of total stake amount to indexer self stake amount to limit the
      * total delegation amount. Initial value is set to 10, which means the total
      * stake amount cannot exceed 10 times the indexer self stake amount.
      */
     uint256 public indexerLeverageLimit;
-    //The rate of token burn when withdraw.
+
+    // The rate of token burn when withdraw.
     uint256 public unbondFeeRate;
-    //Lock period for withdraw, timestamp unit
+
+    // Lock period for withdraw, timestamp unit
     uint256 public lockPeriod;
-    //Number of registered indexers.
+
+    // Number of registered indexers.
     uint256 public indexerLength;
-    //Staking address by indexer number.
+
+    // Staking address by indexer number.
     mapping(uint256 => address) public indexers;
-    //Indexer number by staking address.
+
+    // Indexer number by staking address.
     mapping(address => uint256) public indexerNo;
-    //Staking amount per indexer address.
+
+    // Staking amount per indexer address.
     mapping(address => StakingAmount) private totalStakingAmount;
-    //delegator address -> unbond request index -> amount&startTime
+
+    // Delegator address -> unbond request index -> amount&startTime
     mapping(address => mapping(uint256 => UnbondAmount)) public unbondingAmount;
-    //delegator address -> length of unbond requests
+
+    // Delegator address -> length of unbond requests
     mapping(address => uint256) public unbondingLength;
-    //delegator address -> length of widthdrawn requests
+
+    // Delegator address -> length of widthdrawn requests
     mapping(address => uint256) public withdrawnLength;
-    //active delegation from delegator to indexer, delegator->indexer->amount
+
+    // Active delegation from delegator to indexer, delegator->indexer->amount
     mapping(address => mapping(address => StakingAmount)) public delegation;
-    //each delegator total locked amount, delegator->amount
-    //lockedAmount include stakedAmount + amount in locked period
+
+    // Each delegator total locked amount, delegator->amount
+    // LockedAmount include stakedAmount + amount in locked period
     mapping(address => uint256) public lockedAmount;
-    //actively staking indexers by delegator
+
+    // Actively staking indexers by delegator
     mapping(address => mapping(uint256 => address)) public stakingIndexers;
-    //delegating indexer number by delegator and indexer
+
+    // Delegating indexer number by delegator and indexer
     mapping(address => mapping(address => uint256)) public stakingIndexerNos;
-    //staking indexer lengths
+
+    // Delegation tax rate per indexer
+    mapping(address => CommissionRate) public commissionRates;
+
+    // Staking indexer lengths
     mapping(address => uint256) public stakingIndexerLengths;
-    //delegation tax rate per indexer
-    mapping(address => CommissionRate) commissionRates;
 
     // -- Events --
 
@@ -140,22 +125,28 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * @dev Emitted when stake to an Indexer.
      */
     event DelegationAdded(address indexed source, address indexed indexer, uint256 amount);
+
     /**
      * @dev Emitted when unstake to an Indexer.
      */
     event DelegationRemoved(address indexed source, address indexed indexer, uint256 amount);
+
     /**
      * @dev Emitted when request unbond.
      */
     event UnbondRequested(address indexed source, address indexed indexer, uint256 amount, uint256 index);
+
     /**
      * @dev Emitted when request withdraw.
      */
     event UnbondWithdrawn(address indexed source, uint256 amount, uint256 index);
+
     /**
      * @dev Emitted when Indexer set their commissionRate.
      */
     event SetCommissionRate(address indexed indexer, uint256 amount);
+
+    // -- Functions --
 
     /**
      * @dev Initialize this contract.
@@ -183,7 +174,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     }
 
     function setUnbondFeeRateBP(uint256 _unbondFeeRate) external onlyOwner {
-        require(_unbondFeeRate < PER_MILL, 'invaild unbondFeeRate');
+        require(_unbondFeeRate < PER_MILL, 'Invaild unbondFeeRate');
         unbondFeeRate = _unbondFeeRate;
     }
 
@@ -192,12 +183,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * when indexer do registration. The commissionRate need to apply at once.
      */
     function setInitialCommissionRate(address indexer, uint256 rate) external {
-        require(msg.sender == settings.getIndexerRegistry(), 'Caller is not indexerRegistry');
+        require(msg.sender == settings.getIndexerRegistry(), 'Only IndexerRegistry');
         IRewardsDistributer rewardDistributer = IRewardsDistributer(settings.getRewardsDistributer());
-        require(rewardDistributer.getTotalStakingAmount(indexer) == 0, 'Last registry not settled');
-        require(rate <= PER_MILL, 'Invalid commission rate');
-        IEraManager eraManager = IEraManager(settings.getEraManager());
-        uint256 eraNumber = eraManager.safeUpdateAndGetEra();
+        require(rewardDistributer.getTotalStakingAmount(indexer) == 0, 'Not settled');
+        require(rate <= PER_MILL, 'Invalid rate');
+        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
         commissionRates[indexer] = CommissionRate(eraNumber, rate, rate);
 
         emit SetCommissionRate(indexer, rate);
@@ -210,10 +200,9 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     function setCommissionRate(uint256 rate) external {
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
         IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getRewardsDistributer());
-        require(indexerRegistry.isIndexer(msg.sender), 'Not an indexer');
-        require(rate <= PER_MILL, 'Invalid commission rate');
-        IEraManager eraManager = IEraManager(settings.getEraManager());
-        uint256 eraNumber = eraManager.safeUpdateAndGetEra();
+        require(indexerRegistry.isIndexer(msg.sender), 'Not indexer');
+        require(rate <= PER_MILL, 'Invalid rate');
+        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
         rewardsDistributer.onICRChange(msg.sender, eraNumber + 2);
         CommissionRate storage commissionRate = commissionRates[msg.sender];
         if (commissionRate.era < eraNumber) {
@@ -231,16 +220,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * require it idempotent.
      */
     function reflectEraUpdate(address _source, address _indexer) public {
-        IEraManager eraManager = IEraManager(settings.getEraManager());
-        uint256 eraNumber = eraManager.safeUpdateAndGetEra();
+        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
         _reflectEraUpdate(eraNumber, _source, _indexer);
     }
 
-    function _reflectEraUpdate(
-        uint256 eraNumber,
-        address _source,
-        address _indexer
-    ) private {
+    function _reflectEraUpdate(uint256 eraNumber, address _source, address _indexer) private {
         _reflectStakingAmount(eraNumber, delegation[_source][_indexer]);
         _reflectStakingAmount(eraNumber, totalStakingAmount[_indexer]);
     }
@@ -256,16 +240,12 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         require(
             delegation[_indexer][_indexer].valueAfter * indexerLeverageLimit >=
                 totalStakingAmount[_indexer].valueAfter + _amount,
-            'Delegation limitation reached'
+            'Delegation limitation'
         );
     }
 
-    function _addDelegation(
-        address _source,
-        address _indexer,
-        uint256 _amount
-    ) internal {
-        require(_amount > 0, 'invaild delegation amount');
+    function _addDelegation(address _source, address _indexer, uint256 _amount) internal {
+        require(_amount > 0, 'Invalid delegation');
         if (_isEmptyDelegation(_source, _indexer)) {
             stakingIndexerNos[_source][_indexer] = stakingIndexerLengths[_source];
             stakingIndexers[_source][stakingIndexerLengths[_source]] = _indexer;
@@ -276,7 +256,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             totalStakingAmount[_indexer].valueAt == 0 &&
             totalStakingAmount[_indexer].valueAfter == 0;
         if (firstStake) {
-            require(_source == _indexer, 'can not delegate to non-indexer');
+            require(_source == _indexer, 'Not indexer');
             delegation[_source][_indexer].valueAt = _amount;
             totalStakingAmount[_indexer].valueAt = _amount;
             delegation[_source][_indexer].valueAfter = _amount;
@@ -285,17 +265,14 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             delegation[_source][_indexer].valueAfter += _amount;
             totalStakingAmount[_indexer].valueAfter += _amount;
         }
+
         lockedAmount[_source] += _amount;
         _onDelegationChange(_source, _indexer);
 
         emit DelegationAdded(_source, _indexer, _amount);
     }
 
-    function _delegateToIndexer(
-        address _source,
-        address _indexer,
-        uint256 _amount
-    ) internal {
+    function _delegateToIndexer(address _source, address _indexer, uint256 _amount) internal {
         IERC20(settings.getSQToken()).safeTransferFrom(_source, address(this), _amount);
 
         _addDelegation(_source, _indexer, _amount);
@@ -308,12 +285,12 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     function stake(address _indexer, uint256 _amount) external override {
         reflectEraUpdate(_indexer, _indexer);
         if (_isEmptyDelegation(_indexer, _indexer)) {
-            require(msg.sender == settings.getIndexerRegistry(), 'Caller is not indexerRegistry');
+            require(msg.sender == settings.getIndexerRegistry(), 'Only IndexerRegistry');
             indexers[indexerLength] = _indexer;
             indexerNo[_indexer] = indexerLength;
             indexerLength++;
         } else {
-            require(msg.sender == _indexer, 'only indexer allowed');
+            require(msg.sender == _indexer, 'Only indexer');
         }
         _delegateToIndexer(_indexer, _indexer, _amount);
     }
@@ -322,20 +299,16 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * @dev Delegator stake to Indexer, Indexer cannot call this.
      */
     function delegate(address _indexer, uint256 _amount) external override {
-        require(msg.sender != _indexer, 'indexer not allowed');
+        require(msg.sender != _indexer, 'Only delegator');
         reflectEraUpdate(msg.sender, _indexer);
         // delegation limit should not exceed
         _checkDelegateLimitation(_indexer, _amount);
         _delegateToIndexer(msg.sender, _indexer, _amount);
     }
 
-    function _removeDelegation(
-        address _source,
-        address _indexer,
-        uint256 _amount
-    ) internal {
-        require(_amount > 0, 'invaild amount');
-        require(delegation[_source][_indexer].valueAfter >= _amount, 'invaild amount');
+    function _removeDelegation(address _source, address _indexer, uint256 _amount) internal {
+        require(_amount > 0, 'Invalid amount');
+        require(delegation[_source][_indexer].valueAfter >= _amount, 'Insufficient delegation');
 
         delegation[_source][_indexer].valueAfter -= _amount;
         totalStakingAmount[_indexer].valueAfter -= _amount;
@@ -357,48 +330,38 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * @dev Allow delegator transfer their delegation from an indexer to another.
      * Indexer's self delegations are not allow to redelegate.
      */
-    function redelegate(
-        address from_indexer,
-        address to_indexer,
-        uint256 _amount
-    ) external override {
+    function redelegate(address from_indexer, address to_indexer, uint256 _amount) external override {
         address _source = msg.sender;
-
-        require(from_indexer != msg.sender, 'indexer cannot redelegate');
-
+        require(from_indexer != msg.sender, 'Only delegator');
         // delegation limit should not exceed
         _checkDelegateLimitation(to_indexer, _amount);
 
-        IEraManager eraManager = IEraManager(settings.getEraManager());
-        uint256 eraNumber = eraManager.safeUpdateAndGetEra();
+        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
         _reflectEraUpdate(eraNumber, _source, from_indexer);
         _removeDelegation(_source, from_indexer, _amount);
         _reflectEraUpdate(eraNumber, _source, to_indexer);
         _addDelegation(_source, to_indexer, _amount);
     }
 
-    function _startUnbond(
-        address _source,
-        address _indexer,
-        uint256 _amount
-    ) internal {
+    function _startUnbond(address _source, address _indexer, uint256 _amount) internal {
         _removeDelegation(_source, _indexer, _amount);
 
         uint256 index = unbondingLength[_source];
-        unbondingAmount[_source][index].amount = _amount;
-        unbondingAmount[_source][index].startTime = block.timestamp;
-        unbondingAmount[_source][index].indexer = _indexer;
+        UnbondAmount storage uamount =  unbondingAmount[_source][index];
+        uamount.amount = _amount;
+        uamount.startTime = block.timestamp;
+        uamount.indexer = _indexer;
         unbondingLength[_source]++;
 
         emit UnbondRequested(_source, _indexer, _amount, index);
     }
 
     function cancelUnbonding(uint256 unbondReqId) external {
-        require(unbondReqId >= withdrawnLength[msg.sender], 'already withdrawed');
+        require(unbondReqId >= withdrawnLength[msg.sender], 'Withdrawn');
         UnbondAmount memory unbond = unbondingAmount[msg.sender][unbondReqId];
-        require(unbond.amount > 0, 'invalid unbond request');
+        require(unbond.amount > 0, 'Invalid unbond');
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
-        require(indexerRegistry.isIndexer(unbond.indexer), 'indexer unregistered');
+        require(indexerRegistry.isIndexer(unbond.indexer), 'Unregistered');
 
         delete unbondingAmount[msg.sender][unbondReqId];
         if (msg.sender != unbond.indexer) {
@@ -419,11 +382,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             indexerNo[indexers[indexerLength - 1]] = indexerNo[_indexer];
             indexerLength--;
         } else {
-            require(msg.sender == _indexer, 'invaild caller');
+            require(msg.sender == _indexer, 'Only indexer');
             require(
-                this.getDelegationAmount(_indexer, _indexer) - _amount >
+                this.getAfterDelegationAmount(_indexer, _indexer) - _amount >
                     IIndexerRegistry(settings.getIndexerRegistry()).minimumStakingAmount(),
-                'invaild unstaked amount'
+                'Insufficient stake'
             );
         }
         _startUnbond(_indexer, _indexer, _amount);
@@ -434,7 +397,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      */
     function undelegate(address _indexer, uint256 _amount) external override {
         // check if called by an indexer
-        require(_indexer != msg.sender, 'invaild caller');
+        require(_indexer != msg.sender, 'Only delegator');
         reflectEraUpdate(msg.sender, _indexer);
         _startUnbond(msg.sender, _indexer, _amount);
     }
@@ -466,7 +429,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      */
     function widthdraw() external override {
         uint256 withdrawingLength = unbondingLength[msg.sender] - withdrawnLength[msg.sender];
-        require(withdrawingLength > 0, 'Nothing withdraw');
+        require(withdrawingLength > 0, 'Need unbond');
 
         // withdraw the max top 10 requests
         if (withdrawingLength > 10) {
@@ -496,29 +459,17 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         return delegation[_source][_indexer].valueAt == 0 && delegation[_source][_indexer].valueAfter == 0;
     }
 
-    function _parseStakingAmount(StakingAmount memory amount) internal view returns (uint256) {
-        IEraManager eraManager = IEraManager(settings.getEraManager());
-        uint256 eraNumber = eraManager.eraNumber();
-        if (amount.era < eraNumber) {
-            return amount.valueAfter;
-        }
-        return amount.valueAt;
-    }
-
-    function getTotalEffectiveStake(address _indexer) external view override returns (uint256) {
-        uint256 effectiveStake = _parseStakingAmount(totalStakingAmount[_indexer]);
-        uint256 selfDelegation = _parseStakingAmount(delegation[_indexer][_indexer]);
-        if (effectiveStake > selfDelegation * indexerLeverageLimit) {
-            effectiveStake = selfDelegation * indexerLeverageLimit;
-        }
-        return effectiveStake;
-    }
-
     function getTotalStakingAmount(address _indexer) external view override returns (uint256) {
-        return _parseStakingAmount(totalStakingAmount[_indexer]);
+        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
+        return StakingUtil.currentStaking(totalStakingAmount[_indexer], eraNumber);
     }
 
-    function getDelegationAmount(address _source, address _indexer) external view override returns (uint256) {
+    function getCommissionRate(address indexer) external view returns (uint256) {
+        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
+        return StakingUtil.currentCommission(commissionRates[indexer], eraNumber);
+    }
+
+    function getAfterDelegationAmount(address _source, address _indexer) external view override returns (uint256) {
         return delegation[_source][_indexer].valueAfter;
     }
 
@@ -534,16 +485,5 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         }
 
         return unbondAmounts;
-    }
-
-    function getCommissionRate(address indexer) external view returns (uint256) {
-        IEraManager eraManager = IEraManager(settings.getEraManager());
-        uint256 eraNumber = eraManager.eraNumber();
-        CommissionRate memory commissionRate = commissionRates[indexer];
-        if (commissionRate.era < eraNumber - 1) {
-            return commissionRate.valueAfter;
-        } else {
-            return commissionRate.valueAt;
-        }
     }
 }

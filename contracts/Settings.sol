@@ -17,6 +17,7 @@ contract Settings is ISettings, Ownable, Constants {
     address public planManager;
     address public serviceAgreementRegistry;
     address public rewardsDistributer;
+    address public rewardsPool;
     address public rewardsHelper;
     address public inflationController;
 
@@ -31,6 +32,7 @@ contract Settings is ISettings, Ownable, Constants {
         address _planManager,
         address _serviceAgreementRegistry,
         address _rewardsDistributer,
+        address _rewardsPool,
         address _rewardsHelper,
         address _inflationController
     ) external override onlyOwner {
@@ -52,6 +54,7 @@ contract Settings is ISettings, Ownable, Constants {
         planManager = _planManager;
         serviceAgreementRegistry = _serviceAgreementRegistry;
         rewardsDistributer = _rewardsDistributer;
+        rewardsPool = _rewardsPool;
         rewardsHelper = _rewardsHelper;
         inflationController = _inflationController;
     }
@@ -126,6 +129,14 @@ contract Settings is ISettings, Ownable, Constants {
 
     function getRewardsDistributer() external view returns (address) {
         return rewardsDistributer;
+    }
+
+    function setRewardsPool(address _rewardsPool) external override onlyOwner {
+        rewardsPool = _rewardsPool;
+    }
+
+    function getRewardsPool() external view returns (address) {
+        return rewardsPool;
     }
 
     function setRewardsHelper(address _rewardsHelper) external override onlyOwner {

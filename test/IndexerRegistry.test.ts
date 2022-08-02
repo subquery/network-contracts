@@ -45,7 +45,7 @@ describe('IndexerRegistry Contract', () => {
             // check state changes
             expect(await indexerRegistry.isIndexer(wallet_1.address)).to.equal(true);
             expect(await indexerRegistry.metadataByIndexer(wallet_1.address)).to.equal(METADATA_HASH);
-            expect(await staking.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(etherParse("5"));
+            expect(await staking.getAfterDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(etherParse("5"));
             expect(await staking.getCommissionRate(wallet_1.address)).to.equal(0);
             expect(await rewardsDistributer.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
                 etherParse("5")

@@ -13,7 +13,7 @@ import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpg
 import './interfaces/IConsumer.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISettings.sol';
-import './interfaces/IRewardsDistributer.sol';
+import './interfaces/IRewardsPool.sol';
 
 // The channel status.
 // When channel is Open, it can checkpoint/challenge/claim/fund.
@@ -320,10 +320,10 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         // reward distributer
         address indexer = channels[query.channelId].indexer;
-        address rewardDistributerAddress = settings.getRewardsDistributer();
-        IERC20(settings.getSQToken()).approve(rewardDistributerAddress, amount);
-        IRewardsDistributer rewardsDistributer = IRewardsDistributer(rewardDistributerAddress);
-        rewardsDistributer.addInstantRewards(indexer, address(this), amount);
+        address rewardPoolAddress = settings.getRewardsPool();
+        IERC20(settings.getSQToken()).approve(rewardPoolAddress, amount);
+        IRewardsPool rewardsPool = IRewardsPool(rewardPoolAddress);
+        rewardsPool.labor(channels[query.channelId].deploymentId, indexer, amount);
     }
 
     // Finalize the channel.

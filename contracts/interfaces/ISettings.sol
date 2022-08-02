@@ -13,6 +13,7 @@ interface ISettings {
         address _planManager,
         address _serviceAgreementRegistry,
         address _rewardsDistributer,
+        address _rewardsPool,
         address _rewardsHelper,
         address _inflationController
     ) external;
@@ -48,6 +49,10 @@ interface ISettings {
     function setRewardsDistributer(address _rewardsDistributer) external;
 
     function getRewardsDistributer() external view returns (address);
+
+    function setRewardsPool(address _rewardsPool) external;
+
+    function getRewardsPool() external view returns (address);
 
     function setRewardsHelper(address _rewardsHelper) external;
 

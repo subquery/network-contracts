@@ -5,7 +5,7 @@ import {expect} from 'chai';
 import {ethers} from 'hardhat';
 import {deployContracts} from './setup';
 import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
-import {IndexerRegistry, RewardsDistributer, EraManager, SQToken, Staking, StateChannel} from '../src';
+import {IndexerRegistry, RewardsPool, RewardsDistributer, EraManager, SQToken, Staking, StateChannel} from '../src';
 import {constants, registerIndexer, startNewEra, time, delay, etherParse} from './helper';
 import {utils, Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
 
@@ -18,6 +18,7 @@ describe('StateChannel Contract', () => {
     let indexerRegistry: IndexerRegistry;
     let eraManager: EraManager;
     let rewardsDistributor: RewardsDistributer;
+    let rewardsPool: RewardsPool;
     let stateChannel: StateChannel;
 
     const openChannel = async (
@@ -101,6 +102,7 @@ describe('StateChannel Contract', () => {
         staking = deployment.staking;
         token = deployment.token;
         rewardsDistributor = deployment.rewardsDistributer;
+        rewardsPool = deployment.rewardsPool;
         eraManager = deployment.eraManager;
         stateChannel = deployment.stateChannel;
     });
@@ -187,27 +189,11 @@ describe('StateChannel Contract', () => {
             await stateChannel.checkpoint(query1);
             expect((await stateChannel.channel(channelId)).balance).to.equal(etherParse('0.9'));
 
-            const currentEar = await (await eraManager.eraNumber()).toNumber();
-            const rewardsAddTable = await rewardsDistributor.getRewardsAddTable(
-                indexer.address,
-                currentEar,
-                currentEar + 2
-            );
-            const rewardsRemoveTable = await rewardsDistributor.getRewardsRemoveTable(
-                indexer.address,
-                currentEar,
-                currentEar + 2
-            );
-            const [eraReward, totalReward] = rewardsAddTable.reduce(
-                (acc, val, idx) => {
-                    let [eraReward, total] = acc;
-                    eraReward = eraReward.add(val.sub(rewardsRemoveTable[idx]));
-                    return [eraReward, total.add(eraReward)];
-                },
-                [BigNumber.from(0), BigNumber.from(0)]
-            );
-            expect(eraReward).to.be.eq(0);
-            expect(totalReward).to.be.eq(etherParse('0.1'));
+            // check rewards
+            const currentEra = await (await eraManager.eraNumber()).toNumber();
+            const infos = await rewardsPool.getReward(deploymentId, currentEra, indexer.address);
+            expect(infos[0]).to.be.eq(etherParse("0.1")); // labor
+            expect(infos[1]).to.be.eq(etherParse("0.1")); // reward
 
             const query2 = await buildQueryState(channelId, indexer, consumer, false, 20, etherParse('0.01'));
             await stateChannel.checkpoint(query2);

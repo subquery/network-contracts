@@ -32,6 +32,8 @@ import {
     PurchaseOfferMarket,
     RewardsDistributer,
     RewardsDistributer__factory,
+    RewardsPool,
+    RewardsPool__factory,
     RewardsHelper,
     RewardsHelper__factory,
     StateChannel,
@@ -63,6 +65,7 @@ type Contracts = {
     purchaseOfferMarket: PurchaseOfferMarket;
     serviceAgreementRegistry: ServiceAgreementRegistry;
     rewardsDistributer: RewardsDistributer;
+    rewardsPool: RewardsPool;
     rewardsHelper: RewardsHelper;
     stateChannel: StateChannel;
     consumerProxy: ConsumerProxy;
@@ -76,6 +79,7 @@ const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: s
     PlanManager: [CONTRACTS.PlanManager, PlanManager__factory],
     QueryRegistry: [CONTRACTS.QueryRegistry, QueryRegistry__factory],
     RewardsDistributer: [CONTRACTS.RewardsDistributer, RewardsDistributer__factory],
+    RewardsPool: [CONTRACTS.RewardsPool, RewardsPool__factory],
     RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
     ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
@@ -290,6 +294,21 @@ export async function deployContracts(
         rewardsDistributer.deployTransaction.hash
     );
 
+    const rewardsPool = await deployProxy<RewardsPool>(
+        proxyAdmin,
+        RewardsPool__factory,
+        wallet,
+        overrides
+    );
+    const initRewardsPool = await rewardsPool.initialize(deployment.Settings.address, overrides);
+    await initRewardsPool.wait();
+    updateDeployment(
+        deployment,
+        'RewardsPool',
+        rewardsPool.address,
+        rewardsPool.deployTransaction.hash
+    );
+
     const rewardsHelper = await deployProxy<RewardsHelper>(proxyAdmin, RewardsHelper__factory, wallet, overrides);
     const initRewardsHelper = await rewardsHelper.initialize(deployment.Settings.address, overrides);
     await initRewardsHelper.wait();
@@ -330,6 +349,7 @@ export async function deployContracts(
         deployment.PlanManager.address,
         deployment.ServiceAgreementRegistry.address,
         deployment.RewardsDistributer.address,
+        deployment.RewardsPool.address,
         deployment.RewardsHelper.address,
         deployment.InflationController.address,
         overrides as any
@@ -352,6 +372,7 @@ export async function deployContracts(
             purchaseOfferMarket,
             serviceAgreementRegistry,
             rewardsDistributer,
+            rewardsPool,
             rewardsHelper,
             proxyAdmin,
             stateChannel,

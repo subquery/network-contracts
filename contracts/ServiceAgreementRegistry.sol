@@ -16,8 +16,8 @@ import './interfaces/IQueryRegistry.sol';
 import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IStaking.sol';
 import './interfaces/IPlanManager.sol';
-import './MathUtil.sol';
 import './Constants.sol';
+import './utils/MathUtil.sol';
 
 /**
  * @title Service Agreement Registry Contract
