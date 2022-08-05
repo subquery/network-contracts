@@ -38,6 +38,8 @@ import {
     Airdropper__factory,
     PermissionedExchange,
     PermissionedExchange__factory,
+    Vesting,
+    Vesting__factory,
 } from '../src';
 
 interface FactoryContstructor {
@@ -62,6 +64,7 @@ type Contracts = {
     stateChannel: StateChannel;
     airdropper: Airdropper;
     permissionedExchange: PermissionedExchange;
+    vesting: Vesting;
 };
 
 const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: string}, FactoryContstructor]>> = {
@@ -192,6 +195,11 @@ export async function deployContracts(
     await airdropper.deployTransaction.wait();
     updateDeployment(deployment, 'Airdropper', airdropper.address, airdropper.deployTransaction.hash);
 
+    //deploy vesting contract
+    const vesting = await new Vesting__factory(wallet).deploy(deployment.SQToken.address, overrides);
+    await vesting.deployTransaction.wait();
+    updateDeployment(deployment, 'Vesting', vesting.address, vesting.deployTransaction.hash);
+
     // deploy Staking contract
     const staking = await deployProxy<Staking>(proxyAdmin, Staking__factory, wallet, overrides);
     const initStaking = await staking.initialize(
@@ -312,6 +320,7 @@ export async function deployContracts(
         deployment.ServiceAgreementRegistry.address,
         deployment.RewardsDistributer.address,
         deployment.InflationController.address,
+        deployment.Vesting.address,
         overrides as any
     );
 
@@ -336,6 +345,7 @@ export async function deployContracts(
             stateChannel,
             airdropper,
             permissionedExchange,
+            vesting,
         },
     ];
 }

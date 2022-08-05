@@ -17,6 +17,7 @@ contract Settings is ISettings, Ownable {
     address public serviceAgreementRegistry;
     address public rewardsDistributer;
     address public inflationController;
+    address public vesting;
 
     constructor() Ownable() {}
 
@@ -29,7 +30,8 @@ contract Settings is ISettings, Ownable {
         address _planManager,
         address _serviceAgreementRegistry,
         address _rewardsDistributer,
-        address _inflationController
+        address _inflationController,
+        address _vesting
     ) external override onlyOwner {
         sqToken = _sqToken;
         staking = _staking;
@@ -40,6 +42,7 @@ contract Settings is ISettings, Ownable {
         serviceAgreementRegistry = _serviceAgreementRegistry;
         rewardsDistributer = _rewardsDistributer;
         inflationController = _inflationController;
+        vesting = _vesting;
     }
 
     function setSQToken(address _sqToken) external override onlyOwner {
@@ -108,5 +111,13 @@ contract Settings is ISettings, Ownable {
 
     function getInflationController() external view returns (address) {
         return inflationController;
+    }
+
+    function setVesting(address _vesting) external override onlyOwner {
+        vesting = _vesting;
+    }
+
+    function getVesting() external view returns (address) {
+        return vesting;
     }
 }
