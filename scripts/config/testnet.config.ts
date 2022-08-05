@@ -3,7 +3,7 @@ export default {
         name: 'testnet',
         endpoint: {
             eth: 'https://tc7-eth.aca-dev.network',
-            substrate: 'wss://node-6870830370282213376.rz.onfinality.io/ws?apikey=0f273197-e4d5-45e2-b23e-03b015cb7000',
+            substrate: 'wss://acala-mandala.api.onfinality.io/public-ws',
         },
         platform: 'acala',
     },
