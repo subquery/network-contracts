@@ -16,7 +16,10 @@
         "deploy:testnet": "node -r ts-node/register/transpile-only scripts/deploy.ts --testnet",
         "deploy:moonbeam": "node -r ts-node/register/transpile-only scripts/deploy.ts --moonbeam",
         "upgrade:testnet": "node -r ts-node/register/transpile-only scripts/upgrade.ts --testnet",
-        "seed:testnet": "ts-node scripts/seed.ts test/fixtures/testnet.yaml"
+        "seed:testnet": "ts-node scripts/seed.ts test/fixtures/testnet.yaml",
+        "publish:testnet": "node -r ts-node/register/transpile-only scripts/publish.ts --testnet",
+        "publish:mainnet": "node -r ts-node/register/transpile-only scripts/publish.ts --mainnet"
+
     },
     "devDependencies": {
         "@acala-network/bodhi": "^2.4.12",
@@ -70,7 +73,8 @@
         "typescript": "^4.6.3"
     },
     "dependencies": {
-        "@openzeppelin/contracts-upgradeable": "^4.5.2"
+        "@openzeppelin/contracts-upgradeable": "^4.5.2",
+        "@polkadot/ui-keyring": "^2.9.4"
     },
     "resolutions": {
         "@polkadot/util": "9.1.1",
