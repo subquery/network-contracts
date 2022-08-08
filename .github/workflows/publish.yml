@@ -1,0 +1,43 @@
+name: "Publish"
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/workflows/**'
+  workflow_dispatch:
+    inputs:
+      endpoint:
+        description: 'endpoint used to deploy contracts'
+        default: https://tc7-eth.aca-dev.network
+        required: true
+
+jobs:
+  Publish-Contracts:
+    name: Publish-Contracts
+    if: "startsWith(github.event.head_commit.message, '[deploy-testnet]') && github.repository == 'subquery/network-contracts' || github.event_name == 'workflow_dispatch'"
+    runs-on: ubuntu-latest
+    env:
+      SEED: ${{ secrets.SEED }}
+    steps:
+      #Check out
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 100
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: yarn
+
+      - name: Bump & Build
+        run: npm version prerelease --no-git-tag-version && yarn build
+
+      # Publish contracts on acala testnet
+      - name: Publish contracts
+        run: yarn publish:testnet
+        env:
+          ENDPOINT: ${{ github.event.inputs.endpoint }}
+          DEPLOY_PRINT: true
