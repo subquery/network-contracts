@@ -61,10 +61,4 @@ interface IStaking {
     function setCommissionRate(uint256 rate) external;
 
     function lockedAmount(address _delegator) external view returns (uint256);
-
-    function lockedAmount(address _delegator) external view returns (uint256);
-
-    //    function checkAndReflectSettlement(uint256 currentEra, address indexer)
-    //        external
-    //        returns (bool);
 }
