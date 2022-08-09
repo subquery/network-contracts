@@ -73,12 +73,14 @@ describe('Service Agreement Registry Contract', () => {
         eraManager = deployment.eraManager;
         rewardsDistributor = deployment.rewardsDistributer;
 
+        await queryRegistry.setCreatorRestrict(false);
+
         //period 1000 s
         //planTemplateId: 0
         await planManager.createPlanTemplate(1000, 1000, 100, METADATA_HASH);
 
         await serviceAgreementRegistry.setThreshold(allowanceMultiplerBP);
-        await token.transfer(wallet.address, etherParse("1000"));
+        await token.transfer(wallet.address, etherParse('1000'));
     });
 
     describe('Establisher Management', () => {
@@ -117,9 +119,9 @@ describe('Service Agreement Registry Contract', () => {
     describe('Establish Service Agressment', () => {
         beforeEach(async () => {
             // register indexer
-            await token.increaseAllowance(staking.address, etherParse("1000"));
-            await token.increaseAllowance(purchaseOfferMarket.address, etherParse("1000"));
-            await indexerRegistry.registerIndexer(etherParse("10"), METADATA_HASH, 0);
+            await token.increaseAllowance(staking.address, etherParse('1000'));
+            await token.increaseAllowance(purchaseOfferMarket.address, etherParse('1000'));
+            await indexerRegistry.registerIndexer(etherParse('10'), METADATA_HASH, 0);
             await indexerRegistry.setControllerAccount(wallet2.address);
 
             // create 3 query projects
@@ -132,9 +134,24 @@ describe('Service Agreement Registry Contract', () => {
             await queryRegistry.startIndexing(deploymentIds[1]);
 
             // create a purchase offer
-            await createPurchaseOffer(purchaseOfferMarket, token, deploymentIds[0], await futureTimestamp(mockProvider))
-            await createPurchaseOffer(purchaseOfferMarket, token, deploymentIds[1], await futureTimestamp(mockProvider))
-            await createPurchaseOffer(purchaseOfferMarket, token, deploymentIds[2], await futureTimestamp(mockProvider))
+            await createPurchaseOffer(
+                purchaseOfferMarket,
+                token,
+                deploymentIds[0],
+                await futureTimestamp(mockProvider)
+            );
+            await createPurchaseOffer(
+                purchaseOfferMarket,
+                token,
+                deploymentIds[1],
+                await futureTimestamp(mockProvider)
+            );
+            await createPurchaseOffer(
+                purchaseOfferMarket,
+                token,
+                deploymentIds[2],
+                await futureTimestamp(mockProvider)
+            );
         });
 
         it('should estabish service agressment successfully', async () => {
@@ -148,11 +165,11 @@ describe('Service Agreement Registry Contract', () => {
 
         it('estabish service agressment with wrong param should revert', async () => {
             await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
-            await token.increaseAllowance(purchaseOfferMarket.address, etherParse("5"));
+            await token.increaseAllowance(purchaseOfferMarket.address, etherParse('5'));
             await purchaseOfferMarket.createPurchaseOffer(
                 deploymentIds[0],
                 0,
-                etherParse("100"),
+                etherParse('100'),
                 2,
                 100,
                 (await futureTimestamp(mockProvider)) + 86400
@@ -165,7 +182,7 @@ describe('Service Agreement Registry Contract', () => {
             await purchaseOfferMarket.createPurchaseOffer(
                 deploymentIds[2],
                 0,
-                etherParse("1"),
+                etherParse('1'),
                 2,
                 100,
                 (await futureTimestamp(mockProvider)) + 86400
@@ -189,9 +206,9 @@ describe('Service Agreement Registry Contract', () => {
     describe('Clear Ended Agreements', () => {
         beforeEach(async () => {
             // register indexer
-            await token.increaseAllowance(staking.address, etherParse("1000"));
-            await token.increaseAllowance(purchaseOfferMarket.address, etherParse("1000"));
-            await indexerRegistry.registerIndexer(etherParse("100"), METADATA_HASH, 0);
+            await token.increaseAllowance(staking.address, etherParse('1000'));
+            await token.increaseAllowance(purchaseOfferMarket.address, etherParse('1000'));
+            await indexerRegistry.registerIndexer(etherParse('100'), METADATA_HASH, 0);
             await indexerRegistry.setControllerAccount(wallet2.address);
 
             // create query project and purchase offer
@@ -232,7 +249,7 @@ describe('Service Agreement Registry Contract', () => {
                 await purchaseOfferMarket.createPurchaseOffer(
                     DEPLOYMENT_ID,
                     i + 1,
-                    etherParse("2"),
+                    etherParse('2'),
                     2,
                     100,
                     await futureTimestamp(mockProvider)
@@ -241,7 +258,7 @@ describe('Service Agreement Registry Contract', () => {
                 await purchaseOfferMarket.acceptPurchaseOffer(i, mmrRoot);
                 const agreementContract = await serviceAgreementRegistry.getServiceAgreement(wallet.address, i);
                 const agreementInfo = {
-                    value: etherParse("2"),
+                    value: etherParse('2'),
                     period: period,
                     indexer: wallet.address,
                     address: agreementContract,
@@ -306,7 +323,12 @@ describe('Service Agreement Registry Contract', () => {
             for (let i = 0; i < 6; i++) {
                 //random period 1 <= x <= 10 days
                 const period = (Math.floor(Math.random() * 10) + 1) * 60 * 60 * 24;
-                await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, await futureTimestamp(mockProvider));
+                await createPurchaseOffer(
+                    purchaseOfferMarket,
+                    token,
+                    DEPLOYMENT_ID,
+                    await futureTimestamp(mockProvider)
+                );
                 await purchaseOfferMarket.acceptPurchaseOffer(i, mmrRoot);
             }
 
