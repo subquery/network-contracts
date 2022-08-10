@@ -1,20 +1,21 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-import './MathUtil.sol';
 import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IRewardsDistributer.sol';
-import './interfaces/IServiceAgreement.sol';
+import './interfaces/IRewardsPool.sol';
+import './interfaces/IServiceAgreementRegistry.sol';
 import './Constants.sol';
+import './utils/MathUtil.sol';
 
 /**
  * @title Rewards Distributer Contract
@@ -76,21 +77,21 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
     ISettings private settings;
     //Reward information: indexer => rewardInfo
-    mapping(address => RewardInfo) info;
+    mapping(address => RewardInfo) private info;
     //Pending staker address: indexer => indexNumber => staker
-    mapping(address => mapping(uint256 => address)) pendingStakers;
+    mapping(address => mapping(uint256 => address)) private pendingStakers;
     //Pending staker's index number: indexer => staker => indexNumber
-    mapping(address => mapping(address => uint256)) pendingStakerNos;
+    mapping(address => mapping(address => uint256)) private pendingStakerNos;
     //Numbers of pending stake changes: indexer => pendingStakeChangeLength
-    mapping(address => uint256) pendingStakeChangeLength;
+    mapping(address => uint256) private pendingStakeChangeLength;
     //Era number of CommissionRateChange should apply: indexer => CommissionRateChange Era number
-    mapping(address => uint256) pendingCommissionRateChange;
+    mapping(address => uint256) private pendingCommissionRateChange;
     //Last settled Era number: indexer => lastSettledEra
-    mapping(address => uint256) lastSettledEra;
+    mapping(address => uint256) private lastSettledEra;
     //total staking amount per indexer: indexer => totalStakingAmount
-    mapping(address => uint256) totalStakingAmount;
+    mapping(address => uint256) private totalStakingAmount;
     //delegator's delegation amount to indexer: delegator => indexer => delegationAmount
-    mapping(address => mapping(address => uint256)) delegation;
+    mapping(address => mapping(address => uint256)) private delegation;
     //rewards commission rates per indexer: indexer => commissionRates
     mapping(address => uint256) public commissionRates;
 
@@ -158,13 +159,13 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * @param reward Rewards amount
      */
     function distributeRewards(address indexer, uint256 reward) private {
-        uint256 commission = MathUtil.mulDiv(commissionRates[indexer], reward, PER_MILL);
-        IERC20(settings.getSQToken()).safeTransfer(indexer, commission);
-
         uint256 totalStake = getTotalStakingAmount(indexer);
-        require(totalStake > 0, 'non-indexer');
+        require(totalStake > 0, 'Non-indexer');
+
+        uint256 commission = MathUtil.mulDiv(commissionRates[indexer], reward, PER_MILL);
 
         info[indexer].accSQTPerStake += MathUtil.mulDiv(reward - commission, PER_TRILL, totalStake);
+        IERC20(settings.getSQToken()).safeTransfer(indexer, commission);
     }
 
     /**
@@ -179,8 +180,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         address indexer,
         uint256 currentEra
     ) private {
-        bool settled = checkAndReflectSettlement(currentEra, indexer, info[indexer].lastClaimEra);
-        if (settled) {
+        if (checkAndReflectSettlement(currentEra, indexer, info[indexer].lastClaimEra)) {
             totalStakingAmount[indexer] = staking.getTotalStakingAmount(indexer);
         }
     }
@@ -192,17 +192,19 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * Rewards split into more then two eras handled by splitEraSpanMore;
      * Use eraRewardAddTable and eraRewardRemoveTable to store and track reward split info at RewardInfo.
      * Only be called by ServiceAgreementRegistry contract when new agreement accepted.
-     * @param indexer indexer adress
-     * @param agreementContract serviceAgreement address
+     * @param agreementId agreement Id
      */
-    function increaseAgreementRewards(address indexer, address agreementContract) external {
-        require(settings.getServiceAgreementRegistry() == msg.sender, 'only from service agreement');
+    function increaseAgreementRewards(uint256 agreementId) external {
+        require(settings.getServiceAgreementRegistry() == msg.sender, 'Only ServiceAgreementRegistry');
+        ClosedServiceAgreementInfo memory agreement = IServiceAgreementRegistry(settings.getServiceAgreementRegistry())
+            .getClosedServiceAgreement(agreementId);
+        require(agreement.consumer != address(0), 'Invalid agreemenrt');
         IEraManager eraManager = IEraManager(settings.getEraManager());
-        IServiceAgreement agreement = IServiceAgreement(agreementContract);
 
-        uint256 agreementPeriod = agreement.period();
-        uint256 agreementValue = agreement.value();
-        uint256 agreementStartDate = agreement.startDate();
+        address indexer = agreement.indexer;
+        uint256 agreementPeriod = agreement.period;
+        uint256 agreementValue = agreement.lockedAmount;
+        uint256 agreementStartDate = agreement.startDate;
         uint256 agreementStartEra = eraManager.timestampToEraNumber(agreementStartDate);
         uint256 eraPeriod = eraManager.eraPeriod();
 
@@ -320,36 +322,36 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     function collectAndDistributeRewards(address indexer) public {
         // check current era is after lastClaimEra
         uint256 currentEra = _getCurrentEra();
-        require(info[indexer].lastClaimEra < currentEra - 1, 'should be claimed on next era');
+        require(info[indexer].lastClaimEra < currentEra - 1, 'Waiting next era');
         _collectAndDistributeRewards(currentEra, indexer);
     }
 
     /**
      * @dev collect and distribute rewards with specific indexer and batch size
      */
-    function batchCollectAndDistributeRewards(address indexer, uint256 batchSize) public {
-        // check current era is after lastClaimEra
-        uint256 currentEra = _getCurrentEra();
-        uint256 loopCount = MathUtil.min(batchSize, currentEra - info[indexer].lastClaimEra - 1);
-        for (uint256 i = 0; i < loopCount; i++) {
-            _collectAndDistributeRewards(currentEra, indexer);
-        }
-    }
+    // function batchCollectAndDistributeRewards(address indexer, uint256 batchSize) public {
+    //     // check current era is after lastClaimEra
+    //     uint256 currentEra = _getCurrentEra();
+    //     uint256 loopCount = MathUtil.min(batchSize, currentEra - info[indexer].lastClaimEra - 1);
+    //     for (uint256 i = 0; i < loopCount; i++) {
+    //         _collectAndDistributeRewards(currentEra, indexer);
+    //     }
+    // }
 
     /**
      * @dev Calculate and distribute the rewards for the next Era of the lastClaimEra.
      * Calculate by eraRewardAddTable and eraRewardRemoveTable.
      * Distribute by distributeRewards method.
      */
-    function _collectAndDistributeRewards(uint256 currentEra, address indexer) private returns (uint256) {
+    function _collectAndDistributeRewards(uint256 currentEra, address indexer) public returns (uint256) {
         RewardInfo storage rewardInfo = info[indexer];
-        require(rewardInfo.lastClaimEra > 0, 'invalid indexer');
+        require(rewardInfo.lastClaimEra > 0, 'Invalid indexer');
         // skip when it has been claimed for currentEra - 1, no throws
         if (rewardInfo.lastClaimEra >= currentEra - 1) {
             return rewardInfo.lastClaimEra;
         }
         checkAndReflectSettlement(currentEra, indexer, rewardInfo.lastClaimEra);
-        require(rewardInfo.lastClaimEra <= lastSettledEra[indexer], 'should apply pending stake or ICR changes');
+        require(rewardInfo.lastClaimEra <= lastSettledEra[indexer], 'Pending stake or ICR');
         rewardInfo.lastClaimEra++;
         rewardInfo.eraReward += rewardInfo.eraRewardAddTable[rewardInfo.lastClaimEra];
         rewardInfo.eraReward -= rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
@@ -371,7 +373,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * Last era's reward need to be collected before this can pass.
      */
     function onStakeChange(address _indexer, address _source) external {
-        require(msg.sender == settings.getStaking(), 'only from staking contract');
+        require(msg.sender == settings.getStaking(), 'Only Staking');
         uint256 currentEra = _getCurrentEra();
         RewardInfo storage rewardInfo = info[_indexer];
 
@@ -381,7 +383,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
             IStaking staking = IStaking(settings.getStaking());
             //apply first onStakeChange
-            uint256 newDelegation = staking.getDelegationAmount(_indexer, _indexer);
+            uint256 newDelegation = staking.getAfterDelegationAmount(_indexer, _indexer);
             delegation[_indexer][_indexer] = newDelegation;
 
             info[_indexer].rewardDebt[_indexer] = MathUtil.mulDiv(
@@ -403,14 +405,8 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             emit ICRChanged(_indexer, newCommissionRate);
             emit SettledEraUpdated(_indexer, currentEra - 1);
         } else {
-            require(
-                _collectAndDistributeRewards(currentEra, _indexer) == currentEra - 1,
-                'unless collect rewards of last era'
-            );
-            require(
-                checkAndReflectSettlement(currentEra, _indexer, rewardInfo.lastClaimEra),
-                'apply pending changes first'
-            );
+            require(_collectAndDistributeRewards(currentEra, _indexer) == currentEra - 1, 'Unless collect at last era');
+            require(checkAndReflectSettlement(currentEra, _indexer, rewardInfo.lastClaimEra), 'Need apply pending');
             if (!_pendingStakeChange(_indexer, _source)) {
                 pendingStakers[_indexer][pendingStakeChangeLength[_indexer]] = _source;
                 pendingStakerNos[_indexer][_source] = pendingStakeChangeLength[_indexer];
@@ -427,41 +423,39 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * Last era's reward need to be collected before this can pass.
      */
     function onICRChange(address indexer, uint256 startEra) external {
-        require(msg.sender == settings.getStaking(), 'only from staking contract');
+        require(msg.sender == settings.getStaking(), 'Only Staking');
         uint256 currentEra = _getCurrentEra();
-        require(startEra > currentEra, 'must less than current era');
-        require(
-            _collectAndDistributeRewards(currentEra, indexer) == currentEra - 1,
-            'unless collect rewards of last era'
-        );
-        require(
-            checkAndReflectSettlement(currentEra, indexer, info[indexer].lastClaimEra),
-            'apply pending changes first'
-        );
+        require(startEra > currentEra, 'Too early');
+        require(_collectAndDistributeRewards(currentEra, indexer) == currentEra - 1, 'Unless collect at last era');
+        require(checkAndReflectSettlement(currentEra, indexer, info[indexer].lastClaimEra), 'Need apply pending');
         pendingCommissionRateChange[indexer] = startEra;
     }
 
     /**
      * @dev Apply a list of stakers' StakeChanges, call applyStakeChange one by one.
      */
-    function applyStakeChanges(address indexer, address[] memory stakers) public {
-        for (uint256 i = 0; i < stakers.length; i++) {
-            applyStakeChange(indexer, stakers[i]);
-        }
-    }
+    // function applyStakeChanges(address indexer, address[] memory stakers) public {
+    //     for (uint256 i = 0; i < stakers.length; i++) {
+    //         applyStakeChange(indexer, stakers[i]);
+    //     }
+    // }
 
     /**
      * @dev Apply the stake change and calaulate the new rewardDebt for staker.
      */
     function applyStakeChange(address indexer, address staker) public {
         uint256 currentEra = _getCurrentEra();
-        require(_pendingStakeChange(indexer, staker), 'no pending changes');
-        require(lastSettledEra[indexer] < info[indexer].lastClaimEra, 'era reward should be collected');
+        uint256 lastClaimEra = info[indexer].lastClaimEra;
+        require(_pendingStakeChange(indexer, staker), 'No pending');
+        require(lastSettledEra[indexer] < lastClaimEra, 'Rewards not collected');
+        IRewardsPool rewardsPool = IRewardsPool(settings.getRewardsPool());
+        require(rewardsPool.isClaimed(lastClaimEra, indexer), 'Rewards Pool not collected');
+
         _claim(indexer, staker);
 
         // run hook for delegation change
         IStaking staking = IStaking(settings.getStaking());
-        uint256 newDelegation = staking.getDelegationAmount(staker, indexer);
+        uint256 newDelegation = staking.getAfterDelegationAmount(staker, indexer);
         delegation[staker][indexer] = newDelegation;
 
         info[indexer].rewardDebt[staker] = MathUtil.mulDiv(newDelegation, info[indexer].accSQTPerStake, PER_TRILL);
@@ -477,10 +471,10 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         uint256 currentEra = _getCurrentEra();
         require(
             pendingCommissionRateChange[indexer] != 0 && pendingCommissionRateChange[indexer] <= currentEra,
-            'no pending change'
+            'No pending'
         );
 
-        require(lastSettledEra[indexer] < info[indexer].lastClaimEra, 'era reward should be collected');
+        require(lastSettledEra[indexer] < info[indexer].lastClaimEra, 'Rewards not collected');
 
         IStaking staking = IStaking(settings.getStaking());
         uint256 newCommissionRate = staking.getCommissionRate(indexer);
@@ -494,17 +488,19 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * @dev Claim rewards of msg.sender for specific indexer.
      */
     function claim(address indexer) public {
-        require(_claim(indexer, msg.sender) > 0, 'No rewards to be claim');
+        require(_claim(indexer, msg.sender) > 0, 'No rewards');
     }
 
     /**
      * @dev Claculate the Rewards for user and tranfrer token to user.
      */
-    function _claim(address indexer, address user) internal returns (uint256) {
+    function _claim(address indexer, address user) public returns (uint256) {
         uint256 rewards = userRewards(indexer, user);
         if (rewards == 0) return 0;
-        IERC20(settings.getSQToken()).safeTransfer(user, rewards);
         info[indexer].rewardDebt[user] += rewards;
+
+        IERC20(settings.getSQToken()).safeTransfer(user, rewards);
+
         emit ClaimRewards(indexer, user, rewards);
         return rewards;
     }
@@ -572,17 +568,16 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     // -- Views --
-
-    function getAccSQTPerStake(address indexer) public view returns (uint256) {
-        return info[indexer].accSQTPerStake;
+    // Reward info for query.
+    struct IndexerRewardInfo {
+        uint256 accSQTPerStake;
+        uint256 lastClaimEra;
+        uint256 eraReward;
     }
 
-    function getRewardDebt(address indexer, address staker) public view returns (uint256) {
-        return info[indexer].rewardDebt[staker];
-    }
-
-    function getLastClaimEra(address indexer) public view returns (uint256) {
-        return info[indexer].lastClaimEra;
+    function getRewardInfo(address indexer) public view returns (IndexerRewardInfo memory) {
+        RewardInfo storage reward = info[indexer];
+        return IndexerRewardInfo(reward.accSQTPerStake, reward.lastClaimEra, reward.eraReward);
     }
 
     function getLastSettledEra(address indexer) public view returns (uint256) {
@@ -600,10 +595,6 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         }
 
         return _stakers;
-    }
-
-    function getEraReward(address indexer) public view returns (uint256) {
-        return info[indexer].eraReward;
     }
 
     function getTotalStakingAmount(address _indexer) public view returns (uint256) {
