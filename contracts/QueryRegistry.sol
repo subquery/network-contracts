@@ -1,7 +1,7 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
@@ -31,7 +31,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
 
     mapping(bytes32 => mapping(address => IndexingStatus)) public deploymentStatusByIndexer;
     mapping(address => uint256) public numberOfIndexingDeployments;
-    mapping(bytes32 => bool) deploymentIds;
+    mapping(bytes32 => bool) private deploymentIds;
 
     // TODO: 1:1 match between queryId and deploymentId, should we just separate it?
 
@@ -144,7 +144,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         bytes32 deploymentId
     ) external onlyCreator {
         uint256 queryId = nextQueryId;
-        require(deploymentIds[deploymentId] == false, 'Deployment Id already registered');
+        require(!deploymentIds[deploymentId], 'Deployment Id already registered');
         queryInfos[queryId] = QueryInfo(queryId, msg.sender, version, deploymentId, metadata);
         queryInfoIdsByOwner[msg.sender].push(queryId);
         nextQueryId++;
@@ -154,10 +154,10 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
 
     // project creator function
     function updateQueryProjectMetadata(uint256 queryId, bytes32 metadata) external onlyCreator {
-        address owner = queryInfos[queryId].owner;
-        require(owner == msg.sender, 'no permission to update query project metadata');
+        address queryOwner = queryInfos[queryId].owner;
+        require(queryOwner == msg.sender, 'no permission to update query project metadata');
         queryInfos[queryId].metadata = metadata;
-        emit UpdateQueryMetadata(owner, queryId, metadata);
+        emit UpdateQueryMetadata(queryOwner, queryId, metadata);
     }
 
     // project creator function
@@ -166,13 +166,13 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         bytes32 deploymentId,
         bytes32 version
     ) external onlyCreator {
-        address owner = queryInfos[queryId].owner;
-        require(owner == msg.sender, 'no permission to update query project deployment');
-        require(deploymentIds[deploymentId] == false, 'Deployment Id already registered');
+        address queryOwner = queryInfos[queryId].owner;
+        require(queryOwner == msg.sender, 'no permission to update query project deployment');
+        require(!deploymentIds[deploymentId], 'Deployment Id already registered');
         queryInfos[queryId].latestDeploymentId = deploymentId;
         queryInfos[queryId].latestVersion = version;
         deploymentIds[deploymentId] = true;
-        emit UpdateQueryDeployment(owner, queryId, deploymentId, version);
+        emit UpdateQueryDeployment(queryOwner, queryId, deploymentId, version);
     }
 
     // indexer function
@@ -228,7 +228,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         require(currentStatus != IndexingServiceStatus.NOTINDEXING, 'can not stop indexing for NOTINDEXING services');
 
         require(
-            !IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).hasOngoingServiceAgreement(
+            !IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).hasOngoingClosedServiceAgreement(
                 msg.sender,
                 deploymentId
             ),

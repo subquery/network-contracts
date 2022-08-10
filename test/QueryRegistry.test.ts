@@ -127,9 +127,9 @@ describe('Query Registry Contract', () => {
 
         it('any account can create a project not in creatorRestrict mode', async () => {
             const [metadata, version, deploymentId] = [metadatas[0], versions[0], deploymentIds[1]];
-            expect(await queryRegistry.creatorRestrict()).to.be.equal(true);
-            await queryRegistry.setCreatorRestrict(false);
-            expect(await queryRegistry.creatorRestrict()).to.be.equal(false);
+            expect(await queryRegistry.creatorRestricted()).to.be.equal(true);
+            await queryRegistry.setCreatorRestricted(false);
+            expect(await queryRegistry.creatorRestricted()).to.be.equal(false);
             await expect(queryRegistry.connect(wallet_1).createQueryProject(metadata, version, deploymentId))
                 .to.be.emit(queryRegistry, 'CreateQuery')
                 .withArgs(1, wallet_1.address, metadata, deploymentId, version);

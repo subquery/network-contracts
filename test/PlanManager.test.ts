@@ -7,7 +7,6 @@ import {BigNumber} from 'ethers';
 import {deployContracts} from './setup';
 import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
 import {
-    ClosedServiceAgreement__factory,
     IndexerRegistry,
     PlanManager,
     QueryRegistry,
@@ -169,7 +168,7 @@ describe('PlanManger Contract', () => {
                 .withArgs(indexer.address, 1, DEPLOYMENT_ID);
 
             // check plan
-            expect(await planManager.planCount(indexer.address)).to.equal(1);
+            expect(await planManager.planCount(indexer.address)).to.equal(0);
             const plan = await planManager.plans(indexer.address, 1);
             expect(plan.price).to.equal(etherParse('2'));
             expect(plan.active).to.equal(false);
@@ -222,32 +221,32 @@ describe('PlanManger Contract', () => {
             const tx = await planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, planId);
             const receipt = await tx.wait();
             const evt = receipt.events.find(
-                (log) => log.topics[0] === utils.id('ClosedAgreementCreated(address,address,bytes32,address)')
+                (log) => log.topics[0] === utils.id('ClosedAgreementCreated(address,address,bytes32,uint256)')
             );
-            const agreementAddress = serviceAgreementRegistry.interface.decodeEventLog(
+            const agreementId = serviceAgreementRegistry.interface.decodeEventLog(
                 serviceAgreementRegistry.interface.getEvent('ClosedAgreementCreated'),
                 evt.data
-            ).serviceAgreement;
+            ).serviceAgreementId;
 
             // check balances
-            expect(await token.balanceOf(agreementAddress)).to.equal(0);
             expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(plan.price));
             expect(await token.balanceOf(consumer.address)).to.equal(balance.sub(plan.price));
-            return agreementAddress;
+            return agreementId;
         };
 
         it('accept plan with default plan should work', async () => {
-            const agreementAddr = await checkAcceptPlan(1);
-            const agreement = ClosedServiceAgreement__factory.connect(agreementAddr, mockProvider);
-            expect(await agreement.value()).to.be.eq(etherParse('2'));
+            const agreementId = await checkAcceptPlan(1);
+            const agreement = await serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
+            expect(agreement.lockedAmount).to.be.eq(etherParse('2'));
         });
 
         it('claim and distribute rewards by an indexer should work', async () => {
             await checkAcceptPlan(1);
-            expect(await rewardsDistributor.getAccSQTPerStake(indexer.address)).eq(0);
+
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).accSQTPerStake).eq(0);
             const era = await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.connect(indexer).collectAndDistributeRewards(indexer.address);
-            // console.log(`lastClaimed: ${await rewardsDistributor.getLastClaimEra(indexer.address)}`);
+
             const rewardsAddTable = await rewardsDistributor.getRewardsAddTable(indexer.address, era.sub(1), 5);
             const rewardsRemoveTable = await rewardsDistributor.getRewardsRemoveTable(indexer.address, era.sub(1), 5);
             const [eraReward, totalReward] = rewardsAddTable.reduce(
@@ -256,12 +255,12 @@ describe('PlanManger Contract', () => {
                     eraReward = eraReward.add(val.sub(rewardsRemoveTable[idx]));
                     return [eraReward, total.add(eraReward)];
                 },
-                [await rewardsDistributor.getEraReward(indexer.address), BigNumber.from(0)]
+                [(await rewardsDistributor.getRewardInfo(indexer.address)).eraReward, BigNumber.from(0)]
             );
 
             expect(eraReward).to.be.eq(0);
             expect(totalReward).to.be.eq(etherParse('2'));
-            expect(await rewardsDistributor.getAccSQTPerStake(indexer.address)).gt(0);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).accSQTPerStake).gt(0);
             expect(await rewardsDistributor.userRewards(indexer.address, indexer.address)).gt(0);
         });
 
@@ -290,7 +289,7 @@ describe('PlanManger Contract', () => {
 
             await expect(
                 planManager.connect(consumer).acceptPlan(consumer.address, DEPLOYMENT_ID, 1)
-            ).to.be.revertedWith('Indexing service is not available to establish agreements');
+            ).to.be.revertedWith('Indexing service is not available');
             // inactive plan
             await expect(
                 planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, 2)
