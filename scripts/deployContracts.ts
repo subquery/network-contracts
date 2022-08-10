@@ -357,14 +357,9 @@ export async function deployContracts(
     }
 
     // Register addresses on settings contract
-    const txObj = await settings.setAllAddresses(
+    const txToken = await settings.setTokenAddresses(
         deployment.SQToken.address,
         deployment.Staking.address,
-        deployment.IndexerRegistry.address,
-        deployment.QueryRegistry.address,
-        deployment.EraManager.address,
-        deployment.PlanManager.address,
-        deployment.ServiceAgreementRegistry.address,
         deployment.RewardsDistributer.address,
         deployment.RewardsPool.address,
         deployment.RewardsHelper.address,
@@ -373,7 +368,18 @@ export async function deployContracts(
         overrides as any
     );
 
-    await txObj.wait();
+    await txToken.wait();
+
+    const txProject = await settings.setProjectAddresses(
+        deployment.IndexerRegistry.address,
+        deployment.QueryRegistry.address,
+        deployment.EraManager.address,
+        deployment.PlanManager.address,
+        deployment.ServiceAgreementRegistry.address,
+        overrides as any
+    );
+
+    await txProject.wait();
 
     return [
         deployment,

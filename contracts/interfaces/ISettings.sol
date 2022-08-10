@@ -4,14 +4,17 @@
 pragma solidity 0.8.15;
 
 interface ISettings {
-    function setAllAddresses(
-        address _sqToken,
-        address _staking,
+    function setProjectAddresses(
         address _indexerRegistry,
         address _queryRegistry,
         address _eraManager,
         address _planManager,
-        address _serviceAgreementRegistry,
+        address _serviceAgreementRegistry
+    ) external;
+
+    function setTokenAddresses(
+        address _sqToken,
+        address _staking,
         address _rewardsDistributer,
         address _rewardsPool,
         address _rewardsHelper,

@@ -24,14 +24,29 @@ contract Settings is ISettings, Ownable, Constants {
 
     constructor() Ownable() {}
 
-    function setAllAddresses(
-        address _sqToken,
-        address _staking,
+    function setProjectAddresses(
         address _indexerRegistry,
         address _queryRegistry,
         address _eraManager,
         address _planManager,
-        address _serviceAgreementRegistry,
+        address _serviceAgreementRegistry
+    ) external override onlyOwner {
+        require(_indexerRegistry != ZERO_ADDRESS);
+        require(_queryRegistry != ZERO_ADDRESS);
+        require(_eraManager != ZERO_ADDRESS);
+        require(_planManager != ZERO_ADDRESS);
+        require(_serviceAgreementRegistry != ZERO_ADDRESS);
+
+        indexerRegistry = _indexerRegistry;
+        queryRegistry = _queryRegistry;
+        eraManager = _eraManager;
+        planManager = _planManager;
+        serviceAgreementRegistry = _serviceAgreementRegistry;
+    }
+
+    function setTokenAddresses(
+        address _sqToken,
+        address _staking,
         address _rewardsDistributer,
         address _rewardsPool,
         address _rewardsHelper,
@@ -40,11 +55,6 @@ contract Settings is ISettings, Ownable, Constants {
     ) external override onlyOwner {
         require(_sqToken != ZERO_ADDRESS);
         require(_staking != ZERO_ADDRESS);
-        require(_indexerRegistry != ZERO_ADDRESS);
-        require(_queryRegistry != ZERO_ADDRESS);
-        require(_eraManager != ZERO_ADDRESS);
-        require(_planManager != ZERO_ADDRESS);
-        require(_serviceAgreementRegistry != ZERO_ADDRESS);
         require(_rewardsDistributer != ZERO_ADDRESS);
         require(_inflationController != ZERO_ADDRESS);
         require(_vesting != ZERO_ADDRESS);
@@ -53,11 +63,6 @@ contract Settings is ISettings, Ownable, Constants {
 
         sqToken = _sqToken;
         staking = _staking;
-        indexerRegistry = _indexerRegistry;
-        queryRegistry = _queryRegistry;
-        eraManager = _eraManager;
-        planManager = _planManager;
-        serviceAgreementRegistry = _serviceAgreementRegistry;
         rewardsDistributer = _rewardsDistributer;
         rewardsPool = _rewardsPool;
         rewardsHelper = _rewardsHelper;
