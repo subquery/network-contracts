@@ -112,17 +112,21 @@ describe('Query Registry Contract', () => {
             );
         });
 
-        it('cannot create a project with not authorised account in creatorRestrict mode', async () => {
+        it('authorised account can create project in creatorRestricted mode', async () => {
             const [metadata, version, deploymentId] = [metadatas[0], versions[0], deploymentIds[1]];
-            await expect(
-                queryRegistry.connect(wallet_1).createQueryProject(metadata, version, deploymentId)
-            ).to.be.revertedWith('Address is not authorised to operate query project');
             expect(await queryRegistry.creatorWhitelist(wallet_1.address)).to.be.equal(false);
             await queryRegistry.addCreator(wallet_1.address);
             expect(await queryRegistry.creatorWhitelist(wallet_1.address)).to.be.equal(true);
             await expect(queryRegistry.connect(wallet_1).createQueryProject(metadata, version, deploymentId))
                 .to.be.emit(queryRegistry, 'CreateQuery')
                 .withArgs(1, wallet_1.address, metadata, deploymentId, version);
+        });
+
+        it('cannot create a project with not authorised account in creatorRestrict mode', async () => {
+            const [metadata, version, deploymentId] = [metadatas[0], versions[0], deploymentIds[1]];
+            await expect(
+                queryRegistry.connect(wallet_1).createQueryProject(metadata, version, deploymentId)
+            ).to.be.revertedWith('Address is not authorised to operate query project');
         });
 
         it('any account can create a project not in creatorRestrict mode', async () => {
