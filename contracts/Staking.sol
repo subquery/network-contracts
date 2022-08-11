@@ -142,6 +142,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     event UnbondWithdrawn(address indexed source, uint256 amount, uint256 index);
 
     /**
+     * @dev Emitted when delegtor cancel unbond request.
+     */
+    event UnbondCancelled(address indexed source, address indexed indexer, uint256 amount, uint256 index);
+
+    /**
      * @dev Emitted when Indexer set their commissionRate.
      */
     event SetCommissionRate(address indexed indexer, uint256 amount);
@@ -224,7 +229,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         _reflectEraUpdate(eraNumber, _source, _indexer);
     }
 
-    function _reflectEraUpdate(uint256 eraNumber, address _source, address _indexer) private {
+    function _reflectEraUpdate(
+        uint256 eraNumber,
+        address _source,
+        address _indexer
+    ) private {
         _reflectStakingAmount(eraNumber, delegation[_source][_indexer]);
         _reflectStakingAmount(eraNumber, totalStakingAmount[_indexer]);
     }
@@ -244,7 +253,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         );
     }
 
-    function _addDelegation(address _source, address _indexer, uint256 _amount) internal {
+    function _addDelegation(
+        address _source,
+        address _indexer,
+        uint256 _amount
+    ) internal {
         require(_amount > 0, 'Invalid delegation');
         if (_isEmptyDelegation(_source, _indexer)) {
             stakingIndexerNos[_source][_indexer] = stakingIndexerLengths[_source];
@@ -271,7 +284,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         emit DelegationAdded(_source, _indexer, _amount);
     }
 
-    function _delegateToIndexer(address _source, address _indexer, uint256 _amount) internal {
+    function _delegateToIndexer(
+        address _source,
+        address _indexer,
+        uint256 _amount
+    ) internal {
         IERC20(settings.getSQToken()).safeTransferFrom(_source, address(this), _amount);
 
         _addDelegation(_source, _indexer, _amount);
@@ -305,7 +322,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         _delegateToIndexer(msg.sender, _indexer, _amount);
     }
 
-    function _removeDelegation(address _source, address _indexer, uint256 _amount) internal {
+    function _removeDelegation(
+        address _source,
+        address _indexer,
+        uint256 _amount
+    ) internal {
         require(_amount > 0, 'Invalid amount');
         require(delegation[_source][_indexer].valueAfter >= _amount, 'Insufficient delegation');
 
@@ -329,7 +350,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * @dev Allow delegator transfer their delegation from an indexer to another.
      * Indexer's self delegations are not allow to redelegate.
      */
-    function redelegate(address from_indexer, address to_indexer, uint256 _amount) external override {
+    function redelegate(
+        address from_indexer,
+        address to_indexer,
+        uint256 _amount
+    ) external override {
         address _source = msg.sender;
         require(from_indexer != msg.sender, 'Only delegator');
         // delegation limit should not exceed
@@ -342,11 +367,15 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         _addDelegation(_source, to_indexer, _amount);
     }
 
-    function _startUnbond(address _source, address _indexer, uint256 _amount) internal {
+    function _startUnbond(
+        address _source,
+        address _indexer,
+        uint256 _amount
+    ) internal {
         _removeDelegation(_source, _indexer, _amount);
 
         uint256 index = unbondingLength[_source];
-        UnbondAmount storage uamount =  unbondingAmount[_source][index];
+        UnbondAmount storage uamount = unbondingAmount[_source][index];
         uamount.amount = _amount;
         uamount.startTime = block.timestamp;
         uamount.indexer = _indexer;
@@ -367,6 +396,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             _checkDelegateLimitation(unbond.indexer, unbond.amount);
         }
         _addDelegation(msg.sender, unbond.indexer, unbond.amount);
+
+        emit UnbondCancelled(msg.sender, unbond.indexer, unbond.amount, unbondReqId);
     }
 
     /**
