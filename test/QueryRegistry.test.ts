@@ -6,7 +6,16 @@ import {Wallet} from 'ethers';
 import {ethers, waffle} from 'hardhat';
 
 import {deployContracts} from './setup';
-import {constants, timeTravel, etherParse, lastestTime, registerIndexer, createPurchaseOffer, delay, futureTimestamp} from './helper';
+import {
+    constants,
+    timeTravel,
+    etherParse,
+    lastestTime,
+    registerIndexer,
+    createPurchaseOffer,
+    delay,
+    futureTimestamp,
+} from './helper';
 import {metadatas, versions, deploymentIds, mmrRoot, METADATA_HASH} from './constants';
 import {IndexerRegistry, QueryRegistry, Staking, SQToken, PurchaseOfferMarket, PlanManager} from '../src';
 
@@ -102,6 +111,33 @@ describe('Query Registry Contract', () => {
                 'Deployment Id already registered'
             );
         });
+
+        it('authorised account can create project in creatorRestricted mode', async () => {
+            const [metadata, version, deploymentId] = [metadatas[0], versions[0], deploymentIds[1]];
+            expect(await queryRegistry.creatorWhitelist(wallet_1.address)).to.be.equal(false);
+            await queryRegistry.addCreator(wallet_1.address);
+            expect(await queryRegistry.creatorWhitelist(wallet_1.address)).to.be.equal(true);
+            await expect(queryRegistry.connect(wallet_1).createQueryProject(metadata, version, deploymentId))
+                .to.be.emit(queryRegistry, 'CreateQuery')
+                .withArgs(1, wallet_1.address, metadata, deploymentId, version);
+        });
+
+        it('cannot create a project with not authorised account in creatorRestrict mode', async () => {
+            const [metadata, version, deploymentId] = [metadatas[0], versions[0], deploymentIds[1]];
+            await expect(
+                queryRegistry.connect(wallet_1).createQueryProject(metadata, version, deploymentId)
+            ).to.be.revertedWith('Address is not authorised to operate query project');
+        });
+
+        it('any account can create a project not in creatorRestrict mode', async () => {
+            const [metadata, version, deploymentId] = [metadatas[0], versions[0], deploymentIds[1]];
+            expect(await queryRegistry.creatorRestricted()).to.be.equal(true);
+            await queryRegistry.setCreatorRestricted(false);
+            expect(await queryRegistry.creatorRestricted()).to.be.equal(false);
+            await expect(queryRegistry.connect(wallet_1).createQueryProject(metadata, version, deploymentId))
+                .to.be.emit(queryRegistry, 'CreateQuery')
+                .withArgs(1, wallet_1.address, metadata, deploymentId, version);
+        });
     });
 
     describe('Update Query Project', () => {
@@ -128,6 +164,7 @@ describe('Query Registry Contract', () => {
         });
 
         it('update project with invalid owner should fail', async () => {
+            await queryRegistry.addCreator(wallet_1.address);
             // no permission to update metadata
             await expect(
                 queryRegistry.connect(wallet_1).updateQueryProjectMetadata(0, metadatas[1])
@@ -147,7 +184,7 @@ describe('Query Registry Contract', () => {
 
     describe('Indexing Query Project', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, "10");
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '10');
             await indexerRegistry.setControllerAccount(wallet_1.address);
         });
 
@@ -316,7 +353,7 @@ describe('Query Registry Contract', () => {
             // have ongoing service agreement
             await queryRegistry.startIndexing(deploymentId);
             await queryRegistry.updateIndexingStatusToReady(deploymentId);
-            await token.increaseAllowance(purchaseOfferMarket.address, etherParse("5"));
+            await token.increaseAllowance(purchaseOfferMarket.address, etherParse('5'));
             await planManager.createPlanTemplate(1000, 1000, 100, METADATA_HASH);
             await createPurchaseOffer(purchaseOfferMarket, token, deploymentId, await futureTimestamp(mockProvider));
             await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);

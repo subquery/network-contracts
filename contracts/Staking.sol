@@ -142,6 +142,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     event UnbondWithdrawn(address indexed source, uint256 amount, uint256 index);
 
     /**
+     * @dev Emitted when delegtor cancel unbond request.
+     */
+    event UnbondCancelled(address indexed source, address indexed indexer, uint256 amount, uint256 index);
+
+    /**
      * @dev Emitted when Indexer set their commissionRate.
      */
     event SetCommissionRate(address indexed indexer, uint256 amount);
@@ -391,6 +396,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             _checkDelegateLimitation(unbond.indexer, unbond.amount);
         }
         _addDelegation(msg.sender, unbond.indexer, unbond.amount);
+
+        emit UnbondCancelled(msg.sender, unbond.indexer, unbond.amount, unbondReqId);
     }
 
     /**

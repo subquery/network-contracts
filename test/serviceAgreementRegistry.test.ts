@@ -72,6 +72,8 @@ describe('Service Agreement Registry Contract', () => {
         eraManager = deployment.eraManager;
         rewardsDistributor = deployment.rewardsDistributer;
 
+        await queryRegistry.setCreatorRestricted(false);
+
         //period 1000 s
         //planTemplateId: 0
         await planManager.createPlanTemplate(1000, 1000, 100, METADATA_HASH);
