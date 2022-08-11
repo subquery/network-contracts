@@ -12,9 +12,14 @@ on:
         default: wss://acala-mandala-adapter.api.onfinality.io/public-ws
         required: true
       network:
+        type: choice
         description: 'network used to publish contracts'
         default: testnet
         required: true
+        options: 
+        - testnet
+        - kelper
+        - mainnet
 
 jobs:
   Publish-Contracts:

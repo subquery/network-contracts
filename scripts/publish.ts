@@ -37,29 +37,37 @@ const main = async () => {
     for (var key in deployment) {
         if (deployment.hasOwnProperty(key)) {
             const value = deployment[key];
-            const is_published = (await api.query.evm.accounts(value.address)).toJSON().contractInfo.published;
-
-            if (is_published) {
-                console.log(`${key} is published`);
-            } else {
-                console.log(`start publish ${key} : ${value.address}`);
-
-                await new Promise(function (resolve, reject) {
-                    api.tx.evm.publishContract(value.address).signAndSend(pair, ({events = [], status}) => {
-                        if (status.isFinalized) {
-                            events.forEach(({event: {data, method, section}, phase}) => {
-                                if (method == 'ExtrinsicSuccess') {
-                                    console.log(`${key} published success`);
-                                } else if (method == 'ExtrinsicFailed') {
-                                    console.log(`${key} published fail`);
-                                }
-                            });
-                            resolve(true);
-                        }
-                    });
-                });
+            if (value.innerAddress != '') {
+                await publishContract(api, pair, 'inner-' + key, value.innerAddress);
+            }
+            if (value.address != '') {
+                await publishContract(api, pair, key, value.address);
             }
         }
+    }
+};
+
+const publishContract = async (api, pair, key, address) => {
+    const is_published = (await api.query.evm.accounts(address)).toJSON().contractInfo.published;
+    if (is_published) {
+        console.log(`${key} is published`);
+    } else {
+        console.log(`start publish ${key} : ${address}`);
+
+        return new Promise(function (resolve, reject) {
+            api.tx.evm.publishContract(address).signAndSend(pair, ({events = [], status}) => {
+                if (status.isFinalized) {
+                    events.forEach(({event: {data, method, section}, phase}) => {
+                        if (method == 'ExtrinsicSuccess') {
+                            console.log(`${key} published success`);
+                        } else if (method == 'ExtrinsicFailed') {
+                            console.log(`${key} published fail`);
+                        }
+                    });
+                    resolve(true);
+                }
+            });
+        });
     }
 };
 

@@ -11,6 +11,15 @@ on:
         description: 'endpoint used to deploy contracts'
         default: https://tc7-eth.aca-dev.network
         required: true
+      network:
+        type: choice
+        description: 'network used to publish contracts'
+        default: testnet
+        required: true
+        options: 
+        - testnet
+        - kelper
+        - mainnet
 
 jobs:
   Upgrade-Contracts:
@@ -37,7 +46,7 @@ jobs:
 
       # Deploy contracts to moonbeam alpha
       - name: Upgrade Changed Contracts
-        run: yarn upgrade:testnet && scripts/copy_deployment_json.sh # Uses SEED env var
+        run: yarn upgrade:${{ github.event.inputs.network }} && scripts/copy_deployment_json.sh # Uses SEED env var
         env:
           ENDPOINT: ${{ github.event.inputs.endpoint }}
           DEPLOY_PRINT: true
