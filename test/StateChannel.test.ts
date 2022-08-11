@@ -61,19 +61,17 @@ describe('StateChannel Contract', () => {
         channelId: Uint8Array,
         indexer: Wallet,
         consumer: Wallet,
+        spent: BigNumber,
         isFinal: boolean,
-        count: number,
-        price: BigNumber
     ): Promise<{
         channelId: BigNumberish;
+        spent: BigNumberish;
         isFinal: boolean;
-        count: BigNumberish;
-        price: BigNumberish;
         indexerSign: BytesLike;
         consumerSign: BytesLike;
     }> => {
         const abi = ethers.utils.defaultAbiCoder;
-        const msg = abi.encode(['uint256', 'uint256', 'uint256', 'bool'], [channelId, count, price, isFinal]);
+        const msg = abi.encode(['uint256', 'uint256', 'bool'], [channelId, spent, isFinal]);
         let payloadHash = ethers.utils.keccak256(msg);
 
         let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
@@ -87,9 +85,8 @@ describe('StateChannel Contract', () => {
 
         return {
             channelId: channelId,
+            spent: spent,
             isFinal: isFinal,
-            count: count,
-            price: price,
             indexerSign: indexerSign,
             consumerSign: consumerSign,
         };
@@ -136,7 +133,7 @@ describe('StateChannel Contract', () => {
             expect(channel.status).to.equal(1); // 0 is Finalized, 1 is Open, 2 is Challenge
             expect(channel.indexer).to.equal(indexer.address);
             expect(channel.consumer).to.equal(consumer.address);
-            expect(channel.balance).to.equal(etherParse('1'));
+            expect(channel.total).to.equal(etherParse('1'));
         });
 
         it('repeat same channel Id State Channel should not work', async () => {
@@ -154,7 +151,7 @@ describe('StateChannel Contract', () => {
             const balance = await token.balanceOf(stateChannel.address);
             expect(balance).to.equal(etherParse('1'));
 
-            const query = await buildQueryState(channelId, indexer, consumer, true, 10, etherParse('0.1'));
+            const query = await buildQueryState(channelId, indexer, consumer, etherParse('1'), true);
             await stateChannel.checkpoint(query);
             expect((await stateChannel.channel(channelId)).status).to.equal(0);
 
@@ -164,7 +161,7 @@ describe('StateChannel Contract', () => {
             await openChannel(channelId, indexer, consumer, etherParse('0.1'), 6);
             const channel = await stateChannel.channel(channelId);
             expect(channel.status).to.equal(1);
-            expect(channel.balance).to.equal(etherParse('0.1'));
+            expect(channel.total).to.equal(etherParse('0.1'));
         });
     });
 
@@ -185,26 +182,26 @@ describe('StateChannel Contract', () => {
             const balance1 = await token.balanceOf(consumer.address);
             expect(balance1).to.equal(etherParse('4'));
 
-            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, etherParse('0.01'));
+            const query1 = await buildQueryState(channelId, indexer, consumer, etherParse('0.1'), false);
             await stateChannel.checkpoint(query1);
-            expect((await stateChannel.channel(channelId)).balance).to.equal(etherParse('0.9'));
+            expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.1'));
 
             // check rewards
-            const currentEra = await (await eraManager.eraNumber()).toNumber();
+            const currentEra = (await eraManager.eraNumber()).toNumber();
             const infos = await rewardsPool.getReward(deploymentId, currentEra, indexer.address);
             expect(infos[0]).to.be.eq(etherParse("0.1")); // labor
             expect(infos[1]).to.be.eq(etherParse("0.1")); // reward
 
-            const query2 = await buildQueryState(channelId, indexer, consumer, false, 20, etherParse('0.01'));
+            const query2 = await buildQueryState(channelId, indexer, consumer, etherParse('0.2'), false);
             await stateChannel.checkpoint(query2);
-            expect((await stateChannel.channel(channelId)).balance).to.equal(etherParse('0.8'));
+            expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.2'));
 
-            const query3 = await buildQueryState(channelId, indexer, consumer, true, 40, etherParse('0.02'));
+            const query3 = await buildQueryState(channelId, indexer, consumer, etherParse('0.4'), true);
             await stateChannel.checkpoint(query3);
-            expect((await stateChannel.channel(channelId)).balance).to.equal(0);
+            expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('1'));
 
             const balance2 = await token.balanceOf(consumer.address);
-            expect(balance2).to.equal(etherParse('4.4'));
+            expect(balance2).to.equal(etherParse('4.6'));
         });
     });
 
@@ -221,10 +218,10 @@ describe('StateChannel Contract', () => {
             const channelId = ethers.utils.randomBytes(32);
             await openChannel(channelId, indexer, consumer, etherParse('1'), 60);
 
-            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, etherParse('0.01'));
+            const query1 = await buildQueryState(channelId, indexer, consumer, etherParse('0.1'), false);
             await stateChannel.challenge(query1);
             const state1 = await stateChannel.channel(channelId);
-            expect(state1.balance).to.equal(etherParse('0.9'));
+            expect(state1.spent).to.equal(etherParse('0.1'));
             expect(state1.status).to.equal(2); // Challenge
 
             await expect(stateChannel.claim(channelId)).to.be.revertedWith('Channel not expired');
@@ -242,16 +239,16 @@ describe('StateChannel Contract', () => {
             const channelId = ethers.utils.randomBytes(32);
             await openChannel(channelId, indexer, consumer, etherParse('1'), 60);
 
-            const query1 = await buildQueryState(channelId, indexer, consumer, false, 10, etherParse('0.01'));
+            const query1 = await buildQueryState(channelId, indexer, consumer, etherParse('0.1'), false);
             await stateChannel.challenge(query1);
             const state1 = await stateChannel.channel(channelId);
-            expect(state1.balance).to.equal(etherParse('0.9')); // 1000 - 100
+            expect(state1.spent).to.equal(etherParse('0.1'));
             expect(state1.status).to.equal(2); // Challenge
 
-            const query2 = await buildQueryState(channelId, indexer, consumer, false, 20, etherParse('0.01'));
+            const query2 = await buildQueryState(channelId, indexer, consumer, etherParse('0.2'), false);
             await stateChannel.respond(query2);
             const state2 = await stateChannel.channel(channelId);
-            expect(state2.balance).to.equal(etherParse('0.8')); // 900 - 100
+            expect(state2.spent).to.equal(etherParse('0.2'));
             expect(state2.status).to.equal(1); // Open
 
             await expect(stateChannel.claim(channelId)).to.be.revertedWith('Channel not expired');
@@ -294,7 +291,7 @@ describe('StateChannel Contract', () => {
             // fund again when renewal expirationAt.
             await stateChannel.fund(channelId, etherParse('0.1'), sign);
             const state2 = await stateChannel.channel(channelId);
-            expect(state2.balance).to.equal(etherParse('1.1'));
+            expect(state2.total).to.equal(etherParse('1.1'));
 
             await expect(
                 stateChannel.extend(channelId, preExpirationAt, nextExpiration, indexerSign, consumerSign)
@@ -351,32 +348,32 @@ describe('StateChannel Contract', () => {
                 signerSign
             );
 
-            const query1 = await buildQueryState(channelId, indexer, signer, false, 2, BigNumber.from(10));
-            const query2 = await buildQueryState(channelId, indexer, signer, false, 4, BigNumber.from(10));
-            const query3 = await buildQueryState(channelId, indexer, signer, false, 5, BigNumber.from(10));
-            const query4 = await buildQueryState(channelId, indexer, signer, true, 8, BigNumber.from(10));
+            const query1 = await buildQueryState(channelId, indexer, signer, BigNumber.from(20), false);
+            const query2 = await buildQueryState(channelId, indexer, signer, BigNumber.from(40), false);
+            const query3 = await buildQueryState(channelId, indexer, signer, BigNumber.from(50), false);
+            const query4 = await buildQueryState(channelId, indexer, signer, BigNumber.from(80), true);
 
             // checkpoint
             await stateChannel.checkpoint(query1);
             const state1 = await stateChannel.channel(channelId);
-            expect(state1.balance).to.equal(80);
+            expect(state1.spent).to.equal(20);
 
             // challenge
             await stateChannel.challenge(query2);
             const state2 = await stateChannel.channel(channelId);
-            expect(state2.balance).to.equal(60);
+            expect(state2.spent).to.equal(40);
             expect(state2.status).to.equal(2); // Challenge
 
             // respond
             await stateChannel.respond(query3);
             const state3 = await stateChannel.channel(channelId);
-            expect(state3.balance).to.equal(50);
+            expect(state3.spent).to.equal(50);
             expect(state3.status).to.equal(1); // Active
 
             // finalized
             await stateChannel.checkpoint(query4);
             const state4 = await stateChannel.channel(channelId);
-            expect(state4.balance).to.equal(0);
+            expect(state4.spent).to.equal(100);
 
             expect(await token.balanceOf(consumerProxy.address)).to.equal(9920); // 10000-100+20
         });
@@ -390,7 +387,6 @@ describe('StateChannel Contract', () => {
             expect(await token.balanceOf(consumerHoster.address)).to.equal(20000);
 
             const channelId = ethers.utils.randomBytes(32);
-            const channelId2 = ethers.utils.randomBytes(32);
             const amount = 100;
             const expiration = 60;
             const abi = ethers.utils.defaultAbiCoder;
@@ -422,32 +418,32 @@ describe('StateChannel Contract', () => {
             );
             expect(await consumerHoster.channels(channelId)).to.equal(consumer.address);
 
-            const query1 = await buildQueryState(channelId, indexer, signer, false, 2, BigNumber.from(10));
-            const query2 = await buildQueryState(channelId, indexer, signer, false, 4, BigNumber.from(10));
-            const query3 = await buildQueryState(channelId, indexer, signer, false, 5, BigNumber.from(10));
-            const query4 = await buildQueryState(channelId, indexer, signer, true, 8, BigNumber.from(10));
+            const query1 = await buildQueryState(channelId, indexer, signer, BigNumber.from(20), false);
+            const query2 = await buildQueryState(channelId, indexer, signer, BigNumber.from(40), false);
+            const query3 = await buildQueryState(channelId, indexer, signer, BigNumber.from(50), false);
+            const query4 = await buildQueryState(channelId, indexer, signer, BigNumber.from(80), true);
 
             // checkpoint
             await stateChannel.checkpoint(query1);
             const state1 = await stateChannel.channel(channelId);
-            expect(state1.balance).to.equal(80);
+            expect(state1.spent).to.equal(20);
 
             // challenge
             await stateChannel.challenge(query2);
             const state2 = await stateChannel.channel(channelId);
-            expect(state2.balance).to.equal(60);
+            expect(state2.spent).to.equal(40);
             expect(state2.status).to.equal(2); // Challenge
 
             // respond
             await stateChannel.respond(query3);
             const state3 = await stateChannel.channel(channelId);
-            expect(state3.balance).to.equal(50);
+            expect(state3.spent).to.equal(50);
             expect(state3.status).to.equal(1); // Active
 
             // finalized
             await stateChannel.checkpoint(query4);
             const state4 = await stateChannel.channel(channelId);
-            expect(state4.balance).to.equal(0);
+            expect(state4.spent).to.equal(100);
 
             expect(await token.balanceOf(consumerHoster.address)).to.equal(19920); // 20000-100+20
             expect(await consumerHoster.balances(consumer2.address)).to.equal(10000);
