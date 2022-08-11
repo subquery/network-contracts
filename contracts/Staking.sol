@@ -142,14 +142,14 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     event UnbondWithdrawn(address indexed source, uint256 amount, uint256 index);
 
     /**
-     * @dev Emitted when Indexer set their commissionRate.
-     */
-    event SetCommissionRate(address indexed indexer, uint256 amount);
-
-    /**
      * @dev Emitted when delegtor cancel unbond request.
      */
     event UnbondCancelled(address indexed source, address indexed indexer, uint256 amount, uint256 index);
+
+    /**
+     * @dev Emitted when Indexer set their commissionRate.
+     */
+    event SetCommissionRate(address indexed indexer, uint256 amount);
 
     // -- Functions --
 
