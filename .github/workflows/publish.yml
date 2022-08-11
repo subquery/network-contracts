@@ -7,9 +7,13 @@ on:
       - '.github/workflows/**'
   workflow_dispatch:
     inputs:
-      endpoint:
-        description: 'endpoint used to deploy contracts'
-        default: https://tc7-eth.aca-dev.network
+      ws_endpoint:
+        description: 'ws endpoint used to publish contracts'
+        default: wss://acala-mandala-adapter.api.onfinality.io/public-ws
+        required: true
+      network:
+        description: 'network used to publish contracts'
+        default: testnet
         required: true
 
 jobs:
@@ -37,7 +41,7 @@ jobs:
 
       # Publish contracts on acala testnet
       - name: Publish contracts
-        run: yarn publish:testnet
+        run: yarn publish:${{ github.event.inputs.network }}
         env:
-          ENDPOINT: ${{ github.event.inputs.endpoint }}
+          WS_ENDPOINT: ${{ github.event.inputs.ws_endpoint }}
           DEPLOY_PRINT: true
