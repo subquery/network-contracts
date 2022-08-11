@@ -25,7 +25,7 @@ const main = async () => {
 
     const seed = process.env.SEED;
 
-    const wsProvider = new WsProvider('wss://acala-mandala.api.onfinality.io/public-ws');
+    const wsProvider = new WsProvider(process.env.WS_ENDPOINT);
     const api = await ApiPromise.create({provider: wsProvider});
 
     keyring.loadAll({ss58Format: 42, type: 'sr25519'});

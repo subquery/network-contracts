@@ -14,11 +14,14 @@
         "deploy": "node -r ts-node/register/transpile-only scripts/deploy.ts",
         "deploy:mainnet": "node -r ts-node/register/transpile-only scripts/deploy.ts --mainnet",
         "deploy:testnet": "node -r ts-node/register/transpile-only scripts/deploy.ts --testnet",
-        "deploy:moonbeam": "node -r ts-node/register/transpile-only scripts/deploy.ts --moonbeam",
+        "deploy:kepler": "node -r ts-node/register/transpile-only scripts/deploy.ts --kepler",
         "upgrade:testnet": "node -r ts-node/register/transpile-only scripts/upgrade.ts --testnet",
+        "upgrade:mainnet": "node -r ts-node/register/transpile-only scripts/upgrade.ts --mainnet",
+        "upgrade:kepler": "node -r ts-node/register/transpile-only scripts/upgrade.ts --kepler",
         "seed:testnet": "ts-node scripts/seed.ts test/fixtures/testnet.yaml",
         "publish:testnet": "node -r ts-node/register/transpile-only scripts/publish.ts --testnet",
-        "publish:mainnet": "node -r ts-node/register/transpile-only scripts/publish.ts --mainnet"
+        "publish:mainnet": "node -r ts-node/register/transpile-only scripts/publish.ts --mainnet",
+        "publish:kepler": "node -r ts-node/register/transpile-only scripts/publish.ts --kepler"
 
     },
     "devDependencies": {

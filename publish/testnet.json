@@ -1,98 +1,162 @@
 {
     "ProxyAdmin": {
-        "address": "0x70469961ad7fc3421c213eB35f064EB1550d4258",
+        "contract_logic": {
+            "address": "",
+            "txHash": ""
+        },
+        "address": "0xF36d58f41B07EF29B8a452572bE28754CC7A408b",
         "bytecodeHash": "d318dc1cd71198040edf13b2386aceefa2d00ee53f9b91909d0f5398523d80ef",
-        "txHash": "0xdbe7f38e160f04a7ad41e8fc1727a9e4cd19bf8a184679cb03c244f9e7db5e92",
-        "lastUpdate": "Thu, 04 Aug 2022 02:30:26 GMT"
+        "txHash": "0x017fdf38f3a9483f5eaf71171454ef3a5d83742ca0bf56fb5d50cf2ffd64fbc0",
+        "lastUpdate": "Thu, 11 Aug 2022 01:14:00 GMT"
     },
     "Settings": {
-        "address": "0x00989f221e060fd300C8Eb407fEaFE529E0fc10C",
+        "contract_logic": {
+            "address": "",
+            "txHash": ""
+        },
+        "address": "0x799421EBb12dF13B1089895A7f0e41ee57a0F6Fe",
         "bytecodeHash": "0ed16e38ba50781242b4f66eefbb42d60999f77b8193574fc65a630a2aab3aed",
-        "txHash": "0x9d8b8272f498f6029a8d95b0f072bf2dff712e5c020718da7a3f2102168a1287",
-        "lastUpdate": "Thu, 04 Aug 2022 02:30:50 GMT"
+        "txHash": "0xa296777aa7b38c1945e0af888103c4c060a3508f31e43fd9c2e185103a122f4f",
+        "lastUpdate": "Thu, 11 Aug 2022 01:14:24 GMT"
     },
     "InflationController": {
-        "address": "0x2aB8B94F6826CE764f457d9874a6B38d31cD16A0",
+        "contract_logic": {
+            "address": "0x1f0c203Fdf716Cf266Cd641Ebf27398CB5f19755",
+            "txHash": "0x56a9a382fe401d675b7eaf8aade4eac5e57bb86d23bda76dd6b8bedc703135a4"
+        },
+        "address": "0x9789649298e7FA8A5D08252b3f053BD935bf4E76",
         "bytecodeHash": "1b7bbc537882eed5be62b4a552c639a237f7a7dc9c64791a99e4b1f8314bdaf4",
-        "txHash": "0x14dd4dfea78ce6d3fc25e449de9df760d443804378ab77eab07d61c35d327322",
-        "lastUpdate": "Thu, 04 Aug 2022 02:32:02 GMT"
+        "txHash": "0xa2df30bd612a5a9baa01ee979ea7911dd5cbfe4babe4583c3bea5bf7ec8f4e22",
+        "lastUpdate": "Thu, 11 Aug 2022 01:15:48 GMT"
     },
     "SQToken": {
-        "address": "0x1274D11F823f68C596fF055E699e806bd2766ADB",
+        "contract_logic": {
+            "address": "",
+            "txHash": ""
+        },
+        "address": "0x77E6765FDaC1599Fa6B65d8a33E22330D8255571",
         "bytecodeHash": "e966dc195009a9af9b8b235877597fcc449801ea3fc4abeddbc5d5ec7f935801",
-        "txHash": "0xee1f8908dedd72370df93e6f19491416ad71d577e8706a957c72b3a13055721c",
-        "lastUpdate": "Thu, 04 Aug 2022 02:32:26 GMT"
+        "txHash": "0xe6f0521611b3aa85301e69aa0d928ef2fbac0f331493e3a636944a6b16bd467d",
+        "lastUpdate": "Thu, 11 Aug 2022 01:16:12 GMT"
     },
     "VSQToken": {
-        "address": "0xbE8CDB52B2690B47d3230cF20cB4358b8a13328b",
+        "contract_logic": {
+            "address": "",
+            "txHash": ""
+        },
+        "address": "0x32277759f8e719B69247738287fA420930bd7d1a",
         "bytecodeHash": "0e01da71655bee4bddaed4118705227f79b95ed85454de4348bc1e708300f96d",
-        "txHash": "0xd73d7073666f645a608f497234578d3f2e71ec76a36c329f84df3c539d172d52",
-        "lastUpdate": "Thu, 04 Aug 2022 02:33:14 GMT"
+        "txHash": "0x128a04bc9001a83bf0fe3e1d21b87f31cb7cc15d5cf38d1187dfd20bac625193",
+        "lastUpdate": "Thu, 11 Aug 2022 01:17:00 GMT"
     },
     "Airdropper": {
-        "address": "0xE0B767F93A3dF9fA9d5d83103d8780a3184D3612",
+        "contract_logic": {
+            "address": "",
+            "txHash": ""
+        },
+        "address": "0xb13eA6cF458225424b2432F0794bEBeC3a374732",
         "bytecodeHash": "6d05f2ecf30b1aba2365c3cb665ac0e7b2326edab17e09717fe4032e0ac977f4",
-        "txHash": "0x9ca2e0cedda401ad7d6d5a9d027025159c230f8b9aedd8825fb10d4d37a6df92",
-        "lastUpdate": "Thu, 04 Aug 2022 02:33:38 GMT"
+        "txHash": "0x03f1f79a4dc4cd11d479416f0e1893188d87ae515a5f37d80f91d84355f43b85",
+        "lastUpdate": "Thu, 11 Aug 2022 01:17:24 GMT"
     },
     "Staking": {
-        "address": "0xd0A68cA98e0353FfB2D2DB3d3Afd496fc6970BB6",
+        "contract_logic": {
+            "address": "0x52af301bc1961b5C0D1ADC9f0ffD86d51d9EC548",
+            "txHash": "0xacc60b357a4c7c352a480b730fd46859e7a6609fbe59fc26d032cf2b98c0e6d0"
+        },
+        "address": "0x6d39a9359C8Ed2E86C7458d50d2D3DE30a217525",
         "bytecodeHash": "12bf771eef0d5e10acdad9fe55fd4141ba60cca8921356d3b1f4ac1893da15ef",
-        "txHash": "0x06e7f7502f6c01cb5bed97d253dfc7b2afbe814717bc2e6be77a83a39f6d9602",
-        "lastUpdate": "Thu, 04 Aug 2022 02:35:02 GMT"
+        "txHash": "0xa7a8d90515a4fd8399db060dc1de3200e88a741ade9a157964dc135a48b1b3cd",
+        "lastUpdate": "Thu, 11 Aug 2022 01:18:36 GMT"
     },
     "EraManager": {
-        "address": "0x5d4c9E0ab503A1D91834008801aDf79a92dAfF4d",
+        "contract_logic": {
+            "address": "0xda676857fafed2323c733D5cD7099c768C0d1EE4",
+            "txHash": "0x90f918f52fbc545fe66ea92a6f8c78259e93a121ebfa0c2bf3f983e1b8e6db1c"
+        },
+        "address": "0xDcA7EFBEFECaD669B7269a5fA7628534394A6779",
         "bytecodeHash": "67f4096d02670b5d7708b20418c34269f4796175c30c323600681562c288b43d",
-        "txHash": "0xd9ea4ee7dacee5a22a7a0a54e68feadc63878ebc784fa6507f027d52fc235fa5",
-        "lastUpdate": "Thu, 04 Aug 2022 02:36:14 GMT"
+        "txHash": "0xd56efdf848a0b03c0aeb74574ad499873d3cc1210681f4dc16bdb65f4774f8de",
+        "lastUpdate": "Thu, 11 Aug 2022 01:19:48 GMT"
     },
     "IndexerRegistry": {
-        "address": "0xCBaCA7E1f046A10d4754793C058cFbB012920831",
+        "contract_logic": {
+            "address": "0x3124F88D0d1fcA31660bb8b89b5a822B18adf2e0",
+            "txHash": "0x523e07304463660813d3f8678a3c6928466152162f5fa4ad282d14efd64de226"
+        },
+        "address": "0xD8B1aF0bEaDDB07e75b4F1A605F34895FD928C7e",
         "bytecodeHash": "b4345307d51dfa0467bc8a5376cae4e4a104cfa6e7d179842bfc6ba9485bb665",
-        "txHash": "0x0ee1552151fd429633b552a2b08b70ae40c1098a910a24ce82f4a66670d48d71",
-        "lastUpdate": "Thu, 04 Aug 2022 02:37:26 GMT"
+        "txHash": "0xdc0edffe528c643b5efc8b74cbd1d8c63599a9b0e1086673cb84677d65bf6f76",
+        "lastUpdate": "Thu, 11 Aug 2022 01:21:00 GMT"
     },
     "QueryRegistry": {
-        "address": "0xd6b7789e77c62418C88508534D1F7283e9B7B5A2",
+        "contract_logic": {
+            "address": "0x17a257c582A5b3a1c9f5E18f4A3471c772c9A7F2",
+            "txHash": "0xa34fe4f0b90a97774c9f8398c6676a8ef71c7faf66b376c316931e55ed791d7f"
+        },
+        "address": "0x09670780360883Fb25Ae6e6DffE4C17683e07290",
         "bytecodeHash": "cd4f41bcff96376c2e34ad7239d7f96359f7aeba779769dbfde2c827cc74a6af",
-        "txHash": "0x1b7ecac6f659e1a976d96d56b20912bac1e294b84409bbd66768ee5f8b4cdb77",
-        "lastUpdate": "Thu, 04 Aug 2022 02:38:38 GMT"
+        "txHash": "0x48f5794dff193fc47422dba11d17d72f405911affefd30d28e0a4cbe08b4b181",
+        "lastUpdate": "Thu, 11 Aug 2022 01:22:12 GMT"
     },
     "PlanManager": {
-        "address": "0x0754ffC14820dB9b7CD88A2FC3Bdf05e625b404C",
+        "contract_logic": {
+            "address": "0x7bEeE4eA2bf6389C3018a150ec99A214324266A7",
+            "txHash": "0xc0f8010006b9ba715f5e30341e7887cd1557eacb975fea20e6a4e6faae49eaf8"
+        },
+        "address": "0xcEDA714002321d7EAdaA5F47ab08F9d419F6cDd4",
         "bytecodeHash": "97d7d9771b44bc1a02656d6fc51e035f4bb20b6c7ac20935381f6e616139a045",
-        "txHash": "0xcc4b697874111001cfded55d74878a47943f153d07611756ebdb7929a3c3d366",
-        "lastUpdate": "Thu, 04 Aug 2022 02:39:50 GMT"
+        "txHash": "0x7871805b27fc0156500be11c3b9af778c7a864d79513d5596c45ccd27ca436b0",
+        "lastUpdate": "Thu, 11 Aug 2022 01:23:24 GMT"
     },
     "PurchaseOfferMarket": {
-        "address": "0xA474108945A97DC518E8f2072f4E7aE387B83241",
+        "contract_logic": {
+            "address": "0xb55B21f039D2A60145d0f5D4aaE6217fAe91FAD9",
+            "txHash": "0xb6803a0d90b538da5edca9d625b7fd43e2c491fa2aa41e26c2dfe7cd8db93a9b"
+        },
+        "address": "0xDC9AB51b898b1401Fe0c6f5f44E527790FB19C09",
         "bytecodeHash": "e4323496dad8a124e34d68829f9ddfec9347b4eadb83427b57ba01e939908045",
-        "txHash": "0xe5dd0011cfd9d377266af748787b646e086668c9ed51b0d6b652e3c578e0e9fd",
-        "lastUpdate": "Thu, 04 Aug 2022 02:41:02 GMT"
+        "txHash": "0xfb98b0db3636ff06cb6428fbd82ac62a945cdf7b34e408cd5f6931f25b7aeb87",
+        "lastUpdate": "Thu, 11 Aug 2022 01:24:37 GMT"
     },
     "ServiceAgreementRegistry": {
-        "address": "0x85756d0bFd598D49a26C52fA661168dc8388FA9d",
+        "contract_logic": {
+            "address": "0x2fc0c6995e7FC86A379E1af324527C2d73d7ec10",
+            "txHash": "0xcab8a281fe630c94847a62c9d678db7fd55604fafe7a59a3f56d1a318ce4d1ef"
+        },
+        "address": "0x3d9A21CcBBD581aA23832d74F9203537BED654B3",
         "bytecodeHash": "a4f2ab8c4b22ea8e3f932ce6f3d8a9927cb26705b2934cb97bd54d67efd38c67",
-        "txHash": "0x10e1817082f7b8f1317b4e738548a867b495926b0c2f71eae09273a0e282d345",
-        "lastUpdate": "Thu, 04 Aug 2022 02:42:14 GMT"
+        "txHash": "0xcc2227a1081ff176acd5f88e10c091dd45fd89cdabe72c3ea2569d09bca69faa",
+        "lastUpdate": "Thu, 11 Aug 2022 01:25:48 GMT"
     },
     "RewardsDistributer": {
-        "address": "0xdf55db8FB5Da1df16fF42422f27DA8aFbe755E97",
+        "contract_logic": {
+            "address": "0x7150c9875148C6CF99CfF94149b52c9Fc17bDEC7",
+            "txHash": "0xa1188cb8b6d00cc2988766135186ea641ffd82109da3278554a8f79daaf29aba"
+        },
+        "address": "0xd7832F954d8104FeBbd575a2608C599C7Fe55888",
         "bytecodeHash": "7ceebd01fbbb4aaf1d48620695b62f1947f1b0a3b6aad2b7fe928d5499bf5a12",
-        "txHash": "0x6062b3e1c49dcd1a6d39e373e8add4b2d2d712fc00bab852170dde4fab6f5685",
-        "lastUpdate": "Thu, 04 Aug 2022 02:43:26 GMT"
+        "txHash": "0x33d01c2d1c8a0f4fb5d4d1d7b932ed89c6fda69818fc429aa4af66536a84823f",
+        "lastUpdate": "Thu, 11 Aug 2022 01:27:00 GMT"
     },
     "StateChannel": {
-        "address": "0xE3c761B7aaA32271dEf617f987A3872f328c93C2",
+        "contract_logic": {
+            "address": "0xfbF90E5F88ec1940C342CeE0377e104B29E5aAFB",
+            "txHash": "0x3a82baf9c2a816c3bb39f616b4a059ab3e2e2206590f5b44c7a30ff98a3cab82"
+        },
+        "address": "0xE2551De63013e97752dC5ad89abffC3A33891BDF",
         "bytecodeHash": "417a56f21d4ce0eb23dc13dd4df1583ef6211f45215ecf9c18edf79afc492e98",
-        "txHash": "0x2b4369bb1a30e6f91be42ae5a1171f54432b50414144a99d8999eb04507c3eb7",
-        "lastUpdate": "Thu, 04 Aug 2022 02:44:38 GMT"
+        "txHash": "0x375639c3bf44d765e8d605bbba7b6b0aeaab3be05098d536193a35a29b5724f1",
+        "lastUpdate": "Thu, 11 Aug 2022 01:28:12 GMT"
     },
     "PermissionedExchange": {
-        "address": "0xcfd4bA658C9EF86197Ab95E97cfF860B1bDde537",
+        "contract_logic": {
+            "address": "0x542436288D3bB5723E82f7eeF0F841eC2751D906",
+            "txHash": "0x6531fab9509f5d6e350b97bc99874907d0dca9218242992c08eece2c95c454bc"
+        },
+        "address": "0x8b2fc297aDb48C87718811740462D9D66CFb10fD",
         "bytecodeHash": "14d3bb370c1838ffe098ae93102a09974fc63e68faae719625edea46e03aa719",
-        "txHash": "0x2a2f2afdd75959302b9edf6935fb866acf321b1d3a5088476e724f929d0e97b9",
-        "lastUpdate": "Thu, 04 Aug 2022 02:45:50 GMT"
+        "txHash": "0x71f30f0753ec0cbdae75fd29c9fb25e41cf47c1e3d47fcc0b451717d2f51ba3c",
+        "lastUpdate": "Thu, 11 Aug 2022 01:29:24 GMT"
     }
 }
