@@ -24,8 +24,10 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     // mapping(string => bool) public isQueryId;
     mapping(address => uint256[]) public queryInfoIdsByOwner;
     mapping(uint256 => QueryInfo) public queryInfos;
+    mapping(address => bool) public creatorWhitelist;
     uint256 public nextQueryId;
     uint256 private offlineCalcThreshold;
+    bool public creatorRestricted;
 
     mapping(bytes32 => mapping(address => IndexingStatus)) public deploymentStatusByIndexer;
     mapping(address => uint256) public numberOfIndexingDeployments;
@@ -78,10 +80,24 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
 
         settings = _settings;
         offlineCalcThreshold = 1 days;
+        creatorRestricted = true;
+        creatorWhitelist[msg.sender] = true;
     }
 
     function setSettings(ISettings _settings) external onlyOwner {
         settings = _settings;
+    }
+
+    function setCreatorRestricted(bool _creatorRestricted) external onlyOwner {
+        creatorRestricted = _creatorRestricted;
+    }
+
+    function addCreator(address creator) external onlyOwner {
+        creatorWhitelist[creator] = true;
+    }
+
+    function removeCreator(address creator) external onlyOwner {
+        creatorWhitelist[creator] = false;
     }
 
     function setOfflineCalcThreshold(uint256 _offlineCalcThreshold) external onlyOwner {
@@ -95,6 +111,13 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
 
     modifier onlyIndexerController() {
         require(IIndexerRegistry(settings.getIndexerRegistry()).isController(msg.sender), 'caller is not a controller');
+        _;
+    }
+
+    modifier onlyCreator() {
+        if (creatorRestricted) {
+            require(creatorWhitelist[msg.sender], 'Address is not authorised to operate query project');
+        }
         _;
     }
 
@@ -119,7 +142,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         bytes32 metadata,
         bytes32 version,
         bytes32 deploymentId
-    ) external {
+    ) external onlyCreator {
         uint256 queryId = nextQueryId;
         require(!deploymentIds[deploymentId], 'Deployment Id already registered');
         queryInfos[queryId] = QueryInfo(queryId, msg.sender, version, deploymentId, metadata);
@@ -130,7 +153,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     }
 
     // project creator function
-    function updateQueryProjectMetadata(uint256 queryId, bytes32 metadata) external {
+    function updateQueryProjectMetadata(uint256 queryId, bytes32 metadata) external onlyCreator {
         address queryOwner = queryInfos[queryId].owner;
         require(queryOwner == msg.sender, 'no permission to update query project metadata');
         queryInfos[queryId].metadata = metadata;
@@ -142,7 +165,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         uint256 queryId,
         bytes32 deploymentId,
         bytes32 version
-    ) external {
+    ) external onlyCreator {
         address queryOwner = queryInfos[queryId].owner;
         require(queryOwner == msg.sender, 'no permission to update query project deployment');
         require(!deploymentIds[deploymentId], 'Deployment Id already registered');
