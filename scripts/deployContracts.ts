@@ -32,8 +32,16 @@ import {
     PurchaseOfferMarket,
     RewardsDistributer,
     RewardsDistributer__factory,
+    RewardsPool,
+    RewardsPool__factory,
+    RewardsHelper,
+    RewardsHelper__factory,
     StateChannel,
     StateChannel__factory,
+    ConsumerProxy,
+    ConsumerProxy__factory,
+    ConsumerHoster,
+    ConsumerHoster__factory,
     Airdropper,
     Airdropper__factory,
     PermissionedExchange,
@@ -59,7 +67,11 @@ type Contracts = {
     purchaseOfferMarket: PurchaseOfferMarket;
     serviceAgreementRegistry: ServiceAgreementRegistry;
     rewardsDistributer: RewardsDistributer;
+    rewardsPool: RewardsPool;
+    rewardsHelper: RewardsHelper;
     stateChannel: StateChannel;
+    consumerProxy: ConsumerProxy;
+    consumerHoster: ConsumerHoster;
     airdropper: Airdropper;
     permissionedExchange: PermissionedExchange;
 };
@@ -70,12 +82,17 @@ const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: s
     PlanManager: [CONTRACTS.PlanManager, PlanManager__factory],
     QueryRegistry: [CONTRACTS.QueryRegistry, QueryRegistry__factory],
     RewardsDistributer: [CONTRACTS.RewardsDistributer, RewardsDistributer__factory],
+    RewardsPool: [CONTRACTS.RewardsPool, RewardsPool__factory],
+    RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
     ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
     EraManager: [CONTRACTS.EraManager, EraManager__factory],
     PurchaseOfferMarket: [CONTRACTS.PurchaseOfferMarket, PurchaseOfferMarket__factory],
     StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
+
     PermissionedExchange: [CONTRACTS.PermissionedExchange, PermissionedExchange__factory],
+    ConsumerProxy: [CONTRACTS.ConsumerProxy, ConsumerProxy__factory],
+    ConsumerHoster: [CONTRACTS.ConsumerHoster, ConsumerHoster__factory],
 };
 
 export const deployProxy = async <C extends Contract>(
@@ -141,7 +158,8 @@ function updateDeployment(
 export async function deployContracts(
     wallet: Wallet,
     config: DeploymentConfig['contracts'],
-    overrides: Overrides | {} = {}
+    overrides: Overrides | {} = {},
+    dev: boolean | true
 ): Promise<[Partial<ContractDeployment>, Contracts]> {
     const deployment: Partial<ContractDeployment> = {};
     if (process.env.DEBUG) {
@@ -312,6 +330,32 @@ export async function deployContracts(
         rewardsDistributer.deployTransaction.hash
     );
 
+    const [rewardsPool, RPLogicAddr] = await deployProxy<RewardsPool>(
+        proxyAdmin,
+        RewardsPool__factory,
+        wallet,
+        overrides
+    );
+    const initRewardsPool = await rewardsPool.initialize(deployment.Settings.address, overrides);
+    await initRewardsPool.wait();
+    updateDeployment(deployment, 'RewardsPool', rewardsPool.address, RPLogicAddr, rewardsPool.deployTransaction.hash);
+
+    const [rewardsHelper, RHLogicAddr] = await deployProxy<RewardsHelper>(
+        proxyAdmin,
+        RewardsHelper__factory,
+        wallet,
+        overrides
+    );
+    const initRewardsHelper = await rewardsHelper.initialize(deployment.Settings.address, overrides);
+    await initRewardsHelper.wait();
+    updateDeployment(
+        deployment,
+        'RewardsHelper',
+        rewardsHelper.address,
+        RHLogicAddr,
+        rewardsHelper.deployTransaction.hash
+    );
+
     const [stateChannel, SCLogicAddr] = await deployProxy<StateChannel>(
         proxyAdmin,
         StateChannel__factory,
@@ -343,6 +387,49 @@ export async function deployContracts(
         PELogicAddr,
         permissionedExchange.deployTransaction.hash
     );
+    // only local & test deploy.
+    let consumerProxy;
+    let consumerHoster;
+    let CPlogicAddr;
+    let CHLogicAddr;
+    if (dev) {
+        [consumerProxy, CPlogicAddr] = await deployProxy<ConsumerProxy>(
+            proxyAdmin,
+            ConsumerProxy__factory,
+            wallet,
+            overrides
+        );
+        const initConsumerProxy = await consumerProxy.initialize(
+            sqtToken.address,
+            stateChannel.address,
+            wallet.address,
+            overrides
+        );
+        await initConsumerProxy.wait();
+        updateDeployment(
+            deployment,
+            'ConsumerProxy',
+            consumerProxy.address,
+            CPlogicAddr,
+            consumerProxy.deployTransaction.hash
+        );
+
+        [consumerHoster, CHLogicAddr] = await deployProxy<ConsumerHoster>(
+            proxyAdmin,
+            ConsumerHoster__factory,
+            wallet,
+            overrides
+        );
+        const initConsumerHoster = await consumerHoster.initialize(sqtToken.address, stateChannel.address, overrides);
+        await initConsumerHoster.wait();
+        updateDeployment(
+            deployment,
+            'ConsumerHoster',
+            consumerHoster.address,
+            CHLogicAddr,
+            consumerHoster.deployTransaction.hash
+        );
+    }
 
     // Register addresses on settings contract
     const txObj = await settings.setAllAddresses(
@@ -354,6 +441,8 @@ export async function deployContracts(
         deployment.PlanManager.address,
         deployment.ServiceAgreementRegistry.address,
         deployment.RewardsDistributer.address,
+        deployment.RewardsPool.address,
+        deployment.RewardsHelper.address,
         deployment.InflationController.address,
         overrides as any
     );
@@ -375,8 +464,12 @@ export async function deployContracts(
             purchaseOfferMarket,
             serviceAgreementRegistry,
             rewardsDistributer,
+            rewardsPool,
+            rewardsHelper,
             proxyAdmin,
             stateChannel,
+            consumerProxy,
+            consumerHoster,
             airdropper,
             permissionedExchange,
         },
