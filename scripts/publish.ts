@@ -6,6 +6,7 @@ import {DeploymentConfig} from '../src/types';
 import localConfig from './config/local.config';
 import testnetConfig from './config/testnet.config';
 import mainnetConfig from './config/mainnet.config';
+import keplerConfig from './config/kepler.config';
 
 dotenv.config();
 
@@ -18,6 +19,9 @@ const main = async () => {
             break;
         case '--testnet':
             config = testnetConfig as DeploymentConfig;
+            break;
+        case '--kepler':
+            config = keplerConfig as DeploymentConfig;
             break;
         default:
             config = localConfig();

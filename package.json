@@ -90,9 +90,6 @@
         ],
         "src/*.ts": [
             "prettier --write"
-        ],
-        "contracts/**/*.sol": [
-            "prettier --write"
         ]
     }
 }
