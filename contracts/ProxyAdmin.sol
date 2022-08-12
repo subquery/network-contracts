@@ -1,8 +1,7 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './AdminUpgradeabilityProxy.sol';
@@ -18,7 +17,7 @@ contract ProxyAdmin is Ownable {
      * This is needed because only the proxy admin can query it.
      * @return The address of the current implementation of the proxy.
      */
-    function getProxyImplementation(AdminUpgradeabilityProxy proxy) public view returns (address) {
+    function getProxyImplementation(AdminUpgradeabilityProxy proxy) external view returns (address) {
         // We need to manually run the static call since the getter cannot be flagged as view
         // bytes4(keccak256("implementation()")) == 0x5c60da1b
         (bool success, bytes memory returndata) = address(proxy).staticcall(hex'5c60da1b');
@@ -30,7 +29,7 @@ contract ProxyAdmin is Ownable {
      * @dev Returns the admin of a proxy. Only the admin can query it.
      * @return The address of the current admin of the proxy.
      */
-    function getProxyAdmin(AdminUpgradeabilityProxy proxy) public view returns (address) {
+    function getProxyAdmin(AdminUpgradeabilityProxy proxy) external view returns (address) {
         // We need to manually run the static call since the getter cannot be flagged as view
         // bytes4(keccak256("admin()")) == 0xf851a440
         (bool success, bytes memory returndata) = address(proxy).staticcall(hex'f851a440');
@@ -43,7 +42,7 @@ contract ProxyAdmin is Ownable {
      * @param proxy Proxy to change admin.
      * @param newAdmin Address to transfer proxy administration to.
      */
-    function changeProxyAdmin(AdminUpgradeabilityProxy proxy, address newAdmin) public onlyOwner {
+    function changeProxyAdmin(AdminUpgradeabilityProxy proxy, address newAdmin) external onlyOwner {
         proxy.changeAdmin(newAdmin);
     }
 
@@ -52,7 +51,7 @@ contract ProxyAdmin is Ownable {
      * @param proxy Proxy to be upgraded.
      * @param implementation the address of the Implementation.
      */
-    function upgrade(AdminUpgradeabilityProxy proxy, address implementation) public onlyOwner {
+    function upgrade(AdminUpgradeabilityProxy proxy, address implementation) external onlyOwner {
         proxy.upgradeTo(implementation);
     }
 
@@ -69,7 +68,7 @@ contract ProxyAdmin is Ownable {
         AdminUpgradeabilityProxy proxy,
         address implementation,
         bytes memory data
-    ) public payable onlyOwner {
+    ) external payable onlyOwner {
         proxy.upgradeToAndCall{value: msg.value}(implementation, data);
     }
 }

@@ -33,7 +33,7 @@ describe('Purchase Offer Market Contract', () => {
 
     let futureDate;
     const contractPeriod = 1000;
-    const deposit = etherParse("2");
+    const deposit = etherParse('2');
     const limit = 1;
     const minimumAcceptHeight = 100;
     const planTemplateId = 0;
@@ -178,9 +178,9 @@ describe('Purchase Offer Market Contract', () => {
                 // create second offer
                 await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
                 // register indexers
-                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, "10");
+                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '10');
                 await indexerRegistry.connect(wallet_0).setControllerAccount(wallet_1.address);
-                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, "10");
+                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '10');
                 await indexerRegistry.connect(wallet_1).setControllerAccount(wallet_0.address);
                 // create query project
                 await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
@@ -195,15 +195,7 @@ describe('Purchase Offer Market Contract', () => {
                 const rewardsDistrBalance = await token.balanceOf(rewardsDistributor.address);
 
                 // accept offer
-                const tx = await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
-                const receipt = await tx.wait();
-                const evt = receipt.events.find(
-                    (log) => log.topics[0] === utils.id('ClosedAgreementCreated(address,address,bytes32,address)')
-                );
-                const CSAContractAddress = serviceAgreementRegistry.interface.decodeEventLog(
-                    serviceAgreementRegistry.interface.getEvent('ClosedAgreementCreated'),
-                    evt.data
-                ).serviceAgreement;
+                await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
 
                 // check updates for the offer
                 offer = await purchaseOfferMarket.offers(0);
@@ -211,7 +203,6 @@ describe('Purchase Offer Market Contract', () => {
                 expect(await purchaseOfferMarket.acceptedOffer(0, wallet_0.address)).to.equal(true);
                 expect(offer.numAcceptedContracts).to.equal(1);
                 expect(await token.balanceOf(purchaseOfferMarket.address)).to.equal(offerMarketBalance.sub(deposit));
-                expect(await token.balanceOf(CSAContractAddress)).to.equal(0);
                 expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(deposit));
             });
 

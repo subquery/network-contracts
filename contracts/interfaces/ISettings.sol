@@ -1,18 +1,23 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 interface ISettings {
-    function setAllAddresses(
-        address _sqToken,
-        address _staking,
+    function setProjectAddresses(
         address _indexerRegistry,
         address _queryRegistry,
         address _eraManager,
         address _planManager,
-        address _serviceAgreementRegistry,
+        address _serviceAgreementRegistry
+    ) external;
+
+    function setTokenAddresses(
+        address _sqToken,
+        address _staking,
         address _rewardsDistributer,
+        address _rewardsPool,
+        address _rewardsHelper,
         address _inflationController,
         address _vesting
     ) external;
@@ -37,6 +42,8 @@ interface ISettings {
 
     function getEraManager() external view returns (address);
 
+    function setPlanManager(address _planManager) external;
+
     function getPlanManager() external view returns (address);
 
     function setServiceAgreementRegistry(address _serviceAgreementRegistry) external;
@@ -46,6 +53,14 @@ interface ISettings {
     function setRewardsDistributer(address _rewardsDistributer) external;
 
     function getRewardsDistributer() external view returns (address);
+
+    function setRewardsPool(address _rewardsPool) external;
+
+    function getRewardsPool() external view returns (address);
+
+    function setRewardsHelper(address _rewardsHelper) external;
+
+    function getRewardsHelper() external view returns (address);
 
     function setInflationController(address _inflationController) external;
 

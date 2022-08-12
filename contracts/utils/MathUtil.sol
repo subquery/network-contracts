@@ -1,7 +1,7 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 library MathUtil {
     function min(uint256 x, uint256 y) internal pure returns (uint256) {
