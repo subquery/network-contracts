@@ -30,7 +30,7 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 // Go to https://hardhat.org/config/ to learn more
 
 const config: HardhatUserConfig = {
-    solidity: '0.8.10',
+    solidity: '0.8.15',
     gasReporter: {
         currency: 'USD',
         gasPrice: 21,
@@ -45,6 +45,9 @@ const config: HardhatUserConfig = {
         alphaSort: true,
         runOnCompile: true,
         disambiguatePaths: false,
+    },
+    mocha: {
+        timeout: 100000000,
     },
 };
 

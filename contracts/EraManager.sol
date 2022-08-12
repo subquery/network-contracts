@@ -1,11 +1,11 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
+
 import './interfaces/IEraManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IInflationController.sol';
@@ -25,6 +25,7 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
 
     function initialize(ISettings _settings, uint256 _eraPeriod) external initializer {
         __Ownable_init();
+        require(_eraPeriod > 0, 'eraPeriod can not be 0');
 
         settings = _settings;
         eraPeriod = _eraPeriod;

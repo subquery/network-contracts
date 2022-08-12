@@ -10,10 +10,12 @@ import {deployContracts} from './deployContracts';
 
 const main = async () => {
     let config: DeploymentConfig;
+    let dev = true;
 
     switch (process.argv[2]) {
         case '--mainnet':
             config = mainnetConfig as DeploymentConfig;
+            dev = false;
             break;
         case '--testnet':
             config = testnetConfig as DeploymentConfig;
@@ -28,14 +30,14 @@ const main = async () => {
     if (process.env.ENDPOINT) {
         console.log(`use overridden endpoint ${process.env.ENDPOINT}`);
         if (config.network.platform === 'acala') {
-            config.network.endpoint = { ...config.network.endpoint, eth: process.env.ENDPOINT };
+            config.network.endpoint = {...config.network.endpoint, eth: process.env.ENDPOINT};
         } else {
             config.network.endpoint = process.env.ENDPOINT;
         }
     }
 
     const {wallet, provider, overrides} = await setup(config.network);
-    const [deployment] = await deployContracts(wallet, config.contracts, overrides);
+    const [deployment] = await deployContracts(wallet, config.contracts, overrides, dev);
 
     const filePath = `${__dirname}/../publish/${config.network.name}.json`;
     writeFileSync(filePath, JSON.stringify(deployment, null, 4));
