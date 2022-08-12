@@ -10,10 +10,15 @@ import PlanManager from './artifacts/contracts/PlanManager.sol/PlanManager.json'
 import PurchaseOfferMarket from './artifacts/contracts/PurchaseOfferMarket.sol/PurchaseOfferMarket.json';
 import EraManager from './artifacts/contracts/EraManager.sol/EraManager.json';
 import RewardsDistributer from './artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json';
+import RewardsPool from './artifacts/contracts/RewardsPool.sol/RewardsPool.json';
+import RewardsHelper from './artifacts/contracts/RewardsHelper.sol/RewardsHelper.json';
 import ProxyAdmin from './artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json';
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
 import Airdropper from './artifacts/contracts/Airdropper.sol/Airdropper.json';
 import PermissionedExchange from './artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json';
+
+import ConsumerProxy from './artifacts/contracts/ConsumerProxy.sol/ConsumerProxy.json';
+import ConsumerHoster from './artifacts/contracts/ConsumerHoster.sol/ConsumerHoster.json';
 
 export default {
     Settings,
@@ -28,8 +33,12 @@ export default {
     PurchaseOfferMarket,
     EraManager,
     RewardsDistributer,
+    RewardsPool,
+    RewardsHelper,
     ProxyAdmin,
     StateChannel,
+    ConsumerProxy,
+    ConsumerHoster,
     Airdropper,
     PermissionedExchange,
 };
