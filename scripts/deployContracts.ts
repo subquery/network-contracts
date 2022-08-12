@@ -46,6 +46,8 @@ import {
     Airdropper__factory,
     PermissionedExchange,
     PermissionedExchange__factory,
+    Vesting,
+    Vesting__factory,
 } from '../src';
 
 interface FactoryContstructor {
@@ -74,6 +76,7 @@ type Contracts = {
     consumerHoster: ConsumerHoster;
     airdropper: Airdropper;
     permissionedExchange: PermissionedExchange;
+    vesting: Vesting;
 };
 
 const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: string}, FactoryContstructor]>> = {
@@ -210,6 +213,11 @@ export async function deployContracts(
     await airdropper.deployTransaction.wait();
     updateDeployment(deployment, 'Airdropper', airdropper.address, airdropper.deployTransaction.hash);
 
+    //deploy vesting contract
+    const vesting = await new Vesting__factory(wallet).deploy(deployment.SQToken.address, overrides);
+    await vesting.deployTransaction.wait();
+    updateDeployment(deployment, 'Vesting', vesting.address, vesting.deployTransaction.hash);
+
     // deploy Staking contract
     const staking = await deployProxy<Staking>(proxyAdmin, Staking__factory, wallet, overrides);
     const initStaking = await staking.initialize(
@@ -299,20 +307,10 @@ export async function deployContracts(
         rewardsDistributer.deployTransaction.hash
     );
 
-    const rewardsPool = await deployProxy<RewardsPool>(
-        proxyAdmin,
-        RewardsPool__factory,
-        wallet,
-        overrides
-    );
+    const rewardsPool = await deployProxy<RewardsPool>(proxyAdmin, RewardsPool__factory, wallet, overrides);
     const initRewardsPool = await rewardsPool.initialize(deployment.Settings.address, overrides);
     await initRewardsPool.wait();
-    updateDeployment(
-        deployment,
-        'RewardsPool',
-        rewardsPool.address,
-        rewardsPool.deployTransaction.hash
-    );
+    updateDeployment(deployment, 'RewardsPool', rewardsPool.address, rewardsPool.deployTransaction.hash);
 
     const rewardsHelper = await deployProxy<RewardsHelper>(proxyAdmin, RewardsHelper__factory, wallet, overrides);
     const initRewardsHelper = await rewardsHelper.initialize(deployment.Settings.address, overrides);
@@ -359,22 +357,29 @@ export async function deployContracts(
     }
 
     // Register addresses on settings contract
-    const txObj = await settings.setAllAddresses(
+    const txToken = await settings.setTokenAddresses(
         deployment.SQToken.address,
         deployment.Staking.address,
+        deployment.RewardsDistributer.address,
+        deployment.RewardsPool.address,
+        deployment.RewardsHelper.address,
+        deployment.InflationController.address,
+        deployment.Vesting.address,
+        overrides as any
+    );
+
+    await txToken.wait();
+
+    const txProject = await settings.setProjectAddresses(
         deployment.IndexerRegistry.address,
         deployment.QueryRegistry.address,
         deployment.EraManager.address,
         deployment.PlanManager.address,
         deployment.ServiceAgreementRegistry.address,
-        deployment.RewardsDistributer.address,
-        deployment.RewardsPool.address,
-        deployment.RewardsHelper.address,
-        deployment.InflationController.address,
         overrides as any
     );
 
-    await txObj.wait();
+    await txProject.wait();
 
     return [
         deployment,
@@ -399,6 +404,7 @@ export async function deployContracts(
             consumerHoster,
             airdropper,
             permissionedExchange,
+            vesting,
         },
     ];
 }

@@ -243,7 +243,6 @@ describe('PlanManger Contract', () => {
         it('claim and distribute rewards by an indexer should work', async () => {
             await checkAcceptPlan(1);
 
-
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).accSQTPerStake).eq(0);
             const era = await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.connect(indexer).collectAndDistributeRewards(indexer.address);
@@ -260,7 +259,7 @@ describe('PlanManger Contract', () => {
             );
 
             expect(eraReward).to.be.eq(0);
-            expect(totalReward).to.be.eq(etherParse("2"));
+            expect(totalReward).to.be.eq(etherParse('2'));
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).accSQTPerStake).gt(0);
             expect(await rewardsDistributor.userRewards(indexer.address, indexer.address)).gt(0);
         });
