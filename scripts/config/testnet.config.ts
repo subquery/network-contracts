@@ -2,7 +2,7 @@ export default {
     network: {
         name: 'testnet',
         endpoint: {
-            eth: 'https://tc7-eth.aca-dev.network',
+            eth: 'https://acala-mandala-adapter.api.onfinality.io/public',
             substrate: 'wss://acala-mandala.api.onfinality.io/public-ws',
         },
         platform: 'acala',
