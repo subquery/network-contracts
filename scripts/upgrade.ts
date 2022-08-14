@@ -2,9 +2,9 @@ import fs, {writeFileSync} from 'fs';
 import setup from './setup';
 import {DeploymentConfig} from '../src/types';
 import localConfig from './config/local.config';
-import moonbeamConfig from './config/moonbeam.config';
 import testnetConfig from './config/testnet.config';
 import mainnetConfig from './config/mainnet.config';
+import keplerConfig from './config/kepler.config';
 import {EvmRpcProvider} from '@acala-network/eth-providers';
 import {upgradeContracts} from './deployContracts';
 
@@ -18,8 +18,8 @@ const main = async () => {
         case '--testnet':
             config = testnetConfig as DeploymentConfig;
             break;
-        case '--moonbeam':
-            config = moonbeamConfig as DeploymentConfig;
+        case '--kepler':
+            config = keplerConfig as DeploymentConfig;
             break;
         default:
             config = localConfig();
@@ -27,7 +27,7 @@ const main = async () => {
     if (process.env.ENDPOINT) {
         console.log(`use overiden endpoint ${process.env.ENDPOINT}`);
         if (config.network.platform === 'acala') {
-            config.network.endpoint = { ...config.network.endpoint, eth: process.env.ENDPOINT };
+            config.network.endpoint = {...config.network.endpoint, eth: process.env.ENDPOINT};
         } else {
             config.network.endpoint = process.env.ENDPOINT;
         }
