@@ -22,7 +22,6 @@
         "publish:testnet": "node -r ts-node/register/transpile-only scripts/publish.ts --testnet",
         "publish:mainnet": "node -r ts-node/register/transpile-only scripts/publish.ts --mainnet",
         "publish:kepler": "node -r ts-node/register/transpile-only scripts/publish.ts --kepler"
-
     },
     "devDependencies": {
         "@acala-network/bodhi": "^2.4.12",
