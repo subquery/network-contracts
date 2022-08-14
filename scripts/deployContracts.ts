@@ -217,7 +217,7 @@ export async function deployContracts(
     //deploy vesting contract
     const vesting = await new Vesting__factory(wallet).deploy(deployment.SQToken.address, overrides);
     await vesting.deployTransaction.wait();
-    updateDeployment(deployment, 'Vesting', vesting.address, vesting.deployTransaction.hash);
+    updateDeployment(deployment, 'Vesting', vesting.address, '', vesting.deployTransaction.hash);
 
     // deploy Staking contract
     const [staking, SInnerAddr] = await deployProxy<Staking>(proxyAdmin, Staking__factory, wallet, overrides);
