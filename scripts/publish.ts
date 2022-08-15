@@ -49,6 +49,10 @@ const main = async () => {
             }
         }
     }
+
+    if (api) {
+        await api.disconnect();
+    }
 };
 
 const publishContract = async (api, pair, key, address) => {
