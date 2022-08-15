@@ -1,6 +1,6 @@
 {
     "name": "@subql/contract-sdk",
-    "version": "0.7.1-10",
+    "version": "0.10.0",
     "main": "index.js",
     "license": "MIT",
     "scripts": {

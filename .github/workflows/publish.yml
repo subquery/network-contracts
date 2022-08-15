@@ -9,7 +9,7 @@ on:
     inputs:
       ws_endpoint:
         description: 'ws endpoint used to publish contracts'
-        default: wss://acala-mandala-adapter.api.onfinality.io/public-ws
+        default: wss://acala-mandala.api.onfinality.io/public-ws
         required: true
       network:
         type: choice
