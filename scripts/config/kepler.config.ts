@@ -1,9 +1,9 @@
 export default {
     network: {
-        name: 'testnet',
+        name: 'kepler',
         endpoint: {
-            eth: 'https://acala-mandala-adapter.api.onfinality.io/public',
-            substrate: 'wss://acala-mandala.api.onfinality.io/public-ws',
+            eth: 'https://eth-rpc-karura.aca-api.network/',
+            substrate: 'wss://eth-rpc-karura.aca-api.network/ws',
         },
         platform: 'acala',
     },

@@ -8,6 +8,7 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import './interfaces/ISettings.sol';
 import './interfaces/IStaking.sol';
+import './interfaces/IVesting.sol';
 
 contract VSQToken is Initializable {
     string private _name = 'VotingSubQueryToken';
@@ -34,6 +35,8 @@ contract VSQToken is Initializable {
     function balanceOf(address account) public view returns (uint256) {
         uint256 balanceAmount = IERC20(settings.getSQToken()).balanceOf(account);
         uint256 stakeAmount = IStaking(settings.getStaking()).lockedAmount(account);
-        return balanceAmount + stakeAmount;
+        IVesting vesting = IVesting(settings.getVesting());
+        uint256 vestingAmount = vesting.allocations(account) - vesting.claimed(account);
+        return balanceAmount + stakeAmount + vestingAmount;
     }
 }

@@ -62,7 +62,7 @@ describe('StateChannel Contract', () => {
         indexer: Wallet,
         consumer: Wallet,
         spent: BigNumber,
-        isFinal: boolean,
+        isFinal: boolean
     ): Promise<{
         channelId: BigNumberish;
         spent: BigNumberish;
@@ -189,8 +189,8 @@ describe('StateChannel Contract', () => {
             // check rewards
             const currentEra = (await eraManager.eraNumber()).toNumber();
             const infos = await rewardsPool.getReward(deploymentId, currentEra, indexer.address);
-            expect(infos[0]).to.be.eq(etherParse("0.1")); // labor
-            expect(infos[1]).to.be.eq(etherParse("0.1")); // reward
+            expect(infos[0]).to.be.eq(etherParse('0.1')); // labor
+            expect(infos[1]).to.be.eq(etherParse('0.1')); // reward
 
             const query2 = await buildQueryState(channelId, indexer, consumer, etherParse('0.2'), false);
             await stateChannel.checkpoint(query2);

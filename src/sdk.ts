@@ -36,6 +36,8 @@ import {
     ConsumerHoster__factory,
     Airdropper,
     Airdropper__factory,
+    PermissionedExchange,
+    PermissionedExchange__factory,
 } from './typechain';
 
 export class ContractSDK {
@@ -64,6 +66,7 @@ export class ContractSDK {
     private _consumerProxy?: ConsumerProxy;
     private _consumerHoster?: ConsumerHoster;
     private _airdropper?: Airdropper;
+    private _permissionedExchange?: PermissionedExchange;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options?: SdkOptions) {
         this._contractDeployments =
@@ -194,6 +197,13 @@ export class ContractSDK {
         return this._airdropper;
     }
 
+    get permissionedExchange(): PermissionedExchange {
+        if (!this._permissionedExchange) {
+            throw new Error(`_permissionedExchange address not found`);
+        }
+        return this._permissionedExchange;
+    }
+
     public async initContract<C extends Contract>(
         factory: {connect: (address: string, signerOrProvider: AbstractProvider | Signer) => C},
         address?: string
@@ -223,6 +233,7 @@ export class ContractSDK {
             consumerProxy,
             consumerHoster,
             airdropper,
+            permissionedExchange,
         ] = await Promise.all([
             this.initContract(Settings__factory, this._contractDeployments.Settings?.address),
             this.initContract(SQToken__factory, this._contractDeployments.SQToken?.address),
@@ -244,6 +255,7 @@ export class ContractSDK {
             this.initContract(ConsumerProxy__factory, this._contractDeployments.ConsumerProxy.address),
             this.initContract(ConsumerHoster__factory, this._contractDeployments.ConsumerHoster.address),
             this.initContract(Airdropper__factory, this._contractDeployments.Airdropper.address),
+            this.initContract(PermissionedExchange__factory, this._contractDeployments.PermissionedExchange.address),
         ]);
         this._settings = settings;
         this._sqToken = sqToken;
@@ -262,5 +274,6 @@ export class ContractSDK {
         this._consumerProxy = consumerProxy;
         this._consumerHoster = consumerHoster;
         this._airdropper = airdropper;
+        this._permissionedExchange = permissionedExchange;
     }
 }

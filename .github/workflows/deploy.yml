@@ -9,8 +9,17 @@ on:
     inputs:
       endpoint:
         description: 'endpoint used to deploy contracts'
-        default: https://tc7-eth.aca-dev.network
+        default: https://acala-mandala-adapter.api.onfinality.io/public
         required: true
+      network:
+        type: choice
+        description: 'network used to publish contracts'
+        default: testnet
+        required: true
+        options: 
+        - testnet
+        - kelper
+        - mainnet
 
 jobs:
   Deploy-Contracts:
@@ -37,7 +46,7 @@ jobs:
 
       # Deploy contracts to acala testnet
       - name: Deploy contracts
-        run: yarn deploy --testnet && scripts/copy_deployment_json.sh # Uses SEED env var
+        run: yarn deploy:${{ github.event.inputs.network }} && scripts/copy_deployment_json.sh # Uses SEED env var
         env:
           ENDPOINT: ${{ github.event.inputs.endpoint }}
           DEPLOY_PRINT: true

@@ -1,0 +1,52 @@
+name: "Publish"
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/workflows/**'
+  workflow_dispatch:
+    inputs:
+      ws_endpoint:
+        description: 'ws endpoint used to publish contracts'
+        default: wss://acala-mandala-adapter.api.onfinality.io/public-ws
+        required: true
+      network:
+        type: choice
+        description: 'network used to publish contracts'
+        default: testnet
+        required: true
+        options: 
+        - testnet
+        - kelper
+        - mainnet
+
+jobs:
+  Publish-Contracts:
+    name: Publish-Contracts
+    if: "startsWith(github.event.head_commit.message, '[deploy-testnet]') && github.repository == 'subquery/network-contracts' || github.event_name == 'workflow_dispatch'"
+    runs-on: ubuntu-latest
+    env:
+      SEED: ${{ secrets.SEED }}
+    steps:
+      #Check out
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 100
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: yarn
+
+      - name: Bump & Build
+        run: npm version prerelease --no-git-tag-version && yarn build
+
+      # Publish contracts on acala testnet
+      - name: Publish contracts
+        run: yarn publish:${{ github.event.inputs.network }}
+        env:
+          WS_ENDPOINT: ${{ github.event.inputs.ws_endpoint }}
+          DEPLOY_PRINT: true

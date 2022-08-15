@@ -156,6 +156,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.18.9":
+  version: 7.18.9
+  resolution: "@babel/runtime@npm:7.18.9"
+  dependencies:
+    regenerator-runtime: ^0.13.4
+  checksum: 36dd736baba7164e82b3cc9d43e081f0cb2d05ff867ad39cac515d99546cee75b7f782018b02a3dcf5f2ef3d27f319faa68965fdfec49d4912c60c6002353a2e
+  languageName: node
+  linkType: hard
+
 "@babel/runtime@npm:^7.4.4":
   version: 7.17.2
   resolution: "@babel/runtime@npm:7.17.2"
@@ -1392,6 +1401,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@polkadot/keyring@npm:^10.1.3":
+  version: 10.1.3
+  resolution: "@polkadot/keyring@npm:10.1.3"
+  dependencies:
+    "@babel/runtime": ^7.18.9
+    "@polkadot/util": 10.1.3
+    "@polkadot/util-crypto": 10.1.3
+  peerDependencies:
+    "@polkadot/util": 10.1.3
+    "@polkadot/util-crypto": 10.1.3
+  checksum: 23c5ef127b256384cc1b289391ff7adc43edb30949d521b8b726c8b82477c3232fdef9b7d1982d15372e5faf134f1b8ee7f4fb09411785aa4c20f8776931f7eb
+  languageName: node
+  linkType: hard
+
 "@polkadot/keyring@npm:^9.0.1":
   version: 9.1.1
   resolution: "@polkadot/keyring@npm:9.1.1"
@@ -1414,6 +1437,17 @@ __metadata:
     "@polkadot/util": 9.1.1
     "@substrate/ss58-registry": ^1.17.0
   checksum: de83bad75cb26790209f7739ad9cc3b12d95384aa3c415b4ab4d7be78448f57a5ccc46f28cd4f1848cdf1aa68cf52792c48206533902745eb7e7cc6ace212e50
+  languageName: node
+  linkType: hard
+
+"@polkadot/networks@npm:^10.1.3":
+  version: 10.1.3
+  resolution: "@polkadot/networks@npm:10.1.3"
+  dependencies:
+    "@babel/runtime": ^7.18.9
+    "@polkadot/util": 10.1.3
+    "@substrate/ss58-registry": ^1.25.0
+  checksum: c265c1be5672936af2b36d8d99233e19296d614285e9471076e976d001e74fa20b1713b57c1d4c3ae4d8d6bd81a54233ff5ace6a70f98f3f1b5f34e8e433b112
   languageName: node
   linkType: hard
 
@@ -1535,6 +1569,42 @@ __metadata:
     "@polkadot/util-crypto": ^9.0.1
     rxjs: ^7.5.5
   checksum: aa550a1899ae006737cc05e42405694267f7fa91d34343280aa90fc5fc9b48f96d02b650a12a828fcfd91ce7c99a7b00eb124be4c74b73c4d45bd1a6d011527d
+  languageName: node
+  linkType: hard
+
+"@polkadot/ui-keyring@npm:^2.9.4":
+  version: 2.9.4
+  resolution: "@polkadot/ui-keyring@npm:2.9.4"
+  dependencies:
+    "@babel/runtime": ^7.18.9
+    "@polkadot/keyring": ^10.1.3
+    "@polkadot/ui-settings": 2.9.4
+    "@polkadot/util": ^10.1.3
+    "@polkadot/util-crypto": ^10.1.3
+    mkdirp: ^1.0.4
+    rxjs: ^7.5.6
+    store: ^2.0.12
+  peerDependencies:
+    "@polkadot/keyring": "*"
+    "@polkadot/ui-settings": "*"
+    "@polkadot/util": "*"
+  checksum: 5b60cca09353656f2424ddb15d68cc85aa53ec350d1317930012958ad0bb70ad7227bc561c5cba253c9e883181d5eaa381bb2cedc0e45284e563146a3882a6be
+  languageName: node
+  linkType: hard
+
+"@polkadot/ui-settings@npm:2.9.4":
+  version: 2.9.4
+  resolution: "@polkadot/ui-settings@npm:2.9.4"
+  dependencies:
+    "@babel/runtime": ^7.18.9
+    "@polkadot/networks": ^10.1.3
+    "@polkadot/util": ^10.1.3
+    eventemitter3: ^4.0.7
+    store: ^2.0.12
+  peerDependencies:
+    "@polkadot/networks": "*"
+    "@polkadot/util": "*"
+  checksum: e658aa89f0ab8cd92c694318409af585de68ea074ebcde57c17c795320e71359368083f1a24a2e6ad4326590660ad9b3741137213abcb55be34f1f80c4495bf6
   languageName: node
   linkType: hard
 
@@ -1931,6 +2001,7 @@ __metadata:
     "@openzeppelin/contracts": ^4.5.0
     "@openzeppelin/contracts-upgradeable": ^4.5.2
     "@openzeppelin/test-helpers": ^0.5.15
+    "@polkadot/ui-keyring": ^2.9.4
     "@typechain/ethers-v5": 9.0.0
     "@typechain/hardhat": ^6.0.0
     "@types/chai": ^4.3.0
@@ -1997,6 +2068,13 @@ __metadata:
   version: 1.17.0
   resolution: "@substrate/ss58-registry@npm:1.17.0"
   checksum: 48d1e28e143514ae93a0faf4406a59db9d2ccaff3f5db36d8174657fc2d12c66be786aeaa78c4f5ba52e741588dfa033faf7915882c467b78dc77eefb5ef8ee3
+  languageName: node
+  linkType: hard
+
+"@substrate/ss58-registry@npm:^1.25.0":
+  version: 1.25.0
+  resolution: "@substrate/ss58-registry@npm:1.25.0"
+  checksum: 87f6e29702154ace790489342a1157afd9b855bd79a5061472564fb0843addfe0c11c8cc46c7a35fddd5106bce8c1c9a9cace19822185ae5a1975f0f7504b9be
   languageName: node
   linkType: hard
 
@@ -13900,6 +13978,15 @@ resolve@1.17.0:
   languageName: node
   linkType: hard
 
+"rxjs@npm:^7.5.6":
+  version: 7.5.6
+  resolution: "rxjs@npm:7.5.6"
+  dependencies:
+    tslib: ^2.1.0
+  checksum: fc05f01364a74dac57490fb3e07ea63b422af04017fae1db641a009073f902ef69f285c5daac31359620dc8d9aee7d81e42b370ca2a8573d1feae0b04329383b
+  languageName: node
+  linkType: hard
+
 "safe-buffer@npm:5.1.2, safe-buffer@npm:~5.1.0, safe-buffer@npm:~5.1.1":
   version: 5.1.2
   resolution: "safe-buffer@npm:5.1.2"
@@ -14770,6 +14857,13 @@ resolve@1.17.0:
   version: 1.1.1
   resolution: "stealthy-require@npm:1.1.1"
   checksum: 6805b857a9f3a6a1079fc6652278038b81011f2a5b22cbd559f71a6c02087e6f1df941eb10163e3fdc5391ab5807aa46758d4258547c1f5ede31e6d9bfda8dd3
+  languageName: node
+  linkType: hard
+
+"store@npm:^2.0.12":
+  version: 2.0.12
+  resolution: "store@npm:2.0.12"
+  checksum: 4e0fe69f71dc3c99af1b87e87dcb0c81fc979bd38abbcdf66d5705f1c44e6fd5e043056288efd695926c75419adc356873e6792d9b024085a8db51dbdda899ea
   languageName: node
   linkType: hard
 

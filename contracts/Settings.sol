@@ -20,43 +20,54 @@ contract Settings is ISettings, Ownable, Constants {
     address public rewardsPool;
     address public rewardsHelper;
     address public inflationController;
+    address public vesting;
 
     constructor() Ownable() {}
 
-    function setAllAddresses(
-        address _sqToken,
-        address _staking,
+    function setProjectAddresses(
         address _indexerRegistry,
         address _queryRegistry,
         address _eraManager,
         address _planManager,
-        address _serviceAgreementRegistry,
-        address _rewardsDistributer,
-        address _rewardsPool,
-        address _rewardsHelper,
-        address _inflationController
+        address _serviceAgreementRegistry
     ) external override onlyOwner {
-        require(_sqToken != ZERO_ADDRESS);
-        require(_staking != ZERO_ADDRESS);
         require(_indexerRegistry != ZERO_ADDRESS);
         require(_queryRegistry != ZERO_ADDRESS);
         require(_eraManager != ZERO_ADDRESS);
         require(_planManager != ZERO_ADDRESS);
         require(_serviceAgreementRegistry != ZERO_ADDRESS);
-        require(_rewardsDistributer != ZERO_ADDRESS);
-        require(_inflationController != ZERO_ADDRESS);
 
-        sqToken = _sqToken;
-        staking = _staking;
         indexerRegistry = _indexerRegistry;
         queryRegistry = _queryRegistry;
         eraManager = _eraManager;
         planManager = _planManager;
         serviceAgreementRegistry = _serviceAgreementRegistry;
+    }
+
+    function setTokenAddresses(
+        address _sqToken,
+        address _staking,
+        address _rewardsDistributer,
+        address _rewardsPool,
+        address _rewardsHelper,
+        address _inflationController,
+        address _vesting
+    ) external override onlyOwner {
+        require(_sqToken != ZERO_ADDRESS);
+        require(_staking != ZERO_ADDRESS);
+        require(_rewardsDistributer != ZERO_ADDRESS);
+        require(_inflationController != ZERO_ADDRESS);
+        require(_vesting != ZERO_ADDRESS);
+        require(_rewardsHelper != ZERO_ADDRESS);
+        require(_rewardsPool != ZERO_ADDRESS);
+
+        sqToken = _sqToken;
+        staking = _staking;
         rewardsDistributer = _rewardsDistributer;
         rewardsPool = _rewardsPool;
         rewardsHelper = _rewardsHelper;
         inflationController = _inflationController;
+        vesting = _vesting;
     }
 
     function setSQToken(address _sqToken) external override onlyOwner {
@@ -154,5 +165,13 @@ contract Settings is ISettings, Ownable, Constants {
 
     function getInflationController() external view returns (address) {
         return inflationController;
+    }
+
+    function setVesting(address _vesting) external override onlyOwner {
+        vesting = _vesting;
+    }
+
+    function getVesting() external view returns (address) {
+        return vesting;
     }
 }
