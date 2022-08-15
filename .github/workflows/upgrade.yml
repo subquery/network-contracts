@@ -9,7 +9,7 @@ on:
     inputs:
       endpoint:
         description: 'endpoint used to deploy contracts'
-        default: https://acala-mandala-adapter.api.onfinality.io/public
+        default: https://acala-mandala.api.onfinality.io/public
         required: true
       network:
         type: choice
