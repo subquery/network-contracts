@@ -18,9 +18,6 @@ import Airdropper from './artifacts/contracts/Airdropper.sol/Airdropper.json';
 import PermissionedExchange from './artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json';
 import Vesting from './artifacts/contracts/Vesting.sol/Vesting.json';
 
-import ConsumerProxy from './artifacts/contracts/ConsumerProxy.sol/ConsumerProxy.json';
-import ConsumerHoster from './artifacts/contracts/ConsumerHoster.sol/ConsumerHoster.json';
-
 export default {
     Settings,
     SQToken,
@@ -38,8 +35,6 @@ export default {
     RewardsHelper,
     ProxyAdmin,
     StateChannel,
-    ConsumerProxy,
-    ConsumerHoster,
     Airdropper,
     PermissionedExchange,
     Vesting,

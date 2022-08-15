@@ -30,10 +30,6 @@ import {
     PurchaseOfferMarket__factory,
     StateChannel,
     StateChannel__factory,
-    ConsumerProxy,
-    ConsumerProxy__factory,
-    ConsumerHoster,
-    ConsumerHoster__factory,
     Airdropper,
     Airdropper__factory,
     PermissionedExchange,
@@ -63,8 +59,6 @@ export class ContractSDK {
     private _rewardsHelper?: RewardsHelper;
     private _purchaseOfferMarket?: PurchaseOfferMarket;
     private _stateChannel?: StateChannel;
-    private _consumerProxy?: ConsumerProxy;
-    private _consumerHoster?: ConsumerHoster;
     private _airdropper?: Airdropper;
     private _permissionedExchange?: PermissionedExchange;
 
@@ -176,20 +170,6 @@ export class ContractSDK {
         return this._stateChannel;
     }
 
-    get consumerProxy(): ConsumerProxy {
-        if (!this._consumerProxy) {
-            throw new Error(`_consumerProxy address not found`);
-        }
-        return this._consumerProxy;
-    }
-
-    get consumerHoster(): ConsumerHoster {
-        if (!this._consumerHoster) {
-            throw new Error(`_consumerHoster address not found`);
-        }
-        return this._consumerHoster;
-    }
-
     get airdropper(): Airdropper {
         if (!this._airdropper) {
             throw new Error(`_airdropper address not found`);
@@ -230,8 +210,6 @@ export class ContractSDK {
             rewardsHelper,
             purchaseOfferMarket,
             stateChannel,
-            consumerProxy,
-            consumerHoster,
             airdropper,
             permissionedExchange,
         ] = await Promise.all([
@@ -252,8 +230,6 @@ export class ContractSDK {
             this.initContract(RewardsHelper__factory, this._contractDeployments.RewardsHelper.address),
             this.initContract(PurchaseOfferMarket__factory, this._contractDeployments.PurchaseOfferMarket.address),
             this.initContract(StateChannel__factory, this._contractDeployments.StateChannel.address),
-            this.initContract(ConsumerProxy__factory, this._contractDeployments.ConsumerProxy.address),
-            this.initContract(ConsumerHoster__factory, this._contractDeployments.ConsumerHoster.address),
             this.initContract(Airdropper__factory, this._contractDeployments.Airdropper.address),
             this.initContract(PermissionedExchange__factory, this._contractDeployments.PermissionedExchange.address),
         ]);
@@ -271,8 +247,6 @@ export class ContractSDK {
         this._rewardsHelper = rewardsHelper;
         this._purchaseOfferMarket = purchaseOfferMarket;
         this._stateChannel = stateChannel;
-        this._consumerProxy = consumerProxy;
-        this._consumerHoster = consumerHoster;
         this._airdropper = airdropper;
         this._permissionedExchange = permissionedExchange;
     }
