@@ -191,7 +191,7 @@ export class ContractSDK {
         if (!address) {
             return undefined;
         }
-        return factory.connect(address, this.signerOrProvider).deployed() as Promise<C>;
+        return factory.connect(address, this.signerOrProvider);
     }
 
     private async _init(): Promise<void> {
