@@ -164,13 +164,11 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         require(planTemplates[_planTemplateId].active, 'Inactive plan template');
         require(planIds[msg.sender][_deploymentId].length < indexerPlanLimit, 'Indexer plan limitation reached');
 
-        //make the planId start from 1
-        uint256 _planCount = planCount[msg.sender] + 1;
-        plans[msg.sender][_planCount] = Plan(_price, _planTemplateId, _deploymentId, true);
-        planIds[msg.sender][_deploymentId].push(_planCount);
         planCount[msg.sender]++;
-
-        emit PlanCreated(msg.sender, _deploymentId, _planTemplateId, _planCount, _price);
+        plans[msg.sender][planCount[msg.sender]] = Plan(_price, _planTemplateId, _deploymentId, true);
+        planIds[msg.sender][_deploymentId].push(planCount[msg.sender]);
+        
+        emit PlanCreated(msg.sender, _deploymentId, _planTemplateId, planCount[msg.sender], _price);
     }
 
     /**
@@ -190,7 +188,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
                 planIds[msg.sender][deploymentId].push(_planId);
             }
         }
-        planCount[msg.sender]--;
 
         emit PlanRemoved(msg.sender, _planId, deploymentId);
     }
