@@ -9,6 +9,7 @@
         "build": "yarn build:contract && yarn build:ts",
         "lint": "solhint contracts/**/*.sol",
         "test": "hardhat test",
+        "test:kepler": "node test-e2e/kepler.e2e.ts",
         "test:coverage": "hardhat coverage",
         "prepare": "husky install",
         "deploy": "node -r ts-node/register/transpile-only scripts/deploy.ts",
@@ -76,7 +77,8 @@
     },
     "dependencies": {
         "@openzeppelin/contracts-upgradeable": "^4.5.2",
-        "@polkadot/ui-keyring": "^2.9.4"
+        "@polkadot/ui-keyring": "^2.9.4",
+        "@subql/contract-sdk": "^0.10.1-1"
     },
     "resolutions": {
         "@polkadot/util": "9.1.1",
