@@ -168,7 +168,7 @@ describe('PlanManger Contract', () => {
                 .withArgs(indexer.address, 1, DEPLOYMENT_ID);
 
             // check plan
-            expect(await planManager.planCount(indexer.address)).to.equal(0);
+            expect(await planManager.planCount(indexer.address)).to.equal(1);
             const plan = await planManager.plans(indexer.address, 1);
             expect(plan.price).to.equal(etherParse('2'));
             expect(plan.active).to.equal(false);
