@@ -244,15 +244,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         return _templates;
     }
 
-    function indexerPlans(address indexer) external view returns (Plan[] memory) {
-        Plan[] memory _plans = new Plan[](nextPlanId[indexer]);
-        for (uint256 i = 0; i < nextPlanId[indexer]; i++) {
-            _plans[i] = plans[indexer][i];
-        }
-
-        return _plans;
-    }
-
     function getPlan(address indexer, uint256 planId)
         external
         view
