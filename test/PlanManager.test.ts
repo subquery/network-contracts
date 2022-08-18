@@ -173,6 +173,15 @@ describe('PlanManger Contract', () => {
             expect(plan.active).to.equal(false);
         });
 
+        it('Plan Id shoud auto increment', async () => {
+            // creaet plan
+            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
+            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
+            await planManager.removePlan(2);
+            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
+            expect(await planManager.nextPlanId(indexer.address)).to.equal(3);
+        });
+
         it('create plan with invalid params should fail', async () => {
             // price == 0
             await expect(planManager.createPlan(0, 0, DEPLOYMENT_ID)).to.be.revertedWith('Price need to be positive');
