@@ -11,6 +11,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
+import './interfaces/IPermissionedExchange.sol';
 import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
@@ -166,6 +167,9 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
         info[indexer].accSQTPerStake += MathUtil.mulDiv(reward - commission, PER_TRILL, totalStake);
         IERC20(settings.getSQToken()).safeTransfer(indexer, commission);
+
+        IPermissionedExchange exchange = IPermissionedExchange(settings.getPermissionedExchange());
+        exchange.addQuota(settings.getSQToken(), indexer, commission);
     }
 
     /**
@@ -507,6 +511,9 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         info[indexer].rewardDebt[user] += rewards;
 
         IERC20(settings.getSQToken()).safeTransfer(user, rewards);
+        
+        IPermissionedExchange exchange = IPermissionedExchange(settings.getPermissionedExchange());
+        exchange.addQuota(settings.getSQToken(), user, rewards);
 
         emit ClaimRewards(indexer, user, rewards);
         return rewards;
