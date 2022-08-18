@@ -397,6 +397,7 @@ export async function deployContracts(
         deployment.RewardsHelper.address,
         deployment.InflationController.address,
         deployment.Vesting.address,
+        deployment.PermissionedExchange.address,
         overrides as any
     );
 

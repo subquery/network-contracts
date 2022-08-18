@@ -101,7 +101,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     /**
      * @dev Emitted when rewards are distributed for the earliest pending distributed Era.
      */
-    event DistributeRewards(address indexed indexer, uint256 indexed eraIdx);
+    event DistributeRewards(address indexed indexer, uint256 indexed eraIdx, uint256 rewards);
     /**
      * @dev Emitted when user claimed rewards.
      */
@@ -167,6 +167,8 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
         info[indexer].accSQTPerStake += MathUtil.mulDiv(reward - commission, PER_TRILL, totalStake);
         IERC20(settings.getSQToken()).safeTransfer(indexer, commission);
+
+        emit DistributeRewards(indexer, currentEra, commission);
 
         IPermissionedExchange exchange = IPermissionedExchange(settings.getPermissionedExchange());
         exchange.addQuota(settings.getSQToken(), indexer, commission);
@@ -326,18 +328,6 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     /**
-     * @dev collect and distribute rewards with specific indexer and batch size
-     */
-    // function batchCollectAndDistributeRewards(address indexer, uint256 batchSize) public {
-    //     // check current era is after lastClaimEra
-    //     uint256 currentEra = _getCurrentEra();
-    //     uint256 loopCount = MathUtil.min(batchSize, currentEra - info[indexer].lastClaimEra - 1);
-    //     for (uint256 i = 0; i < loopCount; i++) {
-    //         _collectAndDistributeRewards(currentEra, indexer);
-    //     }
-    // }
-
-    /**
      * @dev Calculate and distribute the rewards for the next Era of the lastClaimEra.
      * Calculate by eraRewardAddTable and eraRewardRemoveTable.
      * Distribute by distributeRewards method.
@@ -358,7 +348,6 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         delete rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
         if (rewardInfo.eraReward != 0) {
             distributeRewards(indexer, rewardInfo.eraReward);
-            emit DistributeRewards(indexer, currentEra);
         }
         return rewardInfo.lastClaimEra;
     }
