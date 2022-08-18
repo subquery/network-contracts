@@ -231,7 +231,6 @@ describe('Vesting Contract', () => {
             expect(await vestingContract.claimableAmount(wallet2.address)).to.equal(0);
         });
 
-        // FIXME: need to fix this test case @Jason
         it('claim should work', async () => {
             // start vesting
             await startVesting();
