@@ -51,9 +51,12 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         uint256 amountGet
     );
 
-    function initialize(ISettings _settings) external initializer {
+    function initialize(ISettings _settings, address[] calldata _controllers) external initializer {
         __Ownable_init();
         settings = _settings;
+        for (uint256 i; i < _controllers.length; i++) {
+            exchangeController[_controllers[i]] = true;
+        }
     }
 
     /**

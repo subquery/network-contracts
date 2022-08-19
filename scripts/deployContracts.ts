@@ -378,7 +378,11 @@ export async function deployContracts(
         wallet,
         overrides
     );
-    const initPermissionedExchange = await permissionedExchange.initialize(deployment.Settings.address, overrides);
+    const initPermissionedExchange = await permissionedExchange.initialize(
+        deployment.Settings.address,
+        [rewardsDistributer.address],
+        overrides
+    );
     await initPermissionedExchange.wait();
     updateDeployment(
         deployment,
