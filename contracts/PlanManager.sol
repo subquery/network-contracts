@@ -58,7 +58,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     //planTemplateId => planTemplate
     mapping(uint256 => PlanTemplate) public planTemplates;
     //indexer => index
-    mapping(address => uint256) public planCount;
+    mapping(address => uint256) public nextPlanId;
     //indexer => index => plan
     mapping(address => mapping(uint256 => Plan)) public plans;
     //indexer => deploymentId => planIds
@@ -164,13 +164,11 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         require(planTemplates[_planTemplateId].active, 'Inactive plan template');
         require(planIds[msg.sender][_deploymentId].length < indexerPlanLimit, 'Indexer plan limitation reached');
 
-        //make the planId start from 1
-        uint256 _planCount = planCount[msg.sender] + 1;
-        plans[msg.sender][_planCount] = Plan(_price, _planTemplateId, _deploymentId, true);
-        planIds[msg.sender][_deploymentId].push(_planCount);
-        planCount[msg.sender]++;
-
-        emit PlanCreated(msg.sender, _deploymentId, _planTemplateId, _planCount, _price);
+        nextPlanId[msg.sender]++;
+        plans[msg.sender][nextPlanId[msg.sender]] = Plan(_price, _planTemplateId, _deploymentId, true);
+        planIds[msg.sender][_deploymentId].push(nextPlanId[msg.sender]);
+        
+        emit PlanCreated(msg.sender, _deploymentId, _planTemplateId, nextPlanId[msg.sender], _price);
     }
 
     /**
@@ -179,7 +177,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     function removePlan(uint256 _planId) external {
         require(plans[msg.sender][_planId].active, 'Inactive plan can not be removed');
 
-        plans[msg.sender][_planId].active = false;
         bytes32 deploymentId = plans[msg.sender][_planId].deploymentId;
 
         // remove _planId from planIds
@@ -190,7 +187,8 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
                 planIds[msg.sender][deploymentId].push(_planId);
             }
         }
-        planCount[msg.sender]--;
+
+        delete plans[msg.sender][_planId];
 
         emit PlanRemoved(msg.sender, _planId, deploymentId);
     }
@@ -244,15 +242,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         }
 
         return _templates;
-    }
-
-    function indexerPlans(address indexer) external view returns (Plan[] memory) {
-        Plan[] memory _plans = new Plan[](planCount[indexer]);
-        for (uint256 i = 0; i < planCount[indexer]; i++) {
-            _plans[i] = plans[indexer][i];
-        }
-
-        return _plans;
     }
 
     function getPlan(address indexer, uint256 planId)
