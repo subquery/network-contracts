@@ -145,7 +145,7 @@ describe('PlanManger Contract', () => {
                 .withArgs(indexer.address, DEPLOYMENT_ID, 0, 1, etherParse('2'));
 
             // check plan
-            expect(await planManager.planCount(indexer.address)).to.equal(1);
+            expect(await planManager.nextPlanId(indexer.address)).to.equal(1);
             const plan = await planManager.plans(indexer.address, 1);
             expect(plan.price).to.equal(etherParse('2'));
             expect(plan.active).to.equal(true);
@@ -168,11 +168,18 @@ describe('PlanManger Contract', () => {
                 .withArgs(indexer.address, 1, DEPLOYMENT_ID);
 
             // check plan
-            expect(await planManager.planCount(indexer.address)).to.equal(0);
+            expect(await planManager.nextPlanId(indexer.address)).to.equal(1);
             const plan = await planManager.plans(indexer.address, 1);
-            expect(plan.price).to.equal(etherParse('2'));
             expect(plan.active).to.equal(false);
-            expect(plan.planTemplateId).to.equal(0);
+        });
+
+        it('Plan Id shoud auto increment', async () => {
+            // creaet plan
+            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
+            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
+            await planManager.removePlan(2);
+            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
+            expect(await planManager.nextPlanId(indexer.address)).to.equal(3);
         });
 
         it('create plan with invalid params should fail', async () => {

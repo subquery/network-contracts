@@ -60,7 +60,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         //consumer who create this offer
         address consumer;
         //offer active or not
-        bool cancelled;
+        bool active;
         //how many indexer can accept the offer
         uint16 limit;
         //number of contracts created from this offer
@@ -170,7 +170,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
             _deploymentId,
             _expireDate,
             msg.sender,
-            false,
+            true,
             _limit,
             0
         );
@@ -205,8 +205,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     function cancelPurchaseOffer(uint256 _offerId) external {
         PurchaseOffer memory offer = offers[_offerId];
         require(msg.sender == offer.consumer, 'only offerer can cancel the offer');
-
-        offers[_offerId].cancelled = true;
+        require(offers[_offerId].active, 'invalid offerId');
 
         //- deposit * limit
         uint256 unfulfilledValue = offer.deposit * (offer.limit - offer.numAcceptedContracts);
@@ -224,6 +223,8 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         // send remaining SQToken from the contract to consumer (this)
         require(IERC20(settings.getSQToken()).transfer(msg.sender, unfulfilledValue), 'transfer fail');
 
+        delete offers[_offerId];
+
         emit PurchaseOfferCancelled(msg.sender, _offerId, penalty);
     }
 
@@ -236,10 +237,9 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * and save this mmr value when agreement create.
      */
     function acceptPurchaseOffer(uint256 _offerId, bytes32 _mmrRoot) external onlyIndexer {
-        require(_offerId < numOffers, 'invalid offerId');
+        require(offers[_offerId].active, 'invalid offerId');
         require(!isExpired(_offerId), 'offer expired');
         require(!acceptedOffer[_offerId][msg.sender], 'offer accepted already');
-        require(!offers[_offerId].cancelled, 'offer cancelled');
         require(
             offers[_offerId].limit > offers[_offerId].numAcceptedContracts,
             'number of contracts already reached limit'
