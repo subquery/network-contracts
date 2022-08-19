@@ -19,7 +19,8 @@ interface ISettings {
         address _rewardsPool,
         address _rewardsHelper,
         address _inflationController,
-        address _vesting
+        address _vesting,
+        address _permissionedExchange
     ) external;
 
     function setSQToken(address _sqToken) external;
@@ -69,4 +70,8 @@ interface ISettings {
     function setVesting(address _vesting) external;
 
     function getVesting() external view returns (address);
+
+    function setPermissionedExchange(address _permissionedExchange) external;
+
+    function getPermissionedExchange() external view returns (address);
 }
