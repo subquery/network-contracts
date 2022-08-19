@@ -169,10 +169,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         IERC20(settings.getSQToken()).safeTransferFrom(msg.sender, address(this), agreementValue);
 
         uint256 estAgreementEnd = agreementStartDate + agreementPeriod;
-        uint256 firstEraPortion = MathUtil.min(
-            eraManager.eraStartTime() + (agreementStartEra - eraManager.eraNumber() + 1) * eraPeriod,
-            estAgreementEnd
-        ) - agreementStartDate;
+        uint256 firstEraPortion = MathUtil.min(eraManager.eraStartTime() + (agreementStartEra - eraManager.eraNumber() + 1) * eraPeriod, estAgreementEnd) - agreementStartDate;
 
         RewardInfo storage rewardInfo = info[indexer];
 
@@ -187,9 +184,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             rewardInfo.eraRewardAddTable[agreementStartEra] += firstEraReward;
 
             uint256 postEndEra = agreementStartEra + 2;
-            rewardInfo.eraRewardAddTable[agreementStartEra + 1] += firstEraReward < lastEraReward
-                ? lastEraReward - firstEraReward
-                : firstEraReward - lastEraReward;
+            rewardInfo.eraRewardAddTable[agreementStartEra + 1] += firstEraReward < lastEraReward ? lastEraReward - firstEraReward : firstEraReward - lastEraReward;
             rewardInfo.eraRewardRemoveTable[postEndEra] += lastEraReward;
 
             _emitRewardsChangedEvent(indexer, postEndEra, rewardInfo);
@@ -200,10 +195,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             uint256 restEras = MathUtil.divUp(agreementPeriod - firstEraPortion, eraPeriod);
             uint256 rewardForMidEra = MathUtil.mulDiv(eraPeriod, agreementValue, agreementPeriod);
             rewardInfo.eraRewardAddTable[agreementStartEra + 1] += rewardForMidEra - firstEraReward;
-            uint256 rewardForLastEra = MathUtil.sub(
-                                                    MathUtil.sub(agreementValue, firstEraReward),
-                                                    rewardForMidEra * (restEras - 1)
-                                                    );
+            uint256 rewardForLastEra = MathUtil.sub(MathUtil.sub(agreementValue, firstEraReward), rewardForMidEra * (restEras - 1));
             if (rewardForLastEra <= rewardForMidEra) {
                 uint256 rewardMinus = MathUtil.sub(rewardForMidEra, rewardForLastEra);
                 rewardInfo.eraRewardRemoveTable[restEras + agreementStartEra] += rewardMinus;
@@ -315,11 +307,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             uint256 newDelegation = staking.getAfterDelegationAmount(_indexer, _indexer);
             delegation[_indexer][_indexer] = newDelegation;
 
-            info[_indexer].rewardDebt[_indexer] = MathUtil.mulDiv(
-                newDelegation,
-                info[_indexer].accSQTPerStake,
-                PER_TRILL
-            );
+            info[_indexer].rewardDebt[_indexer] = MathUtil.mulDiv(newDelegation, info[_indexer].accSQTPerStake, PER_TRILL);
             //make sure the eraReward be 0, when indexer reregister
             if (info[_indexer].eraRewardRemoveTable[currentEra] == 0) {
                 info[_indexer].eraReward = 0;
