@@ -70,7 +70,7 @@ async function queryProjectSetup() {
     const next = await sdk.queryRegistry.nextQueryId();
     if (next.toNumber() == 0) {
         console.log('start create query project 0 ...');
-        await sdk.queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+        await sdk.queryRegistry.createQueryProject(METADATA_HASH, VERSION, cidToBytes32(DEPLOYMENT_ID));
     }
 
     const info = await sdk.queryRegistry.queryInfos(0);
@@ -114,6 +114,8 @@ async function indexerSetup() {
     } else {
         console.log(INDEXER_ADDR + ' is not an Indexer');
         console.log('start registerIndexer');
+
+        await sdk.sqToken.connect(root_wallet).transfer(indexer_wallet.address, etherParse('1000'));
         await sdk.sqToken.connect(indexer_wallet).increaseAllowance(sdk.staking.address, etherParse('1000'));
         await sdk.indexerRegistry
             .connect(indexer_wallet)
@@ -296,9 +298,9 @@ async function main() {
 
     overrides = await getOverrides(provider);
 
-    await rootSetup();
-    await queryProjectSetup();
-    await planTemplateSetup();
+    // await rootSetup();
+    // await queryProjectSetup();
+    // await planTemplateSetup();
     await indexerSetup();
     await clearEndedAgreements(INDEXER_ADDR);
     await planManagerTest();
