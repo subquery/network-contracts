@@ -1977,17 +1977,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@subql/contract-sdk@npm:^0.10.1-1":
-  version: 0.10.1
-  resolution: "@subql/contract-sdk@npm:0.10.1"
-  dependencies:
-    "@openzeppelin/contracts-upgradeable": ^4.5.2
-    "@polkadot/ui-keyring": ^2.9.4
-  checksum: 666ea5d5e0fff9505d6820c386f93713bf8a0e2481cf5f8a4a93333df4ca0acad3e20c389faa043fd558615f11d34fbc83849e8a47a3da8d4887120475d3eedd
-  languageName: node
-  linkType: hard
-
-"@subql/contract-sdk@workspace:.":
+"@subql/contract-sdk@^0.10.2-1, @subql/contract-sdk@workspace:.":
   version: 0.0.0-use.local
   resolution: "@subql/contract-sdk@workspace:."
   dependencies:
@@ -2012,7 +2002,7 @@ __metadata:
     "@openzeppelin/contracts-upgradeable": ^4.5.2
     "@openzeppelin/test-helpers": ^0.5.15
     "@polkadot/ui-keyring": ^2.9.4
-    "@subql/contract-sdk": ^0.10.1-1
+    "@subql/contract-sdk": ^0.10.2-1
     "@typechain/ethers-v5": 9.0.0
     "@typechain/hardhat": ^6.0.0
     "@types/chai": ^4.3.0
