@@ -231,8 +231,7 @@ describe('Vesting Contract', () => {
             expect(await vestingContract.claimableAmount(wallet2.address)).to.equal(0);
         });
 
-        // FIXME: need to fix this test case @Jason
-        it.skip('claim should work', async () => {
+        it('claim should work', async () => {
             // start vesting
             await startVesting();
             await timeTravel(lockPeriod + 1001);
@@ -247,14 +246,16 @@ describe('Vesting Contract', () => {
             // wallet1 claim
             await vestingContract.connect(wallet1).claim();
             const balance1 = await token.balanceOf(wallet1.address);
-            expect(claimable1).to.eq(balance1);
+            expect(balance1).to.gt(claimable1);
+            expect(balance1).to.lt(claimable1.add(units(0.001)));
             // claim after half vesting period
             await timeTravel(vestingPeriod / 2);
             claimable1 = await vestingContract.claimableAmount(wallet1.address);
             expect(claimable1).to.gte(units(450));
             // wallet1 claim
             await vestingContract.connect(wallet1).claim();
-            expect(await token.balanceOf(wallet1.address)).to.eq(balance1.add(claimable1));
+            expect(await token.balanceOf(wallet1.address)).to.gt(balance1.add(claimable1));
+            expect(await token.balanceOf(wallet1.address)).to.lt(balance1.add(claimable1).add(units(0.001)));
             // claim after vesting period
             await timeTravel(vestingPeriod / 2);
             await vestingContract.connect(wallet1).claim();

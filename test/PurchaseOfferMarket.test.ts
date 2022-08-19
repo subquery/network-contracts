@@ -67,7 +67,7 @@ describe('Purchase Offer Market Contract', () => {
                 expect(offer.minimumAcceptHeight).to.equal(minimumAcceptHeight);
                 expect(offer.planTemplateId).to.equal(planTemplateId);
                 expect((await planManager.getPlanTemplate(offer.planTemplateId)).period).to.equal(contractPeriod);
-                expect(offer.cancelled).to.equal(false);
+                expect(offer.active).to.equal(true);
                 expect(await purchaseOfferMarket.numOffers()).to.be.equal(1);
                 expect(await token.balanceOf(purchaseOfferMarket.address)).to.equal(deposit.mul(limit));
             });
@@ -119,7 +119,7 @@ describe('Purchase Offer Market Contract', () => {
                     .to.be.emit(purchaseOfferMarket, 'PurchaseOfferCancelled')
                     .withArgs(wallet_0.address, 0);
                 const offer = await purchaseOfferMarket.offers(0);
-                expect(offer.cancelled).to.equal(true);
+                expect(offer.active).to.equal(false);
 
                 // check balance changed
                 const amount = deposit.mul(limit);
@@ -136,7 +136,7 @@ describe('Purchase Offer Market Contract', () => {
                     .to.be.emit(purchaseOfferMarket, 'PurchaseOfferCancelled')
                     .withArgs(wallet_0.address, 0);
                 const offer = await purchaseOfferMarket.offers(0);
-                expect(offer.cancelled).to.equal(true);
+                expect(offer.active).to.equal(false);
 
                 // check balance changed
                 const amount = deposit.mul(limit);
@@ -220,7 +220,7 @@ describe('Purchase Offer Market Contract', () => {
                 );
                 // offer cancelled
                 await purchaseOfferMarket.cancelPurchaseOffer(1);
-                await expect(purchaseOfferMarket.acceptPurchaseOffer(1, mmrRoot)).to.be.revertedWith('offer cancelled');
+                await expect(purchaseOfferMarket.acceptPurchaseOffer(1, mmrRoot)).to.be.revertedWith('invalid offerId');
                 // contracts reacheed limit
                 await expect(purchaseOfferMarket.connect(wallet_1).acceptPurchaseOffer(0, mmrRoot)).to.be.revertedWith(
                     'number of contracts already reached limit'
