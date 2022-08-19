@@ -1,5 +1,5 @@
-const {ContractSDK} = require('@subql/contract-sdk');
-const {testnetDeployment} = require('@subql/contract-sdk/publish/testnet.json');
+const {ContractSDK} = require('../build/build');
+const testnetDeployment = require('../publish/testnet.json');
 const {ethers, Wallet, utils, providers, BigNumber} = require('ethers');
 const {toBuffer} = require('ethereumjs-util');
 const {EvmRpcProvider, calcEthereumTransactionParams} = require('@acala-network/eth-providers');
@@ -296,13 +296,13 @@ async function main() {
 
     overrides = await getOverrides(provider);
 
-    //await rootSetup();
-    //await queryProjectSetup();
-    //await planTemplateSetup();
-    //await indexerSetup();
-    //await clearEndedAgreements(INDEXER_ADDR);
-    //await planManagerTest();
-    //await purchaseOfferTest();
+    await rootSetup();
+    await queryProjectSetup();
+    await planTemplateSetup();
+    await indexerSetup();
+    await clearEndedAgreements(INDEXER_ADDR);
+    await planManagerTest();
+    await purchaseOfferTest();
     await airdropTest();
 
     if (provider.api) {
