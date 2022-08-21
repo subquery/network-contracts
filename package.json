@@ -12,16 +12,18 @@
         "test:coverage": "hardhat coverage",
         "prepare": "husky install",
         "deploy": "node -r ts-node/register/transpile-only scripts/deploy.ts",
-        "deploy:mainnet": "node -r ts-node/register/transpile-only scripts/deploy.ts --mainnet",
+        "deploy:moonbase": "node -r ts-node/register/transpile-only scripts/deploy.ts --moonbase",
         "deploy:testnet": "node -r ts-node/register/transpile-only scripts/deploy.ts --testnet",
         "deploy:kepler": "node -r ts-node/register/transpile-only scripts/deploy.ts --kepler",
+        "deploy:mainnet": "node -r ts-node/register/transpile-only scripts/deploy.ts --mainnet",
+        "upgrade:moonbase": "node -r ts-node/register/transpile-only scripts/upgrade.ts --moonbase",
         "upgrade:testnet": "node -r ts-node/register/transpile-only scripts/upgrade.ts --testnet",
         "upgrade:mainnet": "node -r ts-node/register/transpile-only scripts/upgrade.ts --mainnet",
         "upgrade:kepler": "node -r ts-node/register/transpile-only scripts/upgrade.ts --kepler",
         "seed:testnet": "ts-node scripts/seed.ts test/fixtures/testnet.yaml",
         "publish:testnet": "node -r ts-node/register/transpile-only scripts/publish.ts --testnet",
-        "publish:mainnet": "node -r ts-node/register/transpile-only scripts/publish.ts --mainnet",
-        "publish:kepler": "node -r ts-node/register/transpile-only scripts/publish.ts --kepler"
+        "publish:kepler": "node -r ts-node/register/transpile-only scripts/publish.ts --kepler",
+        "publish:mainnet": "node -r ts-node/register/transpile-only scripts/publish.ts --mainnet"
     },
     "devDependencies": {
         "@acala-network/bodhi": "^2.4.12",
