@@ -70,4 +70,8 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
             IInflationDestination(inflationDestination).afterReceiveInflatedTokens(claimAmount);
         }
     }
+
+    function mintSQT(address _destination, uint256 _amount) external onlyOwner {
+        ISQToken(settings.getSQToken()).mint(_destination, _amount);
+    }
 }
