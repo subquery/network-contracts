@@ -378,7 +378,11 @@ export async function deployContracts(
         wallet,
         overrides
     );
-    const initPermissionedExchange = await permissionedExchange.initialize(deployment.Settings.address, overrides);
+    const initPermissionedExchange = await permissionedExchange.initialize(
+        deployment.Settings.address,
+        [rewardsDistributer.address],
+        overrides
+    );
     await initPermissionedExchange.wait();
     updateDeployment(
         deployment,
@@ -397,6 +401,7 @@ export async function deployContracts(
         deployment.RewardsHelper.address,
         deployment.InflationController.address,
         deployment.Vesting.address,
+        deployment.PermissionedExchange.address,
         overrides as any
     );
 
