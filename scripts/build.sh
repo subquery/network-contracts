@@ -15,10 +15,4 @@ tsc -b
 
 sed -i -e '/"prepare"/d' build/package.json
 
-if [ -e publish/testnet.json ]
-  then cp publish/testnet.json build/publish/
-fi
-
-if [ -e publish/mainnet.json ]
-  then cp publish/mainnet.json build/publish/
-fi
+cp publish/*.json build/publish/
