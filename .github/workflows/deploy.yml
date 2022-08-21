@@ -18,8 +18,7 @@ on:
         required: true
         options: 
         - testnet
-        - kelper
-        - mainnet
+        - moonbase
 
 jobs:
   Deploy-Contracts:

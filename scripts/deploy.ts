@@ -7,6 +7,7 @@ import testnetConfig from './config/testnet.config';
 import mainnetConfig from './config/mainnet.config';
 import {EvmRpcProvider} from '@acala-network/eth-providers';
 import {deployContracts} from './deployContracts';
+import moonbaseConfig from './config/moonbase.config';
 
 const main = async () => {
     let config: DeploymentConfig;
@@ -19,6 +20,9 @@ const main = async () => {
             break;
         case '--testnet':
             config = testnetConfig as DeploymentConfig;
+            break;
+        case '--moonbase':
+            config = moonbaseConfig as DeploymentConfig;
             break;
         case '--kepler':
             config = keplerConfig as DeploymentConfig;
