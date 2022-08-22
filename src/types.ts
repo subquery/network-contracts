@@ -38,7 +38,7 @@ export type AcalaDeploymentConfig = {
 export type DeploymentConfig = AcalaDeploymentConfig | MoonbeamDeploymentConfig | HardhatDeploymentConfig;
 
 export type ContractDeploymentDetail = {
-    innerAddress: string;
+    innerAddress?: string;
     address: string;
     bytecodeHash: string;
     lastUpdate: string;
