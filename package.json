@@ -78,7 +78,7 @@
     "dependencies": {
         "@openzeppelin/contracts-upgradeable": "^4.5.2",
         "@polkadot/ui-keyring": "^2.9.4",
-        "@subql/contract-sdk": "^0.10.2-1"
+        "@subql/contract-sdk": "^0.10.2-8"
     },
     "resolutions": {
         "@polkadot/util": "9.1.1",
