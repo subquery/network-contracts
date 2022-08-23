@@ -1,16 +1,28 @@
 use serde_json::Value;
 use web3::{api::Eth, contract::Contract, transports::Http};
 
-const ADDRESS: &str = include_str!("../publish/testnet.json");
+const TESTNET_ADDRESS: &str = include_str!("../publish/testnet.json");
+const MOONBEAM_ADDRESS: &str = include_str!("../publish/moonbase.json");
 
 #[derive(Hash, Eq, PartialEq)]
 pub enum Network {
     Testnet,
+    Moonbeam,
     Mainnet,
 }
 
-pub fn settings(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+impl Network {
+    fn address(&self) -> &str {
+        match self {
+            Network::Testnet => TESTNET_ADDRESS,
+            Network::Moonbeam => MOONBEAM_ADDRESS,
+            Network::Mainnet => TESTNET_ADDRESS,
+        }
+    }
+}
+
+pub fn settings(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/Settings.sol/Settings.json"
@@ -30,8 +42,8 @@ pub fn settings(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()>
     .map_err(|_| ())
 }
 
-pub fn sqtoken(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn sqtoken(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/SQToken.sol/SQToken.json"
@@ -51,8 +63,8 @@ pub fn sqtoken(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> 
     .map_err(|_| ())
 }
 
-pub fn vsqtoken(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn vsqtoken(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/VSQToken.sol/VSQToken.json"
@@ -72,8 +84,8 @@ pub fn vsqtoken(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()>
     .map_err(|_| ())
 }
 
-pub fn staking(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn staking(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/Staking.sol/Staking.json"
@@ -93,8 +105,8 @@ pub fn staking(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> 
     .map_err(|_| ())
 }
 
-pub fn indexer_registry(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn indexer_registry(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/IndexerRegistry.sol/IndexerRegistry.json"
@@ -114,8 +126,8 @@ pub fn indexer_registry(eth: Eth<Http>, _network: Network) -> Result<Contract<Ht
     .map_err(|_| ())
 }
 
-pub fn query_registry(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn query_registry(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/QueryRegistry.sol/QueryRegistry.json"
@@ -135,8 +147,8 @@ pub fn query_registry(eth: Eth<Http>, _network: Network) -> Result<Contract<Http
     .map_err(|_| ())
 }
 
-pub fn inflation_controller(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn inflation_controller(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/InflationController.sol/InflationController.json"
@@ -156,8 +168,8 @@ pub fn inflation_controller(eth: Eth<Http>, _network: Network) -> Result<Contrac
     .map_err(|_| ())
 }
 
-pub fn service_agreement_registry(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn service_agreement_registry(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/ServiceAgreementRegistry.sol/ServiceAgreementRegistry.json"
@@ -177,8 +189,8 @@ pub fn service_agreement_registry(eth: Eth<Http>, _network: Network) -> Result<C
     .map_err(|_| ())
 }
 
-pub fn plan_manager(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn plan_manager(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/PlanManager.sol/PlanManager.json"
@@ -198,8 +210,8 @@ pub fn plan_manager(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>,
     .map_err(|_| ())
 }
 
-pub fn purchase_offer_market(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn purchase_offer_market(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/PurchaseOfferMarket.sol/PurchaseOfferMarket.json"
@@ -219,8 +231,8 @@ pub fn purchase_offer_market(eth: Eth<Http>, _network: Network) -> Result<Contra
     .map_err(|_| ())
 }
 
-pub fn era_manager(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn era_manager(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/EraManager.sol/EraManager.json"
@@ -240,8 +252,8 @@ pub fn era_manager(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, 
     .map_err(|_| ())
 }
 
-pub fn rewards_distributer(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn rewards_distributer(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json"
@@ -261,8 +273,8 @@ pub fn rewards_distributer(eth: Eth<Http>, _network: Network) -> Result<Contract
     .map_err(|_| ())
 }
 
-pub fn rewards_pool(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn rewards_pool(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/RewardsPool.sol/RewardsPool.json"
@@ -282,8 +294,8 @@ pub fn rewards_pool(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>,
     .map_err(|_| ())
 }
 
-pub fn rewards_helper(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn rewards_helper(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/RewardsHelper.sol/RewardsHelper.json"
@@ -303,8 +315,8 @@ pub fn rewards_helper(eth: Eth<Http>, _network: Network) -> Result<Contract<Http
     .map_err(|_| ())
 }
 
-pub fn proxy_admin(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn proxy_admin(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json"
@@ -324,8 +336,8 @@ pub fn proxy_admin(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, 
     .map_err(|_| ())
 }
 
-pub fn state_channel(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn state_channel(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/StateChannel.sol/StateChannel.json"
@@ -345,8 +357,8 @@ pub fn state_channel(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>
     .map_err(|_| ())
 }
 
-pub fn airdropper(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn airdropper(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/Airdropper.sol/Airdropper.json"
@@ -366,8 +378,8 @@ pub fn airdropper(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, (
     .map_err(|_| ())
 }
 
-pub fn permissioned_exchange(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn permissioned_exchange(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json"
@@ -387,8 +399,8 @@ pub fn permissioned_exchange(eth: Eth<Http>, _network: Network) -> Result<Contra
     .map_err(|_| ())
 }
 
-pub fn vesting(eth: Eth<Http>, _network: Network) -> Result<Contract<Http>, ()> {
-    let address: Value = serde_json::from_str(ADDRESS).map_err(|_| ())?;
+pub fn vesting(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
         &serde_json::from_str::<Value>(include_str!(
             "../artifacts/contracts/Vesting.sol/Vesting.json"
