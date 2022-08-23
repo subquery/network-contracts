@@ -187,11 +187,8 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
                 planIds[msg.sender][deploymentId].push(_planId);
             }
         }
-<<<<<<< HEAD
-=======
 
         delete plans[msg.sender][_planId];
->>>>>>> 3386eb82c552df0316abf875c54b9ebe82f393b1
 
         emit PlanRemoved(msg.sender, _planId, deploymentId);
     }
