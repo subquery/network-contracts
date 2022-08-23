@@ -12,6 +12,7 @@ import {
     QueryRegistry,
     ServiceAgreementRegistry,
     RewardsDistributer,
+    RewardsHelper,
     EraManager,
     SQToken,
     Staking,
@@ -31,6 +32,7 @@ describe('PlanManger Contract', () => {
     let eraManager: EraManager;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
     let rewardsDistributor: RewardsDistributer;
+    let rewardsHelper: RewardsHelper;
 
     beforeEach(async () => {
         [indexer, consumer] = await ethers.getSigners();
@@ -42,6 +44,7 @@ describe('PlanManger Contract', () => {
         staking = deployment.staking;
         token = deployment.token;
         rewardsDistributor = deployment.rewardsDistributer;
+        rewardsHelper = deployment.rewardsHelper;
         eraManager = deployment.eraManager;
     });
 
@@ -254,8 +257,8 @@ describe('PlanManger Contract', () => {
             const era = await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.connect(indexer).collectAndDistributeRewards(indexer.address);
 
-            const rewardsAddTable = await rewardsDistributor.getRewardsAddTable(indexer.address, era.sub(1), 5);
-            const rewardsRemoveTable = await rewardsDistributor.getRewardsRemoveTable(indexer.address, era.sub(1), 5);
+            const rewardsAddTable = await rewardsHelper.getRewardsAddTable(indexer.address, era.sub(1), 5);
+            const rewardsRemoveTable = await rewardsHelper.getRewardsRemoveTable(indexer.address, era.sub(1), 5);
             const [eraReward, totalReward] = rewardsAddTable.reduce(
                 (acc, val, idx) => {
                     let [eraReward, total] = acc;

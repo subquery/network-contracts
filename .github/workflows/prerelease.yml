@@ -32,12 +32,12 @@ jobs:
       - run: yarn
 
       - name: Bump & build
-        if: steps.changed.outputs.changed == 'true'
+        #if: steps.changed.outputs.changed == 'true'
         run: echo "Changes found" && npm version prerelease --no-git-tag-version && yarn build
 
       - uses: JS-DevTools/npm-publish@v1
         name: Publish
-        if: steps.changed.outputs.changed == 'true'
+        #if: steps.changed.outputs.changed == 'true'
         with:
             token: ${{ secrets.NPM_TOKEN }}
             tag: dev

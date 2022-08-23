@@ -124,4 +124,20 @@ describe('Inflation Controller Contract', () => {
             }
         });
     });
+
+    describe('Mint SQT Tokens', () => {
+        it('mint SQT tokens should work', async () => {
+            const oldSupply = await token.totalSupply();
+            const oldBalance = await token.balanceOf(inflationDestination);
+            await inflationController.mintSQT(inflationDestination, 1000);
+            expect(await token.totalSupply()).to.equal(oldSupply.add(1000));
+            expect(await token.balanceOf(inflationDestination)).to.equal(oldBalance.add(1000));
+        });
+
+        it('mintSQT only be called by owner', async () => {
+            await expect(inflationController.connect(wallet_2).mintSQT(inflationDestination, 1000)).to.be.revertedWith(
+                'Ownable: caller is not the owner'
+            );
+        });
+    });
 });

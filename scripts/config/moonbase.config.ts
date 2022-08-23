@@ -1,11 +1,11 @@
 export default {
     network: {
-        name: 'moonbeam',
-        endpoint: 'https://sqtn.api.onfinality.io/public',
+        name: 'moonbase',
         platform: 'moonbeam',
+        endpoint: 'https://moonbeam-alpha.api.onfinality.io/public',
         providerConfig: {
-            chainId: 1280,
-            name: 'sqn-test',
+            chainId: 1287,
+            name: 'moonbase',
         },
     },
     contracts: {
