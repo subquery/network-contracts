@@ -12,12 +12,12 @@ const web3 = require('web3');
 const WS_ENDPOINT = 'wss://moonbeam-alpha.api.onfinality.io/public-ws';
 const ENDPOINT = 'https://moonbeam-alpha.api.onfinality.io/public';
 
+const SEED = 'weasel train face endless hello melody unable angry notable half lunch rack';
+
 const INDEXER_PK = '0x328b0b2e15184a9c716bc927136d0b9229a0e666dbe70b9bb650de2625e0f63c';
 const INDEXER_ADDR = '0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77';
 const CONSUMER_PK = '0x1674fe269be296e21f6440f15087de29969f8015003887955e99b7cac5455353';
 const CONSUMER_ADDR = '0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe';
-
-const SEED = 'weasel train face endless hello melody unable angry notable half lunch rack';
 
 const METADATA_HASH = '0xab3921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c55';
 const DEPLOYMENT_ID = cidToBytes32('QmduAur8aCENpuizuTGLAsXumG2BX8zSgWLsVpp5b8GEGN');
@@ -280,6 +280,77 @@ async function purchaseOfferTest() {
     }
 }
 
+async function updateEra() {
+    console.log('start update era ...');
+    while (true) {
+        let startTime = (await sdk.eraManager.eraStartTime()).toNumber();
+        let period = (await sdk.eraManager.eraPeriod()).toNumber();
+        let now = await futureTimestamp(0);
+        if (startTime + period < now) {
+            tx = await sdk.eraManager.safeUpdateAndGetEra();
+            await tx.wait();
+            let currentEra = await sdk.eraManager.eraNumber();
+            console.log(`update to era: ${currentEra}`);
+        } else {
+            let currentEra = await sdk.eraManager.eraNumber();
+            console.log(`update to the latest Era: ${currentEra}`);
+            break;
+        }
+    }
+}
+
+async function stakingTest() {
+    tx = await sdk.sqToken.connect(consumer_wallet).increaseAllowance(sdk.staking.address, etherParse('10'));
+    await tx.wait();
+    let delegation = await sdk.staking.delegation(CONSUMER_ADDR, INDEXER_ADDR);
+    console.log(`delegation: ${delegation}`);
+    console.log(`delegator start delegate to indexer ...`);
+    tx = await sdk.staking.connect(consumer_wallet).delegate(INDEXER_ADDR, etherParse('10'));
+    await tx.wait();
+    delegation = await sdk.staking.delegation(CONSUMER_ADDR, INDEXER_ADDR);
+    console.log(`delegation: ${delegation}`);
+    console.log(`delegator start undelegate to indexer ...`);
+    tx = await sdk.staking.connect(consumer_wallet).undelegate(INDEXER_ADDR, etherParse('5'));
+    await tx.wait();
+    delegation = await sdk.staking.delegation(CONSUMER_ADDR, INDEXER_ADDR);
+    console.log(`delegation: ${delegation}`);
+}
+
+async function distributeAndClaimRewards() {
+    while (true) {
+        try {
+            let currentEra = await sdk.eraManager.eraNumber();
+            console.log(`currentEra: ${currentEra}`);
+            let rewardInfo = await sdk.rewardsDistributor.getRewardInfo(INDEXER_ADDR);
+            console.log(`RewardInfo of indexer ${INDEXER_ADDR}: `);
+            console.log(`lastClaimEra: ${rewardInfo.lastClaimEra}`);
+            console.log(`eraReward: ${rewardInfo.eraReward}`);
+            console.log(`accSQTPerStake: ${rewardInfo.accSQTPerStake}`);
+            tx = await sdk.rewardsDistributor.collectAndDistributeRewards(INDEXER_ADDR);
+            await tx.wait();
+            rewardInfo = await sdk.rewardsDistributor.getRewardInfo(INDEXER_ADDR);
+            console.log(`RewardInfo of indexer ${INDEXER_ADDR}: `);
+            console.log(`lastClaimEra: ${rewardInfo.lastClaimEra}`);
+            console.log(`eraReward: ${rewardInfo.eraReward}`);
+            console.log(`accSQTPerStake: ${rewardInfo.accSQTPerStake}`);
+
+            //indexer and delegator claim
+            let indexer_rewards = await sdk.rewardsDistributor.userRewards(INDEXER_ADDR, INDEXER_ADDR);
+            tx = await sdk.rewardsDistributor.connect(indexer_wallet).claim(INDEXER_ADDR);
+            await tx.wait();
+            console.log(`indexer claimed : ${indexer_rewards}`);
+
+            let delegator_rewards = await sdk.rewardsDistributor.userRewards(INDEXER_ADDR, CONSUMER_ADDR);
+            tx = await sdk.rewardsDistributor.connect(consumer_wallet).claim(INDEXER_ADDR);
+            await tx.wait();
+            console.log(`delegator claimed : ${indexer_rewards}`);
+        } catch (err) {
+            console.log(err);
+            break;
+        }
+    }
+}
+
 async function airdropTest() {
     console.log('start airdrop...');
     const airdrops = [
@@ -395,10 +466,10 @@ async function main() {
     //await planManagerTest();
     //await purchaseOfferTest();
     //await airdropTest();
-    await permissionedExchangedtest();
-
-    //tx = await sdk.sqToken.connect(root_wallet).transfer("0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe", etherParse('1000'));
-    //await tx.wait();
+    //await permissionedExchangedtest();
+    //await updateEra();
+    await stakingTest();
+    //await distributeAndClaimRewards();
 
     if (provider.api) {
         await provider.api.disconnect();
