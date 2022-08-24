@@ -4,7 +4,7 @@ use web3::{api::Eth, contract::Contract, transports::Http};
 const TESTNET_ADDRESS: &str = include_str!("../publish/testnet.json");
 const MOONBEAM_ADDRESS: &str = include_str!("../publish/moonbase.json");
 
-#[derive(Hash, Eq, PartialEq)]
+#[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
 pub enum Network {
     Testnet,
     Moonbeam,
