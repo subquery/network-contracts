@@ -26,6 +26,26 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
     }
 });
 
+task('flat', 'Flattens and prints contracts and their dependencies (Resolves licenses)')
+    .addOptionalVariadicPositionalParam('files', 'The files to flatten', undefined)
+    .setAction(async ({files}, hre) => {
+        let flattened = await hre.run('flatten:get-flattened-sources', {files});
+
+        // Remove every line started with "// SPDX-License-Identifier:"
+        flattened = flattened.replace(/SPDX-License-Identifier:/gm, 'License-Identifier:');
+        flattened = `// SPDX-License-Identifier: MIXED\n\n${flattened}`;
+
+        // Remove every line started with "pragma experimental ABIEncoderV2;" except the first one
+        flattened = flattened.replace(
+            /pragma experimental ABIEncoderV2;\n/gm,
+            (
+                (i) => (m) =>
+                    !i++ ? m : ''
+            )(0)
+        );
+        console.log(flattened);
+    });
+
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
