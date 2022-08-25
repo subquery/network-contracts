@@ -7,6 +7,7 @@ import mainnetConfig from './config/mainnet.config';
 import keplerConfig from './config/kepler.config';
 import {EvmRpcProvider} from '@acala-network/eth-providers';
 import {upgradeContracts} from './deployContracts';
+import moonbaseConfig from './config/moonbase.config';
 
 const main = async () => {
     let config: DeploymentConfig;
@@ -20,6 +21,9 @@ const main = async () => {
             break;
         case '--kepler':
             config = keplerConfig as DeploymentConfig;
+            break;
+        case '--moonbase':
+            config = moonbaseConfig as DeploymentConfig;
             break;
         default:
             config = localConfig();
