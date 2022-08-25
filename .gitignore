@@ -17,3 +17,5 @@ artifacts
 
 /coverage
 coverage.json
+
+Flattened.sol
