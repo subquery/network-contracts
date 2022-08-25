@@ -50,6 +50,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         address tokenGet,
         uint256 amountGet
     );
+    event QuotaAdded(address token, address account, uint256 amount);
 
     function initialize(ISettings _settings, address[] calldata _controllers) external initializer {
         __Ownable_init();
@@ -76,6 +77,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     ) external {
         require(exchangeController[msg.sender] == true, 'Not controller');
         tradeQuota[_token][_account] += _amount;
+        emit QuotaAdded(_token, _account, _amount);
     }
 
     /**
