@@ -54,17 +54,20 @@ Find the latest deployment file: `./publish/local.json`.
 ### env
 
 **Mandala TC7**:
+```
 ENDPOINT: https://acala-mandala-adapter.api.onfinality.io/public
 WS_ENDPOINT: wss://acala-mandala-adapter.api.onfinality.io/public-ws
 Chan ID: 595
 Explorer: https://blockscout.mandala.acala.network/
+```
 
 **Moonbase**:
+```
 ENDPOINT: https://moonbeam-alpha.api.onfinality.io/public
 WS_ENDPOINT: wss://moonbeam-alpha.api.onfinality.io/public-ws
 Chan ID: 1287
 Explorer: https://moonbase.moonscan.io/
-
+```
 ## kepler network
 
 ## Commands
