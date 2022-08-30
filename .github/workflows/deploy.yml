@@ -62,7 +62,7 @@ jobs:
       - name: Commit changes
         uses: EndBug/add-and-commit@v5
         with:
-          add: publish/testnet.json package.json
+          add: publish/*.json package.json
           message: '[SKIP CI] Deploy to testnet and Prerelease'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
