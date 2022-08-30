@@ -3,7 +3,14 @@
 
 pragma solidity 0.8.15;
 
+enum IndexingServiceStatus {
+    NOTINDEXING,
+    INDEXING,
+    READY
+}
+
 interface IQueryRegistry {
+
     function numberOfIndexingDeployments(address _address) external view returns (uint256);
 
     function isIndexingAvailable(bytes32 deploymentId, address indexer) external view returns (bool);
