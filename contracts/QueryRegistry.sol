@@ -180,7 +180,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     }
 
     /**
-     * @dev create a QueryProject, if in the restrict mode, only creator allowed call this function
+     * @dev create a QueryProject, if in the restrict mode, only creator allowed to call this function
      */
     function createQueryProject(
         bytes32 metadata,
