@@ -17,6 +17,8 @@ src/typechain
 /coverage
 coverage.json
 
+Flattened.sol
+
 /target
 **/*.rs.bk
 Cargo.lock
@@ -81,4 +83,3 @@ artifacts/contracts/PermissionedExchange.sol/*
 !artifacts/contracts/Vesting.sol
 artifacts/contracts/Vesting.sol/*
 !artifacts/contracts/Vesting.sol/Vesting.json
-
