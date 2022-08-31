@@ -55,7 +55,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         bytes32 metadata;
     }
     
-    //indexing status for a indexer
+    //indexing status for an indexer
     struct IndexingStatus {
         bytes32 deploymentId;
         uint256 timestamp;
