@@ -44,8 +44,6 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     //is the id a deployment
     mapping(bytes32 => bool) private deploymentIds;
 
-    // TODO: 1:1 match between queryId and deploymentId, should we just separate it?
-
     //query project information 
     struct QueryInfo {
         uint256 queryId;
@@ -320,13 +318,4 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
 
         return deploymentStatusByIndexer[deploymentId][indexer].timestamp + offlineCalcThreshold < block.timestamp;
     }
-
-    // TODO: in case multiple indexers do same query project, the latest status could be used.
-    // This should be handled on contract side?
-
-    // user function - view
-    // users can view deployment status by indexer from deploymentStatusByIndexer
-    // users can get projects with metadata with queryInfo public variable
-    // users can get indexers' status for deployment from logs by indexer
-    // users can search projects by some rules via database
 }
