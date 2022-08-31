@@ -17,6 +17,8 @@ src/typechain
 /coverage
 coverage.json
 
+artifacts
+
 Flattened.sol
 
 /target
