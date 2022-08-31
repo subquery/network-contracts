@@ -34,7 +34,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     uint256 public nextQueryId;
     //Threshold to calculate is indexer offline
     uint256 private offlineCalcThreshold;
-    //is the contarct run in creator restrict mode.
+    //is the contract run in creator restrict mode.
     //If in creator restrict mode, only permissioned account allowed to create and update query project
     bool public creatorRestricted;
     //deployment id -> indexer -> IndexingStatus
