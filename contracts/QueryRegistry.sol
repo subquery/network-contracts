@@ -136,7 +136,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         creatorWhitelist[creator] = false;
     }
     /**
-     * @dev set the threshold to calculate is indexer offline
+     * @dev set the threshold to calculate whether the indexer is offline
      */
     function setOfflineCalcThreshold(uint256 _offlineCalcThreshold) external onlyOwner {
         offlineCalcThreshold = _offlineCalcThreshold;
