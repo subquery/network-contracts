@@ -1,16 +1,13 @@
 const {ContractSDK} = require('@subql/contract-sdk');
-const testnetDeployment = require('@subql/contract-sdk/publish/moonbase.json');
-const {ethers, Wallet, utils, providers, BigNumber} = require('ethers');
-const {toBuffer} = require('ethereumjs-util');
-const {EvmRpcProvider, calcEthereumTransactionParams} = require('@acala-network/eth-providers');
+const moonbaseDeployment = require('@subql/contract-sdk/publish/moonbase.json');
+const mandalaDeployment = require('@subql/contract-sdk/publish/testnet.json');
+const {Wallet, utils, providers, BigNumber} = require('ethers');
+const {EvmRpcProvider} = require('@acala-network/eth-providers');
 const web3 = require('web3');
 
-//const WS_ENDPOINT = 'wss://acala-mandala.api.onfinality.io/public-ws';
-//const WS_ENDPOINT = 'wss://mandala-tc7-rpcnode.aca-dev.network/ws';
-//const ENDPOINT = 'https://acala-mandala.api.onfinality.io/public';
-
-const WS_ENDPOINT = 'wss://moonbeam-alpha.api.onfinality.io/public-ws';
-const ENDPOINT = 'https://moonbeam-alpha.api.onfinality.io/public';
+import moonbaseConfig from '../scripts/config/moonbase.config';
+import mandalaConfig from '../scripts/config/testnet.config';
+import {METADATA_HASH, DEPLOYMENT_ID, VERSION, mmrRoot} from '../test/constants';
 
 const SEED = 'weasel train face endless hello melody unable angry notable half lunch rack';
 
@@ -19,13 +16,9 @@ const INDEXER_ADDR = '0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77';
 const CONSUMER_PK = '0x1674fe269be296e21f6440f15087de29969f8015003887955e99b7cac5455353';
 const CONSUMER_ADDR = '0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe';
 
-const METADATA_HASH = '0xab3921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c55';
-const DEPLOYMENT_ID = cidToBytes32('QmduAur8aCENpuizuTGLAsXumG2BX8zSgWLsVpp5b8GEGN');
-const VERSION = '0xaec921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c55';
-const mmrRoot = '0xab3921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c55';
-
 const AUSDAddr = '0xF98bF104e268d7cBB7949029Fee874e3cd1db8fa';
 
+let deployment;
 let root_wallet, indexer_wallet, consumer_wallet;
 let sdk;
 let overrides;
@@ -444,32 +437,40 @@ async function permissionedExchangedtest() {
 }
 
 async function main() {
-    //provider = await EvmRpcProvider.from(WS_ENDPOINT);
-    provider = new ethers.providers.StaticJsonRpcProvider(ENDPOINT);
+    switch (process.argv[2]) {
+        case '--moonbase':
+            deployment = moonbaseDeployment;
+            provider = new providers.StaticJsonRpcProvider(moonbaseConfig.network.endpoint.eth);
+            break;
+        case '--mandala':
+            deployment = mandalaDeployment;
+            provider = await EvmRpcProvider.from(mandalaConfig.network.endpoint.substrate);
+            overrides = await getOverrides(provider);
+            break;
+    }
+
     const hdNode = utils.HDNode.fromMnemonic(SEED).derivePath("m/44'/60'/0'/0/0");
     root_wallet = new Wallet(hdNode, provider);
-    indexer_wallet = new Wallet(INDEXER_PK, provider);
-    consumer_wallet = new Wallet(CONSUMER_PK, provider);
     sdk = await ContractSDK.create(root_wallet, {
-        deploymentDetails: testnetDeployment,
-        network: 'moonbase',
+        deploymentDetails: deployment,
+        network: 'testnet',
     });
 
-    //for acala network
-    //overrides = await getOverrides(provider);
+    indexer_wallet = new Wallet(INDEXER_PK, provider);
+    consumer_wallet = new Wallet(CONSUMER_PK, provider);
 
-    //await rootSetup();
-    //await queryProjectSetup();
-    //await planTemplateSetup();
-    //await indexerSetup();
-    //await clearEndedAgreements(INDEXER_ADDR);
-    //await planManagerTest();
-    //await purchaseOfferTest();
-    //await airdropTest();
-    //await permissionedExchangedtest();
-    //await updateEra();
+    await rootSetup();
+    await queryProjectSetup();
+    await planTemplateSetup();
+    await indexerSetup();
+    await clearEndedAgreements(INDEXER_ADDR);
+    await planManagerTest();
+    await purchaseOfferTest();
+    await updateEra();
     await stakingTest();
-    //await distributeAndClaimRewards();
+    await distributeAndClaimRewards();
+    await airdropTest();
+    await permissionedExchangedtest();
 
     if (provider.api) {
         await provider.api.disconnect();
