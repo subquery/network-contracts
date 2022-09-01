@@ -207,7 +207,7 @@ describe('RewardsDistributer Contract', () => {
             expect(await (await token.balanceOf(indexer.address)).div(1e14)).to.be.eq(14999);
         });
 
-        it('updateIndexerStatus with no pending change', async () => {
+        it.only('updateIndexerStatus with no pending change', async () => {
             expect(await eraManager.eraNumber()).to.be.eq(2);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
             //move to Era8
@@ -220,9 +220,10 @@ describe('RewardsDistributer Contract', () => {
             await rewardsHelper.updateIndexerStatus(indexer.address);
             expect(await eraManager.eraNumber()).to.be.eq(8);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(7);
+            expect(await rewardsDistributor.getLastSettledEra(indexer.address)).to.be.eq(7);
         });
 
-        it('updateIndexerStatus with middle pending changes', async () => {
+        it.only('updateIndexerStatus with middle pending changes', async () => {
             expect(await eraManager.eraNumber()).to.be.eq(2);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
             //move to Era8
@@ -239,9 +240,12 @@ describe('RewardsDistributer Contract', () => {
             await rewardsHelper.updateIndexerStatus(indexer.address);
             expect(await eraManager.eraNumber()).to.be.eq(8);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(7);
+            expect(await rewardsDistributor.getLastSettledEra(indexer.address)).to.be.eq(7);
+            expect((await rewardsHelper.getPendingStakers(indexer.address)).length).to.be.eq(0);
+            expect(await rewardsDistributor.getCommissionRate(indexer.address)).to.be.eq(200);
         });
 
-        it('updateIndexerStatus with start pending changes', async () => {
+        it.only('updateIndexerStatus with start pending changes', async () => {
             expect(await eraManager.eraNumber()).to.be.eq(2);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
             await staking.connect(delegator).delegate(indexer.address, etherParse('1'));
@@ -257,9 +261,12 @@ describe('RewardsDistributer Contract', () => {
             await rewardsHelper.updateIndexerStatus(indexer.address);
             expect(await eraManager.eraNumber()).to.be.eq(8);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(7);
+            expect(await rewardsDistributor.getLastSettledEra(indexer.address)).to.be.eq(7);
+            expect((await rewardsHelper.getPendingStakers(indexer.address)).length).to.be.eq(0);
+            expect(await rewardsDistributor.getCommissionRate(indexer.address)).to.be.eq(200);
         });
 
-        it('updateIndexerStatus with end pending changes', async () => {
+        it.only('updateIndexerStatus with end pending changes', async () => {
             expect(await eraManager.eraNumber()).to.be.eq(2);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
             //move to Era8
@@ -276,6 +283,41 @@ describe('RewardsDistributer Contract', () => {
             await rewardsHelper.updateIndexerStatus(indexer.address);
             expect(await eraManager.eraNumber()).to.be.eq(8);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(7);
+            expect(await rewardsDistributor.getLastSettledEra(indexer.address)).to.be.eq(7);
+            expect((await rewardsHelper.getPendingStakers(indexer.address)).length).to.be.eq(0);
+            expect(await rewardsDistributor.getCommissionRate(indexer.address)).to.be.eq(100000);
+        });
+
+        it.only('updateIndexerStatus with unregistered indexer', async () => {
+            expect(await eraManager.eraNumber()).to.be.eq(2);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
+            await staking.connect(delegator).delegate(indexer.address, etherParse('1'));
+            await staking.connect(delegator2).delegate(indexer.address, etherParse('2'));
+            await staking.connect(indexer).setCommissionRate(200);
+            //move to Era13
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await serviceAgreementRegistry.clearAllEndedAgreements(indexer.address);
+            await queryRegistry.connect(indexer).stopIndexing(DEPLOYMENT_ID);
+            await rewardsHelper.updateIndexerStatus(indexer.address);
+            await indexerRegistry.connect(indexer).unregisterIndexer({gasLimit: '1000000'});
+            await startNewEra(mockProvider, eraManager);
+            await rewardsHelper.updateIndexerStatus(indexer.address);
+            expect(await eraManager.eraNumber()).to.be.eq(13);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(12);
+            expect(await rewardsDistributor.getLastSettledEra(indexer.address)).to.be.eq(12);
+            expect((await rewardsHelper.getPendingStakers(indexer.address)).length).to.be.eq(0);
+            expect(await rewardsDistributor.getCommissionRate(indexer.address)).to.be.eq(200);
+            await staking.connect(delegator).undelegate(indexer.address, etherParse('1'));
+            await staking.connect(delegator2).undelegate(indexer.address, etherParse('2'));
         });
 
         it('claim 0 reward should fail', async () => {

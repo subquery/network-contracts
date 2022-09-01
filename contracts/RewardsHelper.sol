@@ -58,7 +58,8 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
         RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getRewardsDistributer());
         IEraManager eraManager = IEraManager(settings.getEraManager());
         uint256 currentEra =  eraManager.safeUpdateAndGetEra();
-        if(rewardsDistributer.getLastSettledEra(indexer) >= rewardsDistributer.getRewardInfo(indexer).lastClaimEra){
+        uint256 ICREra = rewardsDistributer.getCommissionRateChangedEra(indexer);
+        if(rewardsDistributer.getLastSettledEra(indexer) >= rewardsDistributer.getRewardInfo(indexer).lastClaimEra && rewardsDistributer.getRewardInfo(indexer).lastClaimEra < currentEra - 1){
             rewardsDistributer.collectAndDistributeRewards(indexer);
         }
         //apply all stakers' change of an indexer
@@ -66,9 +67,13 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
             address staker = rewardsDistributer.getPendingStaker(indexer, rewardsDistributer.getPendingStakeChangeLength(indexer) - 1);
             rewardsDistributer.applyStakeChange(indexer, staker);
         }
-        //apply indexer's commission rate change
-        if(rewardsDistributer.getCommissionRateChangedEra(indexer) != 0 && rewardsDistributer.getCommissionRateChangedEra(indexer) <= currentEra){
+
+        if(rewardsDistributer.getLastSettledEra(indexer) >= rewardsDistributer.getRewardInfo(indexer).lastClaimEra && rewardsDistributer.getRewardInfo(indexer).lastClaimEra < currentEra - 1){
             rewardsDistributer.collectAndDistributeRewards(indexer);
+        }
+
+        //apply indexer's commission rate change
+        if(ICREra != 0 && ICREra <= currentEra){
             rewardsDistributer.applyICRChange(indexer);
         }
         //catch up current era
