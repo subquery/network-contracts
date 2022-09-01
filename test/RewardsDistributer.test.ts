@@ -207,7 +207,7 @@ describe('RewardsDistributer Contract', () => {
             expect(await (await token.balanceOf(indexer.address)).div(1e14)).to.be.eq(14999);
         });
 
-        it.only('updateIndexerStatus with no pending change', async () => {
+        it('updateIndexerStatus with no pending change', async () => {
             expect(await eraManager.eraNumber()).to.be.eq(2);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
             //move to Era8
@@ -223,7 +223,7 @@ describe('RewardsDistributer Contract', () => {
             expect(await rewardsDistributor.getLastSettledEra(indexer.address)).to.be.eq(7);
         });
 
-        it.only('updateIndexerStatus with middle pending changes', async () => {
+        it('updateIndexerStatus with middle pending changes', async () => {
             expect(await eraManager.eraNumber()).to.be.eq(2);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
             //move to Era8
@@ -245,7 +245,7 @@ describe('RewardsDistributer Contract', () => {
             expect(await rewardsDistributor.getCommissionRate(indexer.address)).to.be.eq(200);
         });
 
-        it.only('updateIndexerStatus with start pending changes', async () => {
+        it('updateIndexerStatus with start pending changes', async () => {
             expect(await eraManager.eraNumber()).to.be.eq(2);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
             await staking.connect(delegator).delegate(indexer.address, etherParse('1'));
@@ -266,7 +266,7 @@ describe('RewardsDistributer Contract', () => {
             expect(await rewardsDistributor.getCommissionRate(indexer.address)).to.be.eq(200);
         });
 
-        it.only('updateIndexerStatus with end pending changes', async () => {
+        it('updateIndexerStatus with end pending changes', async () => {
             expect(await eraManager.eraNumber()).to.be.eq(2);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
             //move to Era8
@@ -288,7 +288,7 @@ describe('RewardsDistributer Contract', () => {
             expect(await rewardsDistributor.getCommissionRate(indexer.address)).to.be.eq(100000);
         });
 
-        it.only('updateIndexerStatus with unregistered indexer', async () => {
+        it('updateIndexerStatus with unregistered indexer', async () => {
             expect(await eraManager.eraNumber()).to.be.eq(2);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
             await staking.connect(delegator).delegate(indexer.address, etherParse('1'));
