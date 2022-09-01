@@ -54,12 +54,12 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
         }
     }
 
-    function updateIndexerStatus(address indexer) public {
+    function indexerCatchup(address indexer) public {
         RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getRewardsDistributer());
-        IEraManager eraManager = IEraManager(settings.getEraManager());
-        uint256 currentEra =  eraManager.safeUpdateAndGetEra();
-        uint256 ICREra = rewardsDistributer.getCommissionRateChangedEra(indexer);
-        if(rewardsDistributer.getLastSettledEra(indexer) >= rewardsDistributer.getRewardInfo(indexer).lastClaimEra && rewardsDistributer.getRewardInfo(indexer).lastClaimEra < currentEra - 1){
+        uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
+
+        uint256 lastClaimEra = rewardsDistributer.getRewardInfo(indexer).lastClaimEra;
+        if (rewardsDistributer.getLastSettledEra(indexer) >= lastClaimEra && lastClaimEra < currentEra - 1){
             rewardsDistributer.collectAndDistributeRewards(indexer);
         }
         //apply all stakers' change of an indexer
@@ -68,12 +68,14 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
             rewardsDistributer.applyStakeChange(indexer, staker);
         }
 
-        if(rewardsDistributer.getLastSettledEra(indexer) >= rewardsDistributer.getRewardInfo(indexer).lastClaimEra && rewardsDistributer.getRewardInfo(indexer).lastClaimEra < currentEra - 1){
+        lastClaimEra = rewardsDistributer.getRewardInfo(indexer).lastClaimEra;
+        if (rewardsDistributer.getLastSettledEra(indexer) >= lastClaimEra && lastClaimEra < currentEra - 1){
             rewardsDistributer.collectAndDistributeRewards(indexer);
         }
 
         //apply indexer's commission rate change
-        if(ICREra != 0 && ICREra <= currentEra){
+        uint256 ICREra = rewardsDistributer.getCommissionRateChangedEra(indexer);
+        if (ICREra != 0 && ICREra <= currentEra){
             rewardsDistributer.applyICRChange(indexer);
         }
         //catch up current era
