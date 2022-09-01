@@ -349,15 +349,6 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     /**
-     * @dev Apply a list of stakers' StakeChanges, call applyStakeChange one by one.
-     */
-    // function applyStakeChanges(address indexer, address[] memory stakers) public {
-    //     for (uint256 i = 0; i < stakers.length; i++) {
-    //         applyStakeChange(indexer, stakers[i]);
-    //     }
-    // }
-
-    /**
      * @dev Apply the stake change and calaulate the new rewardDebt for staker.
      */
     function applyStakeChange(address indexer, address staker) public {
