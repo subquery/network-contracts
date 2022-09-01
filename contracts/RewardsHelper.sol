@@ -54,6 +54,36 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
         }
     }
 
+    function indexerCatchup(address indexer) public {
+        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getRewardsDistributer());
+        uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
+
+        uint256 lastClaimEra = rewardsDistributer.getRewardInfo(indexer).lastClaimEra;
+        if (rewardsDistributer.getLastSettledEra(indexer) >= lastClaimEra && lastClaimEra < currentEra - 1){
+            rewardsDistributer.collectAndDistributeRewards(indexer);
+        }
+        //apply all stakers' change of an indexer
+        while(rewardsDistributer.getPendingStakeChangeLength(indexer) > 0){
+            address staker = rewardsDistributer.getPendingStaker(indexer, rewardsDistributer.getPendingStakeChangeLength(indexer) - 1);
+            rewardsDistributer.applyStakeChange(indexer, staker);
+        }
+
+        lastClaimEra = rewardsDistributer.getRewardInfo(indexer).lastClaimEra;
+        if (rewardsDistributer.getLastSettledEra(indexer) >= lastClaimEra && lastClaimEra < currentEra - 1){
+            rewardsDistributer.collectAndDistributeRewards(indexer);
+        }
+
+        //apply indexer's commission rate change
+        uint256 ICREra = rewardsDistributer.getCommissionRateChangedEra(indexer);
+        if (ICREra != 0 && ICREra <= currentEra){
+            rewardsDistributer.applyICRChange(indexer);
+        }
+        //catch up current era
+        while(rewardsDistributer.getRewardInfo(indexer).lastClaimEra < currentEra - 1){
+            rewardsDistributer.collectAndDistributeRewards(indexer);
+        }
+    }
+
     function batchCollectWithPool(address indexer, bytes32[] memory deployments) public {
         IRewardsPool rewardsPool = IRewardsPool(settings.getRewardsPool());
         for (uint256 i = 0; i < deployments.length; i++) {
