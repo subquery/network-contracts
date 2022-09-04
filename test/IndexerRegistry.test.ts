@@ -51,7 +51,7 @@ describe('IndexerRegistry Contract', () => {
             expect(await rewardsDistributer.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
                 etherParse('5')
             );
-            expect(await rewardsDistributer.commissionRates(wallet_1.address)).to.equal(0);
+            expect(await rewardsDistributer.getCommissionRate(wallet_1.address)).to.equal(0);
         });
 
         it('registered indexer reregister should fail', async () => {

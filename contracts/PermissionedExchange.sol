@@ -1,7 +1,7 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.15;
 
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
@@ -50,10 +50,14 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         address tokenGet,
         uint256 amountGet
     );
+    event QuotaAdded(address token, address account, uint256 amount);
 
-    function initialize(ISettings _settings) external initializer {
+    function initialize(ISettings _settings, address[] calldata _controllers) external initializer {
         __Ownable_init();
         settings = _settings;
+        for (uint256 i; i < _controllers.length; i++) {
+            exchangeController[_controllers[i]] = true;
+        }
     }
 
     /**
@@ -73,6 +77,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     ) external {
         require(exchangeController[msg.sender] == true, 'Not controller');
         tradeQuota[_token][_account] += _amount;
+        emit QuotaAdded(_token, _account, _amount);
     }
 
     /**

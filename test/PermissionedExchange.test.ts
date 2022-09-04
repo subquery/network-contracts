@@ -4,27 +4,54 @@
 import {expect} from 'chai';
 import {ethers, waffle} from 'hardhat';
 import {deployContracts} from './setup';
-import {PermissionedExchange, Settings, SQToken, SQToken__factory} from '../src';
+import {
+    PermissionedExchange,
+    Settings,
+    SQToken,
+    SQToken__factory,
+    Staking,
+    QueryRegistry,
+    IndexerRegistry,
+    PlanManager,
+    EraManager,
+    RewardsDistributer,
+    ServiceAgreementRegistry,
+} from '../src';
 import {ZERO_ADDRESS} from './constants';
-import {etherParse, futureTimestamp, timeTravel, lastestTime} from './helper';
+import {etherParse, futureTimestamp, timeTravel, registerIndexer, constants, time, startNewEra} from './helper';
+import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
 
 describe('PermissionedExchange Contract', () => {
     const mockProvider = waffle.provider;
-    let wallet_0, wallet_1, wallet_2;
+    let wallet_0, wallet_1, wallet_2, indexer, consumer;
     let permissionedExchange: PermissionedExchange;
     let settings: Settings;
     let sqtAddress;
     let asqtAddress;
     let asqToken: SQToken;
     let sqToken: SQToken;
+    let staking: Staking;
+    let queryRegistry: QueryRegistry;
+    let indexerRegistry: IndexerRegistry;
+    let planManager: PlanManager;
+    let eraManager: EraManager;
+    let rewardsDistributor: RewardsDistributer;
+    let serviceAgreementRegistry: ServiceAgreementRegistry;
 
     beforeEach(async () => {
-        [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
+        [wallet_0, wallet_1, wallet_2, indexer, consumer] = await ethers.getSigners();
         const deployment = await deployContracts(wallet_0, wallet_0);
         permissionedExchange = deployment.permissionedExchange;
         sqToken = deployment.token;
         settings = deployment.settings;
         sqtAddress = await settings.getSQToken();
+        staking = deployment.staking;
+        queryRegistry = deployment.queryRegistry;
+        indexerRegistry = deployment.indexerRegistry;
+        planManager = deployment.planManager;
+        eraManager = deployment.eraManager;
+        rewardsDistributor = deployment.rewardsDistributer;
+        serviceAgreementRegistry = deployment.serviceAgreementRegistry;
 
         //deploy asqt
         asqToken = await new SQToken__factory(wallet_0).deploy(deployment.inflationController.address);
@@ -65,6 +92,39 @@ describe('PermissionedExchange Contract', () => {
             await expect(
                 permissionedExchange.connect(wallet_2).addQuota(sqtAddress, wallet_2.address, etherParse('5'))
             ).to.be.revertedWith('Not controller');
+        });
+    });
+
+    describe('quota update', () => {
+        beforeEach(async () => {
+            await sqToken.transfer(indexer.address, etherParse('20'));
+            await registerIndexer(sqToken, indexerRegistry, staking, indexer, indexer, '20');
+            await sqToken.transfer(consumer.address, etherParse('10'));
+            await sqToken.connect(consumer).increaseAllowance(planManager.address, etherParse('10'));
+            // create query project
+            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+            // wallet_0 start project
+            await queryRegistry.connect(indexer).startIndexing(DEPLOYMENT_ID);
+            await queryRegistry.connect(indexer).updateIndexingStatusToReady(DEPLOYMENT_ID);
+            // create plan template
+            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
+            // default plan -> planId: 0
+            await planManager.connect(indexer).createPlan(etherParse('10'), 0, constants.ZERO_BYTES32);
+            await sqToken.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, etherParse('50'));
+            await planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, 1);
+        });
+
+        it('claimed reward should add to quota', async () => {
+            const balance_before = await sqToken.balanceOf(indexer.address);
+            await startNewEra(mockProvider, eraManager);
+            await rewardsDistributor.collectAndDistributeRewards(indexer.address);
+            let balance = await sqToken.balanceOf(indexer.address);
+            let quota = await permissionedExchange.tradeQuota(sqToken.address, indexer.address);
+            expect(balance.sub(balance_before)).to.eq(quota);
+            await rewardsDistributor.connect(indexer).claim(indexer.address);
+            balance = await sqToken.balanceOf(indexer.address);
+            quota = await permissionedExchange.tradeQuota(sqToken.address, indexer.address);
+            expect(balance.sub(balance_before)).to.eq(quota);
         });
     });
 

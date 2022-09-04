@@ -38,10 +38,6 @@ import {
     RewardsHelper__factory,
     StateChannel,
     StateChannel__factory,
-    ConsumerProxy,
-    ConsumerProxy__factory,
-    ConsumerHoster,
-    ConsumerHoster__factory,
     Airdropper,
     Airdropper__factory,
     PermissionedExchange,
@@ -72,8 +68,6 @@ type Contracts = {
     rewardsPool: RewardsPool;
     rewardsHelper: RewardsHelper;
     stateChannel: StateChannel;
-    consumerProxy: ConsumerProxy;
-    consumerHoster: ConsumerHoster;
     airdropper: Airdropper;
     permissionedExchange: PermissionedExchange;
     vesting: Vesting;
@@ -94,8 +88,6 @@ const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: s
     StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
 
     PermissionedExchange: [CONTRACTS.PermissionedExchange, PermissionedExchange__factory],
-    ConsumerProxy: [CONTRACTS.ConsumerProxy, ConsumerProxy__factory],
-    ConsumerHoster: [CONTRACTS.ConsumerHoster, ConsumerHoster__factory],
 };
 
 export const deployProxy = async <C extends Contract>(
@@ -386,7 +378,11 @@ export async function deployContracts(
         wallet,
         overrides
     );
-    const initPermissionedExchange = await permissionedExchange.initialize(deployment.Settings.address, overrides);
+    const initPermissionedExchange = await permissionedExchange.initialize(
+        deployment.Settings.address,
+        [rewardsDistributer.address],
+        overrides
+    );
     await initPermissionedExchange.wait();
     updateDeployment(
         deployment,
@@ -395,50 +391,6 @@ export async function deployContracts(
         PEInnerAddr,
         permissionedExchange.deployTransaction.hash
     );
-    // only local & test deploy.
-    let consumerProxy;
-    let consumerHoster;
-    let CPInnerAddr;
-    let CHInnerAddr;
-
-    if (dev) {
-        [consumerProxy, CPInnerAddr] = await deployProxy<ConsumerProxy>(
-            proxyAdmin,
-            ConsumerProxy__factory,
-            wallet,
-            overrides
-        );
-        const initConsumerProxy = await consumerProxy.initialize(
-            sqtToken.address,
-            stateChannel.address,
-            wallet.address,
-            overrides
-        );
-        await initConsumerProxy.wait();
-        updateDeployment(
-            deployment,
-            'ConsumerProxy',
-            consumerProxy.address,
-            CPInnerAddr,
-            consumerProxy.deployTransaction.hash
-        );
-
-        [consumerHoster, CHInnerAddr] = await deployProxy<ConsumerHoster>(
-            proxyAdmin,
-            ConsumerHoster__factory,
-            wallet,
-            overrides
-        );
-        const initConsumerHoster = await consumerHoster.initialize(sqtToken.address, stateChannel.address, overrides);
-        await initConsumerHoster.wait();
-        updateDeployment(
-            deployment,
-            'ConsumerHoster',
-            consumerHoster.address,
-            CHInnerAddr,
-            consumerHoster.deployTransaction.hash
-        );
-    }
 
     // Register addresses on settings contract
     const txToken = await settings.setTokenAddresses(
@@ -449,6 +401,7 @@ export async function deployContracts(
         deployment.RewardsHelper.address,
         deployment.InflationController.address,
         deployment.Vesting.address,
+        deployment.PermissionedExchange.address,
         overrides as any
     );
 
@@ -484,8 +437,6 @@ export async function deployContracts(
             rewardsHelper,
             proxyAdmin,
             stateChannel,
-            consumerProxy,
-            consumerHoster,
             airdropper,
             permissionedExchange,
             vesting,

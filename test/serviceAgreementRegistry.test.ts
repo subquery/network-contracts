@@ -17,6 +17,7 @@ import {
     ServiceAgreementRegistry,
     EraManager,
     RewardsDistributer,
+    RewardsHelper,
 } from '../src';
 const {constants} = require('@openzeppelin/test-helpers');
 
@@ -32,6 +33,7 @@ describe('Service Agreement Registry Contract', () => {
     let serviceAgreementRegistry: ServiceAgreementRegistry;
     let eraManager: EraManager;
     let rewardsDistributor: RewardsDistributer;
+    let rewardsHelper: RewardsHelper;
 
     const checkStateChange = async (agreementInfo, stateInfo, _isClear) => {
         const newValue = await serviceAgreementRegistry.sumDailyReward(agreementInfo.indexer);
@@ -71,6 +73,7 @@ describe('Service Agreement Registry Contract', () => {
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         eraManager = deployment.eraManager;
         rewardsDistributor = deployment.rewardsDistributer;
+        rewardsHelper = deployment.rewardsHelper;
 
         await queryRegistry.setCreatorRestricted(false);
 
@@ -400,8 +403,8 @@ describe('Service Agreement Registry Contract', () => {
 
         it('renew agreement generated from planManager should work', async () => {
             await planManager.connect(wallet2).acceptPlan(wallet1.address, deploymentIds[0], 1);
-            const addTable = await rewardsDistributor.getRewardsAddTable(wallet1.address, 2, 10);
-            const removeTable = await rewardsDistributor.getRewardsRemoveTable(wallet1.address, 2, 12);
+            const addTable = await rewardsHelper.getRewardsAddTable(wallet1.address, 2, 10);
+            const removeTable = await rewardsHelper.getRewardsRemoveTable(wallet1.address, 2, 12);
 
             let agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             expect(
@@ -424,11 +427,9 @@ describe('Service Agreement Registry Contract', () => {
             ).to.be.eq(2);
 
             const agreementStartEra = await eraManager.timestampToEraNumber(oldEndDate);
-            expect(await rewardsDistributor.getRewardsAddTable(wallet1.address, 2, 10)).to.eql(addTable);
-            expect(await rewardsDistributor.getRewardsRemoveTable(wallet1.address, 2, 12)).to.eql(removeTable);
-            expect(await rewardsDistributor.getRewardsAddTable(wallet1.address, agreementStartEra, 10)).to.eql(
-                addTable
-            );
+            expect(await rewardsHelper.getRewardsAddTable(wallet1.address, 2, 10)).to.eql(addTable);
+            expect(await rewardsHelper.getRewardsRemoveTable(wallet1.address, 2, 12)).to.eql(removeTable);
+            expect(await rewardsHelper.getRewardsAddTable(wallet1.address, agreementStartEra, 10)).to.eql(addTable);
         });
 
         it('Indexers should be able to trun off renew', async () => {

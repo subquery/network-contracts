@@ -1,7 +1,7 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.15;
 
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
@@ -39,7 +39,7 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
     function batchClaim(address delegator, address[] memory indexers) public {
         RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getRewardsDistributer());
         for (uint256 i = 0; i < indexers.length; i++) {
-            rewardsDistributer._claim(indexers[i], delegator);
+            rewardsDistributer.claimFrom(indexers[i], delegator);
         }
     }
 
@@ -54,6 +54,36 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
         }
     }
 
+    function indexerCatchup(address indexer) public {
+        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getRewardsDistributer());
+        uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();
+
+        uint256 lastClaimEra = rewardsDistributer.getRewardInfo(indexer).lastClaimEra;
+        if (rewardsDistributer.getLastSettledEra(indexer) >= lastClaimEra && lastClaimEra < currentEra - 1){
+            rewardsDistributer.collectAndDistributeRewards(indexer);
+        }
+        //apply all stakers' change of an indexer
+        while(rewardsDistributer.getPendingStakeChangeLength(indexer) > 0){
+            address staker = rewardsDistributer.getPendingStaker(indexer, rewardsDistributer.getPendingStakeChangeLength(indexer) - 1);
+            rewardsDistributer.applyStakeChange(indexer, staker);
+        }
+
+        lastClaimEra = rewardsDistributer.getRewardInfo(indexer).lastClaimEra;
+        if (rewardsDistributer.getLastSettledEra(indexer) >= lastClaimEra && lastClaimEra < currentEra - 1){
+            rewardsDistributer.collectAndDistributeRewards(indexer);
+        }
+
+        //apply indexer's commission rate change
+        uint256 ICREra = rewardsDistributer.getCommissionRateChangedEra(indexer);
+        if (ICREra != 0 && ICREra <= currentEra){
+            rewardsDistributer.applyICRChange(indexer);
+        }
+        //catch up current era
+        while(rewardsDistributer.getRewardInfo(indexer).lastClaimEra < currentEra - 1){
+            rewardsDistributer.collectAndDistributeRewards(indexer);
+        }
+    }
+
     function batchCollectWithPool(address indexer, bytes32[] memory deployments) public {
         IRewardsPool rewardsPool = IRewardsPool(settings.getRewardsPool());
         for (uint256 i = 0; i < deployments.length; i++) {
@@ -62,5 +92,34 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
 
         RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getRewardsDistributer());
         rewardsDistributer.collectAndDistributeRewards(indexer);
+    }
+
+    function getPendingStakers(address indexer) public view returns (address[] memory) {
+        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getRewardsDistributer());
+        uint256 length = rewardsDistributer.getPendingStakeChangeLength(indexer);
+        address[] memory _stakers = new address[](length);
+        for (uint256 i = 0; i < length; i++) {
+            _stakers[i] = rewardsDistributer.getPendingStaker(indexer, i);
+        }
+
+        return _stakers;
+    }
+
+    function getRewardsAddTable(address indexer, uint256 startEra, uint256 length) public view returns (uint256[] memory) {
+        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getRewardsDistributer());
+        uint256[] memory table = new uint256[](length);
+        for (uint256 i = 0; i < length; i++) {
+            table[i] = rewardsDistributer.getRewardAddTable(indexer, i + startEra);
+        }
+        return table;
+    }
+
+    function getRewardsRemoveTable(address indexer, uint256 startEra, uint256 length) public view returns (uint256[] memory) {
+        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getRewardsDistributer());
+        uint256[] memory table = new uint256[](length);
+        for (uint256 i = 0; i < length; i++) {
+            table[i] = rewardsDistributer.getRewardRemoveTable(indexer, i + startEra);
+        }
+        return table;
     }
 }

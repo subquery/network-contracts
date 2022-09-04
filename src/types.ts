@@ -1,6 +1,6 @@
 import type CONTRACTS from './contracts';
 
-export type SubqueryNetwork = 'mainnet' | 'testnet' | 'local' | 'hardhat';
+export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'moonbase' | 'hardhat';
 
 export type HardhatDeploymentConfig = {
     readonly network: {
@@ -38,7 +38,7 @@ export type AcalaDeploymentConfig = {
 export type DeploymentConfig = AcalaDeploymentConfig | MoonbeamDeploymentConfig | HardhatDeploymentConfig;
 
 export type ContractDeploymentDetail = {
-    innerAddress: string;
+    innerAddress?: string;
     address: string;
     bytecodeHash: string;
     lastUpdate: string;

@@ -9,7 +9,7 @@ on:
     inputs:
       endpoint:
         description: 'endpoint used to deploy contracts'
-        default: https://acala-mandala-adapter.api.onfinality.io/public
+        default: https://acala-mandala.api.onfinality.io/public
         required: true
       network:
         type: choice
@@ -18,8 +18,7 @@ on:
         required: true
         options: 
         - testnet
-        - kelper
-        - mainnet
+        - moonbase
 
 jobs:
   Upgrade-Contracts:
@@ -63,7 +62,7 @@ jobs:
       - name: Commit changes
         uses: EndBug/add-and-commit@v5
         with:
-          add: publish/testnet.json package.json
+          add: publish/*.json package.json
           message: '[SKIP CI] Deploy to testnet and Prerelease'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

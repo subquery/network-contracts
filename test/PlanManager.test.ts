@@ -12,6 +12,7 @@ import {
     QueryRegistry,
     ServiceAgreementRegistry,
     RewardsDistributer,
+    RewardsHelper,
     EraManager,
     SQToken,
     Staking,
@@ -31,6 +32,7 @@ describe('PlanManger Contract', () => {
     let eraManager: EraManager;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
     let rewardsDistributor: RewardsDistributer;
+    let rewardsHelper: RewardsHelper;
 
     beforeEach(async () => {
         [indexer, consumer] = await ethers.getSigners();
@@ -42,6 +44,7 @@ describe('PlanManger Contract', () => {
         staking = deployment.staking;
         token = deployment.token;
         rewardsDistributor = deployment.rewardsDistributer;
+        rewardsHelper = deployment.rewardsHelper;
         eraManager = deployment.eraManager;
     });
 
@@ -145,7 +148,7 @@ describe('PlanManger Contract', () => {
                 .withArgs(indexer.address, DEPLOYMENT_ID, 0, 1, etherParse('2'));
 
             // check plan
-            expect(await planManager.planCount(indexer.address)).to.equal(1);
+            expect(await planManager.nextPlanId(indexer.address)).to.equal(1);
             const plan = await planManager.plans(indexer.address, 1);
             expect(plan.price).to.equal(etherParse('2'));
             expect(plan.active).to.equal(true);
@@ -168,11 +171,18 @@ describe('PlanManger Contract', () => {
                 .withArgs(indexer.address, 1, DEPLOYMENT_ID);
 
             // check plan
-            expect(await planManager.planCount(indexer.address)).to.equal(0);
+            expect(await planManager.nextPlanId(indexer.address)).to.equal(1);
             const plan = await planManager.plans(indexer.address, 1);
-            expect(plan.price).to.equal(etherParse('2'));
             expect(plan.active).to.equal(false);
-            expect(plan.planTemplateId).to.equal(0);
+        });
+
+        it('Plan Id shoud auto increment', async () => {
+            // creaet plan
+            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
+            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
+            await planManager.removePlan(2);
+            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
+            expect(await planManager.nextPlanId(indexer.address)).to.equal(3);
         });
 
         it('create plan with invalid params should fail', async () => {
@@ -247,8 +257,8 @@ describe('PlanManger Contract', () => {
             const era = await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.connect(indexer).collectAndDistributeRewards(indexer.address);
 
-            const rewardsAddTable = await rewardsDistributor.getRewardsAddTable(indexer.address, era.sub(1), 5);
-            const rewardsRemoveTable = await rewardsDistributor.getRewardsRemoveTable(indexer.address, era.sub(1), 5);
+            const rewardsAddTable = await rewardsHelper.getRewardsAddTable(indexer.address, era.sub(1), 5);
+            const rewardsRemoveTable = await rewardsHelper.getRewardsRemoveTable(indexer.address, era.sub(1), 5);
             const [eraReward, totalReward] = rewardsAddTable.reduce(
                 (acc, val, idx) => {
                     let [eraReward, total] = acc;
