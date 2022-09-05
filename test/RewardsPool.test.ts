@@ -127,7 +127,7 @@ describe('RewardsPool Contract', () => {
             await expect(rewardsDistributer.applyStakeChange(indexer0.address, delegator0.address)).to.be.revertedWith(
                 'Rewards Pool not collected'
             );
-            await rewardsPool.collect_era(era, deploymentId0, indexer0.address);
+            await rewardsPool.collectEra(era, deploymentId0, indexer0.address);
 
             // Apply RewardsDistributer status again. will success.
             await rewardsDistributer.applyStakeChange(indexer0.address, delegator0.address);
