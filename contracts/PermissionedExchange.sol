@@ -97,7 +97,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     ) public onlyOwner {
         require(_expireDate > block.timestamp, 'invalid expireDate');
         require(_amountGive > 0 && _amountGet > 0, 'invalid amount');
-        if(_balance > 0){
+        if (_balance > 0){
             IERC20(_tokenGive).safeTransferFrom(msg.sender, address(this), _balance);
         }
         orders[nextOrderId] = ExchangeOrder(
