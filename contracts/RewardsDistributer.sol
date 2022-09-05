@@ -222,19 +222,20 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         _emitRewardsChangedEvent(indexer, agreementStartEra + 1, rewardInfo);
     }
 
-    function addInstantRewards(address indexer, address sender, uint256 amount) external {
+    function addInstantRewards(address indexer, address sender, uint256 amount, uint256 era) external {
+        require(era < _getCurrentEra(), 'Waiting Era');
+        require(era >= info[indexer].lastClaimEra, 'Era expired');
         IERC20(settings.getSQToken()).safeTransferFrom(sender, address(this), amount);
 
         RewardInfo storage rewardInfo = info[indexer];
-        uint256 nextClaim = rewardInfo.lastClaimEra + 1;
-        rewardInfo.eraRewardAddTable[nextClaim] += amount;
-        rewardInfo.eraRewardRemoveTable[nextClaim + 1] += amount;
+        rewardInfo.eraRewardAddTable[era] += amount;
+        rewardInfo.eraRewardRemoveTable[era + 1] += amount;
 
         // Current era will always change
-        _emitRewardsChangedEvent(indexer, nextClaim, rewardInfo);
+        _emitRewardsChangedEvent(indexer, era, rewardInfo);
 
         // Next era will always change
-        _emitRewardsChangedEvent(indexer, nextClaim + 1, rewardInfo);
+        _emitRewardsChangedEvent(indexer, era + 1, rewardInfo);
     }
 
     /**
@@ -262,11 +263,12 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         _checkAndReflectSettlement(currentEra, indexer, rewardInfo.lastClaimEra);
         require(rewardInfo.lastClaimEra <= lastSettledEra[indexer], 'Pending stake or ICR');
 
+        rewardInfo.lastClaimEra++;
+
         // claim rewards pool.
         IRewardsPool rewardsPool = IRewardsPool(settings.getRewardsPool());
         rewardsPool.batchCollectEra(rewardInfo.lastClaimEra, indexer);
 
-        rewardInfo.lastClaimEra++;
         rewardInfo.eraReward += rewardInfo.eraRewardAddTable[rewardInfo.lastClaimEra];
         rewardInfo.eraReward -= rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
         delete rewardInfo.eraRewardAddTable[rewardInfo.lastClaimEra];

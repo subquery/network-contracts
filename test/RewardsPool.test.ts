@@ -55,7 +55,7 @@ describe('RewardsPool Contract', () => {
         await token.connect(root).increaseAllowance(rewardsDistributer.address, etherParse('10'));
         await token.connect(root).increaseAllowance(rewardsPool.address, etherParse('100'));
 
-        // Setup era period be 5 days.
+        // Setup era period be 1 days.
         await eraManager.connect(root).updateEraPeriod(time.duration.days(1).toString());
 
         // Moved to era 2.
@@ -109,31 +109,46 @@ describe('RewardsPool Contract', () => {
             expect(rewards5[1]).to.be.eq(0); // deleted
         });
 
-        it('RewardsDistributer will blocked when pool not collect', async () => {
+        it('Batch collect from RewardsDistributer', async () => {
             await startNewEra(mockProvider, eraManager);
             await rewardsDistributer.collectAndDistributeRewards(indexer0.address);
-            await staking.connect(delegator0).delegate(indexer0.address, etherParse('1'));
-
             const era = await eraManager.eraNumber();
+
             const indexerAmount0 = etherParse('1');
+            const indexerAmount1 = etherParse('2');
             await rewardsPool.connect(root).labor(deploymentId0, indexer0.address, indexerAmount0);
+            await rewardsPool.connect(root).labor(deploymentId1, indexer0.address, indexerAmount0);
+            await rewardsPool.connect(root).labor(deploymentId0, indexer1.address, indexerAmount1);
 
-            await startNewEra(mockProvider, eraManager);
+            // Check the status.
+            const rewards1 = await rewardsPool.getReward(deploymentId0, era, indexer0.address);
+            expect(rewards1[0]).to.be.eq(etherParse('1')); // labor
+            expect(rewards1[1]).to.be.eq(etherParse('3')); // reward
 
-            await expect(rewardsDistributer.applyStakeChange(indexer0.address, delegator0.address)).to.be.revertedWith(
-                'Rewards not collected'
-            );
+            await timeTravel(mockProvider, time.duration.days(1).toNumber());
+
+            // Auto collect
             await rewardsDistributer.collectAndDistributeRewards(indexer0.address);
-            await expect(rewardsDistributer.applyStakeChange(indexer0.address, delegator0.address)).to.be.revertedWith(
-                'Rewards Pool not collected'
-            );
-            await rewardsPool.collectEra(era, deploymentId0, indexer0.address);
 
-            // Apply RewardsDistributer status again. will success.
-            await rewardsDistributer.applyStakeChange(indexer0.address, delegator0.address);
+            const rewards2 = await rewardsPool.getReward(deploymentId0, era, indexer0.address);
+            expect(rewards2[0]).to.be.eq(etherParse('0')); // already collected
+            const isClaimed1 = await rewardsPool.isClaimed(era, indexer0.address);
+            expect(isClaimed1).to.be.eq(true);
+            const isClaimed2 = await rewardsPool.isClaimed(era, indexer1.address);
+            expect(isClaimed2).to.be.eq(false);
+
+            await rewardsPool.batchCollect(indexer1.address);
+
+            // Check the status.
+            const rewards3 = await rewardsPool.getReward(deploymentId1, era, indexer0.address);
+            const rewards4 = await rewardsPool.getReward(deploymentId0, era, indexer1.address);
+            expect(rewards3[0]).to.be.eq(0); // claimed
+            expect(rewards3[1]).to.be.eq(0); // deleted
+            expect(rewards4[0]).to.be.eq(0); // claimed
+            expect(rewards4[1]).to.be.eq(0); // deleted
         });
 
-        it('Batch collect from rewards helper', async () => {
+        it('Batch collect from RewardsHelper', async () => {
             const indexerAmount0 = etherParse('1');
             await rewardsPool.connect(root).labor(deploymentId0, indexer0.address, indexerAmount0);
             await rewardsPool.connect(root).labor(deploymentId1, indexer0.address, indexerAmount0);
