@@ -225,18 +225,16 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     function addInstantRewards(address indexer, address sender, uint256 amount) external {
         IERC20(settings.getSQToken()).safeTransferFrom(sender, address(this), amount);
 
-        IEraManager eraManager = IEraManager(settings.getEraManager());
-        uint256 currentEra = eraManager.safeUpdateAndGetEra();
-
         RewardInfo storage rewardInfo = info[indexer];
-        rewardInfo.eraRewardAddTable[currentEra] += amount;
-        rewardInfo.eraRewardRemoveTable[currentEra + 1] += amount;
+        uint256 nextClaim = rewardInfo.lastClaimEra + 1;
+        rewardInfo.eraRewardAddTable[nextClaim] += amount;
+        rewardInfo.eraRewardRemoveTable[nextClaim + 1] += amount;
 
         // Current era will always change
-        _emitRewardsChangedEvent(indexer, currentEra, rewardInfo);
+        _emitRewardsChangedEvent(indexer, nextClaim, rewardInfo);
 
         // Next era will always change
-        _emitRewardsChangedEvent(indexer, currentEra + 1, rewardInfo);
+        _emitRewardsChangedEvent(indexer, nextClaim + 1, rewardInfo);
     }
 
     /**
@@ -263,6 +261,11 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         }
         _checkAndReflectSettlement(currentEra, indexer, rewardInfo.lastClaimEra);
         require(rewardInfo.lastClaimEra <= lastSettledEra[indexer], 'Pending stake or ICR');
+
+        // claim rewards pool.
+        IRewardsPool rewardsPool = IRewardsPool(settings.getRewardsPool());
+        rewardsPool.batchCollectEra(rewardInfo.lastClaimEra, indexer);
+
         rewardInfo.lastClaimEra++;
         rewardInfo.eraReward += rewardInfo.eraRewardAddTable[rewardInfo.lastClaimEra];
         rewardInfo.eraReward -= rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
@@ -356,8 +359,6 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         uint256 lastClaimEra = info[indexer].lastClaimEra;
         require(_pendingStakeChange(indexer, staker), 'No pending');
         require(lastSettledEra[indexer] < lastClaimEra, 'Rewards not collected');
-        IRewardsPool rewardsPool = IRewardsPool(settings.getRewardsPool());
-        require(rewardsPool.isClaimed(lastClaimEra, indexer), 'Rewards Pool not collected');
 
         claimFrom(indexer, staker);
 
