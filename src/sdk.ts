@@ -24,6 +24,8 @@ import {
     RewardsDistributer__factory,
     RewardsPool,
     RewardsPool__factory,
+    RewardsStaking,
+    RewardsStaking__factory,
     RewardsHelper,
     RewardsHelper__factory,
     PurchaseOfferMarket,
@@ -56,6 +58,7 @@ export class ContractSDK {
     private _planManager?: PlanManager;
     private _rewardsDistributor?: RewardsDistributer;
     private _rewardsPool?: RewardsPool;
+    private _rewardsStaking?: RewardsStaking;
     private _rewardsHelper?: RewardsHelper;
     private _purchaseOfferMarket?: PurchaseOfferMarket;
     private _stateChannel?: StateChannel;
@@ -145,6 +148,13 @@ export class ContractSDK {
         return this._rewardsPool;
     }
 
+    get rewardsStaking(): RewardsStaking {
+        if (!this._rewardsStaking) {
+            throw new Error(`_rewardsStaking address not found`);
+        }
+        return this._rewardsStaking;
+    }
+
     get rewardsHelper(): RewardsHelper {
         if (!this._rewardsHelper) {
             throw new Error(`_rewardsHelper address not found`);
@@ -207,6 +217,7 @@ export class ContractSDK {
             planManager,
             rewardsDistributor,
             rewardsPool,
+            rewardsStaking,
             rewardsHelper,
             purchaseOfferMarket,
             stateChannel,
@@ -227,6 +238,7 @@ export class ContractSDK {
             this.initContract(PlanManager__factory, this._contractDeployments.PlanManager.address),
             this.initContract(RewardsDistributer__factory, this._contractDeployments.RewardsDistributer.address),
             this.initContract(RewardsPool__factory, this._contractDeployments.RewardsPool.address),
+            this.initContract(RewardsStaking__factory, this._contractDeployments.RewardsStaking.address),
             this.initContract(RewardsHelper__factory, this._contractDeployments.RewardsHelper.address),
             this.initContract(PurchaseOfferMarket__factory, this._contractDeployments.PurchaseOfferMarket.address),
             this.initContract(StateChannel__factory, this._contractDeployments.StateChannel.address),
@@ -244,6 +256,7 @@ export class ContractSDK {
         this._planManager = planManager;
         this._rewardsDistributor = rewardsDistributor;
         this._rewardsPool = rewardsPool;
+        this._rewardsStaking = rewardsStaking;
         this._rewardsHelper = rewardsHelper;
         this._purchaseOfferMarket = purchaseOfferMarket;
         this._stateChannel = stateChannel;

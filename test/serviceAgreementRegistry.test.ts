@@ -17,6 +17,7 @@ import {
     ServiceAgreementRegistry,
     EraManager,
     RewardsDistributer,
+    RewardsStaking,
     RewardsHelper,
 } from '../src';
 const {constants} = require('@openzeppelin/test-helpers');
@@ -33,6 +34,7 @@ describe('Service Agreement Registry Contract', () => {
     let serviceAgreementRegistry: ServiceAgreementRegistry;
     let eraManager: EraManager;
     let rewardsDistributor: RewardsDistributer;
+    let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
 
     const checkStateChange = async (agreementInfo, stateInfo, _isClear) => {
@@ -73,6 +75,7 @@ describe('Service Agreement Registry Contract', () => {
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         eraManager = deployment.eraManager;
         rewardsDistributor = deployment.rewardsDistributer;
+        rewardsStaking = deployment.rewardsStaking;
         rewardsHelper = deployment.rewardsHelper;
 
         await queryRegistry.setCreatorRestricted(false);

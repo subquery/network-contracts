@@ -6,7 +6,7 @@ import {expect} from 'chai';
 import {BigNumber} from 'ethers';
 import {ethers, waffle} from 'hardhat';
 
-import {IndexerRegistry, EraManager, SQToken, Staking, RewardsDistributer} from '../src';
+import {IndexerRegistry, EraManager, SQToken, Staking, RewardsDistributer, RewardsStaking} from '../src';
 import {deployContracts} from './setup';
 import {lastestTime, registerIndexer, startNewEra, timeTravel, etherParse} from './helper';
 
@@ -18,6 +18,7 @@ describe('Staking Contract', () => {
     let eraManager: EraManager;
     let indexerRegistry: IndexerRegistry;
     let rewardsDistributer: RewardsDistributer;
+    let rewardsStaking: RewardsStaking;
 
     const amount = etherParse('10');
 
@@ -56,6 +57,7 @@ describe('Staking Contract', () => {
         eraManager = deployment.eraManager;
         indexerRegistry = deployment.indexerRegistry;
         rewardsDistributer = deployment.rewardsDistributer;
+        rewardsStaking = deployment.rewardsStaking;
         await configWallet();
     });
 
@@ -337,8 +339,8 @@ describe('Staking Contract', () => {
             await staking.connect(delegator).undelegate(indexer.address, etherParse('1'));
             await startNewEra(mockProvider, eraManager);
             await rewardsDistributer.collectAndDistributeRewards(indexer.address);
-            await rewardsDistributer.applyStakeChange(indexer.address, delegator.address);
-            await rewardsDistributer.applyStakeChange(indexer.address, indexer.address);
+            await rewardsStaking.applyStakeChange(indexer.address, delegator.address);
+            await rewardsStaking.applyStakeChange(indexer.address, indexer.address);
             await indexerRegistry.connect(indexer).unregisterIndexer();
             await startNewEra(mockProvider, eraManager);
             await expect(staking.connect(delegator).cancelUnbonding(0)).to.be.revertedWith('Unregistered');

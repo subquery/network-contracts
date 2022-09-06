@@ -54,16 +54,16 @@
         "lastUpdate": "Thu, 25 Aug 2022 15:40:31 GMT"
     },
     "IndexerRegistry": {
-        "innerAddress": "0x5920D67616C3bc00bfc0746a74d74Ba18136b22d",
+        "innerAddress": "0xa9836581477798413bf3DdD3Cab0e88840089979",
         "address": "0x26fF84Bc422724Ca0e142CF21ED3d14bC00f3931",
-        "bytecodeHash": "174d2df81c78ce05761805c892b59d4056ce8a31cb0c6e7b3b0bfec2f1b5220c",
-        "lastUpdate": "Thu, 25 Aug 2022 15:41:51 GMT"
+        "bytecodeHash": "29d779676c2e6030e39eae1645d9e66d34c62fded4c8aefed5bb513d87ac3625",
+        "lastUpdate": "Thu, 01 Sep 2022 05:31:14 GMT"
     },
     "QueryRegistry": {
-        "innerAddress": "0x32Bd2f73286F6329B1Cf4D5Abf41608D829be867",
+        "innerAddress": "0xB4Ba15EcC2ddc4a4b389fBB79a9548eb0c6eD44E",
         "address": "0xB5B1F1B024FdaBf89024CD7FA2725d71885A2cc1",
-        "bytecodeHash": "bb8377ccda9ca8c5c5ef631a3a99a56a3d02048f902203c9db476ad32343fee4",
-        "lastUpdate": "Thu, 25 Aug 2022 15:42:51 GMT"
+        "bytecodeHash": "1a482c9ef0b26314a5bf8861b1b5979e7a1b4351f307ad073006c0c2a9717090",
+        "lastUpdate": "Thu, 01 Sep 2022 05:32:04 GMT"
     },
     "PlanManager": {
         "innerAddress": "0x03C46fEA46812a023DC8c7B4d6aE90972eCBe955",
@@ -78,16 +78,16 @@
         "lastUpdate": "Thu, 25 Aug 2022 15:46:04 GMT"
     },
     "ServiceAgreementRegistry": {
-        "innerAddress": "0x7A3c383eD9F0657ab4b8B81CefbB663F3D57CD14",
+        "innerAddress": "0xc8A145A2268eCbFEd471A84Ec7205C77be150CDB",
         "address": "0xF8004d897AD72a74C2F2cD26070856Ce13FEfdF6",
-        "bytecodeHash": "ab7da1dbddcfce7dea0c51e485ec649e46fa15fc8dc40ef20e645bb3607d9bfb",
-        "lastUpdate": "Thu, 25 Aug 2022 15:47:20 GMT"
+        "bytecodeHash": "a8575fce31353634db7377a022c43276c5359d6a82d73e4c33dc0b4e49b8d37a",
+        "lastUpdate": "Thu, 01 Sep 2022 05:34:39 GMT"
     },
     "RewardsDistributer": {
-        "innerAddress": "0xCAec8A3EfAA98F3749C23268EB3De698E0597e40",
+        "innerAddress": "0xFeCCefEb38Cd93131F7B397Ab4C7B712ff93A52d",
         "address": "0x16Ea9AEF51e28e8f84D87b8667f8e7103804061b",
-        "bytecodeHash": "a72ad206708c90d45d41ff06e76dbe7e184a1bedcfe0f7beb92f5ee14a886c74",
-        "lastUpdate": "Thu, 25 Aug 2022 15:48:56 GMT"
+        "bytecodeHash": "438a80dd2dab36e1bba4a840310081afb68fc88aab8f23b0df4995e125df86f3",
+        "lastUpdate": "Thu, 01 Sep 2022 05:32:50 GMT"
     },
     "RewardsPool": {
         "innerAddress": "0x7c0E1a61DB94e979C870c9F9A031705f019760E9",
@@ -96,10 +96,10 @@
         "lastUpdate": "Thu, 25 Aug 2022 15:50:09 GMT"
     },
     "RewardsHelper": {
-        "innerAddress": "0x48f66c84381e4d5E49D5e1C157D189209b23a840",
+        "innerAddress": "0xcAA7B1E34d6C39B831e57af1A54b38E98f8D9796",
         "address": "0x68c9003356749F7348B3BAbc24b59A59fE855c85",
-        "bytecodeHash": "b72b39d9ee236b2911cbe87e7283b60ddb443024788aa5aecdab941f346d5ace",
-        "lastUpdate": "Thu, 25 Aug 2022 15:51:26 GMT"
+        "bytecodeHash": "a3167b1ec279a38b3395125d42c48968063456e64a705d0be4b1716bc71af646",
+        "lastUpdate": "Thu, 01 Sep 2022 05:33:48 GMT"
     },
     "StateChannel": {
         "innerAddress": "0xDC545bcB504Be3f04B57714551b1fD2266E87193",
