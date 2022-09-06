@@ -10,5 +10,11 @@ interface IRewardsPool {
 
     function collect(bytes32 deploymentId, address indexer) external;
 
+    function collectEra(uint256 era, bytes32 deploymentId, address indexer) external;
+
+    function batchCollectEra(uint256 era, address indexer) external;
+
     function isClaimed(uint256 era, address indexer) external returns (bool);
+
+    function getUnclaimDeployments(uint256 era, address indexer) external view returns (bytes32[] memory);
 }
