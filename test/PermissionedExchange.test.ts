@@ -21,7 +21,7 @@ import {ZERO_ADDRESS} from './constants';
 import {etherParse, futureTimestamp, timeTravel, registerIndexer, constants, time, startNewEra} from './helper';
 import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
 
-describe.only('PermissionedExchange Contract', () => {
+describe('PermissionedExchange Contract', () => {
     const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2, indexer, consumer;
     let permissionedExchange: PermissionedExchange;

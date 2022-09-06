@@ -301,10 +301,11 @@ export async function deployContracts(
         wallet,
         overrides
     );
-    const initSARegistry = await serviceAgreementRegistry.initialize(deployment.Settings.address, [
-        planManager.address,
-        purchaseOfferMarket.address,
-    ]);
+    const initSARegistry = await serviceAgreementRegistry.initialize(
+        deployment.Settings.address,
+        ...(config['ServiceAgreementRegistry'] as [number]),
+        [planManager.address, purchaseOfferMarket.address]
+    );
     await initSARegistry.wait();
     updateDeployment(
         deployment,
