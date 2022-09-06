@@ -294,6 +294,27 @@ pub fn rewards_pool(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, 
     .map_err(|_| ())
 }
 
+pub fn rewards_staking(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
+    let abi = serde_json::to_vec(
+        &serde_json::from_str::<Value>(include_str!(
+            "../artifacts/contracts/RewardsStaking.sol/RewardsStaking.json"
+        ))
+        .map_err(|_| ())?["abi"],
+    )
+    .map_err(|_| ())?;
+    Contract::from_json(
+        eth,
+        address["RewardsStaking"]["address"]
+            .as_str()
+            .ok_or(())?
+            .parse()
+            .map_err(|_| ())?,
+        &abi,
+    )
+    .map_err(|_| ())
+}
+
 pub fn rewards_helper(eth: Eth<Http>, network: Network) -> Result<Contract<Http>, ()> {
     let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let abi = serde_json::to_vec(
