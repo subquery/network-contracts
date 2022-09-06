@@ -5,12 +5,23 @@ pragma solidity 0.8.15;
 
 import './IServiceAgreementRegistry.sol';
 
+// Reward info for query.
+struct IndexerRewardInfo {
+    uint256 accSQTPerStake;
+    uint256 lastClaimEra;
+    uint256 eraReward;
+}
+
 interface IRewardsDistributer {
+    function setLastClaimEra(address indexer, uint256 era) external;
+
+    function setRewardDebt(address indexer, address delegator, uint256 amount) external;
+
+    function resetEraReward(address indexer, uint256 era) external;
+
     function collectAndDistributeRewards(address indexer) external;
 
-    function onStakeChange(address indexer, address user) external;
-
-    function onICRChange(address indexer, uint256 startEra) external;
+    function collectAndDistributeEraRewards(uint256 era, address indexer) external returns (uint256);
 
     function increaseAgreementRewards(uint256 agreementId) external;
 
@@ -18,7 +29,9 @@ interface IRewardsDistributer {
 
     function claim(address indexer) external;
 
+    function claimFrom(address indexer, address user) external returns (uint256);
+
     function userRewards(address indexer, address user) external view returns (uint256);
 
-    function getTotalStakingAmount(address _indexer) external view returns (uint256);
+    function getRewardInfo(address indexer) external view returns (IndexerRewardInfo memory);
 }

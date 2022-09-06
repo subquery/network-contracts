@@ -18,6 +18,7 @@ contract Settings is ISettings, Ownable, Constants {
     address public serviceAgreementRegistry;
     address public rewardsDistributer;
     address public rewardsPool;
+    address public rewardsStaking;
     address public rewardsHelper;
     address public inflationController;
     address public vesting;
@@ -50,6 +51,7 @@ contract Settings is ISettings, Ownable, Constants {
         address _staking,
         address _rewardsDistributer,
         address _rewardsPool,
+        address _rewardsStaking,
         address _rewardsHelper,
         address _inflationController,
         address _vesting,
@@ -57,17 +59,19 @@ contract Settings is ISettings, Ownable, Constants {
     ) external override onlyOwner {
         require(_sqToken != ZERO_ADDRESS);
         require(_staking != ZERO_ADDRESS);
-        require(_rewardsDistributer != ZERO_ADDRESS);
         require(_inflationController != ZERO_ADDRESS);
         require(_vesting != ZERO_ADDRESS);
-        require(_rewardsHelper != ZERO_ADDRESS);
+        require(_rewardsDistributer != ZERO_ADDRESS);
         require(_rewardsPool != ZERO_ADDRESS);
+        require(_rewardsStaking != ZERO_ADDRESS);
+        require(_rewardsHelper != ZERO_ADDRESS);
         require(_permissionedExchange != ZERO_ADDRESS);
 
         sqToken = _sqToken;
         staking = _staking;
         rewardsDistributer = _rewardsDistributer;
         rewardsPool = _rewardsPool;
+        rewardsStaking = _rewardsStaking;
         rewardsHelper = _rewardsHelper;
         inflationController = _inflationController;
         vesting = _vesting;
@@ -152,6 +156,14 @@ contract Settings is ISettings, Ownable, Constants {
 
     function getRewardsPool() external view returns (address) {
         return rewardsPool;
+    }
+
+    function setRewardsStaking(address _rewardsStaking) external override onlyOwner {
+        rewardsStaking = _rewardsStaking;
+    }
+
+    function getRewardsStaking() external view returns (address) {
+        return rewardsStaking;
     }
 
     function setRewardsHelper(address _rewardsHelper) external override onlyOwner {
