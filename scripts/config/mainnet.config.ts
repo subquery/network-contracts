@@ -1,7 +1,7 @@
 export default {
     network: {
         name: 'mainnet',
-        platform: 'acala',
+        platform: 'moonbean',
     },
     contracts: {
         InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
