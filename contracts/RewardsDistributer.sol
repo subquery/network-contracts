@@ -223,7 +223,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     function addInstantRewards(address indexer, address sender, uint256 amount, uint256 era) external {
-        require(era < _getCurrentEra(), 'Waiting Era');
+        require(era <= _getCurrentEra(), 'Waiting Era');
         require(era >= info[indexer].lastClaimEra, 'Era expired');
         IERC20(settings.getSQToken()).safeTransferFrom(sender, address(this), amount);
 
