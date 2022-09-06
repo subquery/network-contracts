@@ -344,7 +344,7 @@ export async function deployContracts(
     await initRewardsPool.wait();
     updateDeployment(deployment, 'RewardsPool', rewardsPool.address, RPInnerAddr, rewardsPool.deployTransaction.hash);
 
-    const [rewardsStaking, RPInnerAddr] = await deployProxy<RewardsStaking>(
+    const [rewardsStaking, RSInnerAddr] = await deployProxy<RewardsStaking>(
         proxyAdmin,
         RewardsStaking__factory,
         wallet,
@@ -356,7 +356,7 @@ export async function deployContracts(
         deployment,
         'RewardsStaking',
         rewardsStaking.address,
-        RPInnerAddr,
+        RSInnerAddr,
         rewardsStaking.deployTransaction.hash
     );
 
