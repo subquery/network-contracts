@@ -93,12 +93,12 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         uint256 _amountGet,
         uint256 _expireDate,
         uint256 _pairId,
-        uint256 _balance
+        uint256 _tokenGiveBalance
     ) public onlyOwner {
         require(_expireDate > block.timestamp, 'invalid expireDate');
         require(_amountGive > 0 && _amountGet > 0, 'invalid amount');
-        if(_balance > 0){
-            IERC20(_tokenGive).safeTransferFrom(msg.sender, address(this), _balance);
+        if(_tokenGiveBalance > 0){
+            IERC20(_tokenGive).safeTransferFrom(msg.sender, address(this), _tokenGiveBalance);
         }
         orders[nextOrderId] = ExchangeOrder(
             _tokenGive,
@@ -108,7 +108,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
             msg.sender,
             _expireDate,
             _pairId,
-            _balance
+            _tokenGiveBalance
         );
         emit ExchangeOrderSent(nextOrderId, msg.sender, _tokenGive, _tokenGet, _amountGive, _amountGet, _expireDate);
         nextOrderId += 1;
@@ -120,10 +120,10 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         uint256 _amountGive,
         uint256 _amountGet,
         uint256 _expireDate,
-        uint256 _balance
+        uint256 _tokenGiveBalance
     ) public onlyOwner {
-        require(_balance > 0, 'pair orders should have balance');
-        sendOrder(_tokenGive, _tokenGet, _amountGive, _amountGet, _expireDate, nextOrderId+1, _balance);
+        require(_tokenGiveBalance > 0, 'pair orders should have balance');
+        sendOrder(_tokenGive, _tokenGet, _amountGive, _amountGet, _expireDate, nextOrderId+1, _tokenGiveBalance);
         sendOrder(_tokenGet, _tokenGive, _amountGet, _amountGive, _expireDate, nextOrderId-1, 0);
     }
 
