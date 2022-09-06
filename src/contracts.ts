@@ -11,6 +11,7 @@ import PurchaseOfferMarket from './artifacts/contracts/PurchaseOfferMarket.sol/P
 import EraManager from './artifacts/contracts/EraManager.sol/EraManager.json';
 import RewardsDistributer from './artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json';
 import RewardsPool from './artifacts/contracts/RewardsPool.sol/RewardsPool.json';
+import RewardsStaking from './artifacts/contracts/RewardsStaking.sol/RewardsStaking.json';
 import RewardsHelper from './artifacts/contracts/RewardsHelper.sol/RewardsHelper.json';
 import ProxyAdmin from './artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json';
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
@@ -32,6 +33,7 @@ export default {
     EraManager,
     RewardsDistributer,
     RewardsPool,
+    RewardsStaking,
     RewardsHelper,
     ProxyAdmin,
     StateChannel,

@@ -34,6 +34,8 @@ import {
     RewardsDistributer__factory,
     RewardsPool,
     RewardsPool__factory,
+    RewardsStaking,
+    RewardsStaking__factory,
     RewardsHelper,
     RewardsHelper__factory,
     StateChannel,
@@ -66,6 +68,7 @@ type Contracts = {
     serviceAgreementRegistry: ServiceAgreementRegistry;
     rewardsDistributer: RewardsDistributer;
     rewardsPool: RewardsPool;
+    rewardsStaking: RewardsStaking;
     rewardsHelper: RewardsHelper;
     stateChannel: StateChannel;
     airdropper: Airdropper;
@@ -80,6 +83,7 @@ const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: s
     QueryRegistry: [CONTRACTS.QueryRegistry, QueryRegistry__factory],
     RewardsDistributer: [CONTRACTS.RewardsDistributer, RewardsDistributer__factory],
     RewardsPool: [CONTRACTS.RewardsPool, RewardsPool__factory],
+    RewardsStaking: [CONTRACTS.RewardsStaking, RewardsStaking__factory],
     RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
     ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
@@ -341,6 +345,22 @@ export async function deployContracts(
     await initRewardsPool.wait();
     updateDeployment(deployment, 'RewardsPool', rewardsPool.address, RPInnerAddr, rewardsPool.deployTransaction.hash);
 
+    const [rewardsStaking, RSInnerAddr] = await deployProxy<RewardsStaking>(
+        proxyAdmin,
+        RewardsStaking__factory,
+        wallet,
+        overrides
+    );
+    const initRewardsStaking = await rewardsStaking.initialize(deployment.Settings.address, overrides);
+    await initRewardsStaking.wait();
+    updateDeployment(
+        deployment,
+        'RewardsStaking',
+        rewardsStaking.address,
+        RSInnerAddr,
+        rewardsStaking.deployTransaction.hash
+    );
+
     const [rewardsHelper, RHInnerAddr] = await deployProxy<RewardsHelper>(
         proxyAdmin,
         RewardsHelper__factory,
@@ -399,6 +419,7 @@ export async function deployContracts(
         deployment.Staking.address,
         deployment.RewardsDistributer.address,
         deployment.RewardsPool.address,
+        deployment.RewardsStaking.address,
         deployment.RewardsHelper.address,
         deployment.InflationController.address,
         deployment.Vesting.address,
@@ -435,6 +456,7 @@ export async function deployContracts(
             serviceAgreementRegistry,
             rewardsDistributer,
             rewardsPool,
+            rewardsStaking,
             rewardsHelper,
             proxyAdmin,
             stateChannel,

@@ -5,7 +5,7 @@ import {expect} from 'chai';
 import {ethers} from 'hardhat';
 import {deployContracts} from './setup';
 import {METADATA_HASH, METADATA_1_HASH, VERSION, DEPLOYMENT_ID} from './constants';
-import {IndexerRegistry, SQToken, QueryRegistry, Staking, RewardsDistributer} from '../src';
+import {IndexerRegistry, SQToken, QueryRegistry, Staking, RewardsStaking} from '../src';
 import {etherParse, registerIndexer} from './helper';
 
 const {constants} = require('@openzeppelin/test-helpers');
@@ -17,7 +17,7 @@ describe('IndexerRegistry Contract', () => {
     let staking: Staking;
     let queryRegistry: QueryRegistry;
     let indexerRegistry: IndexerRegistry;
-    let rewardsDistributer: RewardsDistributer;
+    let rewardsStaking: RewardsStaking;
 
     const checkControllerIsEmpty = async () => {
         expect(await indexerRegistry.indexerToController(wallet_0.address)).to.equal(constants.ZERO_ADDRESS);
@@ -31,7 +31,7 @@ describe('IndexerRegistry Contract', () => {
         staking = deployment.staking;
         queryRegistry = deployment.queryRegistry;
         indexerRegistry = deployment.indexerRegistry;
-        rewardsDistributer = deployment.rewardsDistributer;
+        rewardsStaking = deployment.rewardsStaking;
         await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '10');
     });
 
@@ -48,10 +48,10 @@ describe('IndexerRegistry Contract', () => {
                 etherParse('5')
             );
             expect(await staking.getCommissionRate(wallet_1.address)).to.equal(0);
-            expect(await rewardsDistributer.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
+            expect(await rewardsStaking.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
                 etherParse('5')
             );
-            expect(await rewardsDistributer.getCommissionRate(wallet_1.address)).to.equal(0);
+            expect(await rewardsStaking.getCommissionRate(wallet_1.address)).to.equal(0);
         });
 
         it('registered indexer reregister should fail', async () => {

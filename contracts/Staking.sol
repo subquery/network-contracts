@@ -11,7 +11,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
-import './interfaces/IRewardsDistributer.sol';
+import './interfaces/IRewardsStaking.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISQToken.sol';
 import './Constants.sol';
@@ -36,9 +36,9 @@ import './utils/StakingUtil.sol';
  *
  * ## Detail
  * Since The change of stake or delegate amount and commission rate affects the rewards distribution. So when
- * users make these changes, we call onStakeChange()/onICRChnage() from rewardsDistributer/rewardsPool contract to notify it to
+ * users make these changes, we call onStakeChange()/onICRChnage() from rewardsStaking/rewardsPool contract to notify it to
  * apply these changes for future distribution.
- * In our design rewardsDistributer contract apply the first stake change and commission rate change immediately when
+ * In our design rewardsStaking contract apply the first stake change and commission rate change immediately when
  * an Indexer make registration. Later on all the stake change apply at next Era, commission rate apply at two Eras later.
  *
  * Since Indexers need to stake SQT Token at registration and the staked amount effects its max acceptable delegation amount.
@@ -189,8 +189,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      */
     function setInitialCommissionRate(address indexer, uint256 rate) external {
         require(msg.sender == settings.getIndexerRegistry(), 'Only IndexerRegistry');
-        IRewardsDistributer rewardDistributer = IRewardsDistributer(settings.getRewardsDistributer());
-        require(rewardDistributer.getTotalStakingAmount(indexer) == 0, 'Not settled');
+        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
+        require(rewardsStaking.getTotalStakingAmount(indexer) == 0, 'Not settled');
         require(rate <= PER_MILL, 'Invalid rate');
         uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
         commissionRates[indexer] = CommissionRate(eraNumber, rate, rate);
@@ -204,11 +204,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      */
     function setCommissionRate(uint256 rate) external {
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
-        IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getRewardsDistributer());
+        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
         require(indexerRegistry.isIndexer(msg.sender), 'Not indexer');
         require(rate <= PER_MILL, 'Invalid rate');
         uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
-        rewardsDistributer.onICRChange(msg.sender, eraNumber + 2);
+        rewardsStaking.onICRChange(msg.sender, eraNumber + 2);
         CommissionRate storage commissionRate = commissionRates[msg.sender];
         if (commissionRate.era < eraNumber) {
             commissionRate.era = eraNumber;
@@ -339,11 +339,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     }
 
     /**
-     * @dev When the delegation change nodify rewardsDistributer to deal with the change.
+     * @dev When the delegation change nodify rewardsStaking to deal with the change.
      */
     function _onDelegationChange(address _source, address _indexer) internal {
-        IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getRewardsDistributer());
-        rewardsDistributer.onStakeChange(_indexer, _source);
+        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
+        rewardsStaking.onStakeChange(_indexer, _source);
     }
 
     /**

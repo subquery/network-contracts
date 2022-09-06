@@ -17,6 +17,7 @@ interface ISettings {
         address _staking,
         address _rewardsDistributer,
         address _rewardsPool,
+        address _rewardsStaking,
         address _rewardsHelper,
         address _inflationController,
         address _vesting,
@@ -58,6 +59,10 @@ interface ISettings {
     function setRewardsPool(address _rewardsPool) external;
 
     function getRewardsPool() external view returns (address);
+
+    function setRewardsStaking(address _rewardsStaking) external;
+
+    function getRewardsStaking() external view returns (address);
 
     function setRewardsHelper(address _rewardsHelper) external;
 
