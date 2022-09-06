@@ -113,14 +113,18 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         settings = _settings;
     }
 
+    modifier onlyRewardsStaking() {
+        require(msg.sender == settings.getRewardsStaking(), 'Only RewardsStaking');
+        _;
+    }
+
     /**
      * @dev Initialize the indexer first last claim era.
      * Only RewardsStaking can call.
      * @param indexer address
      * @param era uint256
      */
-    function setLastClaimEra(address indexer, uint256 era) external {
-        require(msg.sender == settings.getRewardsStaking(), 'Only RewardsStaking');
+    function setLastClaimEra(address indexer, uint256 era) external onlyRewardsStaking {
         info[indexer].lastClaimEra = era;
     }
 
@@ -131,8 +135,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * @param delegator address
      * @param amount uint256
      */
-    function setRewardDebt(address indexer, address delegator, uint256 amount) external {
-        require(msg.sender == settings.getRewardsStaking(), 'Only RewardsStaking');
+    function setRewardDebt(address indexer, address delegator, uint256 amount) external onlyRewardsStaking {
         info[indexer].rewardDebt[delegator] = amount;
     }
 
@@ -142,8 +145,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * @param indexer address
      * @param era uint256
      */
-    function resetEraReward(address indexer, uint256 era) external {
-        require(msg.sender == settings.getRewardsStaking(), 'Only RewardsStaking');
+    function resetEraReward(address indexer, uint256 era) external onlyRewardsStaking {
         if (info[indexer].eraRewardRemoveTable[era] == 0) {
             info[indexer].eraReward = 0;
         }

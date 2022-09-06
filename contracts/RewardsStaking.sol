@@ -88,6 +88,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
         settings = _settings;
     }
 
+    modifier onlyStaking() {
+        require(msg.sender == settings.getStaking(), 'Only Staking');
+        _;
+    }
+
     /**
      * @dev Callback method of stake change, called by Staking contract when
      * Indexers or Delegators try to change their stake amount.
@@ -96,11 +101,10 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
      * New Indexer's first stake change need to apply immediately。
      * Last era's reward need to be collected before this can pass.
      */
-    function onStakeChange(address _indexer, address _source) external {
-        require(msg.sender == settings.getStaking(), 'Only Staking');
+    function onStakeChange(address _indexer, address _source) external onlyStaking {
         uint256 currentEra = _getCurrentEra();
 
-        IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getRewardsDistributer());
+        IRewardsDistributer rewardsDistributer = _getRewardsDistributer();
 
         if (totalStakingAmount[_indexer] == 0) {
             IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(_indexer);
@@ -148,12 +152,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
      * and wait to apply at two Eras later.
      * Last era's reward need to be collected before this can pass.
      */
-    function onICRChange(address indexer, uint256 startEra) external {
-        require(msg.sender == settings.getStaking(), 'Only Staking');
+    function onICRChange(address indexer, uint256 startEra) external onlyStaking {
         uint256 currentEra = _getCurrentEra();
         require(startEra > currentEra, 'Too early');
 
-        IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getRewardsDistributer());
+        IRewardsDistributer rewardsDistributer = _getRewardsDistributer();
         require(rewardsDistributer.collectAndDistributeEraRewards(currentEra, indexer) == currentEra - 1, 'Unless collect at last era');
         IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(indexer);
 
@@ -165,7 +168,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
      * @dev Apply the stake change and calaulate the new rewardDebt for staker.
      */
     function applyStakeChange(address indexer, address staker) external {
-        IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getRewardsDistributer());
+        IRewardsDistributer rewardsDistributer = _getRewardsDistributer();
         IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(indexer);
         uint256 lastClaimEra = rewardInfo.lastClaimEra;
 
@@ -201,7 +204,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
         uint256 currentEra = _getCurrentEra();
         require(pendingCommissionRateChange[indexer] != 0 && pendingCommissionRateChange[indexer] <= currentEra, 'No pending');
 
-        IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getRewardsDistributer());
+        IRewardsDistributer rewardsDistributer = _getRewardsDistributer();
         IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(indexer);
         require(lastSettledEra[indexer] < rewardInfo.lastClaimEra, 'Rewards not collected');
 
@@ -246,6 +249,14 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
             totalStakingAmount[indexer] = staking.getTotalStakingAmount(indexer);
         }
     }
+
+    /**
+     * @dev Get RewardsDistributer instant
+     */
+    function _getRewardsDistributer() private returns (IRewardsDistributer) {
+        return IRewardsDistributer(settings.getRewardsDistributer());
+    }
+
 
     /**
      * @dev Get current Era number from EraManager.
