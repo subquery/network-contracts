@@ -10,13 +10,40 @@ import {ContractSDK} from '@subql/contract-sdk';
 import deployment from '@subql/contract-sdk/publish/moonbase.json';
 import {METADATA_HASH} from '../test/constants';
 
+export async function setups(sdk) {
+    const startTime = 1665503050;
+    const endTime = 1668180003;
+    const airdrops = [
+        '0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4',
+        '0x592C6A31df20DD24a7d33f5fe526730358337189',
+        '0x9184cFF04fD32123db66329Ab50Bf176ece2e211',
+        '0xFf60C1Efa7f0F10594229D8A68c312d7020E3478',
+        '0xBDB9D4dC13c5E3E59B7fd69230c7F44f7170Ce02',
+        '0x0421700EE1890d461353A54eAA481488f440A68f',
+    ];
+    const rounds = [0, 0, 0, 0, 0, 0];
+    const amounts = [100, 200, 300, 400, 500, 600];
+
+    await sdk.token.increaseAllowance(sdk.airdropper.address, 1000000);
+
+    //Create Airdrop rounds
+    await sdk.airdropper.createRound(await sdk.token.address, startTime, endTime);
+
+    await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
+
+    //Create 5 plan templates
+    await sdk.planManager.createPlanTemplate(10800, 10000, 10000, METADATA_HASH);
+    await sdk.planManager.createPlanTemplate(1000, 100, 1000, METADATA_HASH);
+    await sdk.planManager.createPlanTemplate(5000, 2000, 100, METADATA_HASH);
+    await sdk.planManager.createPlanTemplate(30000, 5600, 863, METADATA_HASH);
+    await sdk.planManager.createPlanTemplate(5630, 200, 567, METADATA_HASH);
+}
+
 const main = async () => {
+    const usdcAddress = '0xF98bF104e268d7cBB7949029Fee874e3cd1db8fa';
+    const futureTime = 1668180003;
     let config: DeploymentConfig;
     let dev = true;
-    let usdcAddress;
-    let futureTime;
-    let startTime;
-    let endTime;
 
     switch (process.argv[2]) {
         case '--mainnet':
@@ -51,8 +78,7 @@ const main = async () => {
         network: 'testnet',
     });
 
-    //Create Airdrop rounds
-    await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
+    setups(sdk);
 
     //Create pair orders for exchange contract
     await sdk.permissionedExchange.createPairOrders(
@@ -63,13 +89,6 @@ const main = async () => {
         futureTime,
         100000000
     );
-
-    //Create 5 plan templates
-    await sdk.planManager.createPlanTemplate(10800, 10000, 10000, METADATA_HASH);
-    await sdk.planManager.createPlanTemplate(1000, 100, 1000, METADATA_HASH);
-    await sdk.planManager.createPlanTemplate(5000, 2000, 100, METADATA_HASH);
-    await sdk.planManager.createPlanTemplate(30000, 5600, 863, METADATA_HASH);
-    await sdk.planManager.createPlanTemplate(5630, 200, 567, METADATA_HASH);
 
     if ((provider as EvmRpcProvider).api) {
         await (provider as EvmRpcProvider).api.disconnect();
