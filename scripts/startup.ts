@@ -10,9 +10,7 @@ import {ContractSDK} from '../src';
 import deployment from '../publish/moonbase.json';
 import {METADATA_HASH} from '../test/constants';
 
-export async function setups(sdk) {
-    const startTime = 1665503050;
-    const endTime = 1668180003;
+export async function setups(sdk, startTime, endTime) {
     const airdrops = [
         '0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4',
         '0x592C6A31df20DD24a7d33f5fe526730358337189',
@@ -42,6 +40,8 @@ export async function setups(sdk) {
 const main = async () => {
     const usdcAddress = '0xF98bF104e268d7cBB7949029Fee874e3cd1db8fa';
     const futureTime = 1668180003;
+    const startTime = 1665503050;
+    const endTime = 1668180003;
     let config: DeploymentConfig;
     let dev = true;
 
@@ -78,7 +78,7 @@ const main = async () => {
         network: 'testnet',
     });
 
-    setups(sdk);
+    setups(sdk, startTime, endTime);
 
     //Create pair orders for exchange contract
     await sdk.permissionedExchange.createPairOrders(

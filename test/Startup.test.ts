@@ -2,8 +2,9 @@ import {expect} from 'chai';
 import {ethers, waffle} from 'hardhat';
 import {deployContracts} from './setup';
 import {setups} from '../scripts/startup';
+import {futureTimestamp} from './helper';
 
-describe('Purchase Offer Market Contract', () => {
+describe('stratup script', () => {
     const mockProvider = waffle.provider;
     let wallet;
     let sdk;
@@ -14,7 +15,11 @@ describe('Purchase Offer Market Contract', () => {
     });
     describe('startup', async () => {
         it('airdropper setups should work', async () => {
-            await setups(sdk);
+            await setups(
+                sdk,
+                await futureTimestamp(mockProvider, 60 * 60 * 2),
+                await futureTimestamp(mockProvider, 60 * 60 * 3)
+            );
             expect(await sdk.airdropper.nextRoundId()).to.be.equal(1);
             expect((await sdk.airdropper.roundRecord(0)).tokenAddress).to.be.equal(sdk.token.address);
             expect((await sdk.airdropper.roundRecord(0)).roundStartTime).to.be.equal(1665503050);
@@ -40,7 +45,11 @@ describe('Purchase Offer Market Contract', () => {
             );
         });
         it('planTemplate setups should work', async () => {
-            await setups(sdk);
+            await setups(
+                sdk,
+                await futureTimestamp(mockProvider, 60 * 60 * 2),
+                await futureTimestamp(mockProvider, 60 * 60 * 3)
+            );
             expect(await sdk.planManager.planTemplateIds()).to.be.equal(5);
             expect((await sdk.planManager.planTemplates(0)).period).to.be.equal(10800);
             expect((await sdk.planManager.planTemplates(1)).period).to.be.equal(1000);
