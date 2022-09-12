@@ -6,8 +6,8 @@ import testnetConfig from './config/testnet.config';
 import mainnetConfig from './config/mainnet.config';
 import {EvmRpcProvider} from '@acala-network/eth-providers';
 import moonbaseConfig from './config/moonbase.config';
-import {ContractSDK} from '@subql/contract-sdk';
-import deployment from '@subql/contract-sdk/publish/moonbase.json';
+import {ContractSDK} from '../src';
+import deployment from '../publish/moonbase.json';
 import {METADATA_HASH} from '../test/constants';
 
 export async function setups(sdk) {
