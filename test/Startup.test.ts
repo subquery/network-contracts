@@ -15,15 +15,13 @@ describe('stratup script', () => {
     });
     describe('startup', async () => {
         it('airdropper setups should work', async () => {
-            await setups(
-                sdk,
-                await futureTimestamp(mockProvider, 60 * 60 * 2),
-                await futureTimestamp(mockProvider, 60 * 60 * 3)
-            );
+            const startTime = await futureTimestamp(mockProvider, 60 * 60 * 2);
+            const endTime = await futureTimestamp(mockProvider, 60 * 60 * 3);
+            await setups(sdk, startTime, endTime);
             expect(await sdk.airdropper.nextRoundId()).to.be.equal(1);
             expect((await sdk.airdropper.roundRecord(0)).tokenAddress).to.be.equal(sdk.token.address);
-            expect((await sdk.airdropper.roundRecord(0)).roundStartTime).to.be.equal(1665503050);
-            expect((await sdk.airdropper.roundRecord(0)).roundDeadline).to.be.equal(1668180003);
+            expect((await sdk.airdropper.roundRecord(0)).roundStartTime).to.be.equal(startTime);
+            expect((await sdk.airdropper.roundRecord(0)).roundDeadline).to.be.equal(endTime);
             expect((await sdk.airdropper.roundRecord(0)).unclaimedAmount).to.be.equal(2100);
             expect(await sdk.airdropper.airdropRecord('0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4', 0)).to.be.equal(
                 100
