@@ -19,3 +19,7 @@ artifacts
 coverage.json
 
 Flattened.sol
+
+pids
+run
+docs/.vuepress/dist/
