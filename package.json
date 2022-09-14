@@ -92,5 +92,8 @@
         "src/*.ts": [
             "prettier --write"
         ]
-    }
+    },
+    "workspaces": [
+        "docs"
+    ]
 }
