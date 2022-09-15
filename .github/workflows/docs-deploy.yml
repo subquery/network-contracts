@@ -1,0 +1,19 @@
+name: Build and Deploy
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: vuepress-deploy
+      uses: jenkey2011/vuepress-deploy@master
+      env:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        TARGET_REPO: subquery/network-contracts
+        TARGET_BRANCH: kepler-network
+        BUILD_SCRIPT: yarn && yarn docs:generate && yarn docs:build
+        BUILD_DIR: docs/.vuepress/dist

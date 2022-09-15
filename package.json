@@ -11,6 +11,9 @@
         "test": "hardhat test",
         "test:coverage": "hardhat coverage",
         "prepare": "husky install",
+        "docs:dev": "vuepress dev docs",
+        "docs:build": "vuepress build docs",
+        "docs:generate": "hardhat docgen",
         "deploy": "node -r ts-node/register/transpile-only scripts/deploy.ts",
         "deploy:moonbase": "node -r ts-node/register/transpile-only scripts/deploy.ts --moonbase",
         "deploy:testnet": "node -r ts-node/register/transpile-only scripts/deploy.ts --testnet",
@@ -74,11 +77,13 @@
         "ts-node": "^10.7.0",
         "tsconfig-paths": "^3.14.1",
         "typechain": "^8.0.0",
-        "typescript": "^4.6.3"
+        "typescript": "^4.6.3",
+        "vuepress": "^1.9.7"
     },
     "dependencies": {
         "@openzeppelin/contracts-upgradeable": "^4.5.2",
-        "@polkadot/ui-keyring": "^2.9.4"
+        "@polkadot/ui-keyring": "^2.9.4",
+        "solidity-docgen": "^0.6.0-beta.25"
     },
     "resolutions": {
         "@polkadot/util": "9.1.1",
