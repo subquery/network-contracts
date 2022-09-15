@@ -20,8 +20,6 @@
         "deploy:kepler": "node -r ts-node/register/transpile-only scripts/deploy.ts --kepler",
         "deploy:mainnet": "node -r ts-node/register/transpile-only scripts/deploy.ts --mainnet",
         "upgrade:moonbase": "node -r ts-node/register/transpile-only scripts/upgrade.ts --moonbase",
-        "deploy:mainnet": "node -r ts-node/register/transpile-only scripts/deploy.ts --mainnet",
-        "upgrade:moonbase": "node -r ts-node/register/transpile-only scripts/upgrade.ts --moonbase",
         "upgrade:testnet": "node -r ts-node/register/transpile-only scripts/upgrade.ts --testnet",
         "upgrade:mainnet": "node -r ts-node/register/transpile-only scripts/upgrade.ts --mainnet",
         "upgrade:kepler": "node -r ts-node/register/transpile-only scripts/upgrade.ts --kepler",

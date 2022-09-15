@@ -76,13 +76,6 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         mapping(uint256 => uint256) eraRewardRemoveTable;
     }
 
-    // Reward info for query.
-    struct IndexerRewardInfo {
-        uint256 accSQTPerStake;
-        uint256 lastClaimEra;
-        uint256 eraReward;
-    }
-
     // -- Storage --
 
     ISettings private settings;

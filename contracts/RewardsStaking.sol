@@ -253,10 +253,9 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
     /**
      * @dev Get RewardsDistributer instant
      */
-    function _getRewardsDistributer() private returns (IRewardsDistributer) {
+    function _getRewardsDistributer() private view returns (IRewardsDistributer) {
         return IRewardsDistributer(settings.getRewardsDistributer());
     }
-
 
     /**
      * @dev Get current Era number from EraManager.
