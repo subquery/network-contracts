@@ -12,6 +12,7 @@ import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IPermissionedExchange.sol';
+import './interfaces/IPermissionedExchange.sol';
 import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IRewardsStaking.sol';
@@ -73,6 +74,13 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         uint256 eraReward;
         mapping(uint256 => uint256) eraRewardAddTable;
         mapping(uint256 => uint256) eraRewardRemoveTable;
+    }
+
+    // Reward info for query.
+    struct IndexerRewardInfo {
+        uint256 accSQTPerStake;
+        uint256 lastClaimEra;
+        uint256 eraReward;
     }
 
     // -- Storage --

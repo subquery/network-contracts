@@ -23,6 +23,7 @@ contract Settings is ISettings, Ownable, Constants {
     address public inflationController;
     address public vesting;
     address public permissionedExchange;
+    address public permissionedExchange;
 
     constructor() Ownable() {}
 
@@ -55,6 +56,7 @@ contract Settings is ISettings, Ownable, Constants {
         address _rewardsHelper,
         address _inflationController,
         address _vesting,
+        address _permissionedExchange,
         address _permissionedExchange
     ) external override onlyOwner {
         require(_sqToken != ZERO_ADDRESS);
@@ -75,6 +77,7 @@ contract Settings is ISettings, Ownable, Constants {
         rewardsHelper = _rewardsHelper;
         inflationController = _inflationController;
         vesting = _vesting;
+        permissionedExchange = _permissionedExchange;
         permissionedExchange = _permissionedExchange;
     }
 
@@ -189,6 +192,14 @@ contract Settings is ISettings, Ownable, Constants {
 
     function getVesting() external view returns (address) {
         return vesting;
+    }
+
+    function setPermissionedExchange(address _permissionedExchange) external override onlyOwner {
+        permissionedExchange = _permissionedExchange;
+    }
+
+    function getPermissionedExchange() external view returns (address) {
+        return permissionedExchange;
     }
 
     function setPermissionedExchange(address _permissionedExchange) external override onlyOwner {

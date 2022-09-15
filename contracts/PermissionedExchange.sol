@@ -80,6 +80,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         require(exchangeController[msg.sender] == true, 'Not controller');
         tradeQuota[_token][_account] += _amount;
         emit QuotaAdded(_token, _account, _amount);
+        emit QuotaAdded(_token, _account, _amount);
     }
 
     /**
