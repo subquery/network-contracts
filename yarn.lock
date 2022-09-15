@@ -3399,6 +3399,7 @@ __metadata:
     sha256: ^0.2.0
     solhint: ^3.3.7
     solidity-coverage: ^0.7.20
+    solidity-docgen: ^0.6.0-beta.25
     ts-node: ^10.7.0
     tsconfig-paths: ^3.14.1
     typechain: ^8.0.0
@@ -12206,7 +12207,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"handlebars@npm:^4.0.1":
+"handlebars@npm:^4.0.1, handlebars@npm:^4.7.7":
   version: 4.7.7
   resolution: "handlebars@npm:4.7.7"
   dependencies:
@@ -20355,6 +20356,13 @@ resolve@1.17.0:
   languageName: node
   linkType: hard
 
+"solidity-ast@npm:^0.4.31":
+  version: 0.4.35
+  resolution: "solidity-ast@npm:0.4.35"
+  checksum: 6cde9e656dee814fa3d7ce9ef42f1cd0344162515d0d215dbd7d18bf931ed9cd6ce4093aed0a8abbcfb5a4a6faf6638f615aaad479e4657054c6a4ae2cb5092e
+  languageName: node
+  linkType: hard
+
 "solidity-comments-extractor@npm:^0.0.7":
   version: 0.0.7
   resolution: "solidity-comments-extractor@npm:0.0.7"
@@ -20387,6 +20395,18 @@ resolve@1.17.0:
   bin:
     solidity-coverage: plugins/bin.js
   checksum: b7edad0add5ef761609a116915979cc6d52ea41a041ed6b45796eb2a9c2fc726c2e300c8a1d6b5e48402e9fd0526c7ee38ecdd01b50e52ac32b8e4084d603d27
+  languageName: node
+  linkType: hard
+
+"solidity-docgen@npm:^0.6.0-beta.25":
+  version: 0.6.0-beta.25
+  resolution: "solidity-docgen@npm:0.6.0-beta.25"
+  dependencies:
+    handlebars: ^4.7.7
+    solidity-ast: ^0.4.31
+  peerDependencies:
+    hardhat: ^2.8.0
+  checksum: 50e7ef4e946f3e1cfadfcbc8c56a461ccadcf26296c882441191aaba6f5538cbca7ddd5791038aae9874db1968fea55a23dd964cc50ddab33aa4f456e7a9dee3
   languageName: node
   linkType: hard
 
