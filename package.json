@@ -13,6 +13,7 @@
         "prepare": "husky install",
         "docs:dev": "vuepress dev docs",
         "docs:build": "vuepress build docs",
+        "docs:generate": "hardhat docgen",
         "deploy": "node -r ts-node/register/transpile-only scripts/deploy.ts",
         "deploy:moonbase": "node -r ts-node/register/transpile-only scripts/deploy.ts --moonbase",
         "deploy:testnet": "node -r ts-node/register/transpile-only scripts/deploy.ts --testnet",
