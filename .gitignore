@@ -24,3 +24,7 @@ Flattened.sol
 /target
 **/*.rs.bk
 Cargo.lock
+pids
+run
+docs/.vuepress/dist/
+docs/contracts/

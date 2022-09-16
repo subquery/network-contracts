@@ -12,6 +12,7 @@ import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IPermissionedExchange.sol';
+import './interfaces/IPermissionedExchange.sol';
 import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IRewardsStaking.sol';
