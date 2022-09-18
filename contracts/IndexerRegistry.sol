@@ -85,11 +85,11 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
     /**
      * @dev Initialize this contract.
      */
-    function initialize(ISettings _settings) external initializer {
+    function initialize(ISettings _settings, uint256 _minimumStakingAmount) external initializer {
         __Ownable_init();
 
         settings = _settings;
-        minimumStakingAmount = 1000;
+        minimumStakingAmount = _minimumStakingAmount;
     }
 
     function setSettings(ISettings _settings) external onlyOwner {
