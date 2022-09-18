@@ -441,3 +441,24 @@ pub fn vesting<M: Middleware>(
 
     Ok(Contract::new(contract_address, abi, client))
 }
+
+pub fn consumer_host<M: Middleware>(
+    client: impl Into<Arc<M>>,
+    network: Network,
+) -> Result<Contract<M>, ()> {
+    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
+    let contract_address: Address = address["ConsumerHost"]["address"]
+        .as_str()
+        .ok_or(())?
+        .parse()
+        .map_err(|_| ())?;
+
+    let abi_str = serde_json::from_str::<Value>(include_str!(
+        "../artifacts/contracts/ConsumerHost.sol/ConsumerHost.json"
+    ))
+    .map_err(|_| ())?["abi"]
+        .to_string();
+    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
+
+    Ok(Contract::new(contract_address, abi, client))
+}
