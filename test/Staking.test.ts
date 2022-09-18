@@ -150,9 +150,9 @@ describe('Staking Contract', () => {
             const indexerLeverageLimit = await staking.indexerLeverageLimit();
             const indexerStakingAmount = await staking.getAfterDelegationAmount(indexer.address, indexer.address);
             const totalStakedAmount = await staking.getTotalStakingAmount(indexer.address);
+
             const maxDelegateAmount = indexerStakingAmount.mul(indexerLeverageLimit).sub(totalStakedAmount);
             await token.connect(indexer).transfer(delegator.address, maxDelegateAmount);
-
             await staking.connect(delegator).delegate(indexer.address, maxDelegateAmount);
 
             await expect(staking.connect(indexer).unstake(indexer.address, etherParse('1'))).to.be.revertedWith(
