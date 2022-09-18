@@ -142,7 +142,22 @@ describe('Staking Contract', () => {
                 staking
                     .connect(indexer)
                     .unstake(indexer.address, await staking.getAfterDelegationAmount(indexer.address, indexer.address))
-            ).to.be.revertedWith('Insufficient stake');
+            ).to.be.revertedWith('Insufficient unstake');
+        });
+
+        it('unstaking over indexerLeverageLimit should fail', async () => {
+            await token.connect(delegator).increaseAllowance(staking.address, etherParse('1000'));
+            const indexerLeverageLimit = await staking.indexerLeverageLimit();
+            const indexerStakingAmount = await staking.getAfterDelegationAmount(indexer.address, indexer.address);
+            const totalStakedAmount = await staking.getTotalStakingAmount(indexer.address);
+            const maxDelegateAmount = indexerStakingAmount.mul(indexerLeverageLimit).sub(totalStakedAmount);
+            await token.connect(indexer).transfer(delegator.address, maxDelegateAmount);
+
+            await staking.connect(delegator).delegate(indexer.address, maxDelegateAmount);
+
+            await expect(staking.connect(indexer).unstake(indexer.address, etherParse('1'))).to.be.revertedWith(
+                'Insufficient unstake'
+            );
         });
 
         it('staking to unregisted indexer should fail', async () => {

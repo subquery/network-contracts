@@ -414,12 +414,16 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         } else {
             require(msg.sender == _indexer, 'Only indexer');
             require(
-                this.getAfterDelegationAmount(_indexer, _indexer) - _amount >
-                    IIndexerRegistry(settings.getIndexerRegistry()).minimumStakingAmount(),
-                'Insufficient stake'
+                (this.getAfterDelegationAmount(_indexer, _indexer) - _amount) * indexerLeverageLimit >=
+                    this.max((IIndexerRegistry(settings.getIndexerRegistry()).minimumStakingAmount()) * indexerLeverageLimit, totalStakingAmount[_indexer].valueAfter - _amount),
+                'Insufficient unstake'
             );
         }
         _startUnbond(_indexer, _indexer, _amount);
+    }
+
+    function max(uint256 a, uint256 b) external pure returns (uint256) {
+        return a >= b ? a : b;
     }
 
     /**
