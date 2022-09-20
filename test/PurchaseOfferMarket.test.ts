@@ -178,9 +178,9 @@ describe('Purchase Offer Market Contract', () => {
                 // create second offer
                 await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
                 // register indexers
-                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '10');
+                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '2000');
                 await indexerRegistry.connect(wallet_0).setControllerAccount(wallet_1.address);
-                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '10');
+                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '2000');
                 await indexerRegistry.connect(wallet_1).setControllerAccount(wallet_0.address);
                 // create query project
                 await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);

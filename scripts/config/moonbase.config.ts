@@ -14,6 +14,6 @@ export default {
         ServiceAgreementRegistry: [1e6], //threshold
         EraManager: [3600], // EraPeriod
         PurchaseOfferMarket: [1e5, '0x0000000000000000000000000000000000000000'],
-        IndexerRegistry: [1000e18],
+        IndexerRegistry: ['1000000000000000000000'],
     },
 };

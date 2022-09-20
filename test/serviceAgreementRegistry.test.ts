@@ -126,7 +126,7 @@ describe('Service Agreement Registry Contract', () => {
             // register indexer
             await token.increaseAllowance(staking.address, etherParse('1000'));
             await token.increaseAllowance(purchaseOfferMarket.address, etherParse('1000'));
-            await indexerRegistry.registerIndexer(etherParse('10'), METADATA_HASH, 0);
+            await indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0);
             await indexerRegistry.setControllerAccount(wallet2.address);
 
             // create 3 query projects
@@ -170,11 +170,11 @@ describe('Service Agreement Registry Contract', () => {
 
         it('estabish service agressment with wrong param should revert', async () => {
             await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
-            await token.increaseAllowance(purchaseOfferMarket.address, etherParse('5'));
+            await token.increaseAllowance(purchaseOfferMarket.address, etherParse('4000'));
             await purchaseOfferMarket.createPurchaseOffer(
                 deploymentIds[0],
                 0,
-                etherParse('100'),
+                etherParse('1000'),
                 2,
                 100,
                 (await futureTimestamp(mockProvider)) + 86400
@@ -213,7 +213,7 @@ describe('Service Agreement Registry Contract', () => {
             // register indexer
             await token.increaseAllowance(staking.address, etherParse('1000'));
             await token.increaseAllowance(purchaseOfferMarket.address, etherParse('1000'));
-            await indexerRegistry.registerIndexer(etherParse('100'), METADATA_HASH, 0);
+            await indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0);
             await indexerRegistry.setControllerAccount(wallet2.address);
 
             // create query project and purchase offer
@@ -362,15 +362,15 @@ describe('Service Agreement Registry Contract', () => {
     describe('renewAgreement', () => {
         beforeEach(async () => {
             // register indexer
-            await token.connect(wallet).transfer(wallet1.address, 10000000000);
+            await token.connect(wallet).transfer(wallet1.address, etherParse('1000'));
             await token.connect(wallet).transfer(wallet2.address, 10000000);
-            await token.connect(wallet1).increaseAllowance(staking.address, 10000000000);
+            await token.connect(wallet1).increaseAllowance(staking.address, etherParse('1000'));
             await token.connect(wallet2).increaseAllowance(purchaseOfferMarket.address, 10000000);
             await token.connect(wallet2).increaseAllowance(planManager.address, 10000000);
             await token.connect(wallet2).increaseAllowance(serviceAgreementRegistry.address, 10000000);
             await indexerRegistry
                 .connect(wallet1)
-                .registerIndexer(10000000000, METADATA_HASH, 100, {gasLimit: '2000000'});
+                .registerIndexer(etherParse('1000'), METADATA_HASH, 100, {gasLimit: '2000000'});
 
             // create query project
             await queryRegistry.connect(wallet1).createQueryProject(METADATA_HASH, VERSION, deploymentIds[0]);

@@ -244,7 +244,7 @@ export async function deployContracts(
     );
     const initIndexer = await indexerRegistry.initialize(
         deployment.Settings.address,
-        ...(config['IndexerRegistry'] as [number]),
+        ...(config['IndexerRegistry'] as [string]),
         overrides
     );
     await initIndexer.wait();

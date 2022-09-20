@@ -27,9 +27,9 @@ describe('VSQToken Contract', () => {
         vtoken = deployment.vtoken;
 
         //register indexer1: Indexer1 balance: 10 sqt, Indexer1 staked amount: 10 sqt
-        await registerIndexer(token, indexerRegistry, staking, root, indexer, '20');
+        await registerIndexer(token, indexerRegistry, staking, root, indexer, '2000');
         //register indexer2: Indexer2 balance: 10 sqt, Indexer2 staked amount: 10 sqt
-        await registerIndexer(token, indexerRegistry, staking, root, indexer2, '20');
+        await registerIndexer(token, indexerRegistry, staking, root, indexer2, '2000');
         //setup delegator: delegator balance: 15 sqt
         await token.connect(root).transfer(delegator.address, etherParse('15'));
         await token.connect(delegator).increaseAllowance(staking.address, etherParse('15'));
@@ -38,10 +38,10 @@ describe('VSQToken Contract', () => {
     it('get balance of VSQT Token should work', async () => {
         await staking.connect(delegator).delegate(indexer.address, etherParse('5'));
         await staking.connect(delegator).delegate(indexer2.address, etherParse('5'));
-        expect(await token.balanceOf(indexer.address)).to.equal(etherParse('10'));
-        expect(await vtoken.balanceOf(indexer.address)).to.equal(etherParse('20'));
-        expect(await token.balanceOf(indexer2.address)).to.equal(etherParse('10'));
-        expect(await vtoken.balanceOf(indexer2.address)).to.equal(etherParse('20'));
+        expect(await token.balanceOf(indexer.address)).to.equal(etherParse('1000'));
+        expect(await vtoken.balanceOf(indexer.address)).to.equal(etherParse('2000'));
+        expect(await token.balanceOf(indexer2.address)).to.equal(etherParse('1000'));
+        expect(await vtoken.balanceOf(indexer2.address)).to.equal(etherParse('2000'));
         expect(await token.balanceOf(delegator.address)).to.equal(etherParse('5'));
         expect(await vtoken.balanceOf(delegator.address)).to.equal(etherParse('15'));
 

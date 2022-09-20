@@ -137,7 +137,7 @@ describe('PlanManger Contract', () => {
 
     describe('Plan Management', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '10');
+            await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '2000');
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 100, 10, METADATA_HASH);
         });
@@ -209,7 +209,7 @@ describe('PlanManger Contract', () => {
 
     describe('Accept Plan', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '20');
+            await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '2000');
             await token.transfer(consumer.address, etherParse('10'));
             await token.connect(consumer).increaseAllowance(planManager.address, etherParse('10'));
             // create query project
