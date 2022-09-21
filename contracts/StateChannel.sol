@@ -117,7 +117,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         if (_isContract(consumer)) {
             require(consumer.supportsInterface(type(IConsumer).interfaceId), 'Contract is not IConsumer');
             IConsumer cConsumer = IConsumer(consumer);
-            _checkSign(payload, indexerSign, consumerSign, indexer, controller, cConsumer.signer());
+            _checkSign(payload, indexerSign, consumerSign, indexer, controller, cConsumer.getSigner());
             // transfer the balance to contract
             IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
             cConsumer.paid(channelId, amount, callback);
@@ -273,7 +273,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address controller = IIndexerRegistry(settings.getIndexerRegistry()).indexerToController(indexer);
         address consumer = channels[channelId].consumer;
         if (_isContract(consumer)) {
-            address signer = IConsumer(consumer).signer();
+            address signer = IConsumer(consumer).getSigner();
             _checkSign(payload, indexerSign, consumerSign, indexer, controller, signer);
         } else {
             _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);

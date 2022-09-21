@@ -26,11 +26,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
     // -- Storage --
 
+    // The Signer address
+    address private signer;
+
     // The SQT contract address
     address public SQT;
-
-    // The Signer address
-    address public signer;
 
     // The StateChannel address
     address public channel;
@@ -85,6 +85,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         sqt.approve(channel, sqt.totalSupply());
     }
 
+    // Get signer.
+    function getSigner() external view returns (address) {
+        return signer;
+    }
+
     // Update signer.
     function setSigner(address _signer) external onlyOwner {
         signer = _signer;
@@ -93,7 +98,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     // Deposit amount to hosting.
     function deposit(uint256 amount) external {
         // transfer the balance to contract
-        IERC20(SQT).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20 sqt = IERC20(SQT);
+        sqt.safeTransferFrom(msg.sender, address(this), amount);
+
+        sqt.approve(channel, amount);
         balances[msg.sender] += amount;
 
         emit Deposit(msg.sender, amount);
@@ -104,7 +112,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         require(balances[msg.sender] >= amount, 'Insufficient balance');
 
         // transfer the balance to consumer
-        IERC20(SQT).safeTransferFrom(address(this), msg.sender, amount);
+        IERC20(SQT).safeTransfer(msg.sender, amount);
         balances[msg.sender] -= amount;
 
         emit Withdraw(msg.sender, amount);
@@ -117,14 +125,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         bytes memory callback
     ) external {
         require(msg.sender == channel, 'Only Channel Contract');
-        (address consumer, bytes memory sign) = abi.decode(callback, (address, bytes));
-        require(balances[consumer] >= amount, 'Insufficient balance');
-
         bytes32 payload = keccak256(abi.encode(channelId, amount));
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
-        address msgSigner = ECDSA.recover(hash, sign);
-        require(msgSigner == consumer, 'Invalid Host signature');
-
+        address consumer = ECDSA.recover(hash, callback);
+        require(balances[consumer] >= amount, 'Insufficient balance');
         balances[consumer] -= amount;
         channels[channelId] = consumer;
 

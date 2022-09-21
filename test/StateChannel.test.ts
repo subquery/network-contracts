@@ -11,7 +11,7 @@ import {utils, Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
 
 describe('StateChannel Contract', () => {
     const deploymentId = deploymentIds[0];
-    let wallet_0, indexer, consumer, consumer2, signer, consumerProxy, consumerHoster;
+    let wallet_0, indexer, consumer;
 
     let token: SQToken;
     let staking: Staking;
@@ -93,7 +93,7 @@ describe('StateChannel Contract', () => {
     };
 
     beforeEach(async () => {
-        [wallet_0, indexer, consumer, consumer2, signer] = await ethers.getSigners();
+        [wallet_0, indexer, consumer] = await ethers.getSigners();
         const deployment = await deployContracts(wallet_0, indexer);
         indexerRegistry = deployment.indexerRegistry;
         staking = deployment.staking;
