@@ -46,6 +46,8 @@ import {
     PermissionedExchange__factory,
     Vesting,
     Vesting__factory,
+    ConsumerHost,
+    ConsumerHost__factory,
 } from '../src';
 
 interface FactoryContstructor {
@@ -74,6 +76,7 @@ type Contracts = {
     airdropper: Airdropper;
     permissionedExchange: PermissionedExchange;
     vesting: Vesting;
+    consumerHost: ConsumerHost;
 };
 
 const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: string}, FactoryContstructor]>> = {
@@ -92,6 +95,7 @@ const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: s
     StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
 
     PermissionedExchange: [CONTRACTS.PermissionedExchange, PermissionedExchange__factory],
+    ConsumerHost: [CONTRACTS.ConsumerHost, ConsumerHost__factory],
 };
 
 export const deployProxy = async <C extends Contract>(
@@ -417,6 +421,26 @@ export async function deployContracts(
         permissionedExchange.deployTransaction.hash
     );
 
+    const [consumerHost, CHInnerAddr] = await deployProxy<ConsumerHost>(
+        proxyAdmin,
+        ConsumerHost__factory,
+        wallet,
+        overrides
+    );
+    const initConsumerHost = await consumerHost.initialize(
+        sqtToken.address,
+        stateChannel.address,
+        overrides
+    );
+    await initConsumerHost.wait();
+    updateDeployment(
+        deployment,
+        'ConsumerHost',
+        consumerHost.address,
+        CHInnerAddr,
+        consumerHost.deployTransaction.hash
+    );
+
     // Register addresses on settings contract
     const txToken = await settings.setTokenAddresses(
         deployment.SQToken.address,
@@ -467,6 +491,7 @@ export async function deployContracts(
             airdropper,
             permissionedExchange,
             vesting,
+            consumerHost,
         },
     ];
 }

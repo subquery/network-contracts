@@ -118,5 +118,11 @@
         "address": "0x5dcBFF8F792C36d513beF74eFC478EF7B084D7e6",
         "bytecodeHash": "6a804bbeffa56027067d6aa782fe1bcabc26ca3cad51c8aeab3972ada981af21",
         "lastUpdate": "Mon, 19 Sep 2022 01:24:57 GMT"
+    },
+    "ConsumerHost": {
+        "innerAddress": "0x58524f7FB0d46aD1314DA7bA1ecB5308D8A77a40",
+        "address": "0x5dcBFF8F792C36d513beF74eFC478EF7B084D7e6",
+        "bytecodeHash": "a105c6d8988a87f737e445cc13000550227ce9c7565f44c0d69b11ff6c53fbb3",
+        "lastUpdate": "Tue, 06 Sep 2022 21:58:31 GMT"
     }
 }

@@ -18,6 +18,7 @@ import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.js
 import Airdropper from './artifacts/contracts/Airdropper.sol/Airdropper.json';
 import PermissionedExchange from './artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json';
 import Vesting from './artifacts/contracts/Vesting.sol/Vesting.json';
+import ConsumerHost from './artifacts/contracts/ConsumerHost.sol/ConsumerHost.json';
 
 export default {
     Settings,
@@ -40,4 +41,5 @@ export default {
     Airdropper,
     PermissionedExchange,
     Vesting,
+    ConsumerHost,
 };
