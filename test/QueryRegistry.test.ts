@@ -184,7 +184,7 @@ describe('Query Registry Contract', () => {
 
     describe('Indexing Query Project', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '10');
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '2000');
             await indexerRegistry.setControllerAccount(wallet_1.address);
         });
 

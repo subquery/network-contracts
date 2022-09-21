@@ -242,7 +242,11 @@ export async function deployContracts(
         wallet,
         overrides
     );
-    const initIndexer = await indexerRegistry.initialize(deployment.Settings.address, overrides);
+    const initIndexer = await indexerRegistry.initialize(
+        deployment.Settings.address,
+        ...(config['IndexerRegistry'] as [string]),
+        overrides
+    );
     await initIndexer.wait();
     updateDeployment(
         deployment,

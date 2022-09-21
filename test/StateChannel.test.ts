@@ -120,7 +120,7 @@ describe('StateChannel Contract', () => {
 
     describe('State Channel Open', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '10');
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '2000');
             await token.connect(wallet_0).transfer(consumer.address, etherParse('5'));
             await token.connect(consumer).increaseAllowance(stateChannel.address, etherParse('5'));
         });
@@ -167,7 +167,7 @@ describe('StateChannel Contract', () => {
 
     describe('State Channel Checkpoint', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '10');
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '2000');
             await token.connect(wallet_0).transfer(consumer.address, etherParse('5'));
             await token.connect(consumer).increaseAllowance(stateChannel.address, etherParse('5'));
         });
@@ -207,7 +207,7 @@ describe('StateChannel Contract', () => {
 
     describe('State Channel Challenge', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '10');
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '2000');
             await token.connect(wallet_0).transfer(consumer.address, etherParse('5'));
             await token.connect(consumer).increaseAllowance(stateChannel.address, etherParse('5'));
         });

@@ -48,6 +48,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
             EraManager: [60 * 60 * 24],
             PurchaseOfferMarket: [1e5, ZERO_ADDRESS],
             ServiceAgreementRegistry: [0], //threshold
+            IndexerRegistry: ['1000000000000000000000'],
         },
         {},
         true

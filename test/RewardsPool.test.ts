@@ -59,10 +59,10 @@ describe('RewardsPool Contract', () => {
         await eraManager.connect(root).updateEraPeriod(time.duration.days(1).toString());
 
         // Moved to era 2.
-        await registerIndexer(root, root, etherParse('10'), 1e5);
-        await registerIndexer(root, indexer0, etherParse('10'), 1e5);
-        await registerIndexer(root, indexer1, etherParse('10'), 1e5);
-        await registerIndexer(root, indexer2, etherParse('10'), 1e5);
+        await registerIndexer(root, root, etherParse('1000'), 1e5);
+        await registerIndexer(root, indexer0, etherParse('1000'), 1e5);
+        await registerIndexer(root, indexer1, etherParse('1000'), 1e5);
+        await registerIndexer(root, indexer2, etherParse('1000'), 1e5);
     });
 
     describe('workflow', async () => {

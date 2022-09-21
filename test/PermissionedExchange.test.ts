@@ -101,8 +101,8 @@ describe('PermissionedExchange Contract', () => {
 
     describe('quota update', () => {
         beforeEach(async () => {
-            await sqToken.transfer(indexer.address, etherParse('20'));
-            await registerIndexer(sqToken, indexerRegistry, staking, indexer, indexer, '20');
+            await sqToken.transfer(indexer.address, etherParse('2000'));
+            await registerIndexer(sqToken, indexerRegistry, staking, indexer, indexer, '2000');
             await sqToken.transfer(consumer.address, etherParse('10'));
             await sqToken.connect(consumer).increaseAllowance(planManager.address, etherParse('10'));
             // create query project
