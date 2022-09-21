@@ -10,6 +10,11 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
 import './interfaces/ISettings.sol';
 
+/**
+ * @title PermissionedExchange Contract
+ * @notice For now PermissionedExchange contract allows traders trade their SQTs on admin sent orders, later on we may allow others to send their orders. Controllers may set the trade quota for trader, and trader cannot trade over the their quota. 
+ * It provides a way for indexers to swap their rewards(SQT) to stable token with a fixed exchange rate.
+ */
 contract PermissionedExchange is Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
 
@@ -24,16 +29,20 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         uint256 tokenGiveBalance;
     }
 
+    /// @dev ### STATES
+    /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
-    //next order Id
+    /// @notice The next order Id
     uint256 public nextOrderId;
-    //record trade quota for traders for specific token: address => trader address => trade Quota
+    /// @notice Trade quota for traders for specific token: address => trader address => trade Quota
     mapping(address => mapping(address => uint256)) public tradeQuota;
-    //record address is controller or not
+    /// @notice Account address is controller or not
     mapping(address => bool) public exchangeController;
-    //record orders: orderId => ExchangeOrder
+    /// @notice Orders: orderId => ExchangeOrder
     mapping(uint256 => ExchangeOrder) public orders;
 
+    /// @dev ### EVENTS
+    /// @notice Emitted when exchange order sent.
     event ExchangeOrderSent(
         uint256 indexed orderId,
         address sender,
@@ -43,7 +52,9 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         uint256 amountGet,
         uint256 expireDate
     );
+    /// @notice Emitted when trader trade on exist orders.
     event Trade(uint256 indexed orderId, address tokenGive, uint256 amountGive, address tokenGet, uint256 amountGet);
+    /// @notice Emitted when expired exchange order settled.
     event OrderSettled(
         uint256 indexed orderId,
         address tokenGive,
@@ -51,8 +62,15 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         address tokenGet,
         uint256 amountGet
     );
+    /// @notice Emitted when controller add trade quota to trader.
     event QuotaAdded(address token, address account, uint256 amount);
 
+    /**
+     * @dev ### FUNCTIONS
+     * @notice Initialize the contract make order start from 1 and set controller account.
+     * @param _settings ISettings contract
+     * @param _controllers List of addresses to set as controller account
+     */
     function initialize(ISettings _settings, address[] calldata _controllers) external initializer {
         __Ownable_init();
         settings = _settings;
@@ -63,14 +81,19 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @dev Set controller role for this contract, controller have the permission to addQuota for trader
+     * @notice Set controller role for this contract, controller have the permission to addQuota for trader.
+     * @param _controller The account address to set.
+     * @param _isController Set to controller or not.
      */
     function setController(address _controller, bool _isController) external onlyOwner {
         exchangeController[_controller] = _isController;
     }
 
     /**
-     * @dev allow controllers to add the trade quota to traders on specific token
+     * @notice allow controllers to add the trade quota to traders on specific token.
+     * @param _token Token address to add quota.
+     * @param _account Trader address to add quota.
+     * @param _account Quota amount to add.
      */
     function addQuota(
         address _token,
@@ -84,8 +107,14 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @dev only onwer have the permission to send the order for now,
-     * traders can do exchanges on onwer sent order
+     * @notice only onwer have the permission to send the order for now, and traders can do exchanges on these exist orders.
+     * @param _tokenGive The token address order want give.
+     * @param _tokenGet The token address order want get.
+     * @param _amountGive Amount of give token to calculate exchange rate.
+     * @param _amountGet Amount of get token to calculate exchange rate.
+     * @param _expireDate Exchange order expire date in uinx timestamp.
+     * @param _pairId The order id of its pair order. 0 means no pair order.
+     * @param _tokenGiveBalance The balance of order give token amount.
      */
     function sendOrder(
         address _tokenGive,
@@ -115,6 +144,15 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         nextOrderId += 1;
     }
 
+    /**
+     * @notice admin have the permission to create pair orders, traders tarde on one of the pair orders, the token get will transfer to the token give of its pair order.
+     * @param _tokenGive The token address order want give.
+     * @param _tokenGet The token address order want get.
+     * @param _amountGive Amount of give token to calculate exchange rate.
+     * @param _amountGet Amount of get token to calculate exchange rate.
+     * @param _expireDate Exchange order expire date in uinx timestamp.
+     * @param _tokenGiveBalance The balance of order give token amount.
+     */
     function createPairOrders(
         address _tokenGive,
         address _tokenGet,
@@ -129,7 +167,10 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @dev traders do exchange on traders order, but need to trade under the trade quota.
+     * @notice Traders do exchange on exchange orders, but need to trade under the trade quota.
+     * If the order has no pair order, the token get will transfer to order sender, otherwise will transfer to the token give of its pair order.
+     * @param _orderId The order id to trade.
+     * @param _amount The amount to trade.
      */
     function trade(uint256 _orderId, uint256 _amount) public {
         ExchangeOrder storage order = orders[_orderId];
@@ -156,8 +197,8 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @dev everyone allowed to call settleExpiredOrder to settled expired order
-     * this will return left given token back to order sender.
+     * @notice Everyone allowed to call settleExpiredOrder to settled expired order this will return left given token back to order sender.
+     * @param _orderId The order id to settle.
      */
     function settleExpiredOrder(uint256 _orderId) public {
         ExchangeOrder memory order = orders[_orderId];
@@ -177,8 +218,8 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @dev order sender can cancel the sent order anytime, and this will return left
-     * given token back to order sender.
+     * @notice Order sender can cancel the sent order anytime, and this will return leftgiven token back to order sender.
+     * @param _orderId The order id to cancel.
      */
     function cancelOrder(uint256 _orderId) public {
         ExchangeOrder memory order = orders[_orderId];

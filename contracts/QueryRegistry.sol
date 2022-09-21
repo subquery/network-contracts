@@ -14,8 +14,8 @@ import './interfaces/IServiceAgreementRegistry.sol';
 
 /**
  * @title Query Registry Contract
- * @dev
- * ## Overview
+ * @notice 
+ * ### Overview
  * This contract tracks all query projects and their deployments. At the beginning of the network,
  * we will start with the restrict mode which only allow permissioned account to create and update query project.
  * Indexers are able to start and stop indexing with a specific deployment from this conttact. Also Indexers can update and report 

@@ -13,10 +13,9 @@ import './interfaces/IInflationController.sol';
 /**
  * @title EraManager contract
  * @notice Produce epochs based on a period to coordinate contracts. Staking and reward distributing are running based on Eras
- * @notice ### STATES
  */
 contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
-
+    /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
     /// @notice Era period in second
@@ -24,16 +23,16 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
     /// @notice Current Era number
     uint256 public eraNumber; 
     /// @notice Current era start time in unix timestamp
-    /// @notice ### EVENTS
     uint256 public eraStartTime; 
 
+    /// @dev ### EVENTS
     /// @notice Emitted when admin update the eraPeriod
     event EraPeriodUpdate(uint256 indexed era, uint256 eraPeriod);
     /// @notice Emitted when new Era started
-    /// @notice ### FUNCTIONS
     event NewEraStart(uint256 indexed era, address caller);
 
     /**
+     * @dev ### FUNCTIONS
      * @notice Initialize the contract to start from Era 1
      * @param _settings ISettings contract
      * @param _eraPeriod eraPeriod in seconds
@@ -85,7 +84,7 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
     }
 
     /**
-     * @dev Update era period -  admin only
+     * @notice Update era period -  admin only
      * @param newEraPeriod New Era Period to update
      */
     function updateEraPeriod(uint256 newEraPeriod) external onlyOwner {
