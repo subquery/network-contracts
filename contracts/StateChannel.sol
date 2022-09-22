@@ -181,7 +181,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address consumer = channels[channelId].consumer;
 
         // check sign
-        bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, amount));
+        bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, amount, callback));
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
         address sConsumer = ECDSA.recover(hash, sign);
 

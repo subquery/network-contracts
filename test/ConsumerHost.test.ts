@@ -66,6 +66,39 @@ describe('ConsumerHost Contract', () => {
         );
     };
 
+    const fundChannel = async (
+        channelId: Uint8Array,
+        indexer: Wallet,
+        hoster: Wallet,
+        consumer: Wallet,
+        nonce: BigNumber,
+        amount: BigNumber
+    ) => {
+        const abi = ethers.utils.defaultAbiCoder;
+
+        const consumerMsg = abi.encode(['uint256', 'uint256', 'uint256'], [channelId, amount, nonce]);
+        const consumerPayloadHash = ethers.utils.keccak256(consumerMsg);
+        const consumerSign = await consumer.signMessage(ethers.utils.arrayify(consumerPayloadHash));
+        const consumerCallback = abi.encode(['address', 'bytes'], [consumer.address, consumerSign]);
+
+        const msg = abi.encode(
+            ['uint256', 'address', 'address', 'uint256', 'bytes'],
+            [channelId, indexer.address, consumerHost.address, amount, consumerCallback]
+        );
+        let payloadHash = ethers.utils.keccak256(msg);
+        let hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
+
+        const recoveredHoster = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), hosterSign);
+        expect(hoster.address).to.equal(recoveredHoster);
+
+        await stateChannel.fund(
+            channelId,
+            amount,
+            consumerCallback,
+            hosterSign
+        );
+    };
+
     const buildQueryState = async (
         channelId: Uint8Array,
         indexer: Wallet,
@@ -149,7 +182,8 @@ describe('ConsumerHost Contract', () => {
             await openChannel(channelId2, indexer, hoster, consumer2, BigNumber.from(0), etherParse('2'), 60);
             expect(await consumerHost.balances(consumer2.address)).to.equal(etherParse('8'));
             expect(await consumerHost.channels(channelId2)).to.equal(consumer2.address);
-            await openChannel(channelId3, indexer, hoster, consumer2, BigNumber.from(1), etherParse('2'), 60);
+            await openChannel(channelId3, indexer, hoster, consumer2, BigNumber.from(1), etherParse('1'), 60);
+            await fundChannel(channelId3, indexer, hoster, consumer2, BigNumber.from(2), etherParse('1'));
 
             expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('15'));
 
