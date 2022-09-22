@@ -27,18 +27,20 @@ describe('ConsumerHost Contract', () => {
         indexer: Wallet,
         hoster: Wallet,
         consumer: Wallet,
+        nonce: BigNumber,
         amount: BigNumber,
         expiration: number
     ) => {
         const abi = ethers.utils.defaultAbiCoder;
 
-        const consumerMsg = abi.encode(['uint256', 'uint256'], [channelId, amount]);
+        const consumerMsg = abi.encode(['uint256', 'uint256', 'uint256'], [channelId, amount, nonce]);
         const consumerPayloadHash = ethers.utils.keccak256(consumerMsg);
         const consumerSign = await consumer.signMessage(ethers.utils.arrayify(consumerPayloadHash));
+        const consumerCallback = abi.encode(['address', 'bytes'], [consumer.address, consumerSign]);
 
         const msg = abi.encode(
             ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes32', 'bytes'],
-            [channelId, indexer.address, consumerHost.address, amount, expiration, deploymentId, consumerSign]
+            [channelId, indexer.address, consumerHost.address, amount, expiration, deploymentId, consumerCallback]
         );
         let payloadHash = ethers.utils.keccak256(msg);
 
@@ -58,7 +60,7 @@ describe('ConsumerHost Contract', () => {
             amount,
             expiration,
             deploymentId,
-            consumerSign,
+            consumerCallback,
             indexerSign,
             hosterSign
         );
@@ -122,7 +124,7 @@ describe('ConsumerHost Contract', () => {
 
     describe('Consumer Host State Channel should work', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '10');
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '2000');
             await consumerHost.connect(wallet_0).setSigner(hoster.address);
             await token.connect(wallet_0).transfer(consumer.address, etherParse('10'));
             await token.connect(wallet_0).transfer(consumer2.address, etherParse('10'));
@@ -138,16 +140,18 @@ describe('ConsumerHost Contract', () => {
             expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('20'));
 
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, hoster, consumer, etherParse('1'), 60);
+            await openChannel(channelId, indexer, hoster, consumer, BigNumber.from(0), etherParse('1'), 60);
             expect(await consumerHost.balances(consumer.address)).to.equal(etherParse('9'));
             expect(await consumerHost.channels(channelId)).to.equal(consumer.address);
 
             const channelId2 = ethers.utils.randomBytes(32);
-            await openChannel(channelId2, indexer, hoster, consumer2, etherParse('2'), 60);
+            const channelId3 = ethers.utils.randomBytes(32);
+            await openChannel(channelId2, indexer, hoster, consumer2, BigNumber.from(0), etherParse('2'), 60);
             expect(await consumerHost.balances(consumer2.address)).to.equal(etherParse('8'));
             expect(await consumerHost.channels(channelId2)).to.equal(consumer2.address);
+            await openChannel(channelId3, indexer, hoster, consumer2, BigNumber.from(1), etherParse('2'), 60);
 
-            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('17'));
+            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('15'));
 
             const channel = await stateChannel.channel(channelId);
             expect(channel.status).to.equal(1); // 0 is Finalized, 1 is Open, 2 is Challenge
@@ -167,7 +171,7 @@ describe('ConsumerHost Contract', () => {
 
             await delay(6);
             await stateChannel.claim(channelId);
-            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('17.8')); // 17 + 0.8
+            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('15.8')); // 15 + 0.8
 
             // withdraw
             expect(await consumerHost.balances(consumer.address)).to.equal(etherParse('9.8'));

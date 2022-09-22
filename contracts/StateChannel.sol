@@ -64,7 +64,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     event ChannelCheckpoint(uint256 indexed channelId, uint256 spent);
     event ChannelChallenge(uint256 indexed channelId, uint256 spent, uint256 expiration);
     event ChannelRespond(uint256 indexed channelId, uint256 spent);
-    event ChannelFinalize(uint256 indexed channelId);
+    event ChannelFinalize(uint256 indexed channelId, uint256 total, uint256 remain);
 
     // The states of the channels.
     mapping(uint256 => ChannelState) public channels;
@@ -118,14 +118,13 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             require(consumer.supportsInterface(type(IConsumer).interfaceId), 'Contract is not IConsumer');
             IConsumer cConsumer = IConsumer(consumer);
             _checkSign(payload, indexerSign, consumerSign, indexer, controller, cConsumer.getSigner());
-            // transfer the balance to contract
-            IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
             cConsumer.paid(channelId, amount, callback);
         } else {
             _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
-            // transfer the balance to contract
-            IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
         }
+
+        // transfer the balance to contract
+        IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
 
         // initial the channel
         channels[channelId].status = ChannelStatus.Open;
@@ -155,7 +154,12 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         // check sign
         bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, preExpirationAt, expiration));
-        _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
+        if (_isContract(consumer)) {
+            address cConsumer = IConsumer(consumer).getSigner();
+            _checkSign(payload, indexerSign, consumerSign, indexer, controller, cConsumer);
+        } else {
+            _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
+        }
 
         channels[channelId].expirationAt = preExpirationAt + expiration;
         emit ChannelExtend(channelId, channels[channelId].expirationAt);
@@ -165,6 +169,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     function fund(
         uint256 channelId,
         uint256 amount,
+        bytes memory callback,
         bytes memory sign
     ) public {
         require(
@@ -178,8 +183,15 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         // check sign
         bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, amount));
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
-        address s_consumer = ECDSA.recover(hash, sign);
-        require(s_consumer == consumer, 'Consumer signature invalid');
+        address sConsumer = ECDSA.recover(hash, sign);
+
+        if (_isContract(consumer)) {
+            IConsumer cConsumer = IConsumer(consumer);
+            require(sConsumer == cConsumer.getSigner(), 'Consumer signature invalid');
+            cConsumer.paid(channelId, amount, callback);
+        } else {
+            require(sConsumer == consumer, 'Consumer signature invalid');
+        }
 
         // transfer the balance to contract
         IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
@@ -333,20 +345,21 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     function _finalize(uint256 channelId) private {
         // claim the rest of amount to balance
         address consumer = channels[channelId].consumer;
-        uint256 remain = channels[channelId].total - channels[channelId].spent;
+        uint256 total = channels[channelId].total;
+        uint256 remain = total - channels[channelId].spent;
 
         if (remain > 0) {
             IERC20(settings.getSQToken()).safeTransfer(consumer, remain);
-            if (_isContract(consumer)) {
-                IConsumer(consumer).claimed(channelId, remain);
-            }
         }
 
-        // set the channel to Finalized status
-        channels[channelId].status = ChannelStatus.Finalized;
-        channels[channelId].spent = channels[channelId].total;
+        if (_isContract(consumer)) {
+            IConsumer(consumer).claimed(channelId, remain);
+        }
 
-        emit ChannelFinalize(channelId);
+        // delete the channel
+        delete channels[channelId];
+
+        emit ChannelFinalize(channelId, total, remain);
     }
 
     function _isContract(address _addr) private view returns (bool) {

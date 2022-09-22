@@ -38,6 +38,9 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     // Consumers' balances that hosting in this contract.
     mapping(address => uint256) public balances;
 
+    // Consumers' sign nonce
+    mapping(address => uint256) public nonces;
+
     // StateChannels' belongs to consumer.
     mapping(uint256 => address) public channels;
 
@@ -50,7 +53,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     event Withdraw(address consumer, uint256 amount);
 
     // Emitted when consumer pay for open a state channel
-    event Paid(uint256 channelId, address consumer, address caller, uint256 amount);
+    event Paid(uint256 channelId, address consumer, address caller, uint256 amount, uint256 nonce);
 
     // Emitted when consumer pay for open a state channel
     event Claimed(uint256 channelId, address consumer, address caller, uint256 amount);
@@ -119,20 +122,26 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     }
 
     // Paied callback function.
-    function paid(
-        uint256 channelId,
-        uint256 amount,
-        bytes memory callback
-    ) external {
+    function paid(uint256 channelId, uint256 amount, bytes memory callback) external {
         require(msg.sender == channel, 'Only Channel Contract');
-        bytes32 payload = keccak256(abi.encode(channelId, amount));
-        bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
-        address consumer = ECDSA.recover(hash, callback);
-        require(balances[consumer] >= amount, 'Insufficient balance');
-        balances[consumer] -= amount;
-        channels[channelId] = consumer;
+        (address consumer, bytes memory sign) = abi.decode(callback, (address, bytes));
+        if (channels[channelId] == address(0)) {
+            channels[channelId] = consumer;
+        } else {
+            require(channels[channelId] == consumer, 'Invalid Consumer');
+        }
 
-        emit Paid(channelId, consumer, msg.sender, amount);
+        uint256 nonce = nonces[consumer];
+        bytes32 payload = keccak256(abi.encode(channelId, amount, nonce));
+        bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
+        address sConsumer = ECDSA.recover(hash, sign);
+        require(sConsumer == consumer, 'Invalid signature');
+        require(balances[consumer] >= amount, 'Insufficient balance');
+
+        balances[consumer] -= amount;
+        nonces[consumer] = nonce + 1;
+
+        emit Paid(channelId, consumer, msg.sender, amount, nonce);
     }
 
     // Claimed callback function.
@@ -141,7 +150,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
         address consumer = channels[channelId];
         balances[consumer] += amount;
-        channels[channelId] = address(0);
+
+        delete channels[channelId];
 
         emit Claimed(channelId, consumer, msg.sender, amount);
     }
