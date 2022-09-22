@@ -28,3 +28,6 @@ pids
 run
 docs/.vuepress/dist/
 docs/contracts/
+
+crytic-export/
+corpus/
