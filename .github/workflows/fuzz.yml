@@ -18,11 +18,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Set up node
-        uses: actions/setup-node@v2
         with:
-          node-version: 12
+          fetch-depth: 100
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14
+          registry-url: 'https://registry.npmjs.org'
+      
+      - run: yarn
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
