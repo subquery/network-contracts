@@ -38,10 +38,10 @@ jobs:
       - name: Install solc-select
         run: |
           pip3 install solc-select
-      - name: Set solc v0.6.12
+      - name: Set solc v0.8.15
         run: |
-          solc-select install 0.6.12
-          solc-select use 0.6.12
+          solc-select install 0.8.15
+          solc-select use 0.8.15
       - name: Install echidna
         run: |
           sudo wget -O /tmp/echidna-test.tar.gz https://github.com/crytic/echidna/releases/download/v1.7.1/echidna-test-1.7.1-Ubuntu-18.04.tar.gz
