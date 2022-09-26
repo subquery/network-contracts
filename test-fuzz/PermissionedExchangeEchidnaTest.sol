@@ -13,6 +13,17 @@ contract PermissionedExchangeEchidnaTest {
     SQToken internal SQT;
     IERC20 internal USDC;
 
+    struct ExchangeOrder {
+        address tokenGive;
+        address tokenGet;
+        uint256 amountGive;
+        uint256 amountGet;
+        address sender;
+        uint256 expireDate;
+        uint256 pairOrderId;
+        uint256 tokenGiveBalance;
+    }
+
     constructor() public {
         SQT = new SQToken(address(this));
         settings = new Settings();
@@ -76,6 +87,4 @@ contract PermissionedExchangeEchidnaTest {
         assert(pExchange.orders(id).tokenGive == address(0));
         assert(pExchange.orders(order.pairOrderId).pairOrderId == 0);
     }
-
-
 }
