@@ -62,8 +62,8 @@ contract PermissionedExchangeEchidnaTest {
     }
 
     function test_addQuota(uint256 qm) public {
-        pExchange.addQuota(address(SQT), adress(this), qm);
-        assert(pExchange.tradeQuota(address(SQT), adress(this)) == qm);
+        pExchange.addQuota(address(SQT), address(this), qm);
+        assert(pExchange.tradeQuota(address(SQT), address(this)) == qm);
     }
 
     function test_trade(uint256 id, uint256 amount) public {
@@ -71,7 +71,7 @@ contract PermissionedExchangeEchidnaTest {
         ExchangeOrder order = pExchange.orders(id); 
         uint256 tgbBefore = order.tokenGiveBalance;
         uint256 ptgbBefore = pExchange.orders(order.pairOrderId).tokenGiveBalance;
-        uint256 amountGet = (order.amountGive * _amount) / order.amountGet;
+        uint256 amountGet = (order.amountGive * amount) / order.amountGet;
         pExchange.trade(id, amount);
         assert(SQT.balance(address(pExchange)) == add(balanceBefore, amount));
         assert(pExchange.orders(id).tokenGiveBalance == sub(tgbBefore, amountGet));
