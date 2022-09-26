@@ -5,6 +5,7 @@ pragma solidity ^0.8.15;
 
 import '../contracts/PermissionedExchange.sol';
 import '../contracts/Settings.sol';
+import '../contracts/interfaces/ISettings.sol';
 import '../contracts/SQToken.sol';
 
 contract PermissionedExchangeEchidnaTest {
@@ -24,12 +25,14 @@ contract PermissionedExchangeEchidnaTest {
         uint256 tokenGiveBalance;
     }
 
-    constructor() public {
+    constructor() {
         SQT = new SQToken(address(this));
         settings = new Settings();
         settings.setSQToken(address(SQT));
         pExchange = new PermissionedExchange();
-        pExchange.initialize(address(settings), [address(this)]);
+        address[] memory t = new address[](1);
+        t[0] = address(this);
+        pExchange.initialize(ISettings(address(settings)), t);
     }
 
     // --- Math ---
@@ -47,8 +50,10 @@ contract PermissionedExchangeEchidnaTest {
         uint256 firstOrderId = pExchange.nextOrderId();
         pExchange.createPairOrders(address(SQT), address(USDC), _agive, _aget, _ed, _tgb);
         assert(pExchange.nextOrderId() == add(firstOrderId, 2));
-        ExchangeOrder firstOrder = pExchange.orders(firstOrderId);
-        ExchangeOrder nextOrder = pExchange.orders(add(firstOrderId, 1));
+        (address a,address b,uint256 c,uint256 d,address e,uint256 f,uint256 g,uint256 h) = pExchange.orders(firstOrderId);
+        ExchangeOrder memory firstOrder = ExchangeOrder(a,b,c,d,e,f,g,h);
+        (a,b,c,d,e,f,g,h) = pExchange.orders(add(firstOrderId, 1));
+        ExchangeOrder memory nextOrder = ExchangeOrder(a,b,c,d,e,f,g,h);
         assert(firstOrder.tokenGive == address(SQT));
         assert(firstOrder.tokenGet == address(USDC));
         assert(nextOrder.tokenGive == address(USDC));
@@ -67,24 +72,30 @@ contract PermissionedExchangeEchidnaTest {
     }
 
     function test_trade(uint256 id, uint256 amount) public {
-        uint256 balanceBefore = SQT.balance(address(pExchange));
-        ExchangeOrder order = pExchange.orders(id); 
+        uint256 balanceBefore = SQT.balanceOf(address(pExchange));
+        (address a,address b,uint256 c,uint256 d,address e,uint256 f,uint256 g,uint256 h) = pExchange.orders(id); 
+        ExchangeOrder memory order = ExchangeOrder(a,b,c,d,e,f,g,h);
         uint256 tgbBefore = order.tokenGiveBalance;
-        uint256 ptgbBefore = pExchange.orders(order.pairOrderId).tokenGiveBalance;
+        (,,,,,,,uint256 ptgbBefore) = pExchange.orders(order.pairOrderId);
         uint256 amountGet = (order.amountGive * amount) / order.amountGet;
         pExchange.trade(id, amount);
-        assert(SQT.balance(address(pExchange)) == add(balanceBefore, amount));
-        assert(pExchange.orders(id).tokenGiveBalance == sub(tgbBefore, amountGet));
-        assert(pExchange.orders(order.pairOrderId).tokenGiveBalance == add(ptgbBefore, amount));
+        assert(SQT.balanceOf(address(pExchange)) == add(balanceBefore, amount));
+        (,,,,,,,uint256 tgb) = pExchange.orders(id);
+        assert(tgb == sub(tgbBefore, amountGet));
+        (,,,,,,,uint256 tgbPair) = pExchange.orders(order.pairOrderId);
+        assert(tgbPair == add(ptgbBefore, amount));
     }
 
     function test_cancelOrder(uint256 id) public {
-        uint256 balanceBefore = SQT.balance(address(pExchange));
-        ExchangeOrder order = pExchange.orders(id); 
+        uint256 balanceBefore = SQT.balanceOf(address(pExchange));
+        (address a,address b,uint256 c,uint256 d,address e,uint256 f,uint256 g,uint256 h) = pExchange.orders(id); 
+        ExchangeOrder memory order = ExchangeOrder(a,b,c,d,e,f,g,h);
         uint256 tgb = order.tokenGiveBalance;
         pExchange.cancelOrder(id);
-        assert(SQT.balance(address(pExchange)) == sub(balanceBefore, tgb));
-        assert(pExchange.orders(id).tokenGive == address(0));
-        assert(pExchange.orders(order.pairOrderId).pairOrderId == 0);
+        assert(SQT.balanceOf(address(pExchange)) == sub(balanceBefore, tgb));
+        (address tg,,,,,,,) = pExchange.orders(id);
+        assert(tg == address(0));
+        (,,,,,,uint256 poid,) = pExchange.orders(order.pairOrderId);
+        assert(poid == 0);
     }
 }
