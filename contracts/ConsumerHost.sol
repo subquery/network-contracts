@@ -42,10 +42,16 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     // The StateChannel address
     address public channel;
 
-    // Consumers info that hosting in this contract.
+    // The fee
+    uint256 public fee;
+
+    // The Percentage of FEE
+    uint256 public feePercentage;
+
+    // Consumers info that hosting in this contract
     mapping(address => Consumer) public consumers;
 
-    // StateChannels' belongs to consumer.
+    // StateChannels' belongs to consumer
     mapping(uint256 => address) public channels;
 
     // -- Events --
@@ -69,10 +75,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     event Claimed(uint256 channelId, address consumer, address caller, uint256 amount);
 
     // Initialize this contract.
-    function initialize(address _sqt, address _channel) external initializer {
+    function initialize(address _sqt, address _channel, uint256 _feePercentage) external initializer {
         __Ownable_init();
         SQT = _sqt;
         channel = _channel;
+        feePercentage = _feePercentage;
         signer = msg.sender;
 
         // Approve Token to State Channel.
@@ -96,6 +103,18 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         // Approve Token to State Channel.
         IERC20 sqt = IERC20(SQT);
         sqt.approve(channel, sqt.totalSupply());
+    }
+
+    // Update fee.
+    function setFeePercentage(uint256 _feePercentage) external onlyOwner {
+        feePercentage = _feePercentage;
+    }
+
+    // Collect fee to account.
+    function collectFee(address account, uint256 amount) external onlyOwner {
+        require(fee >= amount, 'Insufficient balance');
+        IERC20(SQT).safeTransfer(account, amount);
+        fee -= amount;
     }
 
     // Get signer.
@@ -158,7 +177,9 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         }
 
         Consumer storage info = consumers[consumer];
-        require(info.balance >= amount, 'Insufficient balance');
+
+        uint256 fixedFee = amount > 100 ? amount * feePercentage / 100 : 1;
+        require(info.balance >= amount + fixedFee, 'Insufficient balance');
 
         if (!info.approved) {
             uint256 nonce = info.nonce;
@@ -169,7 +190,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
             info.nonce = nonce + 1;
         }
 
-        info.balance -= amount;
+        info.balance -= (amount + fixedFee);
+        fee += fixedFee;
 
         emit Paid(channelId, consumer, msg.sender, amount);
     }

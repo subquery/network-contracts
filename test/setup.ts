@@ -49,6 +49,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
             PurchaseOfferMarket: [1e5, ZERO_ADDRESS],
             ServiceAgreementRegistry: [0], //threshold
             IndexerRegistry: ['1000000000000000000000'],
+            ConsumerHost: [1], // Fee Percentage, default is 1%
         },
         {},
         true
