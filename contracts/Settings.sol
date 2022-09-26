@@ -3,7 +3,7 @@
 
 pragma solidity 0.8.15;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
+import '../node_modules/@openzeppelin/contracts/access/Ownable.sol';
 
 import './interfaces/ISettings.sol';
 import './Constants.sol';
