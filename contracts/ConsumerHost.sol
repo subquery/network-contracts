@@ -24,6 +24,13 @@ import './interfaces/IConsumer.sol';
 contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     using SafeERC20 for IERC20;
 
+    // -- Structs --
+    struct Consumer {
+        uint256 balance;
+        uint256 nonce;
+        bool approved;
+    }
+
     // -- Storage --
 
     // The Signer address
@@ -35,16 +42,19 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     // The StateChannel address
     address public channel;
 
-    // Consumers' balances that hosting in this contract.
-    mapping(address => uint256) public balances;
-
-    // Consumers' sign nonce
-    mapping(address => uint256) public nonces;
+    // Consumers info that hosting in this contract.
+    mapping(address => Consumer) public consumers;
 
     // StateChannels' belongs to consumer.
     mapping(uint256 => address) public channels;
 
     // -- Events --
+
+    // Emitted when consumer approve host to manager the balance.
+    event Approve(address consumer);
+
+    // Emitted when consumer disapprove.
+    event Disapprove(address consumer);
 
     // Emitted when consumer deposit.
     event Deposit(address consumer, uint256 amount);
@@ -53,7 +63,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     event Withdraw(address consumer, uint256 amount);
 
     // Emitted when consumer pay for open a state channel
-    event Paid(uint256 channelId, address consumer, address caller, uint256 amount, uint256 nonce);
+    event Paid(uint256 channelId, address consumer, address caller, uint256 amount);
 
     // Emitted when consumer pay for open a state channel
     event Claimed(uint256 channelId, address consumer, address caller, uint256 amount);
@@ -98,25 +108,41 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         signer = _signer;
     }
 
+    // Approve host can use consumer balance.
+    function approve() external {
+        Consumer storage consumer = consumers[msg.sender];
+        consumer.approved = true;
+        emit Approve(msg.sender);
+    }
+
+    // Disapprove host.
+    function disapprove() external {
+        Consumer storage consumer = consumers[msg.sender];
+        consumer.approved = false;
+        emit Disapprove(msg.sender);
+    }
+
     // Deposit amount to hosting.
     function deposit(uint256 amount) external {
         // transfer the balance to contract
         IERC20 sqt = IERC20(SQT);
         sqt.safeTransferFrom(msg.sender, address(this), amount);
-
         sqt.approve(channel, amount);
-        balances[msg.sender] += amount;
+
+        Consumer storage consumer = consumers[msg.sender];
+        consumer.balance += amount;
 
         emit Deposit(msg.sender, amount);
     }
 
     // Withdraw amount to consumer.
     function withdraw(uint256 amount) external {
-        require(balances[msg.sender] >= amount, 'Insufficient balance');
+        Consumer storage consumer = consumers[msg.sender];
+        require(consumer.balance >= amount, 'Insufficient balance');
 
         // transfer the balance to consumer
         IERC20(SQT).safeTransfer(msg.sender, amount);
-        balances[msg.sender] -= amount;
+        consumer.balance -= amount;
 
         emit Withdraw(msg.sender, amount);
     }
@@ -131,17 +157,21 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
             require(channels[channelId] == consumer, 'Invalid Consumer');
         }
 
-        uint256 nonce = nonces[consumer];
-        bytes32 payload = keccak256(abi.encode(channelId, amount, nonce));
-        bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
-        address sConsumer = ECDSA.recover(hash, sign);
-        require(sConsumer == consumer, 'Invalid signature');
-        require(balances[consumer] >= amount, 'Insufficient balance');
+        Consumer storage info = consumers[consumer];
+        require(info.balance >= amount, 'Insufficient balance');
 
-        balances[consumer] -= amount;
-        nonces[consumer] = nonce + 1;
+        if (!info.approved) {
+            uint256 nonce = info.nonce;
+            bytes32 payload = keccak256(abi.encode(channelId, amount, nonce));
+            bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
+            address sConsumer = ECDSA.recover(hash, sign);
+            require(sConsumer == consumer, 'Invalid signature');
+            info.nonce = nonce + 1;
+        }
 
-        emit Paid(channelId, consumer, msg.sender, amount, nonce);
+        info.balance -= amount;
+
+        emit Paid(channelId, consumer, msg.sender, amount);
     }
 
     // Claimed callback function.
@@ -149,7 +179,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         require(msg.sender == channel, 'Only Channel Contract');
 
         address consumer = channels[channelId];
-        balances[consumer] += amount;
+        Consumer storage info = consumers[consumer];
+        info.balance += amount;
 
         delete channels[channelId];
 

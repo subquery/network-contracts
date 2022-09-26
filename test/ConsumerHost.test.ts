@@ -29,13 +29,19 @@ describe('ConsumerHost Contract', () => {
         consumer: Wallet,
         nonce: BigNumber,
         amount: BigNumber,
-        expiration: number
+        expiration: number,
+        isApproved: boolean,
     ) => {
         const abi = ethers.utils.defaultAbiCoder;
+        let consumerSign;
 
-        const consumerMsg = abi.encode(['uint256', 'uint256', 'uint256'], [channelId, amount, nonce]);
-        const consumerPayloadHash = ethers.utils.keccak256(consumerMsg);
-        const consumerSign = await consumer.signMessage(ethers.utils.arrayify(consumerPayloadHash));
+        if (!isApproved) {
+            const consumerMsg = abi.encode(['uint256', 'uint256', 'uint256'], [channelId, amount, nonce]);
+            const consumerPayloadHash = ethers.utils.keccak256(consumerMsg);
+            consumerSign = await consumer.signMessage(ethers.utils.arrayify(consumerPayloadHash));
+        } else {
+            consumerSign = '0x';
+        }
         const consumerCallback = abi.encode(['address', 'bytes'], [consumer.address, consumerSign]);
 
         const msg = abi.encode(
@@ -72,13 +78,19 @@ describe('ConsumerHost Contract', () => {
         hoster: Wallet,
         consumer: Wallet,
         nonce: BigNumber,
-        amount: BigNumber
+        amount: BigNumber,
+        isApproved: boolean,
     ) => {
         const abi = ethers.utils.defaultAbiCoder;
+        let consumerSign;
 
-        const consumerMsg = abi.encode(['uint256', 'uint256', 'uint256'], [channelId, amount, nonce]);
-        const consumerPayloadHash = ethers.utils.keccak256(consumerMsg);
-        const consumerSign = await consumer.signMessage(ethers.utils.arrayify(consumerPayloadHash));
+        if (!isApproved) {
+            const consumerMsg = abi.encode(['uint256', 'uint256', 'uint256'], [channelId, amount, nonce]);
+            const consumerPayloadHash = ethers.utils.keccak256(consumerMsg);
+            consumerSign = await consumer.signMessage(ethers.utils.arrayify(consumerPayloadHash));
+        } else {
+            consumerSign = '0x';
+        }
         const consumerCallback = abi.encode(['address', 'bytes'], [consumer.address, consumerSign]);
 
         const msg = abi.encode(
@@ -173,17 +185,20 @@ describe('ConsumerHost Contract', () => {
             expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('20'));
 
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, hoster, consumer, BigNumber.from(0), etherParse('1'), 60);
-            expect(await consumerHost.balances(consumer.address)).to.equal(etherParse('9'));
+            await openChannel(channelId, indexer, hoster, consumer, BigNumber.from(0), etherParse('1'), 60, false);
+            expect((await consumerHost.consumers(consumer.address)).balance).to.equal(etherParse('9'));
             expect(await consumerHost.channels(channelId)).to.equal(consumer.address);
 
             const channelId2 = ethers.utils.randomBytes(32);
             const channelId3 = ethers.utils.randomBytes(32);
-            await openChannel(channelId2, indexer, hoster, consumer2, BigNumber.from(0), etherParse('2'), 60);
-            expect(await consumerHost.balances(consumer2.address)).to.equal(etherParse('8'));
+            const cBalance0 = await consumerHost.consumers(consumer2.address);
+            await openChannel(channelId2, indexer, hoster, consumer2, cBalance0.nonce, etherParse('2'), 60, false);
+            const cBalance1 = await consumerHost.consumers(consumer2.address);
+            expect(cBalance1.balance).to.equal(etherParse('8'));
             expect(await consumerHost.channels(channelId2)).to.equal(consumer2.address);
-            await openChannel(channelId3, indexer, hoster, consumer2, BigNumber.from(1), etherParse('1'), 60);
-            await fundChannel(channelId3, indexer, hoster, consumer2, BigNumber.from(2), etherParse('1'));
+            await openChannel(channelId3, indexer, hoster, consumer2, cBalance1.nonce, etherParse('1'), 60, false);
+            const cBalance2 = await consumerHost.consumers(consumer2.address);
+            await fundChannel(channelId3, indexer, hoster, consumer2, cBalance2.nonce, etherParse('1'), false);
 
             expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('15'));
 
@@ -208,9 +223,52 @@ describe('ConsumerHost Contract', () => {
             expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('15.8')); // 15 + 0.8
 
             // withdraw
-            expect(await consumerHost.balances(consumer.address)).to.equal(etherParse('9.8'));
+            const cBalance3 = await consumerHost.consumers(consumer.address);
+            expect(cBalance3.balance).to.equal(etherParse('9.8'));
             await consumerHost.connect(consumer).withdraw(etherParse('9.5'));
-            expect(await consumerHost.balances(consumer.address)).to.equal(etherParse('0.3'));
+            const cBalance4 = await consumerHost.consumers(consumer.address);
+            expect(cBalance4.balance).to.equal(etherParse('0.3'));
+        });
+        it('open a State Channel with approved should work', async () => {
+            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('20'));
+
+            await consumerHost.connect(consumer).approve();
+
+            const channelId = ethers.utils.randomBytes(32);
+            // the approved consumer's `nonce` will not change.
+            await openChannel(channelId, indexer, hoster, consumer, BigNumber.from(0), etherParse('1'), 60, true);
+            expect((await consumerHost.consumers(consumer.address)).balance).to.equal(etherParse('9'));
+            expect(await consumerHost.channels(channelId)).to.equal(consumer.address);
+            await fundChannel(channelId, indexer, hoster, consumer, BigNumber.from(0), etherParse('1'), true);
+
+            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('18'));
+
+            const channel = await stateChannel.channel(channelId);
+            expect(channel.status).to.equal(1); // 0 is Finalized, 1 is Open, 2 is Challenge
+            expect(channel.indexer).to.equal(indexer.address);
+            expect(channel.consumer).to.equal(consumerHost.address);
+            expect(channel.total).to.equal(etherParse('2'));
+
+            const query1 = await buildQueryState(channelId, indexer, hoster, etherParse('0.1'), false);
+            await stateChannel.checkpoint(query1);
+            expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.1'));
+
+            // claim rewards
+            await stateChannel.setChallengeExpiration(5); // 5s
+            const query2 = await buildQueryState(channelId, indexer, hoster, etherParse('0.2'), false);
+            await stateChannel.challenge(query2);
+            expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.2'));
+
+            await delay(6);
+            await stateChannel.claim(channelId);
+            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('19.8')); // 18 + 1.8
+
+            // withdraw
+            const cBalance3 = await consumerHost.consumers(consumer.address);
+            expect(cBalance3.balance).to.equal(etherParse('9.8'));
+            await consumerHost.connect(consumer).withdraw(etherParse('9.5'));
+            const cBalance4 = await consumerHost.consumers(consumer.address);
+            expect(cBalance4.balance).to.equal(etherParse('0.3'));
         });
     });
 });
