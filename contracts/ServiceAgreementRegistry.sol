@@ -50,7 +50,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
     //calculated sum daily reward: Indexer address => sumDailyReward
     mapping(address => uint256) public sumDailyReward;
     //users authorised by consumer that can request access token from indexer, for closed agreements only.
-    //user address => consumer address => bool
+    //consumer address => user address => bool
     //We are using the statu `consumerAuthAllows` offchain.
     mapping(address => mapping(address => bool)) public consumerAuthAllows;
     //Multipler used to calculate Indexer reward limit
@@ -117,7 +117,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
      */
     function addUser(address consumer, address user) external {
         require(msg.sender == consumer, 'Only consumer can add user');
-        consumerAuthAllows[user][consumer] = true;
+        consumerAuthAllows[consumer][user] = true;
     }
 
     /**
@@ -125,7 +125,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
      */
     function removeUser(address consumer, address user) external {
         require(msg.sender == consumer, 'Only consumer can remove user');
-        consumerAuthAllows[user][consumer] = false;
+        consumerAuthAllows[consumer][user] = false;
     }
 
     function addEstablisher(address establisher) external onlyOwner {
