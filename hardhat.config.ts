@@ -74,6 +74,7 @@ const config: HardhatUserConfig = {
         outputDir: 'docs/contracts',
         pages: 'files',
         exclude: ['interfaces', 'utils'],
+        templates: 'docs/themes/markdown',
     },
 };
 

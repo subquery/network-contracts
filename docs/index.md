@@ -8,10 +8,10 @@ The contracts are upgradable, following the Open Zeppelin Proxy Upgrade Pattern.
 > The IndexerRegistry contract store and track all registered Indexers and related status for these Indexers. It also provide the entry for Indexers to register, unregister, and config their metedata.
 
 [**_InflationController_**](./contracts/InflationController.md)
->
+> The InflationController contract mint the inflation SQT token to a set address at a set inflation rate. It also provide the manual way to mint SQT Token to admin.
 
 [**_PermissionedExchange_**](./contracts/PermissionedExchange.md)
->
+> For now, PermissionedExchange contract allows traders trade their SQTs on admin sent orders, later on we may allow others to send their orders. Controllers may set the trade quota for trader, and trader cannot trade over the their quota. It provides a way for indexers to swap their rewards(SQT) to stable token with a fixed exchange rate.
 
 [**_PlanManager_**](./contracts/PlanManager.md)
 > The Plan Manager Contract tracks and maintains all the Plans and PlanTemplates. It is the place Indexer create and publish a Plan for a specific deployment. And also the place Consumer can search and take these Plan.
@@ -36,9 +36,6 @@ The contracts are upgradable, following the Open Zeppelin Proxy Upgrade Pattern.
 
 [**_ServiceAgreementRegistry_**](./contracts/ServiceAgreementRegistry.md)
 > This contract tracks all service Agreements for Indexers and Consumers.
-
-[**_Settings_**](./contracts/Settings.md)
->
 
 [**_SQToken_**](./contracts/SQToken.md)
 >

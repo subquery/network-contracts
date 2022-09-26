@@ -14,22 +14,20 @@ import './interfaces/IPlanManager.sol';
 
 /**
  * @title Plan Manager Contract
- * @dev
- * ## Overview
+ * @notice
+ * ### Overview
  * The Plan Manager Contract tracks and maintains all the Plans and PlanTemplates.
  * It is the place Indexer create and publish a Plan for a specific deployment.
  * And also the place Consumer can search and take these Plan.
  *
- * ## Terminology
+ * ### Terminology
  * Plan: Plan is created by an Indexer,  a service agreement will be created once a consumer accept a plan.
  * PlanTemplate: PlanTemplate is create and maintenance by owner, we provide a set of PlanTemplates
  * for Indexer to create the Plan.
  */
 contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
-    // -- Data --
-
     /**
-     * @dev Plan is created by an Indexer,  a service agreement will be created once a consumer accept a plan.
+     * @notice Plan is created by an Indexer,  a service agreement will be created once a consumer accept a plan.
      */
     struct Plan {
         uint256 price;
@@ -39,8 +37,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     }
 
     /**
-     * @dev PlanTemplate is created and maintained by the owner, the owner provides a set of PlanTemplates for indexers to choose.
-     *for Indexer and Consumer to create the Plan and Purchase Offer.
+     * @notice PlanTemplate is created and maintained by the owner, the owner provides a set of PlanTemplates for indexers to choose. For Indexer and Consumer to create the Plan and Purchase Offer.
      */
     struct PlanTemplate {
         uint256 period;
@@ -50,39 +47,31 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         bool active;
     }
 
-    // -- Storage --
-
+    /// @dev ### STATES
+    /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
-    //Number of planTemplate
+    /// @notice Number of planTemplate
     uint256 public planTemplateIds;
-    //planTemplateId => planTemplate
+    /// @notice planTemplateId => planTemplate
     mapping(uint256 => PlanTemplate) public planTemplates;
-    //indexer => index
+    /// @notice indexer => index
     mapping(address => uint256) public nextPlanId;
-    //indexer => index => plan
+    /// @notice indexer => index => plan
     mapping(address => mapping(uint256 => Plan)) public plans;
-    //indexer => deploymentId => planIds
+    /// @notice indexer => deploymentId => planIds
     mapping(address => mapping(bytes32 => uint256[])) public planIds;
-    //the limit of the plan that Indexer can create
+    /// @notice the limit of the plan that Indexer can create
     uint16 public indexerPlanLimit;
 
-    // -- Events --
 
-    /**
-     * @dev Emitted when owner create a PlanTemplate.
-     */
+    /// @dev ### EVENTS
+    /// @notice Emitted when owner create a PlanTemplate.
     event PlanTemplateCreated(uint256 indexed planTemplateId);
-    /**
-     * @dev Emitted when owner change the Metadata of a PlanTemplate.
-     */
+    /// @notice Emitted when owner change the Metadata of a PlanTemplate.
     event PlanTemplateMetadataChanged(uint256 indexed planTemplateId, bytes32 metadata);
-    /**
-     * @dev Emitted when owner change the status of a PlanTemplate. active or not
-     */
+    /// @notice Emitted when owner change the status of a PlanTemplate. active or not
     event PlanTemplateStatusChanged(uint256 indexed planTemplateId, bool active);
-    /**
-     * @dev Emitted when Indexer create a Plan.
-     */
+    /// @notice Emitted when Indexer create a Plan.
     event PlanCreated(
         address indexed creator,
         bytes32 indexed deploymentId,
@@ -90,13 +79,12 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         uint256 planId,
         uint256 price
     );
-    /**
-     * @dev Emitted when Indexer remove a Plan.
-     */
+    /// @notice Emitted when Indexer remove a Plan.
     event PlanRemoved(address indexed source, uint256 id, bytes32 deploymentId);
 
     /**
-     * @dev Initialize this contract.
+     * @dev ### FUNCTIONS
+     * @notice Initialize this contract to set the indexerPlanLimit be 5 which any indexer can create 5 plans.
      */
     function initialize(ISettings _settings) external initializer {
         __Ownable_init();
@@ -105,12 +93,20 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         indexerPlanLimit = 5;
     }
 
+    /**
+     * @notice Set the indexer plan limit.
+     * @param _indexerPlanLimit indexerPlanLimit to set
+     */
     function setIndexerPlanLimit(uint16 _indexerPlanLimit) external onlyOwner {
         indexerPlanLimit = _indexerPlanLimit;
     }
 
     /**
-     * @dev Allow Owner to create a PlanTemplate.
+     * @notice Allow admin to create a PlanTemplate.
+     * @param _period plan period
+     * @param _dailyReqCap daily request limit
+     * @param _rateLimit request rate limit
+     * @param _metadata plan metadata
      */
     function createPlanTemplate(
         uint256 _period,
@@ -130,7 +126,9 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     }
 
     /**
-     * @dev Allow Owner to update the Metadata of a PlanTemplate.
+     * @notice Allow admin to update the Metadata of a PlanTemplate.
+     * @param _planTemplateId plan template id
+     * @param _metadata metadata to update
      */
     function updatePlanTemplateMetadata(uint256 _planTemplateId, bytes32 _metadata) external onlyOwner {
         require(planTemplates[_planTemplateId].period > 0, 'Plan template not existing');
@@ -141,8 +139,9 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     }
 
     /**
-     * @dev Allow Owner to update the status of a PlanTemplate.
-     * active or not
+     * @notice Allow Owner to update the status of a PlanTemplate.
+     * @param _planTemplateId plan template id
+     * @param _active plan template active or not
      */
     function updatePlanTemplateStatus(uint256 _planTemplateId, bool _active) external onlyOwner {
         require(planTemplates[_planTemplateId].period > 0, 'Plan template not existing');
@@ -153,7 +152,10 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     }
 
     /**
-     * @dev Allow Indexer to create a Plan basing on a specific plan template
+     * @notice Allow Indexer to create a Plan basing on a specific plan template.
+     * @param _price plan price
+     * @param _planTemplateId plan template id
+     * @param _deploymentId project deployment Id on plan
      */
     function createPlan(
         uint256 _price,
@@ -172,7 +174,8 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     }
 
     /**
-     * @dev Allow Indexer to remove actived Plan.
+     * @notice Allow Indexer to remove actived Plan.
+     * @param _planId Plan id to remove
      */
     function removePlan(uint256 _planId) external {
         require(plans[msg.sender][_planId].active, 'Inactive plan can not be removed');
@@ -194,9 +197,10 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     }
 
     /**
-     * @dev Allow Consumer to accept a plan created by an indexer. Consumer transfer token to
-     * ServiceAgreementRegistry contract and a service agreement will be created
-     * when they accept the plan.
+     * @notice Allow Consumer to accept a plan created by an indexer. Consumer transfer token to ServiceAgreementRegistry contract and a service agreement will be created when they accept the plan.
+     * @param _indexer indexer address
+     * @param _deploymentId deployment Id 
+     * @param _planId plan Id to accept
      */
     function acceptPlan(
         address _indexer,
@@ -234,7 +238,9 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         registry.establishServiceAgreement(agreementId);
     }
 
-    // view function
+    /**
+     * @notice Get all plan templates
+     */
     function templates() external view returns (PlanTemplate[] memory) {
         PlanTemplate[] memory _templates = new PlanTemplate[](planTemplateIds);
         for (uint256 i = 0; i < planTemplateIds; i++) {
@@ -244,6 +250,11 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         return _templates;
     }
 
+    /**
+     * @notice Get a specific plan
+     * @param indexer indexer address
+     * @param planId plan id
+     */
     function getPlan(address indexer, uint256 planId)
         external
         view
@@ -261,6 +272,10 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         active = plan.active;
     }
 
+    /**
+     * @notice Get a specific plan templates
+     * @param planTemplateId plan template id
+     */
     function getPlanTemplate(uint256 planTemplateId)
         external
         view
