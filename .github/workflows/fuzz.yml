@@ -65,7 +65,7 @@ jobs:
           test-limit: 250000
           seq-len: 100
           solc-args: --optimize --optimize-runs 200 --via-ir
-          solc-version: 0.6.12
+          solc-version: 0.8.15
           echidna-version: v2.0.0
 
       
