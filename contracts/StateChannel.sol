@@ -65,6 +65,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     event ChannelChallenge(uint256 indexed channelId, uint256 spent, uint256 expiration);
     event ChannelRespond(uint256 indexed channelId, uint256 spent);
     event ChannelFinalize(uint256 indexed channelId, uint256 total, uint256 remain);
+    event ChannelLabor(bytes32 deploymentId, address indexer, uint256 amount);
 
     // The states of the channels.
     mapping(uint256 => ChannelState) public channels;
@@ -331,13 +332,15 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             _finalize(query.channelId);
         }
 
-        // reward distributer
+        // reward pool
         if (amount > 0) {
             address indexer = channels[query.channelId].indexer;
+            bytes32 deploymentId = channels[query.channelId].deploymentId;
             address rewardPoolAddress = settings.getRewardsPool();
             IERC20(settings.getSQToken()).approve(rewardPoolAddress, amount);
             IRewardsPool rewardsPool = IRewardsPool(rewardPoolAddress);
-            rewardsPool.labor(channels[query.channelId].deploymentId, indexer, amount);
+            rewardsPool.labor(deploymentId, indexer, amount);
+            emit ChannelLabor(deploymentId, indexer, amount);
         }
     }
 
