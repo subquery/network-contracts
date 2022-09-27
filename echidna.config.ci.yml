@@ -7,6 +7,6 @@ coverage: false
 #maximum time between generated txs; default is one week
 maxTimeDelay: 31556952 # approximately 1 year
 #solcArgs allows special args to solc
-solcArgs: "--optimize --optimize-runs 200"
+solcArgs: "--optimize --optimize-runs 200 --via-ir"
 #solcLibs is solc libraries
 #solcLibs: ["node_modules/@openzeppelin"]
