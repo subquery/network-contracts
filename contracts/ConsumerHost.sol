@@ -13,53 +13,78 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './interfaces/IConsumer.sol';
 
 /**
- * @title Consumer Host Contract for host service.
- * @dev
- * ## Overview
+ * @title Consumer Host Contract
+ * @notice  
+ * ### Overview
  * The ConsumerHost contract store and track all registered Consumers.
  * Consumer can deposit and withdraw SQT.
+ * Consumer can approve contract, and then don't have to sign for every payment.
  * Other contracts can verify the consumer and safeTransfer SQT.
  *
  */
 contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     using SafeERC20 for IERC20;
 
-    // -- Storage --
+    // -- Structs --
+    struct Consumer {
+        uint256 balance;
+        uint256 nonce;
+        bool approved;
+    }
 
-    // The Signer address
+    /// @dev ### STATES
+    /// @notice The Signer account address
     address private signer;
 
-    // The SQT contract address
+    /// @notice The SQT contract address
     address public SQT;
 
-    // The StateChannel address
+    /// @notice The StateChannel contract address
     address public channel;
 
-    // Consumers' balances that hosting in this contract.
-    mapping(address => uint256) public balances;
+    /// @notice The fee charged from consumer payment service
+    uint256 public fee;
 
-    // StateChannels' belongs to consumer.
+    /// @notice The Percentage of FEE
+    uint256 public feePercentage;
+
+    /// @notice Consumers info that hosting in this contract
+    mapping(address => Consumer) public consumers;
+
+    /// @notice StateChannels' belongs to consumer
     mapping(uint256 => address) public channels;
 
-    // -- Events --
+    /// @dev ### EVENTS
+    /// @notice Emitted when consumer approve host to manager the balance.
+    event Approve(address consumer);
 
-    // Emitted when consumer deposit.
+    /// @notice Emitted when consumer disapprove.
+    event Disapprove(address consumer);
+
+    /// @notice Emitted when consumer deposit.
     event Deposit(address consumer, uint256 amount);
 
-    // Emitted when consumer withdraw.
+    /// @notice Emitted when consumer withdraw.
     event Withdraw(address consumer, uint256 amount);
 
-    // Emitted when consumer pay for open a state channel
+    /// @notice Emitted when consumer pay for open a state channel
     event Paid(uint256 channelId, address consumer, address caller, uint256 amount);
 
-    // Emitted when consumer pay for open a state channel
+    /// @notice Emitted when consumer pay for open a state channel
     event Claimed(uint256 channelId, address consumer, address caller, uint256 amount);
 
-    // Initialize this contract.
-    function initialize(address _sqt, address _channel) external initializer {
+    /**
+     * @dev ### FUNCTIONS
+     * @notice Initialize the contract, setup the SQT, StateChannel, and feePercentage.
+     * @param _sqt SQT contract address
+     * @param _channel StateChannel contract address
+     * @param _feePercentage fee percentage
+     */
+    function initialize(address _sqt, address _channel, uint256 _feePercentage) external initializer {
         __Ownable_init();
         SQT = _sqt;
         channel = _channel;
+        feePercentage = _feePercentage;
         signer = msg.sender;
 
         // Approve Token to State Channel.
@@ -67,7 +92,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         sqt.approve(channel, sqt.totalSupply());
     }
 
-    // Update SQT.
+    /**
+     * @notice Update SQT contract
+     * @param _sqt SQT contract address
+     */
     function setSQT(address _sqt) external onlyOwner {
         SQT = _sqt;
 
@@ -76,7 +104,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         sqt.approve(channel, sqt.totalSupply());
     }
 
-    // Update signer.
+    /**
+     * @notice Update StateChannel contract
+     * @param _channel StateChannel contract address
+     */
     function setChannel(address _channel) external onlyOwner {
         channel = _channel;
 
@@ -85,67 +116,148 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         sqt.approve(channel, sqt.totalSupply());
     }
 
-    // Get signer.
+    /**
+     * @notice Update fee percentage
+     * @param _feePercentage fee percentage
+     */
+    function setFeePercentage(uint256 _feePercentage) external onlyOwner {
+        require(_feePercentage <= 100, 'Invalid feePercentage');
+        feePercentage = _feePercentage;
+    }
+
+    /**
+     * @notice Collect fee to account
+     * @param account the receiver
+     * @param amount the amount
+     */
+    function collectFee(address account, uint256 amount) external onlyOwner {
+        require(fee >= amount, 'Insufficient balance');
+        IERC20(SQT).safeTransfer(account, amount);
+        fee -= amount;
+    }
+
+    /**
+     * @notice Get contract signer
+     * @return the signer account
+     */
     function getSigner() external view returns (address) {
         return signer;
     }
 
-    // Update signer.
+    /**
+     * @notice Update contract signer
+     * @param _signer new signer account
+     */
     function setSigner(address _signer) external onlyOwner {
         signer = _signer;
     }
 
-    // Deposit amount to hosting.
+    /**
+     * @notice Approve host can use consumer balance
+     */
+    function approve() external {
+        Consumer storage consumer = consumers[msg.sender];
+        consumer.approved = true;
+        emit Approve(msg.sender);
+    }
+
+    /**
+     * @notice Disapprove host can use consumer balance
+     */
+    function disapprove() external {
+        Consumer storage consumer = consumers[msg.sender];
+        consumer.approved = false;
+        emit Disapprove(msg.sender);
+    }
+
+    /**
+     * @notice Deposit amount to hosting, need consumer approve firstly
+     * @param amount the amount
+     */
     function deposit(uint256 amount) external {
         // transfer the balance to contract
         IERC20 sqt = IERC20(SQT);
         sqt.safeTransferFrom(msg.sender, address(this), amount);
-
         sqt.approve(channel, amount);
-        balances[msg.sender] += amount;
+
+        Consumer storage consumer = consumers[msg.sender];
+        consumer.balance += amount;
 
         emit Deposit(msg.sender, amount);
     }
 
-    // Withdraw amount to consumer.
+    /**
+     * @notice Withdraw amount to the consumer(sender)
+     * @param amount the amount
+     */
     function withdraw(uint256 amount) external {
-        require(balances[msg.sender] >= amount, 'Insufficient balance');
+        Consumer storage consumer = consumers[msg.sender];
+        require(consumer.balance >= amount, 'Insufficient balance');
 
         // transfer the balance to consumer
         IERC20(SQT).safeTransfer(msg.sender, amount);
-        balances[msg.sender] -= amount;
+        consumer.balance -= amount;
 
         emit Withdraw(msg.sender, amount);
     }
 
-    // Paied callback function.
-    function paid(
-        uint256 channelId,
-        uint256 amount,
-        bytes memory callback
-    ) external {
+    /**
+     * @notice Paied callback function, only support from StateChannel
+     * @param channelId the opened channel ID
+     * @param amount the amount need to pay
+     * @param callback the info include consumer and signature(if approve, no signature))
+     */
+    function paid(uint256 channelId, uint256 amount, bytes memory callback) external {
         require(msg.sender == channel, 'Only Channel Contract');
-        bytes32 payload = keccak256(abi.encode(channelId, amount));
-        bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
-        address consumer = ECDSA.recover(hash, callback);
-        require(balances[consumer] >= amount, 'Insufficient balance');
-        balances[consumer] -= amount;
-        channels[channelId] = consumer;
+        (address consumer, bytes memory sign) = abi.decode(callback, (address, bytes));
+        if (channels[channelId] == address(0)) {
+            channels[channelId] = consumer;
+        } else {
+            require(channels[channelId] == consumer, 'Invalid Consumer');
+        }
+
+        Consumer storage info = consumers[consumer];
+
+        uint256 fixedFee = amount > 100 ? amount * feePercentage / 100 : 1;
+        require(info.balance >= amount + fixedFee, 'Insufficient balance');
+
+        if (!info.approved) {
+            uint256 nonce = info.nonce;
+            bytes32 payload = keccak256(abi.encode(channelId, amount, nonce));
+            bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
+            address sConsumer = ECDSA.recover(hash, sign);
+            require(sConsumer == consumer, 'Invalid signature');
+            info.nonce = nonce + 1;
+        }
+
+        info.balance -= (amount + fixedFee);
+        fee += fixedFee;
 
         emit Paid(channelId, consumer, msg.sender, amount);
     }
 
-    // Claimed callback function.
+    /**
+     * @notice Claimed callback function, only support from StateChannel
+     * @param channelId the finalized channel ID
+     * @param amount the amount back to consumer
+     */
     function claimed(uint256 channelId, uint256 amount) external {
         require(msg.sender == channel, 'Only Channel Contract');
 
         address consumer = channels[channelId];
-        balances[consumer] += amount;
-        channels[channelId] = address(0);
+        Consumer storage info = consumers[consumer];
+        info.balance += amount;
+
+        delete channels[channelId];
 
         emit Claimed(channelId, consumer, msg.sender, amount);
     }
 
+    /**
+     * @notice Check ERC165 interface
+     * @param interfaceId interface ID
+     * @return Result of support or not
+     */
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
         return interfaceId == type(IConsumer).interfaceId || super.supportsInterface(interfaceId);
     }

@@ -1,6 +1,9 @@
 ## Contracts API
 The contracts are upgradable, following the Open Zeppelin Proxy Upgrade Pattern. Each contract will be explained in brief detail below.
 
+[**_ConsumerHost_**](./contracts/ConsumerHost.md)
+> Host services for consumers, allowing consumers to use the PAYG faster and better.
+
 [**_EraManager_**](./contracts/EraManager.md)
 > Produce epochs based on a period to coordinate contracts.
 
