@@ -46,7 +46,7 @@ contract PermissionedExchangeEchidnaTest {
         assert(z <= x); // check if there is a subtraction overflow
     }
 
-    function echidna_test_init(uint256 _agive, uint256 _aget, uint256 _ed, uint256 _tgb, uint256 _qm) public {
+    function test_init(uint256 _agive, uint256 _aget, uint256 _ed, uint256 _tgb, uint256 _qm) public {
         uint256 firstOrderId = pExchange.nextOrderId();
         pExchange.createPairOrders(address(SQT), address(USDC), _agive, _aget, _ed, _tgb);
         assert(pExchange.nextOrderId() == add(firstOrderId, 2));
