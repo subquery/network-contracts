@@ -107,6 +107,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
     // Update fee.
     function setFeePercentage(uint256 _feePercentage) external onlyOwner {
+        require(_feePercentage <= 100, 'Invalid feePercentage');
         feePercentage = _feePercentage;
     }
 
