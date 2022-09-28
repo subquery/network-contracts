@@ -13,11 +13,12 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './interfaces/IConsumer.sol';
 
 /**
- * @title Consumer Host Contract for host service.
- * @dev
- * ## Overview
+ * @title Consumer Host Contract
+ * @notice  
+ * ### Overview
  * The ConsumerHost contract store and track all registered Consumers.
  * Consumer can deposit and withdraw SQT.
+ * Consumer can approve contract, and then don't have to sign for every payment.
  * Other contracts can verify the consumer and safeTransfer SQT.
  *
  */
@@ -31,50 +32,54 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         bool approved;
     }
 
-    // -- Storage --
-
-    // The Signer address
+    /// @dev ### STATES
+    /// @notice The Signer account address
     address private signer;
 
-    // The SQT contract address
+    /// @notice The SQT contract address
     address public SQT;
 
-    // The StateChannel address
+    /// @notice The StateChannel contract address
     address public channel;
 
-    // The fee
+    /// @notice The fee charged from consumer payment service
     uint256 public fee;
 
-    // The Percentage of FEE
+    /// @notice The Percentage of FEE
     uint256 public feePercentage;
 
-    // Consumers info that hosting in this contract
+    /// @notice Consumers info that hosting in this contract
     mapping(address => Consumer) public consumers;
 
-    // StateChannels' belongs to consumer
+    /// @notice StateChannels' belongs to consumer
     mapping(uint256 => address) public channels;
 
-    // -- Events --
-
-    // Emitted when consumer approve host to manager the balance.
+    /// @dev ### EVENTS
+    /// @notice Emitted when consumer approve host to manager the balance.
     event Approve(address consumer);
 
-    // Emitted when consumer disapprove.
+    /// @notice Emitted when consumer disapprove.
     event Disapprove(address consumer);
 
-    // Emitted when consumer deposit.
+    /// @notice Emitted when consumer deposit.
     event Deposit(address consumer, uint256 amount);
 
-    // Emitted when consumer withdraw.
+    /// @notice Emitted when consumer withdraw.
     event Withdraw(address consumer, uint256 amount);
 
-    // Emitted when consumer pay for open a state channel
+    /// @notice Emitted when consumer pay for open a state channel
     event Paid(uint256 channelId, address consumer, address caller, uint256 amount);
 
-    // Emitted when consumer pay for open a state channel
+    /// @notice Emitted when consumer pay for open a state channel
     event Claimed(uint256 channelId, address consumer, address caller, uint256 amount);
 
-    // Initialize this contract.
+    /**
+     * @dev ### FUNCTIONS
+     * @notice Initialize the contract, setup the SQT, StateChannel, and feePercentage.
+     * @param _sqt SQT contract address
+     * @param _channel StateChannel contract address
+     * @param _feePercentage fee percentage
+     */
     function initialize(address _sqt, address _channel, uint256 _feePercentage) external initializer {
         __Ownable_init();
         SQT = _sqt;
@@ -87,7 +92,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         sqt.approve(channel, sqt.totalSupply());
     }
 
-    // Update SQT.
+    /**
+     * @notice Update SQT contract
+     * @param _sqt SQT contract address
+     */
     function setSQT(address _sqt) external onlyOwner {
         SQT = _sqt;
 
@@ -96,7 +104,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         sqt.approve(channel, sqt.totalSupply());
     }
 
-    // Update signer.
+    /**
+     * @notice Update StateChannel contract
+     * @param _channel StateChannel contract address
+     */
     function setChannel(address _channel) external onlyOwner {
         channel = _channel;
 
@@ -105,44 +116,64 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         sqt.approve(channel, sqt.totalSupply());
     }
 
-    // Update fee.
+    /**
+     * @notice Update fee percentage
+     * @param _feePercentage fee percentage
+     */
     function setFeePercentage(uint256 _feePercentage) external onlyOwner {
         require(_feePercentage <= 100, 'Invalid feePercentage');
         feePercentage = _feePercentage;
     }
 
-    // Collect fee to account.
+    /**
+     * @notice Collect fee to account
+     * @param account the receiver
+     * @param amount the amount
+     */
     function collectFee(address account, uint256 amount) external onlyOwner {
         require(fee >= amount, 'Insufficient balance');
         IERC20(SQT).safeTransfer(account, amount);
         fee -= amount;
     }
 
-    // Get signer.
+    /**
+     * @notice Get contract signer
+     * @return the signer account
+     */
     function getSigner() external view returns (address) {
         return signer;
     }
 
-    // Update signer.
+    /**
+     * @notice Update contract signer
+     * @param _signer new signer account
+     */
     function setSigner(address _signer) external onlyOwner {
         signer = _signer;
     }
 
-    // Approve host can use consumer balance.
+    /**
+     * @notice Approve host can use consumer balance
+     */
     function approve() external {
         Consumer storage consumer = consumers[msg.sender];
         consumer.approved = true;
         emit Approve(msg.sender);
     }
 
-    // Disapprove host.
+    /**
+     * @notice Disapprove host can use consumer balance
+     */
     function disapprove() external {
         Consumer storage consumer = consumers[msg.sender];
         consumer.approved = false;
         emit Disapprove(msg.sender);
     }
 
-    // Deposit amount to hosting.
+    /**
+     * @notice Deposit amount to hosting, need consumer approve firstly
+     * @param amount the amount
+     */
     function deposit(uint256 amount) external {
         // transfer the balance to contract
         IERC20 sqt = IERC20(SQT);
@@ -155,7 +186,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         emit Deposit(msg.sender, amount);
     }
 
-    // Withdraw amount to consumer.
+    /**
+     * @notice Withdraw amount to the consumer(sender)
+     * @param amount the amount
+     */
     function withdraw(uint256 amount) external {
         Consumer storage consumer = consumers[msg.sender];
         require(consumer.balance >= amount, 'Insufficient balance');
@@ -167,7 +201,12 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         emit Withdraw(msg.sender, amount);
     }
 
-    // Paied callback function.
+    /**
+     * @notice Paied callback function, only support from StateChannel
+     * @param channelId the opened channel ID
+     * @param amount the amount need to pay
+     * @param callback the info include consumer and signature(if approve, no signature))
+     */
     function paid(uint256 channelId, uint256 amount, bytes memory callback) external {
         require(msg.sender == channel, 'Only Channel Contract');
         (address consumer, bytes memory sign) = abi.decode(callback, (address, bytes));
@@ -197,7 +236,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         emit Paid(channelId, consumer, msg.sender, amount);
     }
 
-    // Claimed callback function.
+    /**
+     * @notice Claimed callback function, only support from StateChannel
+     * @param channelId the finalized channel ID
+     * @param amount the amount back to consumer
+     */
     function claimed(uint256 channelId, uint256 amount) external {
         require(msg.sender == channel, 'Only Channel Contract');
 
@@ -210,6 +253,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         emit Claimed(channelId, consumer, msg.sender, amount);
     }
 
+    /**
+     * @notice Check ERC165 interface
+     * @param interfaceId interface ID
+     * @return Result of support or not
+     */
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
         return interfaceId == type(IConsumer).interfaceId || super.supportsInterface(interfaceId);
     }
