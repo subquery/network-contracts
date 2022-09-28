@@ -1,7 +1,7 @@
 #select the mode to test, which can be property, assertion, overflow, exploration, optimization
 testMode: "assertion"
 #format can be "text" or "json" for different output (human or machine readable)
-format: "text"
+#format: "text"
 #checkAsserts checks assertions
 checkAsserts: true
 #coverage controls coverage guided testing
@@ -10,8 +10,6 @@ coverage: true
 maxTimeDelay: 31556952 # approximately 1 year
 #solcArgs allows special args to solc
 solcArgs: "--optimize --optimize-runs 200"
-#solcLibs is solc libraries
-#solcLibs: ["node_modules/@openzeppelin"]
 #testLimit is the number of test sequences to run
 testLimit: 1000000
 #seqLen defines how many transactions are in a test sequence
