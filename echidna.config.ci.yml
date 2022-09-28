@@ -1,14 +1,11 @@
 #select the mode to test, which can be property, assertion, overflow, exploration, optimization
 testMode: assertion
-#format can be "text" or "json" for different output (human or machine readable)
-#format: "text"
-#coverage controls coverage guided testing
-coverage: false
 #maximum time between generated txs; default is one week
 maxTimeDelay: 31556952 # approximately 1 year
 #solcArgs allows special args to solc
 solcArgs: "--optimize --optimize-runs 200"
 #testLimit is the number of test sequences to run
-testLimit: 1000000
+testLimit: 10000
 #seqLen defines how many transactions are in a test sequence
-seqLen: 200
+seqLen: 100
+corpus-dir: corpus
