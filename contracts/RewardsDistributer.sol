@@ -23,12 +23,12 @@ import './utils/MathUtil.sol';
 /**
  * @title Rewards Distributer Contract
  * @dev
- * ## Overview
+ * ### Overview
  * The Rewards distributer contract tracks and distriubtes the rewards Era by Era.
  * In each distribution, Indexers can take the commission part of rewards, the remaining
  * rewards are distributed according to the staking amount of indexers and delegators.
  *
- * ## Terminology
+ * ### Terminology
  * Era -- Era is the period of reward distribution. In our design, we must distribute the rewards of the previous Era
  * before we can move to the next Era.
  * Commission Rate -- Commission Rates are set by Indexers, it is the proportion to be taken by the indexer in each
@@ -36,7 +36,7 @@ import './utils/MathUtil.sol';
  * Rewards -- Rewards are paid by comsumer for the service agreements with indexer. All the rewards are
  * temporary hold by RewardsDistributer contract and distribute to Indexers and Delegator Era by Era.
  *
- * ## Detail
+ * ### Detail
  * In the design of rewards distribution, we have added a trade-off mechanism for Indexer and
  * Delegator to achieve a win-win situation.
  * The more SQT token staked on an indexer, the higher limitation of ongoing agreements the indexer can have. In order to earn more rewards with extra agreements,
@@ -62,10 +62,8 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
-    // -- Data --
-
     /**
-     * @dev Reward information. One per Indexer.
+     * @notice Reward information. One per Indexer.
      */
     struct RewardInfo {
         uint256 accSQTPerStake;
@@ -76,32 +74,28 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         mapping(uint256 => uint256) eraRewardRemoveTable;
     }
 
-    // -- Storage --
-
+    /// @dev ### STATES
+    /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings private settings;
-
-    // Reward information: indexer => RewardInfo
+    /// @notice Reward information: indexer => RewardInfo
     mapping(address => RewardInfo) private info;
 
-    // -- Events --
-
-    /**
-     * @dev Emitted when rewards are distributed for the earliest pending distributed Era.
-     */
+    /// @dev ### EVENTS
+    /// @notice Emitted when rewards are distributed for the earliest pending distributed Era.
     event DistributeRewards(address indexed indexer, uint256 indexed eraIdx, uint256 rewards);
-
-    /**
-     * @dev Emitted when user claimed rewards.
-     */
+    /// @notice Emitted when user claimed rewards.
     event ClaimRewards(address indexed indexer, address indexed delegator, uint256 rewards);
-
-    /**
-     * @dev Emitted when the rewards change, such as when rewards coming from new agreement.
-     */
+    /// @notice Emitted when the rewards change, such as when rewards coming from new agreement.
     event RewardsChanged(address indexed indexer, uint256 indexed eraIdx, uint256 additions, uint256 removals);
 
+    modifier onlyRewardsStaking() {
+        require(msg.sender == settings.getRewardsStaking(), 'Only RewardsStaking');
+        _;
+    }
+
     /**
-     * @dev Initialize this contract.
+     * @dev FUNCTIONS
+     * @notice Initialize this contract.
      */
     function initialize(ISettings _settings) external initializer {
         __Ownable_init();
@@ -114,13 +108,8 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         settings = _settings;
     }
 
-    modifier onlyRewardsStaking() {
-        require(msg.sender == settings.getRewardsStaking(), 'Only RewardsStaking');
-        _;
-    }
-
     /**
-     * @dev Initialize the indexer first last claim era.
+     * @notice Initialize the indexer first last claim era.
      * Only RewardsStaking can call.
      * @param indexer address
      * @param era uint256
@@ -130,7 +119,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     /**
-     * @dev Update delegator debt in rewards.
+     * @notice Update delegator debt in rewards.
      * Only RewardsStaking can call.
      * @param indexer address
      * @param delegator address
@@ -141,7 +130,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     /**
-     * @dev Reset era reward.
+     * @notice Reset era reward.
      * Only RewardsStaking can call.
      * @param indexer address
      * @param era uint256
@@ -153,7 +142,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     /**
-     * @dev Split rewards from agreemrnt into Eras:
+     * @notice Split rewards from agreemrnt into Eras:
      * Rewards split into one era;
      * Rewards split into two eras;
      * Rewards split into more then two eras handled by splitEraSpanMore;
@@ -231,7 +220,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     /**
-     * @dev Send rewards directly to the specified era.
+     * @notice Send rewards directly to the specified era.
      * Maybe RewardsPool call or others contracts.
      * @param indexer address
      * @param sender address
@@ -255,7 +244,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     /**
-     * @dev check if the current Era is claimed.
+     * @notice check if the current Era is claimed.
      */
     function collectAndDistributeRewards(address indexer) public {
         // check current era is after lastClaimEra
@@ -265,7 +254,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     /**
-     * @dev Calculate and distribute the rewards for the next Era of the lastClaimEra.
+     * @notice Calculate and distribute the rewards for the next Era of the lastClaimEra.
      * Calculate by eraRewardAddTable and eraRewardRemoveTable.
      * Distribute by distributeRewards method.
      */
@@ -310,14 +299,14 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     /**
-     * @dev Claim rewards of msg.sender for specific indexer.
+     * @notice Claim rewards of msg.sender for specific indexer.
      */
     function claim(address indexer) public {
         require(claimFrom(indexer, msg.sender) > 0, 'No rewards');
     }
 
     /**
-     * @dev Claculate the Rewards for user and tranfrer token to user.
+     * @notice Claculate the Rewards for user and tranfrer token to user.
      */
     function claimFrom(address indexer, address user) public returns (uint256) {
         uint256 rewards = userRewards(indexer, user);
@@ -334,21 +323,20 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     /**
-     * @dev extract for reuse emit RewardsChanged event
+     * @notice extract for reuse emit RewardsChanged event
      */
     function _emitRewardsChangedEvent(address indexer, uint256 eraNumber, RewardInfo storage rewardInfo) private {
         emit RewardsChanged(indexer, eraNumber, rewardInfo.eraRewardAddTable[eraNumber], rewardInfo.eraRewardRemoveTable[eraNumber]);
     }
 
     /**
-     * @dev Get current Era number from EraManager.
+     * @notice Get current Era number from EraManager.
      */
     function _getCurrentEra() private returns (uint256) {
         IEraManager eraManager = IEraManager(settings.getEraManager());
         return eraManager.safeUpdateAndGetEra();
     }
 
-    // -- Views --
     function userRewards(address indexer, address user) public view returns (uint256) {
         IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
         uint256 delegationAmount = rewardsStaking.getDelegationAmount(user, indexer);

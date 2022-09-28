@@ -484,16 +484,16 @@ describe('Service Agreement Registry Contract', () => {
             const consumer = wallet2;
             const user_1 = '0xD0D81970D25259E5Ca17D42c3f5094B5fd8e7713';
             const user_2 = '0x86c18caEBC3f5A8bad42A35A19ec2e3fA25C295F';
-            expect(await serviceAgreementRegistry.consumerAuthAllows(user_1, consumer.address)).to.eql(false);
+            expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_1)).to.eql(false);
             await serviceAgreementRegistry.connect(consumer).removeUser(consumer.address, user_1);
-            expect(await serviceAgreementRegistry.consumerAuthAllows(user_1, consumer.address)).to.eql(false);
+            expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_1)).to.eql(false);
             await serviceAgreementRegistry.connect(consumer).addUser(consumer.address, user_1);
-            expect(await serviceAgreementRegistry.consumerAuthAllows(user_1, consumer.address)).to.eql(true);
-            expect(await serviceAgreementRegistry.consumerAuthAllows(user_2, consumer.address)).to.eql(false);
+            expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_1)).to.eql(true);
+            expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_2)).to.eql(false);
             await serviceAgreementRegistry.connect(consumer).addUser(consumer.address, user_2);
             await serviceAgreementRegistry.connect(consumer).removeUser(consumer.address, user_1);
-            expect(await serviceAgreementRegistry.consumerAuthAllows(user_1, consumer.address)).to.eql(false);
-            expect(await serviceAgreementRegistry.consumerAuthAllows(user_2, consumer.address)).to.eql(true);
+            expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_1)).to.eql(false);
+            expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_2)).to.eql(true);
         });
         it('Only consumer can add/remove users', async () => {
             const consumer = wallet2;
