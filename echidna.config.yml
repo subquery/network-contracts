@@ -1,14 +1,11 @@
-#format can be "text" or "json" for different output (human or machine readable)
-#format: "text"
-#checkAsserts checks assertions
-checkAsserts: true
-#seqLen defines how many transactions are in a test sequence
-seqLen: 200
-#testLimit is the number of test sequences to run
-testLimit: 1000000
+#select the mode to test, which can be property, assertion, overflow, exploration, optimization
+testMode: assertion
 #maximum time between generated txs; default is one week
-maxTimeDelay: 15778800 # approximately 6 months
-#estimateGas makes echidna perform analysis of maximum gas costs for functions (experimental)
-#estimateGas: true
-#directory to save the corpus; by default is disabled
-corpusDir: "corpus"
+maxTimeDelay: 31556952 # approximately 1 year
+#solcArgs allows special args to solc
+solcArgs: "--optimize --optimize-runs 200"
+#testLimit is the number of test sequences to run
+testLimit: 50000
+#seqLen defines how many transactions are in a test sequence
+seqLen: 100
+corpus-dir: "corpus"
