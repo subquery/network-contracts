@@ -46,10 +46,10 @@ jobs:
       - name: Install solc-select
         run: pip3 install solc-select
 
-      - name: Solc Select 0.6.12
+      - name: Solc Select 0.8.15
         run: |
-          solc-select install 0.6.12
-          solc-select use 0.6.12
+          solc-select install 0.8.15
+          solc-select use 0.8.15
       - name: Crytic Compile ${{ matrix.testName }}
         run: |
           crytic-compile test-fuzz/${{ matrix.testName }}.sol --solc-args "--optimize --optimize-runs 200" --export-format solc
