@@ -1,5 +1,8 @@
 name: Fuzz
 on:
+  push:
+      branches:
+        - kepler/fuzz
   workflow_dispatch:
     inputs:
         testLimit:
