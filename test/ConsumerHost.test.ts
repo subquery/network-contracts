@@ -225,7 +225,7 @@ describe('ConsumerHost Contract', () => {
             // claim rewards
             await stateChannel.setChallengeExpiration(5); // 5s
             const query2 = await buildQueryState(channelId, indexer, hoster, etherParse('0.2'), false);
-            await stateChannel.challenge(query2);
+            await stateChannel.connect(hoster).challenge(query2);
             expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.2'));
 
             await delay(6);
@@ -275,7 +275,7 @@ describe('ConsumerHost Contract', () => {
             // claim rewards
             await stateChannel.setChallengeExpiration(5); // 5s
             const query2 = await buildQueryState(channelId, indexer, hoster, etherParse('0.2'), false);
-            await stateChannel.challenge(query2);
+            await stateChannel.connect(hoster).challenge(query2);
             expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.2'));
 
             await delay(6);

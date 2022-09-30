@@ -223,8 +223,19 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     // If challenge success, consumer will claim the rest of the locked
     // amount. Indexer can respond to this challenge within the time limit.
     function challenge(QueryState calldata query) public {
-        // check spent
-        require(query.spent > channels[query.channelId].spent, 'Query state must bigger than channel state');
+        ChannelState storage state = channels[query.channelId];
+
+        // check sender
+        bool isIndexer = msg.sender == state.indexer;
+        bool isConsumer = msg.sender == state.consumer;
+        if (_isContract(state.consumer)) {
+            isConsumer = msg.sender == IConsumer(state.consumer).getSigner();
+        }
+        require(isIndexer || isConsumer, 'Invalid sender');
+
+        // check state
+        bool allowState = state.expirationAt > block.timestamp && query.spent >= state.spent && query.spent < state.total;
+        require(allowState, 'Query state must bigger than channel state');
 
         // check sign
         bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));
@@ -234,9 +245,9 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         _settlement(query);
 
         // set state to challenge
-        channels[query.channelId].status = ChannelStatus.Challenge;
+        state.status = ChannelStatus.Challenge;
         uint256 expiration = block.timestamp + challengeExpiration;
-        channels[query.channelId].challengeAt = expiration;
+        state.challengeAt = expiration;
 
         emit ChannelChallenge(query.channelId, query.spent, expiration);
     }

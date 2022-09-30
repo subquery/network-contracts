@@ -14,8 +14,7 @@ import './interfaces/IConsumer.sol';
 
 /**
  * @title Consumer Host Contract
- * @notice  
- * ### Overview
+ * @notice ### Overview
  * The ConsumerHost contract store and track all registered Consumers.
  * Consumer can deposit and withdraw SQT.
  * Consumer can approve contract, and then don't have to sign for every payment.
@@ -62,16 +61,16 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     event Disapprove(address consumer);
 
     /// @notice Emitted when consumer deposit.
-    event Deposit(address consumer, uint256 amount);
+    event Deposit(address consumer, uint256 amount, uint256 balance);
 
     /// @notice Emitted when consumer withdraw.
-    event Withdraw(address consumer, uint256 amount);
+    event Withdraw(address consumer, uint256 amount, uint256 balance);
 
     /// @notice Emitted when consumer pay for open a state channel
-    event Paid(uint256 channelId, address consumer, address caller, uint256 amount);
+    event Paid(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance);
 
     /// @notice Emitted when consumer pay for open a state channel
-    event Claimed(uint256 channelId, address consumer, address caller, uint256 amount);
+    event Claimed(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance);
 
     /**
      * @dev ### FUNCTIONS
@@ -183,7 +182,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         Consumer storage consumer = consumers[msg.sender];
         consumer.balance += amount;
 
-        emit Deposit(msg.sender, amount);
+        emit Deposit(msg.sender, amount, consumer.balance);
     }
 
     /**
@@ -198,7 +197,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         IERC20(SQT).safeTransfer(msg.sender, amount);
         consumer.balance -= amount;
 
-        emit Withdraw(msg.sender, amount);
+        emit Withdraw(msg.sender, amount, consumer.balance);
     }
 
     /**
@@ -233,7 +232,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         info.balance -= (amount + fixedFee);
         fee += fixedFee;
 
-        emit Paid(channelId, consumer, msg.sender, amount);
+        emit Paid(channelId, consumer, msg.sender, amount, info.balance);
     }
 
     /**
@@ -250,7 +249,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
         delete channels[channelId];
 
-        emit Claimed(channelId, consumer, msg.sender, amount);
+        emit Claimed(channelId, consumer, msg.sender, amount, info.balance);
     }
 
     /**

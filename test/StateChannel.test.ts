@@ -219,7 +219,7 @@ describe('StateChannel Contract', () => {
             await openChannel(channelId, indexer, consumer, etherParse('1'), 60);
 
             const query1 = await buildQueryState(channelId, indexer, consumer, etherParse('0.1'), false);
-            await stateChannel.challenge(query1);
+            await stateChannel.connect(indexer).challenge(query1);
             const state1 = await stateChannel.channel(channelId);
             expect(state1.spent).to.equal(etherParse('0.1'));
             expect(state1.status).to.equal(2); // Challenge
@@ -240,7 +240,7 @@ describe('StateChannel Contract', () => {
             await openChannel(channelId, indexer, consumer, etherParse('1'), 60);
 
             const query1 = await buildQueryState(channelId, indexer, consumer, etherParse('0.1'), false);
-            await stateChannel.challenge(query1);
+            await stateChannel.connect(consumer).challenge(query1);
             const state1 = await stateChannel.channel(channelId);
             expect(state1.spent).to.equal(etherParse('0.1'));
             expect(state1.status).to.equal(2); // Challenge
