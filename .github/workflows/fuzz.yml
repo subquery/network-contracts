@@ -1,21 +1,21 @@
 name: Fuzz Test
 on:
   push:
-      branches:
-        - kepler/fuzz
-        - kepler-network
-      paths-ignore:
-        - '.github/workflows/**'
+    branches:
+      - kepler/fuzz
+      - kepler-network
+    paths-ignore:
+      - '.github/workflows/**'
   workflow_dispatch:
     inputs:
-        testLimit:
-          description: 'Number of sequences of transactions to generate during testing'
-          default: 50000
-          required: true
-        seqLen:
-          description: 'Number of transactions to generate during testing'
-          default: 100
-          required: true
+      testLimit:
+        description: 'Number of sequences of transactions to generate during testing'
+        default: 50000
+        required: true
+      seqLen:
+        description: 'Number of transactions to generate during testing'
+        default: 100
+        required: true
 
 jobs:
   echidna:
