@@ -22,24 +22,23 @@ import './utils/StakingUtil.sol';
 
 /**
  * @title Rewards Pool Contract
- * @notice
- * ## Overview
- * The Rewards Pool using the Cobb-Douglas production function for PAYG and Open Agreement.
+ * @notice ### Overview
+ * The Rewards Pool using the Cobb-Douglas production function for PAYG and Open Agreement
  */
 contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constants {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
-    /// @notice Deployment Reward Pool.
+    /// @notice Deployment Reward Pool
     struct Pool {
-        // total staking in this Pool.
+        // total staking in this Pool
         uint256 totalStake;
-        // total amount of the deployment.
+        // total amount of the deployment
         uint256 totalReward;
-        // total unclaimed labor;
+        // total unclaimed labor
         uint256 unclaimTotalLabor;
-        // total unclaimed reward;
+        // total unclaimed reward
         uint256 unclaimReward;
         // staking: indexer => staking amount
         mapping(address => uint256) stake;
@@ -47,47 +46,47 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         mapping(address => uint256) labor;
     }
 
-    /// @notice Indexer Deployment.
+    /// @notice Indexer Deployment
     struct IndexerDeployment {
-        // unclaimed deployments count.
+        // unclaimed deployments count
         uint unclaim;
-        // deployments list.
+        // deployments list
         bytes32[] deployments;
-        // deployments list index.
+        // deployments list index
         mapping(bytes32 => uint) index;
     }
 
-    /// @notice Era Reward Pool.
+    /// @notice Era Reward Pool
     struct EraPool {
-        // record the unclaimed deployment.
+        // record the unclaimed deployment
         uint256 unclaimDeployment;
-        // record the indexer joined deployments, and check if all is claimed.
+        // record the indexer joined deployments, and check if all is claimed
         mapping(address => IndexerDeployment) indexerUnclaimDeployments;
-        // storage all pools by deployment: deployment => Pool.
+        // storage all pools by deployment: deployment => Pool
         mapping(bytes32 => Pool) pools;
     }
 
     /// @dev ### STATES
-    /// @notice Settings info.
+    /// @notice Settings info
     ISettings public settings;
-    /// @notice Era Rewards Pools: era => Era Pool.
+    /// @notice Era Rewards Pools: era => Era Pool
     mapping(uint256 => EraPool) private pools;
-    /// @notice Percentage of the stake and labor (1-alpha) in the total.
+    /// @notice the numerator of Percentage of the stake and labor (1-alpha) in the total
     int32 public alphaNumerator;
-    /// @notice
+    /// @notice the denominator of the alpha
     int32 public alphaDenominator;
 
     /// @dev ### EVENTS
     /// @notice Emitted when update the alpha for cobb-douglas function
     event Alpha(int32 alphaNumerator, int32 alphaDenominator);
-    /// @notice Emitted when add Labor(reward) for current era pool.
+    /// @notice Emitted when add Labor(reward) for current era pool
     event Labor(bytes32 deploymentId, address indexer, uint256 amount, uint256 total);
-    /// @notice Emitted when collect reward (stake) from era pool.
+    /// @notice Emitted when collect reward (stake) from era pool
     event Collect(bytes32 deploymentId, address indexer, uint256 era, uint256 amount);
 
     /**
      * @dev ### FUNCTIONS
-     * @notice Initialize the contract, setup the alphaNumerator, alphaDenominator.
+     * @notice Initialize the contract, setup the alphaNumerator, alphaDenominator
      * @param _settings settings contract address
      */
     function initialize(ISettings _settings) external initializer {
@@ -99,7 +98,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     }
 
     /**
-     * @notice update the settings.
+     * @notice update the settings
      * @param _settings settings contract address
      */
     function setSettings(ISettings _settings) external onlyOwner {
@@ -107,9 +106,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     }
 
     /**
-     * @notice Update the alpha for cobb-douglas function.
-     * @param _alphaNumerator 
-     * @param _alphaDenominator
+     * @notice Update the alpha for cobb-douglas function
+     * @param _alphaNumerator the numerator of the alpha
+     * @param _alphaDenominator the denominator of the alpha
      */
     function setAlpha(int32 _alphaNumerator, int32 _alphaDenominator) public onlyOwner {
         require(_alphaNumerator > 0 && _alphaDenominator > 0, "!alpha");
@@ -120,7 +119,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     }
 
     /**
-     * @notice get the Pool reward by deploymentId, era and indexer. returns my labor and total reward.
+     * @notice get the Pool reward by deploymentId, era and indexer. returns my labor and total reward
      * @param deploymentId deployment id
      * @param era era number
      * @param indexer indexer address
@@ -131,7 +130,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     }
 
     /**
-     * @notice Add Labor(reward) for current era pool.
+     * @notice Add Labor(reward) for current era pool
      * @param deploymentId deployment id
      * @param indexer indexer address
      * @param amount the labor of services
@@ -178,7 +177,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     }
 
     /**
-     * @notice Collect reward (stake) from previous era Pool.
+     * @notice Collect reward (stake) from previous era Pool
      * @param deploymentId deployment id
      * @param indexer indexer address
      */
@@ -188,7 +187,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     }
 
     /**
-     * @notice Batch collect all deployments from previous era Pool.
+     * @notice Batch collect all deployments from previous era Pool
      * @param indexer indexer address
      */
     function batchCollect(address indexer) external {
@@ -197,7 +196,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     }
 
     /**
-     * @notice Collect reward (stake) from era pool.
+     * @notice Collect reward (stake) from era pool
      * @param era era number
      * @param deploymentId deployment id
      * @param indexer indexer address
@@ -209,7 +208,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     }
 
     /**
-     * @notice Batch collect all deployments in pool.
+     * @notice Batch collect all deployments in pool
      * @param era era number
      * @param indexer indexer address
      */
@@ -220,7 +219,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     }
 
     /**
-     * @notice Determine is the pool claimed on the era.
+     * @notice Determine is the pool claimed on the era
      * @param era era number
      * @param indexer indexer address
      * @return bool is claimed or not

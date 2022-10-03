@@ -19,14 +19,14 @@ import './interfaces/IRewardsPool.sol';
  * @title State Channel Contract
  * @notice ### Overview
  * The contact for Pay-as-you-go service for Indexer and Consumer.
+ * The consumer is not only a account, but also a contract
  */
 contract StateChannel is Initializable, OwnableUpgradeable {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
 
     /**
-    * @notice
-    * The channel status.
+    * @notice The channel status.
     * When channel is Open, it can checkpoint/challenge/claim/fund.
     * When channle is Challenging, it can respond/claim.
     * When channel is Finalized. it is over.
@@ -37,7 +37,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         Challenge
     }
 
-    /// @notice The state of channel.
+    /// @notice The state of channel
     struct ChannelState {
         ChannelStatus status;
         address indexer;
@@ -49,7 +49,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         bytes32 deploymentId;
     }
 
-    /// @notice The state for checkpoint Query.
+    /// @notice The state for checkpoint Query
     struct QueryState {
         uint256 channelId;
         uint256 spent;
@@ -61,9 +61,9 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     /// @dev ### STATES
     /// @notice Settings info
     ISettings public settings;
-    /// @notice The expiration of the challenge. Default is 24 * 60 * 60 = 86400s.
+    /// @notice The expiration of the challenge. Default is 24 * 60 * 60 = 86400s
     uint256 public challengeExpiration;
-    /// @notice The states of the channels.
+    /// @notice The states of the channels
     mapping(uint256 => ChannelState) public channels;
 
     /// @dev ### EVENTS
@@ -86,7 +86,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
     /**
      * @dev ### FUNCTIONS
-     * @notice Initialize the contract, setup the challengeExpiration.
+     * @notice Initialize the contract, setup the challengeExpiration
      * @param _settings settings contract address
      */
     function initialize(ISettings _settings) external initializer {
@@ -97,7 +97,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Update the expiration of the challenge.
+     * @notice Update the expiration of the challenge
      * @param expiration challenge expiration time in seconds
      */
     function setChallengeExpiration(uint256 expiration) public onlyOwner {
@@ -105,7 +105,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Get the channel info.
+     * @notice Get the channel info
      * @param channelId channel id
      * @return ChannelState channel info
      */
@@ -114,14 +114,16 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Indexer and Consumer open a channel for Pay-as-you-go service. It will lock the amount of consumer and start a new channel. Need consumer approve amount first. If consumer is contract, use callback to call paid.
+     * @notice Indexer and Consumer open a channel for Pay-as-you-go service.
+     * It will lock the amount of consumer and start a new channel.
+     * Need consumer approve amount first. If consumer is contract, use callback to call paid
      * @param channelId channel id
      * @param indexer indexer address
      * @param consumer consumer address
      * @param amount SQT amount deposit in channel
      * @param expiration channel expiration time in seconds
-     * @param deploymentId 
-     * @param callback 
+     * @param deploymentId deployment id
+     * @param callback callback info for contract, if consumer not a contract, set null: "0x"
      * @param indexerSign indexer's signature
      * @param consumerSign consumer's signature
      */
@@ -174,7 +176,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Extend the channel expirationAt.
+     * @notice Extend the channel expirationAt
      * @param channelId channel id
      * @param preExpirationAt previous ExpirationAt timestamp
      * @param expiration Extend tiem in seconds
@@ -207,11 +209,11 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Deposit more amount to this channel. need consumer approve amount first.
+     * @notice Deposit more amount to this channel. need consumer approve amount first
      * @param channelId channel id
      * @param amount SQT amount to deposit
-     * @param callback 
-     * @param sign
+     * @param callback callback info for contract
+     * @param sign the signature of the consumer
      */
     function fund(
         uint256 channelId,
@@ -247,8 +249,9 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Indexer can send a checkpoint to claim the part-amount. This amount will send to RewardDistributer for staking.
-     * @param query 
+     * @notice Indexer can send a checkpoint to claim the part-amount.
+     * This amount will send to RewardDistributer for staking
+     * @param query the state of the channel
      */
     function checkpoint(QueryState calldata query) public {
         // check channel status
@@ -268,8 +271,10 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice When consumer what to finalize in advance, can start a challenge. If challenge success, consumer will claim the rest of the locked amount. Indexer can respond to this challenge within the time limit.
-     * @param query 
+     * @notice When indexer/consumer what to finalize in advance, can start a challenge.
+     * If challenge success, consumer will claim the rest of the locked amount.
+     * Indexer can respond to this challenge within the time limit
+     * @param query the state of the channel
      */
     function challenge(QueryState calldata query) public {
         ChannelState storage state = channels[query.channelId];
@@ -302,8 +307,8 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Indexer respond the challenge by send the service proof after the challenge.
-     * @param query 
+     * @notice Indexer respond the challenge by send the service proof after the challenge
+     * @param query the state of the channel
      */
     function respond(QueryState calldata query) public {
         // check count
@@ -323,7 +328,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice When challenge success (Overdue did not respond) or expiration, consumer can claim the amount.
+     * @notice When challenge success (Overdue did not respond) or expiration, consumer can claim the amount
      * @param channelId channel id
      */
     function claim(uint256 channelId) public {
@@ -340,7 +345,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /// @dev PRIVATE FUNCTIONS
-    /// @notice Check the signature of the hash with channel info.
+    /// @notice Check the signature of the hash with channel info
     function _checkStateSign(
         uint256 channelId,
         bytes32 payload,
@@ -358,7 +363,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         }
     }
 
-    /// @notice Check the signature of the hash with given addresses.
+    /// @notice Check the signature of the hash with given addresses
     function _checkSign(
         bytes32 payload,
         bytes memory indexerSign,
@@ -375,7 +380,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         require(signConsumer == channelConsumer, 'Consumer signature invalid');
     }
 
-    /// @notice Settlement the new state.
+    /// @notice Settlement the new state
     function _settlement(QueryState calldata query) private {
         // update channel state
         uint256 amount = query.spent - channels[query.channelId].spent;
@@ -409,7 +414,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         }
     }
 
-    /// @notice Finalize the channel.
+    /// @notice Finalize the channel
     function _finalize(uint256 channelId) private {
         // claim the rest of amount to balance
         address consumer = channels[channelId].consumer;
