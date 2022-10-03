@@ -20,8 +20,7 @@ import './utils/StakingUtil.sol';
 
 /**
  * @title Staking Contract
- * @dev
- * ## Overview
+ * @notice ### Overview
  * The Staking contract hold and track the changes of all staked SQT Token, It provides entry for the indexers and delegators to
  * stake/unstake, delegate/undelegate to available Indexers and withdraw their SQT Token. It also track the changes of the commission rate of each
  * Indexer and make these changes always applied at two Eras later. We design this to allow time for the delegators

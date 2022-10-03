@@ -14,8 +14,7 @@ import './interfaces/IPlanManager.sol';
 
 /**
  * @title Plan Manager Contract
- * @notice
- * ### Overview
+ * @notice ### Overview
  * The Plan Manager Contract tracks and maintains all the Plans and PlanTemplates.
  * It is the place Indexer create and publish a Plan for a specific deployment.
  * And also the place Consumer can search and take these Plan.
@@ -169,7 +168,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         nextPlanId[msg.sender]++;
         plans[msg.sender][nextPlanId[msg.sender]] = Plan(_price, _planTemplateId, _deploymentId, true);
         planIds[msg.sender][_deploymentId].push(nextPlanId[msg.sender]);
-        
+
         emit PlanCreated(msg.sender, _deploymentId, _planTemplateId, nextPlanId[msg.sender], _price);
     }
 
@@ -199,7 +198,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     /**
      * @notice Allow Consumer to accept a plan created by an indexer. Consumer transfer token to ServiceAgreementRegistry contract and a service agreement will be created when they accept the plan.
      * @param _indexer indexer address
-     * @param _deploymentId deployment Id 
+     * @param _deploymentId deployment Id
      * @param _planId plan Id to accept
      */
     function acceptPlan(

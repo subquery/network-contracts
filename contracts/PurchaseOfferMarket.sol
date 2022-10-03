@@ -18,8 +18,7 @@ import './utils/MathUtil.sol';
 
 /**
  * @title Purchase Offer Market Contract
- * @notice
- * ### Overview
+ * @notice ### Overview
  * The Purchase Offer Market Contract tracks all purchase offers for Indexers and Consumers.
  * It allows Consumers to create/cancel purchase offers, and Indexers to accept the purchase offer to make
  * the service agreements. It is the place Consumer publish a purchase offer for a specific deployment.
@@ -109,7 +108,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * @notice Initialize this contract to set penaltyRate and penaltyDestination.
      * @param _settings ISettings contract
      * @param _penaltyRate penaltyRate that consumer cancel unexpired purchase offer
-     * @param _penaltyDestination penaltyDestination that consumer cancel unexpired purchase offer 
+     * @param _penaltyDestination penaltyDestination that consumer cancel unexpired purchase offer
      */
     function initialize(
         ISettings _settings,
@@ -143,7 +142,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
 
     /**
      * @notice Allow admin to create a Purchase Offer.
-     * @param _deploymentId deployment id 
+     * @param _deploymentId deployment id
      * @param _planTemplateId plan template id
      * @param _deposit purchase offer value to deposit
      * @param _limit limit indexer to accept the purchase offer

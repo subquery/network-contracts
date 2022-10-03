@@ -12,7 +12,7 @@ import './interfaces/ISettings.sol';
 
 /**
  * @title PermissionedExchange Contract
- * @notice For now PermissionedExchange contract allows traders trade their SQTs on admin sent orders, later on we may allow others to send their orders. Controllers may set the trade quota for trader, and trader cannot trade over the their quota. 
+ * @notice For now PermissionedExchange contract allows traders trade their SQTs on admin sent orders, later on we may allow others to send their orders. Controllers may set the trade quota for trader, and trader cannot trade over the their quota.
  * It provides a way for indexers to swap their rewards(SQT) to stable token with a fixed exchange rate.
  */
 contract PermissionedExchange is Initializable, OwnableUpgradeable {

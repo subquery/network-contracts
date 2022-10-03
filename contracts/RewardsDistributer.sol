@@ -22,8 +22,7 @@ import './utils/MathUtil.sol';
 
 /**
  * @title Rewards Distributer Contract
- * @dev
- * ### Overview
+ * @notice ### Overview
  * The Rewards distributer contract tracks and distriubtes the rewards Era by Era.
  * In each distribution, Indexers can take the commission part of rewards, the remaining
  * rewards are distributed according to the staking amount of indexers and delegators.

@@ -16,8 +16,7 @@ import './Constants.sol';
 
 /**
  * @title Indexer Registry Contract
- * @notice 
- * ### Overview
+ * @notice ### Overview
  * The IndexerRegistry contract store and track all registered Indexers and related status for these Indexers.
  * It also provide the entry for Indexers to register, unregister, and config their metedata.
  *

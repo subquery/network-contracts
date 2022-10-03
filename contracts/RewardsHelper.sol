@@ -12,6 +12,11 @@ import './RewardsDistributer.sol';
 import './RewardsStaking.sol';
 import './utils/MathUtil.sol';
 
+/**
+ * @title Rewards Helper Contract
+ * @notice ### Overview
+ * The Helper functions for Rewards.
+ */
 contract RewardsHelper is Initializable, OwnableUpgradeable {
     using MathUtil for uint256;
 
