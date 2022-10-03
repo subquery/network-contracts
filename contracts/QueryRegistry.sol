@@ -14,11 +14,10 @@ import './interfaces/IServiceAgreementRegistry.sol';
 
 /**
  * @title Query Registry Contract
- * @notice 
- * ### Overview
+ * @notice ### Overview
  * This contract tracks all query projects and their deployments. At the beginning of the network,
  * we will start with the restrict mode which only allow permissioned account to create and update query project.
- * Indexers are able to start and stop indexing with a specific deployment from this conttact. Also Indexers can update and report 
+ * Indexers are able to start and stop indexing with a specific deployment from this conttact. Also Indexers can update and report
  * their indexing status from this contarct.
  */
 contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
@@ -31,7 +30,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     mapping(uint256 => QueryInfo) public queryInfos;
     /// @notice account address -> is creator
     mapping(address => bool) public creatorWhitelist;
-    /// @notice next query project id 
+    /// @notice next query project id
     uint256 public nextQueryId;
     /// @notice Threshold to calculate is indexer offline
     uint256 private offlineCalcThreshold;
@@ -44,7 +43,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     /// @notice is the id a deployment
     mapping(bytes32 => bool) private deploymentIds;
 
-    /// @notice query project information 
+    /// @notice query project information
     struct QueryInfo {
         uint256 queryId;
         address owner;
@@ -52,7 +51,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         bytes32 latestDeploymentId;
         bytes32 metadata;
     }
-    
+
     /// @notice indexing status for an indexer
     struct IndexingStatus {
         bytes32 deploymentId;
@@ -76,7 +75,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     event UpdateQueryDeployment(address indexed owner, uint256 indexed queryId, bytes32 deploymentId, bytes32 version);
     /// @notice Emitted when indexers start indexing.
     event StartIndexing(address indexed indexer, bytes32 indexed deploymentId);
-    /// @notice Emitted when indexers report their indexing Status 
+    /// @notice Emitted when indexers report their indexing Status
     event UpdateDeploymentStatus(
         address indexed indexer,
         bytes32 indexed deploymentId,
@@ -124,7 +123,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         settings = _settings;
     }
     /**
-     * @notice set the mode to restrict or not 
+     * @notice set the mode to restrict or not
      * restrict mode -- only permissioned accounts allowed to create query project
      */
     function setCreatorRestricted(bool _creatorRestricted) external onlyOwner {

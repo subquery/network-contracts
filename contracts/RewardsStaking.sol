@@ -21,8 +21,7 @@ import './utils/MathUtil.sol';
 
 /**
  * @title Rewards Staking Contract
- * @dev
- * ## Overview
+ * @notice ### Overview
  * Keep tracing the pending staking and commission rate and last settled era.
  */
 contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, Constants {

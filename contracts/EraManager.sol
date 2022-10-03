@@ -19,11 +19,11 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
     /// @notice Era period in second
-    uint256 public eraPeriod; 
+    uint256 public eraPeriod;
     /// @notice Current Era number
-    uint256 public eraNumber; 
+    uint256 public eraNumber;
     /// @notice Current era start time in unix timestamp
-    uint256 public eraStartTime; 
+    uint256 public eraStartTime;
 
     /// @dev ### EVENTS
     /// @notice Emitted when admin update the eraPeriod

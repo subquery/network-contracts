@@ -21,8 +21,7 @@ import './utils/MathUtil.sol';
 
 /**
  * @title Service Agreement Registry Contract
- * @dev
- * ## Overview
+ * @notice ### Overview
  * This contract tracks all service Agreements for Indexers and Consumers.
  * For now, Consumer can accept the plan created by Indexer from Plan Manager to generate close service agreement.
  * Indexer can also accept Purchase Offer created by Consumer from purchase offer market to generate close service agreement.

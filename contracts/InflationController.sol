@@ -37,7 +37,7 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
      * @dev ### FUNCTIONS
      * @notice Initialize the contract to setup parameters: inflationRate, inflationDestination, lastInflationTimestamp
      * @param _settings ISettings contract
-     * @param _inflationRate One year inflationRate for SQT token 
+     * @param _inflationRate One year inflationRate for SQT token
      * @param _inflationDestination Address to receive the inflation SQT token
      */
     function initialize(
@@ -55,8 +55,8 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
     }
 
     /**
-     * @notice Set the inflation rate 
-     * @param _inflationRate One year inflationRate for SQT token 
+     * @notice Set the inflation rate
+     * @param _inflationRate One year inflationRate for SQT token
      */
     function setInflationRate(uint256 _inflationRate) external onlyOwner {
         require(_inflationRate < PER_MILL, 'InflationRate value is out of range');
