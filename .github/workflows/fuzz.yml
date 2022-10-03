@@ -1,0 +1,85 @@
+name: Fuzz Test
+on:
+  push:
+    branches:
+      - kepler/fuzz
+      - kepler-network
+    paths-ignore:
+      - '.github/workflows/**'
+  workflow_dispatch:
+    inputs:
+      testLimit:
+        description: 'Number of sequences of transactions to generate during testing'
+        default: 50000
+        required: true
+      seqLen:
+        description: 'Number of transactions to generate during testing'
+        default: 100
+        required: true
+
+jobs:
+  echidna:
+    name: Echidna
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        testName:
+          - PermissionedExchangeEchidnaTest
+          - AirdropperEchidnaTest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 12
+      
+      - run: yarn
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.8
+
+      - name: Install crytic-compile
+        run: pip3 install crytic-compile
+
+      - name: Install solc-select
+        run: pip3 install solc-select
+
+      - name: Solc Select 0.8.15
+        run: |
+          solc-select install 0.8.15
+          solc-select use 0.8.15
+      - name: Crytic Compile ${{ matrix.testName }}
+        run: |
+          crytic-compile test-fuzz/${{ matrix.testName }}.sol --solc-args "--optimize --optimize-runs 200" --export-format solc
+          jq --sort-keys . crytic-export/combined_solc.json > sorted_crytic_solc.json
+
+      - name: Cache ${{ matrix.testName }} Corpus
+        uses: actions/cache@v2
+        with:
+          path: corpus
+          key: abi-${{ matrix.testName }}-${{ hashFiles('**/sorted_crytic_solc.json') }}-v3
+
+      - name: Fuzz ${{ matrix.testName }}
+        uses: crytic/echidna-action@v2
+        with:
+          files: test-fuzz/${{ matrix.testName }}.sol
+          contract: ${{ matrix.testName }}
+          config: echidna.config.ci.yml
+          corpus-dir: corpus
+          test-mode: assertion
+          test-limit: ${{ github.event.inputs.testLimit }}
+          seq-len: ${{ github.event.inputs.seqLen }}
+          solc-args: --optimize --optimize-runs 200
+          solc-version: 0.8.15
+          echidna-version: v2.0.0
+
+      - name: Upload ${{ matrix.testName }} Coverage
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-${{ matrix.testName }}
+          path: corpus/covered.*

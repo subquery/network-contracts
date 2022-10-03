@@ -116,5 +116,21 @@ Note: After contract upgrade, should run below again.
     yarn mocha test/PurchaseOfferMarket.test.ts
     yarn mocha test/StateChannel.test.ts
 ```
+
+#### Fuzz Test
+
+##### Install Echidna
+
+- Building using Nix
+  `$ nix-env -i -f https://github.com/crytic/echidna/tarball/master`
+
+##### Run Echidna Tests
+
+- Install solc 0.6.12:
+  `$ nix-env -f https://github.com/dapphub/dapptools/archive/master.tar.gz -iA solc-versions.solc_0_6_12`
+
+- Run Echidna Tests:
+  `$ echidna-test test-fuzz/PermissionedExchangeEchidnaTest.sol --contract PermissionedExchangeEchidnaTest --config echidna.config.yml`
+
 ### code flatten
 `yarn hardhat flat contracts/PermissionedExchange.sol > Flattened.sol`
