@@ -47,6 +47,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         uint256 expiredAt;
         uint256 terminatedAt;
         bytes32 deploymentId;
+        bool terminateByIndexer;
     }
 
     /// @notice The state for checkpoint Query
@@ -163,14 +164,16 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
 
         // initial the channel
-        channels[channelId].status = ChannelStatus.Open;
-        channels[channelId].indexer = indexer;
-        channels[channelId].consumer = consumer;
-        channels[channelId].expiredAt = block.timestamp + expiration;
-        channels[channelId].total = amount;
-        channels[channelId].spent = 0;
-        channels[channelId].terminatedAt = 0;
-        channels[channelId].deploymentId = deploymentId;
+        ChannelState storage state = channels[channelId];
+        state.status = ChannelStatus.Open;
+        state.indexer = indexer;
+        state.consumer = consumer;
+        state.expiredAt = block.timestamp + expiration;
+        state.total = amount;
+        state.spent = 0;
+        state.terminatedAt = 0;
+        state.deploymentId = deploymentId;
+        state.terminateByIndexer = false;
 
         emit ChannelOpen(channelId, indexer, consumer, amount, block.timestamp + expiration, deploymentId);
     }
@@ -297,6 +300,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         state.status = ChannelStatus.Terminating;
         uint256 expiration = block.timestamp + terminateExpiration;
         state.terminatedAt = expiration;
+        state.terminateByIndexer = isIndexer;
 
         emit ChannelTerminate(query.channelId, query.spent, expiration);
     }
@@ -306,8 +310,22 @@ contract StateChannel is Initializable, OwnableUpgradeable {
      * @param query the state of the channel
      */
     function respond(QueryState calldata query) public {
+        ChannelState storage state = channels[query.channelId];
+
+        // check state and sender
+        require(state.status == ChannelStatus.Terminating, 'Not terminating');
+        if (state.terminateByIndexer) {
+            bool isConsumer = msg.sender == state.consumer;
+            if (_isContract(state.consumer)) {
+                isConsumer = msg.sender == IConsumer(state.consumer).getSigner();
+            }
+            require(isConsumer, 'Invalid sender');
+        } else {
+            require(msg.sender == state.indexer, 'Invalid sender');
+        }
+
         // check count
-        require(query.spent >= channels[query.channelId].spent, 'Query state must bigger than channel state');
+        require(query.spent >= state.spent, 'Query state must bigger than channel state');
 
         // check sign
         bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));

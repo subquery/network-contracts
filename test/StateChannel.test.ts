@@ -246,7 +246,7 @@ describe('StateChannel Contract', () => {
             expect(state1.status).to.equal(2); // Terminate
 
             const query2 = await buildQueryState(channelId, indexer, consumer, etherParse('0.2'), false);
-            await stateChannel.respond(query2);
+            await stateChannel.connect(indexer).respond(query2);
             const state2 = await stateChannel.channel(channelId);
             expect(state2.spent).to.equal(0);
             expect(state2.status).to.equal(0); // Finalized
