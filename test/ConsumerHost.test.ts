@@ -213,7 +213,7 @@ describe('ConsumerHost Contract', () => {
             expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('15'));
 
             const channel = await stateChannel.channel(channelId);
-            expect(channel.status).to.equal(1); // 0 is Finalized, 1 is Open, 2 is Challenge
+            expect(channel.status).to.equal(1); // 0 is Finalized, 1 is Open, 2 is Terminate
             expect(channel.indexer).to.equal(indexer.address);
             expect(channel.consumer).to.equal(consumerHost.address);
             expect(channel.total).to.equal(etherParse('1'));
@@ -223,9 +223,9 @@ describe('ConsumerHost Contract', () => {
             expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.1'));
 
             // claim rewards
-            await stateChannel.setChallengeExpiration(5); // 5s
+            await stateChannel.setTerminateExpiration(5); // 5s
             const query2 = await buildQueryState(channelId, indexer, hoster, etherParse('0.2'), false);
-            await stateChannel.connect(hoster).challenge(query2);
+            await stateChannel.connect(hoster).terminate(query2);
             expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.2'));
 
             await delay(6);
@@ -263,7 +263,7 @@ describe('ConsumerHost Contract', () => {
             expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('18'));
 
             const channel = await stateChannel.channel(channelId);
-            expect(channel.status).to.equal(1); // 0 is Finalized, 1 is Open, 2 is Challenge
+            expect(channel.status).to.equal(1); // 0 is Finalized, 1 is Open, 2 is Terminate
             expect(channel.indexer).to.equal(indexer.address);
             expect(channel.consumer).to.equal(consumerHost.address);
             expect(channel.total).to.equal(etherParse('2'));
@@ -273,9 +273,9 @@ describe('ConsumerHost Contract', () => {
             expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.1'));
 
             // claim rewards
-            await stateChannel.setChallengeExpiration(5); // 5s
+            await stateChannel.setTerminateExpiration(5); // 5s
             const query2 = await buildQueryState(channelId, indexer, hoster, etherParse('0.2'), false);
-            await stateChannel.connect(hoster).challenge(query2);
+            await stateChannel.connect(hoster).terminate(query2);
             expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.2'));
 
             await delay(6);
