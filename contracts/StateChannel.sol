@@ -78,8 +78,6 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     event ChannelCheckpoint(uint256 indexed channelId, uint256 spent);
     /// @notice Emitted when consumer start a terminate on channel to finalize in advance
     event ChannelTerminate(uint256 indexed channelId, uint256 spent, uint256 terminatedAt, bool terminateByIndexer);
-    /// @notice Emitted when indexer respond the terminate
-    event ChannelRespond(uint256 indexed channelId, uint256 spent);
     /// @notice Emitted when finalize the channel
     event ChannelFinalize(uint256 indexed channelId, uint256 total, uint256 remain);
     /// @notice Emitted when Settle the channel with new state
@@ -336,8 +334,6 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         // finalize the channel status
         _finalize(query.channelId);
-
-        emit ChannelRespond(query.channelId, query.spent);
     }
 
     /**
