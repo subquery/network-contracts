@@ -108,10 +108,10 @@
         "lastUpdate": "Mon, 03 Oct 2022 03:54:45 GMT"
     },
     "StateChannel": {
-        "innerAddress": "0xa5a45797A622d308C4d420B52031349BC83FD127",
-        "address": "0xc3CffBcD31e00adB82E54F4EB7512AbC78b90000",
+        "innerAddress": "0x3a2cFa02D55b087911e500fe4Af00798a865776f",
+        "address": "0x74B36E2BFD4417A71b90b170A3E7c79e64B4E2bc",
         "bytecodeHash": "d37bd4d85fa8fd299820593e8b48bc84064a17865e55fe827a46656472590904",
-        "lastUpdate": "Mon, 03 Oct 2022 03:55:55 GMT"
+        "lastUpdate": "Thu, 13 Oct 2022 03:51:11 GMT"
     },
     "PermissionedExchange": {
         "innerAddress": "0x9F71EaC4518A97aC40cAB28ff6CDbC748570d4E5",
