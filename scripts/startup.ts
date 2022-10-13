@@ -22,12 +22,12 @@ export async function setups(sdk, startTime, endTime) {
     const rounds = [0, 0, 0, 0, 0, 0];
     const amounts = [100, 200, 300, 400, 500, 600];
 
-    // await sdk.sqToken.increaseAllowance(sdk.airdropper.address, 1000000);
+    await sdk.sqToken.increaseAllowance(sdk.airdropper.address, 1000000);
 
-    // //Create Airdrop rounds
-    // await sdk.airdropper.createRound(await sdk.sqToken.address, startTime, endTime);
+    //Create Airdrop rounds
+    await sdk.airdropper.createRound(await sdk.sqToken.address, startTime, endTime);
 
-    // await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
+    await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
 
     //Create 5 plan templates
     await sdk.planManager.createPlanTemplate(10800, 10000, 10000, METADATA_HASH);
@@ -81,14 +81,14 @@ const main = async () => {
     setups(sdk, startTime, endTime);
 
     //Create pair orders for exchange contract
-    // await sdk.permissionedExchange.createPairOrders(
-    //     usdcAddress,
-    //     sdk.sqToken.address,
-    //     1000000,
-    //     5000000000000000000,
-    //     futureTime,
-    //     100000000
-    // );
+    await sdk.permissionedExchange.createPairOrders(
+        usdcAddress,
+        sdk.sqToken.address,
+        1000000,
+        5000000000000000000,
+        futureTime,
+        100000000
+    );
 
     if ((provider as EvmRpcProvider).api) {
         await (provider as EvmRpcProvider).api.disconnect();
