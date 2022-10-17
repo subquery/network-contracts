@@ -170,10 +170,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     }
 
     /**
-     * @notice Deposit amount to hosting, need consumer approve firstly
+     * @notice Deposit amount to hosting, consumer can choose approve or not
      * @param amount the amount
      */
-    function deposit(uint256 amount) external {
+    function deposit(uint256 amount, bool approve) external {
         // transfer the balance to contract
         IERC20 sqt = IERC20(SQT);
         sqt.safeTransferFrom(msg.sender, address(this), amount);
@@ -181,6 +181,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
         Consumer storage consumer = consumers[msg.sender];
         consumer.balance += amount;
+        if (approve && !consumer.approved) {
+            consumer.approved = true;
+            emit Approve(msg.sender);
+        }
 
         emit Deposit(msg.sender, amount, consumer.balance);
     }

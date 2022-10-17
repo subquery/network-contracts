@@ -177,8 +177,8 @@ describe('ConsumerHost Contract', () => {
             // deposit
             await token.connect(consumer).increaseAllowance(consumerHost.address, etherParse('10'));
             await token.connect(consumer2).increaseAllowance(consumerHost.address, etherParse('10'));
-            await consumerHost.connect(consumer).deposit(etherParse('10'));
-            await consumerHost.connect(consumer2).deposit(etherParse('10'));
+            await consumerHost.connect(consumer).deposit(etherParse('10'), false);
+            await consumerHost.connect(consumer2).deposit(etherParse('10'), true);
         });
 
         it('open a State Channel should work', async () => {
@@ -206,7 +206,7 @@ describe('ConsumerHost Contract', () => {
             await expect(consumerHost.connect(wallet_0).setFeePercentage(BigNumber.from(101))).to.be.revertedWith(
                 'Invalid feePercentage'
             );
-            await fundChannel(channelId3, indexer, hoster, consumer2, cBalance2.nonce, etherParse('1'), false);
+            await fundChannel(channelId3, indexer, hoster, consumer2, cBalance2.nonce, etherParse('1'), true);
             const fee2 = await consumerHost.fee();
             expect(fee2).to.equal(etherParse('0.06')); // 0.04 + 1 * 2% = 0.06
 
