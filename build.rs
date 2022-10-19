@@ -3,7 +3,11 @@ use std::process::Command;
 
 fn main() {
     println!("Installing contracts...");
-    let install_status = Command::new("npm").args(&["install"]).status().unwrap();
+    let install_status = Command::new("npm")
+        .args(&["install"])
+        .args(&["--force"])
+        .status()
+        .unwrap();
     if !install_status.success() {
         panic!("Node/npm missing or run install failure.");
     }
