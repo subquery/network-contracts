@@ -3,17 +3,16 @@ use std::process::Command;
 
 fn main() {
     println!("Installing contracts...");
-    let install_status = Command::new("yarn")
-        .args(&["install"])
-        .args(&["--force"])
+    let install_status = Command::new("npm")
+        .args(&["install", "--force"])
         .status()
         .unwrap();
     if !install_status.success() {
         panic!("Node/yarn missing or run install failure.");
     }
     println!("Building contracts...");
-    let build_status = Command::new("yarn")
-        .args(&["build:contract"])
+    let build_status = Command::new("npx")
+        .args(&["hardhat", "compile"])
         .status()
         .unwrap();
     if !build_status.success() {
