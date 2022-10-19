@@ -8,11 +8,11 @@ fn main() {
         .status()
         .unwrap();
     if !install_status.success() {
-        panic!("Node/yarn missing or run install failure.");
+        panic!("Node/npm missing or run install failure.");
     }
     println!("Building contracts...");
-    let build_status = Command::new("yarn")
-        .args(&["build:contract"])
+    let build_status = Command::new("npx")
+        .args(&["hardhat compile"])
         .status()
         .unwrap();
     if !build_status.success() {
