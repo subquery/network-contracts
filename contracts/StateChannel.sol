@@ -152,11 +152,13 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         if (_isContract(consumer)) {
             require(consumer.supportsInterface(type(IConsumer).interfaceId), 'Contract is not IConsumer');
             IConsumer cConsumer = IConsumer(consumer);
-            _checkSign(payload, indexerSign, consumerSign, indexer, controller, cConsumer.getSigner());
+            require(cConsumer.checkSign(channelId, payload, consumerSign), 'Invalid consumer signature');
             cConsumer.paid(channelId, amount, callback);
         } else {
-            _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
+            _checkSign(payload, consumerSign, consumer, address(0));
         }
+
+        _checkSign(payload, indexerSign, indexer, controller);
 
         // transfer the balance to contract
         IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
@@ -199,11 +201,11 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         // check sign
         bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, preExpirationAt, expiration));
         if (_isContract(consumer)) {
-            address cConsumer = IConsumer(consumer).getSigner();
-            _checkSign(payload, indexerSign, consumerSign, indexer, controller, cConsumer);
+            require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'Invalid consumer signature');
         } else {
-            _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
+            _checkSign(payload, consumerSign, consumer, address(0));
         }
+        _checkSign(payload, indexerSign, indexer, controller);
 
         channels[channelId].expiredAt = preExpirationAt + expiration;
         emit ChannelExtend(channelId, channels[channelId].expiredAt);
@@ -224,18 +226,17 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         address indexer = channels[channelId].indexer;
         address consumer = channels[channelId].consumer;
+        bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, amount, callback));
 
         // check sign
-        bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, amount, callback));
-        bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
-        address sConsumer = ECDSA.recover(hash, sign);
-
         if (_isContract(consumer)) {
             IConsumer cConsumer = IConsumer(consumer);
-            require(sConsumer == cConsumer.getSigner(), 'Consumer signature invalid');
+            require(cConsumer.checkSign(channelId, payload, sign), 'Invalid consumer signature');
             cConsumer.paid(channelId, amount, callback);
         } else {
-            require(sConsumer == consumer, 'Consumer signature invalid');
+            bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
+            address sConsumer = ECDSA.recover(hash, sign);
+            require(sConsumer == consumer, 'Invalid consumer signature');
         }
 
         // transfer the balance to contract
@@ -258,6 +259,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         // check sign
         bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));
+
         _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
 
         // update channel state
@@ -279,7 +281,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         bool isIndexer = msg.sender == state.indexer;
         bool isConsumer = msg.sender == state.consumer;
         if (_isContract(state.consumer)) {
-            isConsumer = msg.sender == IConsumer(state.consumer).getSigner();
+            isConsumer = IConsumer(state.consumer).checkSender(query.channelId, msg.sender);
         }
         require(isIndexer || isConsumer, 'Invalid sender');
 
@@ -315,7 +317,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         if (state.terminateByIndexer) {
             bool isConsumer = msg.sender == state.consumer;
             if (_isContract(state.consumer)) {
-                isConsumer = msg.sender == IConsumer(state.consumer).getSigner();
+                isConsumer = IConsumer(state.consumer).checkSender(query.channelId, msg.sender);
             }
             require(isConsumer, 'Invalid sender');
         } else {
@@ -365,28 +367,23 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address controller = IIndexerRegistry(settings.getIndexerRegistry()).indexerToController(indexer);
         address consumer = channels[channelId].consumer;
         if (_isContract(consumer)) {
-            address signer = IConsumer(consumer).getSigner();
-            _checkSign(payload, indexerSign, consumerSign, indexer, controller, signer);
+            require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'Invalid consumer signature');
         } else {
-            _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
+            _checkSign(payload, consumerSign, consumer, address(0));
         }
+        _checkSign(payload, indexerSign, indexer, controller);
     }
 
     /// @notice Check the signature of the hash with given addresses
     function _checkSign(
         bytes32 payload,
         bytes memory indexerSign,
-        bytes memory consumerSign,
         address channelIndexer,
-        address channelController,
-        address channelConsumer
+        address channelController
     ) private pure {
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
         address signIndexer = ECDSA.recover(hash, indexerSign);
-        require(signIndexer == channelIndexer || signIndexer == channelController, 'Indexer signature invalid');
-
-        address signConsumer = ECDSA.recover(hash, consumerSign);
-        require(signConsumer == channelConsumer, 'Consumer signature invalid');
+        require(signIndexer == channelIndexer || signIndexer == channelController, 'Invalid signature');
     }
 
     /// @notice Settlement the new state

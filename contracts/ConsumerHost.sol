@@ -173,7 +173,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @notice Deposit amount to hosting, consumer can choose approve or not
      * @param amount the amount
      */
-    function deposit(uint256 amount, bool approve) external {
+    function deposit(uint256 amount, bool isApprove) external {
         // transfer the balance to contract
         IERC20 sqt = IERC20(SQT);
         sqt.safeTransferFrom(msg.sender, address(this), amount);
@@ -181,7 +181,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
         Consumer storage consumer = consumers[msg.sender];
         consumer.balance += amount;
-        if (approve && !consumer.approved) {
+        if (isApprove && !consumer.approved) {
             consumer.approved = true;
             emit Approve(msg.sender);
         }
@@ -254,6 +254,54 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         delete channels[channelId];
 
         emit Claimed(channelId, consumer, msg.sender, amount, info.balance);
+    }
+
+    /**
+     * @notice check the signature from signer or valid consumer
+     * @param channelId the finalized channel ID
+     * @param payload the message signed by sender
+     * @param sign the signature
+     * @return Result of check
+     */
+    function checkSign(uint256 channelId, bytes32 payload, bytes memory sign) external view returns (bool) {
+        bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
+        address sConsumer = ECDSA.recover(hash, sign);
+        if (sConsumer == signer) {
+            return true;
+        }
+        return channels[channelId] == sConsumer;
+    }
+
+    /**
+     * @notice check the sender is from signer or valid consumer
+     * @param channelId the finalized channel ID
+     * @param sender the sender need to check
+     * @return Result of check
+     */
+    function checkSender(uint256 channelId, address sender) external view returns (bool) {
+        if (sender == signer) {
+            return true;
+        }
+
+        return channels[channelId] == sender;
+    }
+
+    /**
+     * @notice check the sender is from signer or valid consumer
+     * @param channelId the finalized channel ID
+     * @return Result of addresses
+     */
+    function validSigners(uint256 channelId) external view returns (address[] memory) {
+        if (channels[channelId] != address(0)) {
+            address[] memory signers = new address[](2);
+            signers[0] = signer;
+            signers[1] = channels[channelId];
+            return signers;
+        } else {
+            address[] memory signers = new address[](1);
+            signers[0] = signer;
+            return signers;
+        }
     }
 
     /**
