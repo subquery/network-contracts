@@ -22,443 +22,162 @@ impl Network {
     }
 }
 
-pub fn settings<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
+#[inline]
+fn contract_parse(name: &str, file: &str, network: Network) -> Result<(Abi, Address), ()> {
     let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["Settings"]["address"]
+    let contract_address: Address = address[name]["address"]
         .as_str()
         .ok_or(())?
         .parse()
         .map_err(|_| ())?;
 
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/Settings.sol/Settings.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
+    let abi_str = serde_json::from_str::<Value>(file).map_err(|_| ())?["abi"].to_string();
     let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
+    Ok((abi, contract_address))
 }
 
-pub fn sqtoken<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["SQToken"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
+macro_rules! contract {
+    ($func_name:ident,$name:expr,$abi:expr) => {
+        paste::item! {
+            pub fn [< $func_name _parse >] (network: Network) -> Result<(Abi, Address), ()> {
+                contract_parse($name, $abi, network)
+            }
 
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/SQToken.sol/SQToken.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
+            pub fn $func_name<M: Middleware>(
+                client: impl Into<Arc<M>>,
+                network: Network,
+            ) -> Result<Contract<M>, ()> {
+                let (abi, contract) = [< $func_name _parse >](network)?;
+                Ok(Contract::new(contract, abi, client))
+            }
+        }
+    };
 }
 
-pub fn vsqtoken<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["VSQToken"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
+contract!(
+    settings,
+    "Settings",
+    include_str!("../artifacts/contracts/Settings.sol/Settings.json")
+);
 
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/VSQToken.sol/VSQToken.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
+contract!(
+    sqtoken,
+    "SQToken",
+    include_str!("../artifacts/contracts/SQToken.sol/SQToken.json")
+);
 
-    Ok(Contract::new(contract_address, abi, client))
-}
+contract!(
+    vsqtoken,
+    "VSQToken",
+    include_str!("../artifacts/contracts/VSQToken.sol/VSQToken.json")
+);
 
-pub fn staking<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["Staking"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
+contract!(
+    staking,
+    "Staking",
+    include_str!("../artifacts/contracts/Staking.sol/Staking.json")
+);
 
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/Staking.sol/Staking.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
+contract!(
+    indexer_registry,
+    "IndexerRegistry",
+    include_str!("../artifacts/contracts/IndexerRegistry.sol/IndexerRegistry.json")
+);
 
-    Ok(Contract::new(contract_address, abi, client))
-}
+contract!(
+    query_registry,
+    "QueryRegistry",
+    include_str!("../artifacts/contracts/QueryRegistry.sol/QueryRegistry.json")
+);
 
-pub fn indexer_registry<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["IndexerRegistry"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
+contract!(
+    inflation_controller,
+    "InflationController",
+    include_str!("../artifacts/contracts/InflationController.sol/InflationController.json")
+);
 
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/IndexerRegistry.sol/IndexerRegistry.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
-}
-
-pub fn query_registry<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["QueryRegistry"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
-
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/QueryRegistry.sol/QueryRegistry.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
-}
-
-pub fn inflation_controller<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["InflationController"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
-
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/InflationController.sol/InflationController.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
-}
-
-pub fn service_agreement_registry<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["ServiceAgreementRegistry"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
-
-    let abi_str = serde_json::from_str::<Value>(include_str!(
+contract!(
+    service_agreement_registry,
+    "ServiceAgreementRegistry",
+    include_str!(
         "../artifacts/contracts/ServiceAgreementRegistry.sol/ServiceAgreementRegistry.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
+    )
+);
 
-    Ok(Contract::new(contract_address, abi, client))
-}
+contract!(
+    plan_manager,
+    "PlanManager",
+    include_str!("../artifacts/contracts/PlanManager.sol/PlanManager.json")
+);
 
-pub fn plan_manager<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["PlanManager"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
+contract!(
+    purchase_offer_market,
+    "PurchaseOfferMarket",
+    include_str!("../artifacts/contracts/PurchaseOfferMarket.sol/PurchaseOfferMarket.json")
+);
 
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/PlanManager.sol/PlanManager.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
+contract!(
+    era_manager,
+    "EraManager",
+    include_str!("../artifacts/contracts/EraManager.sol/EraManager.json")
+);
 
-    Ok(Contract::new(contract_address, abi, client))
-}
+contract!(
+    rewards_distributer,
+    "RewardsDistributer",
+    include_str!("../artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json")
+);
 
-pub fn purchase_offer_market<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["PurchaseOfferMarket"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
+contract!(
+    rewards_pool,
+    "RewardsPool",
+    include_str!("../artifacts/contracts/RewardsPool.sol/RewardsPool.json")
+);
 
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/PurchaseOfferMarket.sol/PurchaseOfferMarket.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
+contract!(
+    rewards_staking,
+    "RewardsStaking",
+    include_str!("../artifacts/contracts/RewardsStaking.sol/RewardsStaking.json")
+);
 
-    Ok(Contract::new(contract_address, abi, client))
-}
+contract!(
+    rewards_helper,
+    "RewardsHelper",
+    include_str!("../artifacts/contracts/RewardsHelper.sol/RewardsHelper.json")
+);
 
-pub fn era_manager<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["EraManager"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
+contract!(
+    proxy_admin,
+    "ProxyAdmin",
+    include_str!("../artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json")
+);
 
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/EraManager.sol/EraManager.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
+contract!(
+    state_channel,
+    "StateChannel",
+    include_str!("../artifacts/contracts/StateChannel.sol/StateChannel.json")
+);
 
-    Ok(Contract::new(contract_address, abi, client))
-}
+contract!(
+    airdropper,
+    "Airdropper",
+    include_str!("../artifacts/contracts/Airdropper.sol/Airdropper.json")
+);
 
-pub fn rewards_distributer<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["RewardsDistributer"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
+contract!(
+    permissioned_exchange,
+    "PermissionedExchange",
+    include_str!("../artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json")
+);
 
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
+contract!(
+    vesting,
+    "Vesting",
+    include_str!("../artifacts/contracts/Vesting.sol/Vesting.json")
+);
 
-    Ok(Contract::new(contract_address, abi, client))
-}
-
-pub fn rewards_pool<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["RewardsPool"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
-
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/RewardsPool.sol/RewardsPool.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
-}
-
-pub fn rewards_staking<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["RewardsStaking"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
-
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/RewardsStaking.sol/RewardsStaking.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
-}
-
-pub fn rewards_helper<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["RewardsHelper"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
-
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/RewardsHelper.sol/RewardsHelper.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
-}
-
-pub fn proxy_admin<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["ProxyAdmin"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
-
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
-}
-
-pub fn state_channel<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["StateChannel"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
-
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/StateChannel.sol/StateChannel.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
-}
-
-pub fn airdropper<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["Airdropper"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
-
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/Airdropper.sol/Airdropper.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
-}
-
-pub fn permissioned_exchange<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["PermissionedExchange"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
-
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
-}
-
-pub fn vesting<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["Vesting"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
-
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/Vesting.sol/Vesting.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
-}
-
-pub fn consumer_host<M: Middleware>(
-    client: impl Into<Arc<M>>,
-    network: Network,
-) -> Result<Contract<M>, ()> {
-    let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["ConsumerHost"]["address"]
-        .as_str()
-        .ok_or(())?
-        .parse()
-        .map_err(|_| ())?;
-
-    let abi_str = serde_json::from_str::<Value>(include_str!(
-        "../artifacts/contracts/ConsumerHost.sol/ConsumerHost.json"
-    ))
-    .map_err(|_| ())?["abi"]
-        .to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
-
-    Ok(Contract::new(contract_address, abi, client))
-}
+contract!(
+    consumer_host,
+    "ConsumerHost",
+    include_str!("../artifacts/contracts/ConsumerHost.sol/ConsumerHost.json")
+);

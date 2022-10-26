@@ -7,5 +7,6 @@ edition = "2021"
 path = "rust/lib.rs"
 
 [dependencies]
-serde_json = "1.0"
 ethers = "0.17"
+paste = "1.0"
+serde_json = "1.0"
