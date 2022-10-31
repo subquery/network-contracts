@@ -108,10 +108,10 @@
         "lastUpdate": "Mon, 03 Oct 2022 03:54:45 GMT"
     },
     "StateChannel": {
-        "innerAddress": "0x3a2cFa02D55b087911e500fe4Af00798a865776f",
-        "address": "0x74B36E2BFD4417A71b90b170A3E7c79e64B4E2bc",
-        "bytecodeHash": "d37bd4d85fa8fd299820593e8b48bc84064a17865e55fe827a46656472590904",
-        "lastUpdate": "Thu, 13 Oct 2022 03:51:11 GMT"
+        "innerAddress": "0x881c8787f00b0971aeCAaD19254c591aAEe3Df89",
+        "address": "0xCa5952Ce8EdcE65cfF76cCfB0f79FE3485179130",
+        "bytecodeHash": "fcf37ee84db55ef9852c856a1a666f45a3b883971acdecc5d9e8506268165f40",
+        "lastUpdate": "Mon, 31 Oct 2022 02:01:05 GMT"
     },
     "PermissionedExchange": {
         "innerAddress": "0x9F71EaC4518A97aC40cAB28ff6CDbC748570d4E5",
@@ -120,9 +120,9 @@
         "lastUpdate": "Mon, 03 Oct 2022 03:57:20 GMT"
     },
     "ConsumerHost": {
-        "innerAddress": "0x1E4D85939f19089564f4835C72585872E6b060f6",
-        "address": "0x5E287970d2c898687c9EB62935092B8d5079A226",
-        "bytecodeHash": "c6de9fe84ca03564b90ad2dd4d958c9634cd81565eb3226a9dad9a839d99487f",
-        "lastUpdate": "Mon, 03 Oct 2022 03:58:38 GMT"
+        "innerAddress": "0xC5f9B71A60E70755459738bbbF4506155Dd0214c",
+        "address": "0x1A1Deacdc546607D919457D06DB204eADC4039C8",
+        "bytecodeHash": "7c0c07beaaf3b7ac4f40c703ed8613bc73289de2dc641d02e18fea6034a9252b",
+        "lastUpdate": "Mon, 31 Oct 2022 02:03:14 GMT"
     }
 }
