@@ -2,6 +2,10 @@
 use std::process::Command;
 
 fn main() {
+    if std::path::Path::new("./artifacts/contracts").exists() {
+        return;
+    }
+
     println!("Installing contracts...");
     let install_status = Command::new("npm")
         .args(&["install", "--force"])

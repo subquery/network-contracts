@@ -31,3 +31,4 @@ docs/contracts/
 
 crytic-export/
 corpus/
+package-lock.json
