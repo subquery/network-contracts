@@ -50,6 +50,7 @@ describe('StateChannel Contract', () => {
             indexer.address,
             consumer.address,
             amount,
+            price,
             expiration,
             deploymentId,
             '0x',
@@ -140,9 +141,9 @@ describe('StateChannel Contract', () => {
         it('repeat same channel Id State Channel should not work', async () => {
             const channelId = ethers.utils.randomBytes(32);
             await openChannel(channelId, indexer, consumer, etherParse('0.5'), etherParse('0.1'), 6);
-            await expect(openChannel(channelId, indexer, consumer, etherParse('0.5'), 60)).to.be.revertedWith(
-                'ChannelId already existed'
-            );
+            await expect(
+                openChannel(channelId, indexer, consumer, etherParse('0.5'), etherParse('0.5'), 60)
+            ).to.be.revertedWith('ChannelId already existed');
         });
 
         it('repeat same channel Id after channel is finalized', async () => {

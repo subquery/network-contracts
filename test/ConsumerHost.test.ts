@@ -83,6 +83,7 @@ describe('ConsumerHost Contract', () => {
             indexer.address,
             consumerHost.address,
             amount,
+            price,
             expiration,
             deploymentId,
             consumerCallback,
