@@ -26,12 +26,13 @@ describe('StateChannel Contract', () => {
         indexer: Wallet,
         consumer: Wallet,
         amount: BigNumber,
+        price: BigNumber,
         expiration: number
     ) => {
         const abi = ethers.utils.defaultAbiCoder;
         const msg = abi.encode(
-            ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes32', 'bytes'],
-            [channelId, indexer.address, consumer.address, amount, expiration, deploymentId, '0x']
+            ['uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'bytes32', 'bytes'],
+            [channelId, indexer.address, consumer.address, amount, price, expiration, deploymentId, '0x']
         );
         let payloadHash = ethers.utils.keccak256(msg);
 
@@ -127,7 +128,7 @@ describe('StateChannel Contract', () => {
 
         it('open a State Channel should work', async () => {
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, etherParse('1'), 60);
+            await openChannel(channelId, indexer, consumer, etherParse('1'), etherParse('1'), 60);
 
             const channel = await stateChannel.channel(channelId);
             expect(channel.status).to.equal(1); // 0 is Finalized, 1 is Open, 2 is Terminate
@@ -138,7 +139,7 @@ describe('StateChannel Contract', () => {
 
         it('repeat same channel Id State Channel should not work', async () => {
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, etherParse('0.5'), 6);
+            await openChannel(channelId, indexer, consumer, etherParse('0.5'), etherParse('0.1'), 6);
             await expect(openChannel(channelId, indexer, consumer, etherParse('0.5'), 60)).to.be.revertedWith(
                 'ChannelId already existed'
             );
@@ -146,7 +147,7 @@ describe('StateChannel Contract', () => {
 
         it('repeat same channel Id after channel is finalized', async () => {
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, etherParse('1'), 60);
+            await openChannel(channelId, indexer, consumer, etherParse('1'), etherParse('0.1'), 60);
 
             const balance = await token.balanceOf(stateChannel.address);
             expect(balance).to.equal(etherParse('1'));
@@ -158,7 +159,7 @@ describe('StateChannel Contract', () => {
             const balance2 = await token.balanceOf(stateChannel.address);
             expect(balance2).to.equal(0);
 
-            await openChannel(channelId, indexer, consumer, etherParse('0.1'), 6);
+            await openChannel(channelId, indexer, consumer, etherParse('0.1'), etherParse('0.1'), 6);
             const channel = await stateChannel.channel(channelId);
             expect(channel.status).to.equal(1);
             expect(channel.total).to.equal(etherParse('0.1'));
@@ -177,7 +178,7 @@ describe('StateChannel Contract', () => {
             expect(balance).to.equal(etherParse('5'));
 
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, etherParse('1'), 60);
+            await openChannel(channelId, indexer, consumer, etherParse('1'), etherParse('0.1'), 60);
 
             const balance1 = await token.balanceOf(consumer.address);
             expect(balance1).to.equal(etherParse('4'));
@@ -216,7 +217,7 @@ describe('StateChannel Contract', () => {
             await stateChannel.setTerminateExpiration(5); // 5s
 
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, etherParse('1'), 60);
+            await openChannel(channelId, indexer, consumer, etherParse('1'), etherParse('0.1'), 60);
 
             const query1 = await buildQueryState(channelId, indexer, consumer, etherParse('0.1'), false);
             await stateChannel.connect(indexer).terminate(query1);
@@ -237,7 +238,7 @@ describe('StateChannel Contract', () => {
             await stateChannel.setTerminateExpiration(5); // 5s
 
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, etherParse('1'), 60);
+            await openChannel(channelId, indexer, consumer, etherParse('1'), etherParse('0.1'), 60);
 
             const query1 = await buildQueryState(channelId, indexer, consumer, etherParse('0.1'), false);
             await stateChannel.connect(consumer).terminate(query1);
@@ -256,14 +257,14 @@ describe('StateChannel Contract', () => {
 
         it('terminate State Channel with continue fund', async () => {
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(channelId, indexer, consumer, etherParse('1'), 5); // 5s expiration
+            await openChannel(channelId, indexer, consumer, etherParse('1'), etherParse('0.1'), 5); // 5s expiration
 
             await delay(6); // channel is expiredAt
 
             const abi = ethers.utils.defaultAbiCoder;
             const msg = abi.encode(
                 ['uint256', 'address', 'address', 'uint256', 'bytes'],
-                [channelId, indexer.address, consumer.address, etherParse('0.1'), "0x"]
+                [channelId, indexer.address, consumer.address, etherParse('0.1'), '0x']
             );
             let payload = ethers.utils.keccak256(msg);
             let sign = await consumer.signMessage(ethers.utils.arrayify(payload));
