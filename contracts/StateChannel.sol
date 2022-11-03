@@ -69,7 +69,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
     /// @dev ### EVENTS
     /// @notice Emitted when open a channel for Pay-as-you-go service
-    event ChannelOpen(uint256 indexed channelId, address indexer, address consumer, uint256 total, uint256 expiredAt, bytes32 deploymentId, bytes callback);
+    event ChannelOpen(uint256 indexed channelId, address indexer, address consumer, uint256 total, uint256 price, uint256 expiredAt, bytes32 deploymentId, bytes callback);
     /// @notice Emitted when extend the channel
     event ChannelExtend(uint256 indexed channelId, uint256 expiredAt);
     /// @notice Emitted when deposit more amount to the channel
@@ -131,6 +131,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address indexer,
         address consumer,
         uint256 amount,
+        uint256 price,
         uint256 expiration,
         bytes32 deploymentId,
         bytes memory callback,
@@ -147,7 +148,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         // check sign
         bytes32 payload = keccak256(
-            abi.encode(channelId, indexer, consumer, amount, expiration, deploymentId, callback)
+            abi.encode(channelId, indexer, consumer, amount, price, expiration, deploymentId, callback)
         );
         if (_isContract(consumer)) {
             require(consumer.supportsInterface(type(IConsumer).interfaceId), 'Contract is not IConsumer');
@@ -175,7 +176,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         state.deploymentId = deploymentId;
         state.terminateByIndexer = false;
 
-        emit ChannelOpen(channelId, indexer, consumer, amount, block.timestamp + expiration, deploymentId, callback);
+        emit ChannelOpen(channelId, indexer, consumer, amount, price, block.timestamp + expiration, deploymentId, callback);
     }
 
     /**
