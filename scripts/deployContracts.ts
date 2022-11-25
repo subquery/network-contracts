@@ -80,22 +80,22 @@ type Contracts = {
 };
 
 const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: string}, FactoryContstructor]>> = {
-    // InflationController: [CONTRACTS.InflationController, InflationController__factory],
-    // IndexerRegistry: [CONTRACTS.IndexerRegistry, IndexerRegistry__factory],
-    // PlanManager: [CONTRACTS.PlanManager, PlanManager__factory],
-    // QueryRegistry: [CONTRACTS.QueryRegistry, QueryRegistry__factory],
-    // RewardsDistributer: [CONTRACTS.RewardsDistributer, RewardsDistributer__factory],
-    // RewardsPool: [CONTRACTS.RewardsPool, RewardsPool__factory],
-    // RewardsStaking: [CONTRACTS.RewardsStaking, RewardsStaking__factory],
-    // RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
-    // ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
-    // Staking: [CONTRACTS.Staking, Staking__factory],
-    // EraManager: [CONTRACTS.EraManager, EraManager__factory],
-    // PurchaseOfferMarket: [CONTRACTS.PurchaseOfferMarket, PurchaseOfferMarket__factory],
+    InflationController: [CONTRACTS.InflationController, InflationController__factory],
+    IndexerRegistry: [CONTRACTS.IndexerRegistry, IndexerRegistry__factory],
+    PlanManager: [CONTRACTS.PlanManager, PlanManager__factory],
+    QueryRegistry: [CONTRACTS.QueryRegistry, QueryRegistry__factory],
+    RewardsDistributer: [CONTRACTS.RewardsDistributer, RewardsDistributer__factory],
+    RewardsPool: [CONTRACTS.RewardsPool, RewardsPool__factory],
+    RewardsStaking: [CONTRACTS.RewardsStaking, RewardsStaking__factory],
+    RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
+    ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
+    Staking: [CONTRACTS.Staking, Staking__factory],
+    EraManager: [CONTRACTS.EraManager, EraManager__factory],
+    PurchaseOfferMarket: [CONTRACTS.PurchaseOfferMarket, PurchaseOfferMarket__factory],
     StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
 
-    // PermissionedExchange: [CONTRACTS.PermissionedExchange, PermissionedExchange__factory],
-    // ConsumerHost: [CONTRACTS.ConsumerHost, ConsumerHost__factory],
+    PermissionedExchange: [CONTRACTS.PermissionedExchange, PermissionedExchange__factory],
+    ConsumerHost: [CONTRACTS.ConsumerHost, ConsumerHost__factory],
 };
 
 export const deployProxy = async <C extends Contract>(
