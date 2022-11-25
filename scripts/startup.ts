@@ -9,6 +9,7 @@ import moonbaseConfig from './config/moonbase.config';
 import {ContractSDK} from '../src';
 import deployment from '../publish/moonbase.json';
 import {METADATA_HASH} from '../test/constants';
+import {BigNumber} from 'ethers';
 
 export async function setups(sdk, startTime, endTime) {
     const airdrops = [
@@ -38,7 +39,7 @@ export async function setups(sdk, startTime, endTime) {
 }
 
 const main = async () => {
-    const usdcAddress = '0xF98bF104e268d7cBB7949029Fee874e3cd1db8fa';
+    const usdcAddress = '0x24BCD6845616f72803681e2288547F3922a1C8f6';
     const futureTime = 1668180003;
     const startTime = 1665503050;
     const endTime = 1668180003;
@@ -78,15 +79,15 @@ const main = async () => {
         network: 'testnet',
     });
 
-    setups(sdk, startTime, endTime);
+    //setups(sdk, startTime, endTime);
 
     //Create pair orders for exchange contract
     await sdk.permissionedExchange.createPairOrders(
         usdcAddress,
         sdk.sqToken.address,
         1000000,
-        5000000000000000000,
-        futureTime,
+        BigNumber.from("5000000000000000000"),
+        1670955187,
         100000000
     );
 

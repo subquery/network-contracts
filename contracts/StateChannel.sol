@@ -69,7 +69,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
     /// @dev ### EVENTS
     /// @notice Emitted when open a channel for Pay-as-you-go service
-    event ChannelOpen(uint256 indexed channelId, address indexer, address consumer, uint256 total, uint256 price, uint256 expiredAt, bytes32 deploymentId, bytes callback);
+    event ChannelOpen(uint256 indexed channelId, address indexer, address creator, uint256 total, uint256 price, uint256 expiredAt, bytes32 deploymentId, bytes callback);
     /// @notice Emitted when extend the channel
     event ChannelExtend(uint256 indexed channelId, uint256 expiredAt);
     /// @notice Emitted when deposit more amount to the channel
