@@ -1,5 +1,5 @@
 import setup from './setup';
-import {DeploymentConfig} from '../src/types';
+import { DeploymentConfig } from '../src/types';
 import localConfig from './config/local.config';
 import keplerConfig from './config/kepler.config';
 import testnetConfig from './config/testnet.config';
@@ -9,46 +9,47 @@ import moonbaseConfig from './config/moonbase.config';
 import {ContractSDK} from '../src';
 import deployment from '../publish/moonbase.json';
 import {METADATA_HASH} from '../test/constants';
+import { BigNumberish } from 'ethers';
+import { cidToBytes32 } from 'test/helper';
+import jsonConfig from './config/startup.json';
 
-export async function setups(sdk, startTime, endTime) {
-    const airdrops = [
-        '0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4',
-        '0x592C6A31df20DD24a7d33f5fe526730358337189',
-        '0x9184cFF04fD32123db66329Ab50Bf176ece2e211',
-        '0xFf60C1Efa7f0F10594229D8A68c312d7020E3478',
-        '0xBDB9D4dC13c5E3E59B7fd69230c7F44f7170Ce02',
-        '0x0421700EE1890d461353A54eAA481488f440A68f',
-    ];
-    const rounds = [0, 0, 0, 0, 0, 0];
-    const amounts = [100, 200, 300, 400, 500, 600];
+async function setupDictionaries(sdk: ContractSDK): Promise<void>{
+    const { dictionaries } = jsonConfig;
+    
+    //add dictionary projects to query registry contract
+    for (const dictionary of dictionaries) {
+        const { metadataCid, versionCid, deploymentId} = dictionary;
+        await sdk.queryRegistry.createQueryProject(
+            cidToBytes32(metadataCid),
+            cidToBytes32(versionCid),
+            cidToBytes32(deploymentId),
+        );
+    }
+}
 
-    await sdk.token.increaseAllowance(sdk.airdropper.address, 1000000);
+export async function setups(sdk: ContractSDK, startTime: BigNumberish, endTime: BigNumberish) {
+    const { setupConfig } = jsonConfig;
+    const { airdrops, amounts, rounds, planTemplates } = setupConfig;
+
+    await sdk.sqToken.increaseAllowance(sdk.airdropper.address, 1000000);
 
     //Create Airdrop rounds
-    await sdk.airdropper.createRound(await sdk.token.address, startTime, endTime);
-
+    await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
     await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
 
-    //Create 5 plan templates
-    await sdk.planManager.createPlanTemplate(10800, 10000, 10000, METADATA_HASH);
-    await sdk.planManager.createPlanTemplate(1000, 100, 1000, METADATA_HASH);
-    await sdk.planManager.createPlanTemplate(5000, 2000, 100, METADATA_HASH);
-    await sdk.planManager.createPlanTemplate(30000, 5600, 863, METADATA_HASH);
-    await sdk.planManager.createPlanTemplate(5630, 200, 567, METADATA_HASH);
+    //Create plan templates (5)
+    for (const template of planTemplates) {
+        const { period, dailyReqCap, rateLimit } = template;
+        await sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, METADATA_HASH);
+    }
 }
 
 const main = async () => {
-    const usdcAddress = '0xF98bF104e268d7cBB7949029Fee874e3cd1db8fa';
-    const futureTime = 1668180003;
-    const startTime = 1665503050;
-    const endTime = 1668180003;
     let config: DeploymentConfig;
-    let dev = true;
 
     switch (process.argv[2]) {
         case '--mainnet':
             config = mainnetConfig as DeploymentConfig;
-            dev = false;
             break;
         case '--testnet':
             config = testnetConfig as DeploymentConfig;
@@ -78,21 +79,27 @@ const main = async () => {
         network: 'testnet',
     });
 
-    setups(sdk, startTime, endTime);
+    //TODO: Set controller account for creating project 
 
+    const { setupConfig, exchange } = jsonConfig;
+    const { startTime, endTime } = setupConfig;
+    await setups(sdk, startTime, endTime);
+
+    const { usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance } = exchange;
     //Create pair orders for exchange contract
     await sdk.permissionedExchange.createPairOrders(
         usdcAddress,
         sdk.sqToken.address,
-        1000000,
-        5000000000000000000,
-        futureTime,
-        100000000
+        amountGive,
+        amountGet,
+        expireDate,
+        tokenGiveBalance
     );
 
     if ((provider as EvmRpcProvider).api) {
         await (provider as EvmRpcProvider).api.disconnect();
     }
+    await setupDictionaries(sdk);
 };
 
 main();
