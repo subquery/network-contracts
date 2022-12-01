@@ -13,11 +13,13 @@ import { BigNumberish } from 'ethers';
 import { cidToBytes32 } from 'test/helper';
 import jsonConfig from './config/startup.json';
 
-export async function setupDictionaries(sdk: ContractSDK): Promise<void>{
-    const { dictionaries, dictionaryCreator } = jsonConfig;
+export async function setupDictionaries(wallet, sdk: ContractSDK): Promise<void>{
+    const { dictionaries, indexer } = jsonConfig;
 
-    await sdk.queryRegistry.addCreator(dictionaryCreator);
-    const queryRegistry = sdk.queryRegistry.connect(dictionaryCreator);
+    console.log(JSON.stringify(wallet));
+
+    await sdk.queryRegistry.addCreator(indexer);
+    const queryRegistry = sdk.queryRegistry.connect(indexer);
 
     //add dictionary projects to query registry contract
     for (const dictionary of dictionaries) {
@@ -30,14 +32,14 @@ export async function setupDictionaries(sdk: ContractSDK): Promise<void>{
     }
 }
 
-export async function setups(sdk: ContractSDK, startTime: BigNumberish, endTime: BigNumberish) {
+export async function setups(sdk, startTime: BigNumberish, endTime: BigNumberish) {
     const { setupConfig } = jsonConfig;
     const { airdrops, amounts, rounds, planTemplates } = setupConfig;
 
-    await sdk.sqToken.increaseAllowance(sdk.airdropper.address, 1000000);
+    await sdk.token.increaseAllowance(sdk.airdropper.address, 1000000);
 
     //Create Airdrop rounds
-    await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
+    await sdk.airdropper.createRound(sdk.token.address, startTime, endTime);
     await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
 
     //Create plan templates (5)
@@ -100,7 +102,7 @@ const main = async () => {
     if ((provider as EvmRpcProvider).api) {
         await (provider as EvmRpcProvider).api.disconnect();
     }
-    await setupDictionaries(sdk);
+    await setupDictionaries(wallet.address, sdk);
 };
 
 main();

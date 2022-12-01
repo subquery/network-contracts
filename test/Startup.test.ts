@@ -1,15 +1,18 @@
 import {expect} from 'chai';
 import {ethers, waffle} from 'hardhat';
 import {deployContracts} from './setup';
-import {setups} from '../scripts/startup';
+import {setupDictionaries, setups} from '../scripts/startup';
 import {futureTimestamp} from './helper';
+import { Contracts } from 'scripts/deployContracts';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-describe('stratup script', () => {
+describe('startup script', () => {
     const mockProvider = waffle.provider;
-    let wallet;
+    let wallet 
     let sdk;
     beforeEach(async () => {
-        [wallet] = await ethers.getSigners();
+        [wallet]  = await ethers.getSigners();
+
         //contract deployed start at era 1
         sdk = await deployContracts(wallet, wallet);
     });
@@ -55,5 +58,14 @@ describe('stratup script', () => {
             expect((await sdk.planManager.planTemplates(3)).period).to.be.equal(30000);
             expect((await sdk.planManager.planTemplates(4)).period).to.be.equal(5630);
         });
+
+        it('dictionaries should be created', async () => {
+            await setupDictionaries(wallet.address, sdk);
+            
+
+            // const a = sdk.queryRegistry.queryInfos(0);
+            // console.log(a);
+            expect(true).to.be.equal(true);
+        })
     });
 });
