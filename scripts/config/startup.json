@@ -27,6 +27,7 @@
         "expireDate": 1668180003,
         "tokenGiveBalance": 100000000
     },
+    "dictionaryCreator": "0xCef192586b70e3Fc2FAD76Dd1D77983a30d38D04",
     "dictionaries": [ 
         {
             "name": "Polkadot Dictionary",

@@ -13,13 +13,16 @@ import { BigNumberish } from 'ethers';
 import { cidToBytes32 } from 'test/helper';
 import jsonConfig from './config/startup.json';
 
-async function setupDictionaries(sdk: ContractSDK): Promise<void>{
-    const { dictionaries } = jsonConfig;
-    
+export async function setupDictionaries(sdk: ContractSDK): Promise<void>{
+    const { dictionaries, dictionaryCreator } = jsonConfig;
+
+    await sdk.queryRegistry.addCreator(dictionaryCreator);
+    const queryRegistry = sdk.queryRegistry.connect(dictionaryCreator);
+
     //add dictionary projects to query registry contract
     for (const dictionary of dictionaries) {
         const { metadataCid, versionCid, deploymentId} = dictionary;
-        await sdk.queryRegistry.createQueryProject(
+        await queryRegistry.createQueryProject(
             cidToBytes32(metadataCid),
             cidToBytes32(versionCid),
             cidToBytes32(deploymentId),
@@ -78,8 +81,6 @@ const main = async () => {
         deploymentDetails: deployment,
         network: 'testnet',
     });
-
-    //TODO: Set controller account for creating project 
 
     const { setupConfig, exchange } = jsonConfig;
     const { startTime, endTime } = setupConfig;
