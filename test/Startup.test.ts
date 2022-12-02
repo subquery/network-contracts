@@ -10,7 +10,7 @@ describe('startup script', () => {
     const mockProvider = waffle.provider;
 
     let sdk: SetupSdk;
-    let config;
+    let config: typeof jsonConfig;
     let wallet;
 
     beforeEach(async () => {
@@ -28,7 +28,7 @@ describe('startup script', () => {
         // setup network
         const startTime = await futureTimestamp(mockProvider, 60 * 60 * 2);
         const endTime = await futureTimestamp(mockProvider, 60 * 60 * 3);
-        config = {...jsonConfig, setupConfig: {...jsonConfig.setupConfig, startTime, endTime}} as typeof jsonConfig
+        config = {...jsonConfig, setupConfig: {...jsonConfig.setupConfig, startTime, endTime}};
         await setupNetwork(sdk, config);
     });
 
