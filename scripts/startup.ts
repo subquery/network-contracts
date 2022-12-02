@@ -24,12 +24,13 @@ export type SetupSdk = {
 export async function setupNetwork(sdk: SetupSdk, config?: typeof networkConfig) {
     const {setupConfig, exchange, dictionaries} = config ?? networkConfig;
     const {airdrops, amounts, rounds, planTemplates, startTime, endTime} = setupConfig;
+    console.log('amounts:', amounts);
 
-    await sdk.sqToken.increaseAllowance(sdk.airdropper.address, 1000000);
+    await sdk.sqToken.increaseAllowance(sdk.airdropper.address, '10000000');
 
     // Create Airdrop rounds
-    await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
-    await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
+    // await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
+    // await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
 
     // Create plan templates (5)
     for (const template of planTemplates) {
@@ -38,15 +39,15 @@ export async function setupNetwork(sdk: SetupSdk, config?: typeof networkConfig)
     }
 
     // Create pair orders for exchange contract
-    const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = exchange;
-    await sdk.permissionedExchange.createPairOrders(
-        usdcAddress,
-        sdk.sqToken.address,
-        amountGive,
-        amountGet,
-        expireDate,
-        tokenGiveBalance
-    );
+    // const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = exchange;
+    // await sdk.permissionedExchange.createPairOrders(
+    //     usdcAddress,
+    //     sdk.sqToken.address,
+    //     amountGive,
+    //     amountGet,
+    //     expireDate,
+    //     tokenGiveBalance
+    // );
 
     // Create dictionary projects
     const creator = await sdk.sqToken.owner();

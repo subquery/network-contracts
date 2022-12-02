@@ -22,10 +22,10 @@
     },
     "exchange": {
         "usdcAddress": "0xF98bF104e268d7cBB7949029Fee874e3cd1db8fa",
-        "amountGive": 1000000,
-        "amountGet": 5000000000000000000,
+        "amountGive": "1000000",
+        "amountGet": "5000000000000000000",
         "expireDate": 1668180003,
-        "tokenGiveBalance": 100000000
+        "tokenGiveBalance": "100000000"
     },
     "indexer": "0xCef192586b70e3Fc2FAD76Dd1D77983a30d38D04",
     "dictionaries": [ 
