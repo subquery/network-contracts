@@ -176,16 +176,29 @@ describe('ConsumerHost Contract', () => {
 
     describe('Consumer Host Config', () => {
         it('set consumer host signer should work', async () => {
-            expect(await consumerHost.getSigner()).to.equal(wallet_0.address);
-            await consumerHost.connect(wallet_0).setSigner(hoster.address);
-            expect(await consumerHost.getSigner()).to.equal(hoster.address);
+            expect((await consumerHost.getSigners()).length).to.equal(0);
+
+            await consumerHost.connect(wallet_0).addSigner(hoster.address);
+            expect((await consumerHost.getSigners())[0]).to.equal(hoster.address);
+
+            await consumerHost.connect(wallet_0).addSigner(consumer.address);
+            expect((await consumerHost.getSigners())[1]).to.equal(consumer.address);
+
+            await consumerHost.connect(wallet_0).addSigner(consumer2.address);
+            expect((await consumerHost.getSigners())[2]).to.equal(consumer2.address);
+
+            await consumerHost.connect(wallet_0).removeSigner(consumer.address);
+            expect((await consumerHost.getSigners())[1]).to.equal(consumer2.address);
+
+            await consumerHost.connect(wallet_0).removeSigner(consumer2.address);
+            expect((await consumerHost.getSigners())[0]).to.equal(hoster.address);
         });
     });
 
     describe('Consumer Host State Channel should work', () => {
         beforeEach(async () => {
             await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '2000');
-            await consumerHost.connect(wallet_0).setSigner(hoster.address);
+            await consumerHost.connect(wallet_0).addSigner(hoster.address);
             await token.connect(wallet_0).transfer(consumer.address, etherParse('10'));
             await token.connect(wallet_0).transfer(consumer2.address, etherParse('10'));
 
