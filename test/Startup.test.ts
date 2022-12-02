@@ -1,30 +1,43 @@
 import {expect} from 'chai';
 import {ethers, waffle} from 'hardhat';
+
 import {deployContracts} from './setup';
-import {setupDictionaries, setups} from '../scripts/startup';
+import {setupNetwork, SetupSdk} from '../scripts/startup';
 import {futureTimestamp} from './helper';
-import { Contracts } from 'scripts/deployContracts';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import jsonConfig from 'scripts/config/startup.json';
 
 describe('startup script', () => {
     const mockProvider = waffle.provider;
-    let wallet 
-    let sdk;
-    beforeEach(async () => {
-        [wallet]  = await ethers.getSigners();
 
-        //contract deployed start at era 1
-        sdk = await deployContracts(wallet, wallet);
+    let sdk: SetupSdk;
+    let config;
+    let wallet;
+
+    beforeEach(async () => {
+        // deploy contracts
+        [wallet] = await ethers.getSigners();
+        const deployment = await deployContracts(wallet, wallet);
+        sdk = {
+            sqToken: deployment.token,
+            airdropper: deployment.airdropper,
+            planManager: deployment.planManager,
+            queryRegistry: deployment.queryRegistry,
+            permissionedExchange: deployment.permissionedExchange,
+        };
+
+        // setup network
+        const startTime = await futureTimestamp(mockProvider, 60 * 60 * 2);
+        const endTime = await futureTimestamp(mockProvider, 60 * 60 * 3);
+        config = {...jsonConfig, startTime, endTime};
+        await setupNetwork(sdk, config);
     });
+
     describe('startup', async () => {
         it('airdropper setups should work', async () => {
-            const startTime = await futureTimestamp(mockProvider, 60 * 60 * 2);
-            const endTime = await futureTimestamp(mockProvider, 60 * 60 * 3);
-            await setups(sdk, startTime, endTime);
             expect(await sdk.airdropper.nextRoundId()).to.be.equal(1);
-            expect((await sdk.airdropper.roundRecord(0)).tokenAddress).to.be.equal(sdk.token.address);
-            expect((await sdk.airdropper.roundRecord(0)).roundStartTime).to.be.equal(startTime);
-            expect((await sdk.airdropper.roundRecord(0)).roundDeadline).to.be.equal(endTime);
+            expect((await sdk.airdropper.roundRecord(0)).tokenAddress).to.be.equal(sdk.sqToken.address);
+            expect((await sdk.airdropper.roundRecord(0)).roundStartTime).to.be.equal(config.startTime);
+            expect((await sdk.airdropper.roundRecord(0)).roundDeadline).to.be.equal(config.endTime);
             expect((await sdk.airdropper.roundRecord(0)).unclaimedAmount).to.be.equal(2100);
             expect(await sdk.airdropper.airdropRecord('0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4', 0)).to.be.equal(
                 100
@@ -45,12 +58,8 @@ describe('startup script', () => {
                 600
             );
         });
+
         it('planTemplate setups should work', async () => {
-            await setups(
-                sdk,
-                await futureTimestamp(mockProvider, 60 * 60 * 2),
-                await futureTimestamp(mockProvider, 60 * 60 * 3)
-            );
             expect(await sdk.planManager.planTemplateIds()).to.be.equal(5);
             expect((await sdk.planManager.planTemplates(0)).period).to.be.equal(10800);
             expect((await sdk.planManager.planTemplates(1)).period).to.be.equal(1000);
@@ -60,12 +69,9 @@ describe('startup script', () => {
         });
 
         it('dictionaries should be created', async () => {
-            await setupDictionaries(wallet.address, sdk);
-            
-
             // const a = sdk.queryRegistry.queryInfos(0);
             // console.log(a);
             expect(true).to.be.equal(true);
-        })
+        });
     });
 });

@@ -55,7 +55,7 @@ interface FactoryContstructor {
     readonly abi: any;
 }
 
-type Contracts = {
+export type Contracts = {
     proxyAdmin: ProxyAdmin;
     settings: Settings;
     inflationController: InflationController;
