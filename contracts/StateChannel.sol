@@ -294,6 +294,8 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         if (query.spent > 0) {
             bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));
             _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
+        } else {
+            require(!query.isFinal, 'Unspent need expiration');
         }
 
         // update channel state.

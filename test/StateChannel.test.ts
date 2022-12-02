@@ -106,7 +106,7 @@ describe('StateChannel Contract', () => {
         return {
             channelId: channelId,
             spent: 0,
-            isFinal: true,
+            isFinal: false,
             indexerSign: '0x',
             consumerSign: '0x',
         };
