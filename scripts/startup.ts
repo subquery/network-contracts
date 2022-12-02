@@ -29,8 +29,8 @@ export async function setupNetwork(sdk: SetupSdk, config?: typeof networkConfig)
     await sdk.sqToken.increaseAllowance(sdk.airdropper.address, '10000000');
 
     // Create Airdrop rounds
-    // await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
-    // await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
+    await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
+    await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
 
     // Create plan templates (5)
     for (const template of planTemplates) {
