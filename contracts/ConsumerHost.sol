@@ -33,7 +33,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
     /// @dev ### STATES
     /// @notice The Signer account address
-    address private signer;
+    address[] private signers;
+    mapping(address => uint) private signerIndex;
 
     /// @notice The SQT contract address
     address public SQT;
@@ -84,7 +85,6 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         SQT = _sqt;
         channel = _channel;
         feePercentage = _feePercentage;
-        signer = msg.sender;
 
         // Approve Token to State Channel.
         IERC20 sqt = IERC20(SQT);
@@ -139,16 +139,34 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @notice Get contract signer
      * @return the signer account
      */
-    function getSigner() external view returns (address) {
-        return signer;
+    function getSigners() external view returns (address[] memory) {
+        return signers;
     }
 
     /**
      * @notice Update contract signer
      * @param _signer new signer account
      */
-    function setSigner(address _signer) external onlyOwner {
-        signer = _signer;
+    function addSigner(address _signer) external onlyOwner {
+        signers.push(_signer);
+        signerIndex[_signer] = signers.length; // start from 1, skip 0
+    }
+
+    /**
+     * @notice Update contract signer
+     * @param _signer new signer account
+     */
+    function removeSigner(address _signer) external onlyOwner {
+        require(signers.length > 0, 'None signers');
+        uint index = signerIndex[_signer];
+        require(index > 0, 'None signer');
+
+        address lastSigner = signers[signers.length - 1];
+        signers[index-1] = lastSigner;
+        signerIndex[lastSigner] = index;
+
+        signers.pop();
+        delete signerIndex[_signer];
     }
 
     /**
@@ -266,7 +284,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     function checkSign(uint256 channelId, bytes32 payload, bytes memory sign) external view returns (bool) {
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
         address sConsumer = ECDSA.recover(hash, sign);
-        if (sConsumer == signer) {
+        if (signerIndex[sConsumer] > 0) {
             return true;
         }
         return channels[channelId] == sConsumer;
@@ -279,7 +297,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @return Result of check
      */
     function checkSender(uint256 channelId, address sender) external view returns (bool) {
-        if (sender == signer) {
+        if (signerIndex[sender] > 0) {
             return true;
         }
 
@@ -287,21 +305,12 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     }
 
     /**
-     * @notice check the sender is from signer or valid consumer
+     * @notice return the consumer of a channel
      * @param channelId the finalized channel ID
      * @return Result of addresses
      */
-    function validSigners(uint256 channelId) external view returns (address[] memory) {
-        if (channels[channelId] != address(0)) {
-            address[] memory signers = new address[](2);
-            signers[0] = signer;
-            signers[1] = channels[channelId];
-            return signers;
-        } else {
-            address[] memory signers = new address[](1);
-            signers[0] = signer;
-            return signers;
-        }
+    function channelConsumer(uint256 channelId) external view returns (address) {
+        return channels[channelId];
     }
 
     /**

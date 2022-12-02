@@ -17,7 +17,4 @@ interface IConsumer {
 
     // Params: channel id, sender
     function checkSender(uint256 channelId, address sender) external view returns (bool);
-
-    // Params: channel id, sender
-    function validSigners(uint256 channelId) external view returns (address[] memory);
 }
