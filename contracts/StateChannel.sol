@@ -291,8 +291,12 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         require(allowState, 'Query state must bigger than channel state');
 
         // check sign
-        bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));
-        _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
+        if (query.spent > 0) {
+            bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));
+            _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
+        } else {
+            require(!query.isFinal, 'Unspent need expiration');
+        }
 
         // update channel state.
         _settlement(query);

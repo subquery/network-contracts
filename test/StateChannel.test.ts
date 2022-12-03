@@ -94,6 +94,24 @@ describe('StateChannel Contract', () => {
         };
     };
 
+    const buildEmptyState = async (
+        channelId: Uint8Array
+    ): Promise<{
+        channelId: BigNumberish;
+        spent: BigNumberish;
+        isFinal: boolean;
+        indexerSign: BytesLike;
+        consumerSign: BytesLike;
+    }> => {
+        return {
+            channelId: channelId,
+            spent: 0,
+            isFinal: false,
+            indexerSign: '0x',
+            consumerSign: '0x',
+        };
+    };
+
     beforeEach(async () => {
         [wallet_0, indexer, consumer] = await ethers.getSigners();
         const deployment = await deployContracts(wallet_0, indexer);
@@ -212,6 +230,27 @@ describe('StateChannel Contract', () => {
             await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '2000');
             await token.connect(wallet_0).transfer(consumer.address, etherParse('5'));
             await token.connect(consumer).increaseAllowance(stateChannel.address, etherParse('5'));
+        });
+
+        it('terminate without spent success', async () => {
+            await stateChannel.setTerminateExpiration(5); // 5s
+
+            const channelId = ethers.utils.randomBytes(32);
+            await openChannel(channelId, indexer, consumer, etherParse('1'), etherParse('0.1'), 60);
+
+            const query1 = await buildEmptyState(channelId);
+            await stateChannel.connect(indexer).terminate(query1);
+            const state1 = await stateChannel.channel(channelId);
+            expect(state1.spent).to.equal(0);
+            expect(state1.status).to.equal(2); // Terminate
+
+            await expect(stateChannel.claim(channelId)).to.be.revertedWith('Channel not expired');
+
+            await delay(6);
+            await stateChannel.claim(channelId);
+
+            const balance2 = await token.balanceOf(consumer.address);
+            expect(balance2).to.equal(etherParse('5'));
         });
 
         it('terminate State Channel success', async () => {
