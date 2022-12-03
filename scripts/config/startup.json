@@ -1,0 +1,75 @@
+{
+    "setupConfig": {
+        "startTime": 1665503050,
+        "endTime": 1668180003,
+        "airdrops": [
+            "0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4",
+            "0x592C6A31df20DD24a7d33f5fe526730358337189",
+            "0x9184cFF04fD32123db66329Ab50Bf176ece2e211",
+            "0xFf60C1Efa7f0F10594229D8A68c312d7020E3478",
+            "0xBDB9D4dC13c5E3E59B7fd69230c7F44f7170Ce02",
+            "0x0421700EE1890d461353A54eAA481488f440A68f"
+        ],
+        "amounts": [100, 200, 300, 400, 500, 600],
+        "rounds": [0, 0, 0, 0, 0, 0],
+        "planTemplates": [
+            {"period": 10800, "dailyReqCap": 10000, "rateLimit": 10000},
+            {"period": 1000, "dailyReqCap": 100, "rateLimit": 1000},
+            {"period": 5000, "dailyReqCap": 2000, "rateLimit": 100},
+            {"period": 30000, "dailyReqCap": 5600, "rateLimit": 863},
+            {"period": 5630, "dailyReqCap": 200, "rateLimit": 567}
+        ]
+    },
+    "exchange": {
+        "usdcAddress": "0xF98bF104e268d7cBB7949029Fee874e3cd1db8fa",
+        "amountGive": "1000000",
+        "amountGet": "5000000000000000000",
+        "expireDate": 1668180003,
+        "tokenGiveBalance": "100000000"
+    },
+    "indexer": "0xCef192586b70e3Fc2FAD76Dd1D77983a30d38D04",
+    "dictionaries": [ 
+        {
+            "name": "Polkadot Dictionary",
+            "deploymentId": "QmSjjRjfjXXEfSUTheNwvWcBaH54pWoToTHPDsJRby955X",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "metadataCid": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE"
+        },
+        {
+            "name": "Avalanche Dictionary",
+            "deploymentId": "QmaMetzawjqpAcNTv6nzF88yFHVCpLE4h5goxvayLn9Yxj",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "metadataCid": "QmZTh1vfdFrRfVBDYyttDen7GZFhRC5NWGzCHA4YWyqXCr"
+        },
+        {
+            "name": "Moonbeam Dictionary",
+            "deploymentId": "QmPHi8Y6bnLdidDjsd2sjgBdyEbwBu5s5QxN4n78zYpxJq",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "metadataCid": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj"
+        },
+        {
+            "name": "Moonriver Dictionary",
+            "deploymentId": "QmQnhLMgV3SrXbunjgHjnfdw32BAHQS3nNhLWKpNjtFTSZ", 
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "metadataCid": "Qmdvn23qiTYNEBaJ5BwzaDBESXvzG3mrPtWuK9zajkXvLn"
+        },
+        {
+            "name": "Juno Dictionary",
+            "deploymentId": "QmPP9XLoquWhUc8fyrTBfaaPzz4VR65nsVvzYBcPX1DoUz",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "metadataCid": "QmZ9RitNZKhcguQnaswzkWvPZqSDgxE5munMqAfjbKgZbd"
+        },
+        {
+            "name": "Acala Dictionary",
+            "deploymentId": "QmYH4KFV9yeLnbWwswoqLBLH6Z69ae2Snbyrs218cpPs1K",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "metadataCid": "QmZPBEJu4q89T2UwxrDw1TkQ8UASAS7JyE4xuy1HMvw1NR"
+        },
+        {
+            "name": "Kusama Dictionary",
+            "deploymentId": "QmPemHcmAJ6BRyV13FN91miLCHNtqXLLacsqYjSaTmbFmr",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "metadataCid": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX"
+      }
+    ]
+}
