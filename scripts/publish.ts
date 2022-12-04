@@ -55,6 +55,7 @@ const main = async () => {
     }
 };
 
+// special for Acala Network, need to call `evm.publishContract` to make the contracts public to all the users
 const publishContract = async (api, pair, key, address) => {
     const is_published = (await api.query.evm.accounts(address)).toJSON().contractInfo.published;
     if (is_published) {

@@ -9,7 +9,7 @@ import moonbaseConfig from './config/moonbase.config';
 import {Airdropper, ContractSDK, PermissionedExchange, QueryRegistry, SQToken} from '../src';
 import deployment from '../publish/moonbase.json';
 import {METADATA_HASH} from '../test/constants';
-import {cidToBytes32} from 'test/helper';
+import {cidToBytes32} from '../test/helper';
 import networkConfig from './config/startup.json';
 import {PlanManager} from '../src/typechain/PlanManager';
 
@@ -38,17 +38,6 @@ export async function setupNetwork(sdk: SetupSdk, config?: typeof networkConfig)
         await sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, METADATA_HASH);
     }
 
-    // Create pair orders for exchange contract
-    // const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = exchange;
-    // await sdk.permissionedExchange.createPairOrders(
-    //     usdcAddress,
-    //     sdk.sqToken.address,
-    //     amountGive,
-    //     amountGet,
-    //     expireDate,
-    //     tokenGiveBalance
-    // );
-
     // Create dictionary projects
     const creator = await sdk.sqToken.owner();
     await sdk.queryRegistry.addCreator(creator);
@@ -62,6 +51,21 @@ export async function setupNetwork(sdk: SetupSdk, config?: typeof networkConfig)
             cidToBytes32(deploymentId)
         );
     }
+}
+
+async function setupPermissionExchange(sdk: SetupSdk) {
+    const { exchange } = networkConfig;
+
+    // Create pair orders for exchange contract
+    const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = exchange;
+    await sdk.permissionedExchange.createPairOrders(
+        usdcAddress,
+        sdk.sqToken.address,
+        amountGive,
+        amountGet,
+        expireDate,
+        tokenGiveBalance
+    );
 }
 
 const main = async () => {
@@ -100,6 +104,7 @@ const main = async () => {
     });
 
     await setupNetwork(sdk);
+    await setupPermissionExchange(sdk);
 
     if ((provider as EvmRpcProvider).api) {
         await (provider as EvmRpcProvider).api.disconnect();

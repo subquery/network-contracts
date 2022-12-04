@@ -1,6 +1,6 @@
 {
     "name": "@subql/contract-sdk",
-    "version": "0.10.2-47",
+    "version": "0.10.3",
     "main": "index.js",
     "license": "MIT",
     "scripts": {
@@ -14,19 +14,11 @@
         "docs:dev": "vuepress dev docs",
         "docs:build": "vuepress build docs",
         "docs:generate": "hardhat docgen",
-        "deploy": "node -r ts-node/register/transpile-only scripts/deploy.ts",
-        "deploy:moonbase": "node -r ts-node/register/transpile-only scripts/deploy.ts --moonbase",
-        "deploy:testnet": "node -r ts-node/register/transpile-only scripts/deploy.ts --testnet",
-        "deploy:kepler": "node -r ts-node/register/transpile-only scripts/deploy.ts --kepler",
-        "deploy:mainnet": "node -r ts-node/register/transpile-only scripts/deploy.ts --mainnet",
-        "upgrade:moonbase": "node -r ts-node/register/transpile-only scripts/upgrade.ts --moonbase",
-        "upgrade:testnet": "node -r ts-node/register/transpile-only scripts/upgrade.ts --testnet",
-        "upgrade:mainnet": "node -r ts-node/register/transpile-only scripts/upgrade.ts --mainnet",
-        "upgrade:kepler": "node -r ts-node/register/transpile-only scripts/upgrade.ts --kepler",
-        "seed:testnet": "ts-node scripts/seed.ts test/fixtures/testnet.yaml",
-        "publish:testnet": "node -r ts-node/register/transpile-only scripts/publish.ts --testnet",
-        "publish:kepler": "node -r ts-node/register/transpile-only scripts/publish.ts --kepler",
-        "publish:mainnet": "node -r ts-node/register/transpile-only scripts/publish.ts --mainnet"
+        "deploy": "node --transpileOnly scripts/deploy.ts",
+        "upgrade": "node --transpileOnly scripts/upgrade.ts",
+        "publish": "node --transpileOnly scripts/publish.ts",
+        "setup": "node --transpileOnly scripts/startup.ts",
+        "seed:testnet": "ts-node scripts/seed.ts test/fixtures/testnet.yaml"
     },
     "devDependencies": {
         "@acala-network/bodhi": "^2.4.12",

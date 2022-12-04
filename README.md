@@ -94,8 +94,8 @@ To deploy on local network
 
 To deploy to mainnet and testnet
 
--   `yarn deploy:mainnet`
--   `yarn deploy:testnet`
+-   `yarn deploy --mainnet`
+-   `yarn deploy --testnet`
 
 ### test
 

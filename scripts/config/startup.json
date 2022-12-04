@@ -13,18 +13,18 @@
         "amounts": [100, 200, 300, 400, 500, 600],
         "rounds": [0, 0, 0, 0, 0, 0],
         "planTemplates": [
-            {"period": 10800, "dailyReqCap": 10000, "rateLimit": 10000},
-            {"period": 1000, "dailyReqCap": 100, "rateLimit": 1000},
-            {"period": 5000, "dailyReqCap": 2000, "rateLimit": 100},
-            {"period": 30000, "dailyReqCap": 5600, "rateLimit": 863},
-            {"period": 5630, "dailyReqCap": 200, "rateLimit": 567}
+            {"period": 129600, "dailyReqCap": 100000, "rateLimit": 6000},
+            {"period": 86400, "dailyReqCap": 50000, "rateLimit": 3000},
+            {"period": 43200, "dailyReqCap": 10000, "rateLimit": 1200},
+            {"period": 21600, "dailyReqCap": 2000, "rateLimit": 600},
+            {"period": 7200, "dailyReqCap": 100, "rateLimit": 300}
         ]
     },
     "exchange": {
-        "usdcAddress": "0xF98bF104e268d7cBB7949029Fee874e3cd1db8fa",
+        "usdcAddress": "0x24BCD6845616f72803681e2288547F3922a1C8f6",
         "amountGive": "1000000",
         "amountGet": "5000000000000000000",
-        "expireDate": 1668180003,
+        "expireDate": 1683147171,
         "tokenGiveBalance": "100000000"
     },
     "indexer": "0xCef192586b70e3Fc2FAD76Dd1D77983a30d38D04",
