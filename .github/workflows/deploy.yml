@@ -45,10 +45,13 @@ jobs:
 
       # Deploy contracts to acala testnet
       - name: Deploy contracts
-        run: yarn deploy:${{ github.event.inputs.network }} && scripts/copy_deployment_json.sh # Uses SEED env var
+        run: yarn deploy --${{ github.event.inputs.network }} && scripts/copy_deployment_json.sh # Uses SEED env var
         env:
           ENDPOINT: ${{ github.event.inputs.endpoint }}
           DEPLOY_PRINT: true
+      
+      - name: Setup contracts
+        run: yarn setup --${{ github.event.inputs.network }}
 
       - uses: JS-DevTools/npm-publish@v1
         name: Publish
