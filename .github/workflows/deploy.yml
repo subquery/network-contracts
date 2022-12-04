@@ -9,16 +9,16 @@ on:
     inputs:
       endpoint:
         description: 'endpoint used to deploy contracts'
-        default: https://acala-mandala.api.onfinality.io/public
+        default: https://moonbeam-alpha.api.onfinality.io/public
         required: true
       network:
         type: choice
         description: 'network used to publish contracts'
-        default: testnet
+        default: moonbase
         required: true
         options: 
-        - testnet
-        - moonbase
+          - moonbase
+          - testnet
 
 jobs:
   Deploy-Contracts:
