@@ -164,7 +164,7 @@ describe('StateChannel Contract', () => {
             ).to.be.revertedWith('ChannelId already existed');
         });
 
-        it('repeat same channel Id after channel is finalized', async () => {
+        it('can repeat same channel Id after channel is finalized', async () => {
             const channelId = ethers.utils.randomBytes(32);
             await openChannel(channelId, indexer, consumer, etherParse('1'), etherParse('0.1'), 60);
 
@@ -174,14 +174,13 @@ describe('StateChannel Contract', () => {
             const query = await buildQueryState(channelId, indexer, consumer, etherParse('1'), true);
             await stateChannel.checkpoint(query);
             expect((await stateChannel.channel(channelId)).status).to.equal(0);
-
-            const balance2 = await token.balanceOf(stateChannel.address);
-            expect(balance2).to.equal(0);
+            expect(await token.balanceOf(stateChannel.address)).to.equal(0);
 
             await openChannel(channelId, indexer, consumer, etherParse('0.1'), etherParse('0.1'), 6);
             const channel = await stateChannel.channel(channelId);
             expect(channel.status).to.equal(1);
             expect(channel.total).to.equal(etherParse('0.1'));
+            expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('0.1'));
         });
     });
 
@@ -193,18 +192,16 @@ describe('StateChannel Contract', () => {
         });
 
         it('checkpoint State Channel three steps', async () => {
-            const balance = await token.balanceOf(consumer.address);
-            expect(balance).to.equal(etherParse('5'));
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('5'));
 
             const channelId = ethers.utils.randomBytes(32);
             await openChannel(channelId, indexer, consumer, etherParse('1'), etherParse('0.1'), 60);
-
-            const balance1 = await token.balanceOf(consumer.address);
-            expect(balance1).to.equal(etherParse('4'));
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('4'));
 
             const query1 = await buildQueryState(channelId, indexer, consumer, etherParse('0.1'), false);
             await stateChannel.checkpoint(query1);
             expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.1'));
+            expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('0.9'));
 
             // check rewards
             const currentEra = (await eraManager.eraNumber()).toNumber();
@@ -215,13 +212,13 @@ describe('StateChannel Contract', () => {
             const query2 = await buildQueryState(channelId, indexer, consumer, etherParse('0.2'), false);
             await stateChannel.checkpoint(query2);
             expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.2'));
+            expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('0.8'));
 
             const query3 = await buildQueryState(channelId, indexer, consumer, etherParse('0.4'), true);
             await stateChannel.checkpoint(query3);
-            expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('1'));
-
-            const balance2 = await token.balanceOf(consumer.address);
-            expect(balance2).to.equal(etherParse('4.6'));
+            expect(await token.balanceOf(stateChannel.address)).to.equal(0);
+            expect((await stateChannel.channel(channelId)).status).to.equal(0);
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('4.6'));
         });
     });
 
