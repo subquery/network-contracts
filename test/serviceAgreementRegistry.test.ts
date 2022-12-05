@@ -494,24 +494,22 @@ describe('Service Agreement Registry Contract', () => {
             let tx = await serviceAgreementRegistry.connect(consumer).addUser(consumer.address, user_2);
             let receipt = await tx.wait();
             let evt = receipt.events.find(
-                (log) => log.topics[0] === utils.id('UserAdded(address, address)')
+                (log) => log.topics[0] === utils.id('UserAdded(address,address)')
             );
             let event = serviceAgreementRegistry.interface.decodeEventLog(
                 serviceAgreementRegistry.interface.getEvent('UserAdded'),
                 evt.data
             );
-            expect(event.consumer).to.eql(consumer.address);
             expect(event.user).to.eql(user_2);
             tx = await serviceAgreementRegistry.connect(consumer).removeUser(consumer.address, user_1);
             receipt = await tx.wait();
             evt = receipt.events.find(
-                (log) => log.topics[0] === utils.id('UserRemoved(address, address)')
+                (log) => log.topics[0] === utils.id('UserRemoved(address,address)')
             );
             event = serviceAgreementRegistry.interface.decodeEventLog(
                 serviceAgreementRegistry.interface.getEvent('UserRemoved'),
                 evt.data
             );
-            expect(event.consumer).to.eql(consumer.address);
             expect(event.user).to.eql(user_1);
             expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_1)).to.eql(false);
             expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_2)).to.eql(true);
