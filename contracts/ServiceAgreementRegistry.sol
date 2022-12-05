@@ -77,16 +77,14 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         bytes32 indexed deploymentId,
         uint256 serviceAgreementId
     );
-
-    event UserAdded(
-        address indexed consumer,
-        address user,
-    );
-
-    event UserRemoved(
-        address indexed consumer,
-        address user,
-    ):
+    /**
+     * @dev Emitted when consumer add new user
+     */
+    event UserAdded(address indexed consumer, address user);
+    /**
+     * @dev Emitted when consumer remove user
+     */
+    event UserRemoved(address indexed consumer, address user);
 
     /**
      * @dev Initialize this contract. Load establisherWhitelist.
