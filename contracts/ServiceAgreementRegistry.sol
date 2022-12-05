@@ -78,6 +78,16 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         uint256 serviceAgreementId
     );
 
+    event UserAdded(
+        address indexed consumer,
+        address user,
+    );
+
+    event UserRemoved(
+        address indexed consumer,
+        address user,
+    ):
+
     /**
      * @dev Initialize this contract. Load establisherWhitelist.
      */
@@ -117,6 +127,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
     function addUser(address consumer, address user) external {
         require(msg.sender == consumer, 'Only consumer can add user');
         consumerAuthAllows[consumer][user] = true;
+        emit UserAdded(consumer, user);
     }
 
     /**
@@ -125,6 +136,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
     function removeUser(address consumer, address user) external {
         require(msg.sender == consumer, 'Only consumer can remove user');
         consumerAuthAllows[consumer][user] = false;
+        emit UserRemoved(consumer, user);
     }
 
     function addEstablisher(address establisher) external onlyOwner {
