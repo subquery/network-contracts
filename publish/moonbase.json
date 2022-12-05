@@ -78,10 +78,10 @@
         "lastUpdate": "Sun, 04 Dec 2022 23:01:51 GMT"
     },
     "ServiceAgreementRegistry": {
-        "innerAddress": "0x225aA9Fe54A8e0698DBd5726A5d2F1d30Fd9EA99",
+        "innerAddress": "0xcAAD7462f7174065434a802eB6d5a5c9C76CE1d6",
         "address": "0x6C7d2D40bB68533bC09534597e044d94Df27c77F",
-        "bytecodeHash": "b8030b800c2900add9987f45e6f53e70d322df3d977ad0a3ff34a2cdc53d7b53",
-        "lastUpdate": "Sun, 04 Dec 2022 23:03:06 GMT"
+        "bytecodeHash": "fa6b3887a40eae9887b80b422833ce8e8897e0666bd89dca8fb3e450cb14d5e0",
+        "lastUpdate": "Mon, 05 Dec 2022 21:13:44 GMT"
     },
     "RewardsDistributer": {
         "innerAddress": "0xEA6188da918c64283118112Ae73C3De25bAE2872",
@@ -108,10 +108,10 @@
         "lastUpdate": "Sun, 04 Dec 2022 23:08:30 GMT"
     },
     "StateChannel": {
-        "innerAddress": "0xa4A87c316b9918Ed937558679BE539CDa0132e3c",
+        "innerAddress": "0x7d6a56cDFc37473B109B5B0BE5b7B59D79B7b037",
         "address": "0x6A61C5b6B7bd3df0d093bd38BD195b7A1efD5817",
-        "bytecodeHash": "466e08f59c19681e12064e71263c5cf27e2397499249d51bca26decefc7355fa",
-        "lastUpdate": "Sun, 04 Dec 2022 23:09:45 GMT"
+        "bytecodeHash": "2bf91e0efacf27037be6f4e1a0b4192415c701d732e06a2cacb23fb3c8a821a6",
+        "lastUpdate": "Mon, 05 Dec 2022 21:14:33 GMT"
     },
     "PermissionedExchange": {
         "innerAddress": "0xbaaFC81b4AcE6a2ed21DA7CFbdA7cA5b7BA23b0d",
