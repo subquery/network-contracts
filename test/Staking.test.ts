@@ -150,12 +150,12 @@ describe('Staking Contract', () => {
         });
 
         it('unstaking over indexerLeverageLimit should fail', async () => {
-            await token.connect(delegator).increaseAllowance(staking.address, etherParse('1000'));
             const indexerLeverageLimit = await staking.indexerLeverageLimit();
             const indexerStakingAmount = await staking.getAfterDelegationAmount(indexer.address, indexer.address);
             const totalStakedAmount = await staking.getTotalStakingAmount(indexer.address);
 
             const maxDelegateAmount = indexerStakingAmount.mul(indexerLeverageLimit).sub(totalStakedAmount);
+            await token.connect(delegator).increaseAllowance(staking.address, maxDelegateAmount);
             await token.connect(indexer).transfer(delegator.address, maxDelegateAmount);
             await staking.connect(delegator).delegate(indexer.address, maxDelegateAmount);
 

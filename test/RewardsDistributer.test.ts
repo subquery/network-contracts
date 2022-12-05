@@ -22,7 +22,7 @@ import {
 } from '../src';
 import {startNewEra, time, acceptPlan, etherParse, timeTravel} from './helper';
 
-describe.only('RewardsDistributer Contract', () => {
+describe('RewardsDistributer Contract', () => {
     const mockProvider = waffle.provider;
     let root, indexer, consumer, delegator, delegator2;
 

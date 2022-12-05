@@ -403,16 +403,6 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             channels[query.channelId].spent = channels[query.channelId].total;
         }
 
-        // check is finish
-        bool isFinish1 = query.isFinal;
-        bool isFinish2 = isFinish1 || amount == 0;
-        bool isFinish3 = isFinish2 || block.timestamp > channels[query.channelId].expiredAt;
-
-        // check expiredAt
-        if (isFinish3) {
-            _finalize(query.channelId);
-        }
-
         // reward pool
         if (amount > 0) {
             address indexer = channels[query.channelId].indexer;
@@ -422,6 +412,16 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             IRewardsPool rewardsPool = IRewardsPool(rewardPoolAddress);
             rewardsPool.labor(deploymentId, indexer, amount);
             emit ChannelLabor(deploymentId, indexer, amount);
+        }
+
+        // check is finish
+        bool isFinish1 = query.isFinal;
+        bool isFinish2 = isFinish1 || amount == 0;
+        bool isFinish3 = isFinish2 || block.timestamp > channels[query.channelId].expiredAt;
+
+        // finalise channel if meet the requirements
+        if (isFinish3) {
+            _finalize(query.channelId);
         }
     }
 
