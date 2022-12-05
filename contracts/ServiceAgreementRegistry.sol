@@ -133,7 +133,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
      */
     function removeUser(address consumer, address user) external {
         require(msg.sender == consumer, 'Only consumer can remove user');
-        consumerAuthAllows[consumer][user] = false;
+        delete consumerAuthAllows[consumer][user];
         emit UserRemoved(consumer, user);
     }
 
