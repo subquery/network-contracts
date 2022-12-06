@@ -23,6 +23,7 @@ contract Settings is ISettings, Ownable, Constants {
     address public inflationController;
     address public vesting;
     address public permissionedExchange;
+    address public disputeManager;
 
     constructor() Ownable() {}
 
@@ -31,19 +32,22 @@ contract Settings is ISettings, Ownable, Constants {
         address _queryRegistry,
         address _eraManager,
         address _planManager,
-        address _serviceAgreementRegistry
+        address _serviceAgreementRegistry,
+        address _disputeManager
     ) external override onlyOwner {
         require(_indexerRegistry != ZERO_ADDRESS);
         require(_queryRegistry != ZERO_ADDRESS);
         require(_eraManager != ZERO_ADDRESS);
         require(_planManager != ZERO_ADDRESS);
         require(_serviceAgreementRegistry != ZERO_ADDRESS);
+        require(_disputeManager != ZERO_ADDRESS);
 
         indexerRegistry = _indexerRegistry;
         queryRegistry = _queryRegistry;
         eraManager = _eraManager;
         planManager = _planManager;
         serviceAgreementRegistry = _serviceAgreementRegistry;
+        disputeManager = _disputeManager;
     }
 
     function setTokenAddresses(
@@ -197,5 +201,13 @@ contract Settings is ISettings, Ownable, Constants {
 
     function getPermissionedExchange() external view returns (address) {
         return permissionedExchange;
+    }
+
+    function setDisputeManager(address _disputeManager) external override onlyOwner {
+        disputeManager = _disputeManager;
+    }
+
+    function getDisputeManager() external view returns (address) {
+        return disputeManager;
     }
 }

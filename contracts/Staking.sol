@@ -306,6 +306,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             indexerLength++;
         } else {
             require(msg.sender == _indexer, 'Only indexer');
+            require(IDisputeManager(settings.getDisputeManager()).disputeIdByIndexer(_indexer) == 0, 'indexer on dispute');
         }
         _delegateToIndexer(_indexer, _indexer, _amount);
     }
@@ -405,6 +406,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * If the caller is from IndexerRegistry, this function will unstake all the staking token for the indexer.
      */
     function unstake(address _indexer, uint256 _amount) external override {
+        require(IDisputeManager(settings.getDisputeManager()).disputeIdByIndexer(_indexer) == 0, 'indexer on dispute');
         reflectEraUpdate(_indexer, _indexer);
         if (msg.sender == settings.getIndexerRegistry()) {
             indexers[indexerNo[_indexer]] = indexers[indexerLength - 1];
@@ -480,6 +482,18 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
 
             _withdrawARequest(i);
         }
+    }
+
+    function slashIndexer(address _indexer, uint256 _amount) external {
+        require(msg.sender == settings.getDisputeManager(), 'Only DisputeManager');
+        require(_amount <= getAfterDelegationAmount(_indexer, _indexer));
+
+        delegation[_indexer][_indexer].valueAt -= _amount;
+        totalStakingAmount[_indexer].valueAt -= _amount;
+        delegation[_indexer][_indexer].valueAfter -= _amount;
+        totalStakingAmount[_indexer].valueAfter -= _amount;
+
+        IERC20(settings.getSQToken()).safeTransfer(msg.sender, _amount);
     }
 
     // -- Views --
