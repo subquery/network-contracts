@@ -25,7 +25,7 @@
         "amountGive": "1000000",
         "amountGet": "5000000000000000000",
         "expireDate": 1683147171,
-        "tokenGiveBalance": "100000000"
+        "tokenGiveBalance": "10000000000"
     },
     "indexer": "0xCef192586b70e3Fc2FAD76Dd1D77983a30d38D04",
     "dictionaries": [ 
