@@ -88,6 +88,7 @@ contract DisputeManager is IDisputeManager, Initializable {
         Dispute storage dispute = disputes[disputeId];
         require(newExpireEra > dispute.expireEra, 'invalid newExpireEra');
         require(dispute.state == DisputeState.Ongoing, 'dispute already finalized');
+        require(IEraManager(settings.getEraManager()).eraNumber() < dispute.expireEra, 'cannot extend expired dispute');
 
         dispute.expireEra = newExpireEra;
     }
@@ -95,13 +96,12 @@ contract DisputeManager is IDisputeManager, Initializable {
     function finalizeDispute(uint256 disputeId, DisputeState state, uint256 newStake, uint256 newDeposit) external onlyOwner {
         require(state != DisputeState.Ongoing, 'invalid state')
         Dispute storage dispute = disputes[disputeId];
-        require(IEraManager(settings.getEraManager()).eraNumber() == dispute.expireEra, 'dispute not expired');
+        require(IEraManager(settings.getEraManager()).eraNumber() > dispute.expireEra, 'dispute not expired');
         require(dispute.state == DisputeState.Ongoing, 'dispute already finalized');
         //accept dispute 
         //slash indexer
         //reward fisherman
         if(state == DisputeState.Accepted){
-            dispute.state = DisputeState.Accepted;
             require(newStake < dispute.stakingAmount, 'invalid newStake');
             uint256 slashAmount = dispute.stakingAmount - newStake;
             IStaking(settings.getStaking()).slashIndexer(dispute.indexer, slashAmount);
@@ -112,15 +112,14 @@ contract DisputeManager is IDisputeManager, Initializable {
         }else if(state == DisputeState.Rejected){
             //reject dispute 
             //slash fisherman
-            dispute.state = DisputeState.Rejected;
             require(newDeposit < dispute.depositAmount, 'invalid newDeposit');
-        }else{
+        }else if(state == DisputeState.Cancelled){
             //cancel dispute
             //return fisherman deposit
-            dispute.state = DisputeState.Cancelled;
             require(newDeposit == dispute.depositAmount, 'invalid newDeposit');
         }
 
+        dispute.state = state;
         IERC20(settings.getSQToken()).safeTransfer(dispute.fisherman, newDeposit);
 
         disputeIdByIndexer[dispute.indexer] = 0;
