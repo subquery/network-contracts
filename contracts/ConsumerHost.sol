@@ -34,7 +34,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     /// @dev ### STATES
     /// @notice The Signer account address
     address[] private signers;
-    mapping(address => uint) private signerIndex;
+    mapping(address => uint256) private signerIndex;
 
     /// @notice The SQT contract address
     address public SQT;
@@ -80,7 +80,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param _channel StateChannel contract address
      * @param _feePercentage fee percentage
      */
-    function initialize(address _sqt, address _channel, uint256 _feePercentage) external initializer {
+    function initialize(
+        address _sqt,
+        address _channel,
+        uint256 _feePercentage
+    ) external initializer {
         __Ownable_init();
         SQT = _sqt;
         channel = _channel;
@@ -158,11 +162,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      */
     function removeSigner(address _signer) external onlyOwner {
         require(signers.length > 0, 'None signers');
-        uint index = signerIndex[_signer];
+        uint256 index = signerIndex[_signer];
         require(index > 0, 'None signer');
 
         address lastSigner = signers[signers.length - 1];
-        signers[index-1] = lastSigner;
+        signers[index - 1] = lastSigner;
         signerIndex[lastSigner] = index;
 
         signers.pop();
@@ -195,7 +199,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         // transfer the balance to contract
         IERC20 sqt = IERC20(SQT);
         sqt.safeTransferFrom(msg.sender, address(this), amount);
-        sqt.increaseAllowance(channel, amount);
+        sqt.safeIncreaseAllowance(channel, amount);
 
         Consumer storage consumer = consumers[msg.sender];
         consumer.balance += amount;
@@ -228,7 +232,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param amount the amount need to pay
      * @param callback the info include consumer and signature(if approve, no signature))
      */
-    function paid(uint256 channelId, uint256 amount, bytes memory callback) external {
+    function paid(
+        uint256 channelId,
+        uint256 amount,
+        bytes memory callback
+    ) external {
         require(msg.sender == channel, 'Only Channel Contract');
         (address consumer, bytes memory sign) = abi.decode(callback, (address, bytes));
         if (channels[channelId] == address(0)) {
@@ -239,7 +247,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
         Consumer storage info = consumers[consumer];
 
-        uint256 fixedFee = amount > 100 ? amount * feePercentage / 100 : 1;
+        uint256 fixedFee = amount > 100 ? (amount * feePercentage) / 100 : 1;
         require(info.balance >= amount + fixedFee, 'Insufficient balance');
 
         if (!info.approved) {
@@ -281,7 +289,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param sign the signature
      * @return Result of check
      */
-    function checkSign(uint256 channelId, bytes32 payload, bytes memory sign) external view returns (bool) {
+    function checkSign(
+        uint256 channelId,
+        bytes32 payload,
+        bytes memory sign
+    ) external view returns (bool) {
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
         address sConsumer = ECDSA.recover(hash, sign);
         if (signerIndex[sConsumer] > 0) {
