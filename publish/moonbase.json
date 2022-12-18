@@ -120,9 +120,9 @@
         "lastUpdate": "Sun, 04 Dec 2022 23:10:57 GMT"
     },
     "ConsumerHost": {
-        "innerAddress": "0x707131938162490D4d43543A7F5E53Ac04b47f92",
+        "innerAddress": "0x5c0B495684731f608dA7Fb143A126CdbfDB78ABc",
         "address": "0x01ad7b1e3B31680F69dF121CBe8BCD1846DD0843",
-        "bytecodeHash": "6e14c8dc3ed44179b095f432cac63fc709b491ff2c41b029d251a29fe82a79c8",
-        "lastUpdate": "Sun, 04 Dec 2022 23:12:08 GMT"
+        "bytecodeHash": "b3ecc83291d62436a25aa75e81388ac35bdeb48e2ae3cfe7dbd0d1d021031a0a",
+        "lastUpdate": "Sun, 18 Dec 2022 23:29:03 GMT"
     }
 }
