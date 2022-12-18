@@ -195,7 +195,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         // transfer the balance to contract
         IERC20 sqt = IERC20(SQT);
         sqt.safeTransferFrom(msg.sender, address(this), amount);
-        sqt.approve(channel, amount);
+        sqt.increaseAllowance(channel, amount);
 
         Consumer storage consumer = consumers[msg.sender];
         consumer.balance += amount;
