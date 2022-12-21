@@ -14,6 +14,7 @@ import './interfaces/IEraManager.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISQToken.sol';
+import './interfaces/IDisputeManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
@@ -306,9 +307,13 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             indexerLength++;
         } else {
             require(msg.sender == _indexer, 'Only indexer');
-            require(IDisputeManager(settings.getDisputeManager()).disputeIdByIndexer(_indexer) == 0, 'indexer on dispute');
         }
         _delegateToIndexer(_indexer, _indexer, _amount);
+    }
+
+    function stakeCommission(address _indexer, uint256 _amount) external {
+        require(msg.sender == settings.getRewardsDistributer(), 'Only RewardsDistributer');
+        _addDelegation(_indexer, _indexer, _amount);
     }
 
     /**
@@ -406,7 +411,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * If the caller is from IndexerRegistry, this function will unstake all the staking token for the indexer.
      */
     function unstake(address _indexer, uint256 _amount) external override {
-        require(IDisputeManager(settings.getDisputeManager()).disputeIdByIndexer(_indexer) == 0, 'indexer on dispute');
         reflectEraUpdate(_indexer, _indexer);
         if (msg.sender == settings.getIndexerRegistry()) {
             indexers[indexerNo[_indexer]] = indexers[indexerLength - 1];
@@ -459,6 +463,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * Each withdraw need to exceed lockPeriod.
      */
     function widthdraw() external override {
+        require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(msg.sender), 'indexer on dispute');
         uint256 withdrawingLength = unbondingLength[msg.sender] - withdrawnLength[msg.sender];
         require(withdrawingLength > 0, 'Need unbond');
 
@@ -486,13 +491,43 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
 
     function slashIndexer(address _indexer, uint256 _amount) external {
         require(msg.sender == settings.getDisputeManager(), 'Only DisputeManager');
-        require(_amount <= getAfterDelegationAmount(_indexer, _indexer));
+        require(_amount <= this.getSlashableAmount(_indexer), 'slash over the slashable amount');
 
-        delegation[_indexer][_indexer].valueAt -= _amount;
-        totalStakingAmount[_indexer].valueAt -= _amount;
-        delegation[_indexer][_indexer].valueAfter -= _amount;
-        totalStakingAmount[_indexer].valueAfter -= _amount;
+        uint256 amount = _amount;
 
+        uint256 withdrawingLength = unbondingLength[_indexer] - withdrawnLength[_indexer];
+        if (withdrawingLength > 0) {
+            uint256 latestWithdrawnLength = withdrawnLength[_indexer];
+            for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
+                //skip zero amount unbond request
+                if (unbondingAmount[_indexer][i].amount == 0) {
+                    withdrawnLength[_indexer]++;
+                    continue;
+                }
+                if (amount > unbondingAmount[_indexer][i].amount) {
+                    amount -= unbondingAmount[_indexer][i].amount;
+                    delete unbondingAmount[_indexer][i];
+                    withdrawnLength[_indexer]++;
+                } else if (amount == unbondingAmount[_indexer][i].amount){
+                    delete unbondingAmount[_indexer][i];
+                    withdrawnLength[_indexer]++; 
+                    amount = 0;
+                    break;
+                } else {
+                    unbondingAmount[_indexer][i].amount -= amount;
+                    amount = 0;
+                    break;
+                }
+            }
+        }
+
+        if (amount > 0) {
+            delegation[_indexer][_indexer].valueAt -= amount;
+            totalStakingAmount[_indexer].valueAt -= amount;
+            delegation[_indexer][_indexer].valueAfter -= amount;
+            totalStakingAmount[_indexer].valueAfter -= amount;
+        }
+        
         IERC20(settings.getSQToken()).safeTransfer(msg.sender, _amount);
     }
 
@@ -528,5 +563,17 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         }
 
         return unbondAmounts;
+    }
+
+    function getSlashableAmount(address _indexer) external view returns (uint256) {
+        uint256 slashableAmount = delegation[_indexer][_indexer].valueAfter;
+        uint256 withdrawingLength = unbondingLength[_indexer] - withdrawnLength[_indexer];
+        if (withdrawingLength > 0) {
+            uint256 latestWithdrawnLength = withdrawnLength[_indexer];
+            for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
+                slashableAmount += unbondingAmount[_indexer][i].amount;
+            }
+        } 
+        return slashableAmount;
     }
 }

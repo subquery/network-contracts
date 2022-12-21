@@ -9,7 +9,8 @@ interface ISettings {
         address _queryRegistry,
         address _eraManager,
         address _planManager,
-        address _serviceAgreementRegistry
+        address _serviceAgreementRegistry,
+        address _disputeManager
     ) external;
 
     function setTokenAddresses(
@@ -79,4 +80,8 @@ interface ISettings {
     function setPermissionedExchange(address _permissionedExchange) external;
 
     function getPermissionedExchange() external view returns (address);
+
+    function setDisputeManager(address _disputeManager) external;
+
+    function getDisputeManager() external view returns (address);
 }

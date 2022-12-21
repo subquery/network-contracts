@@ -63,4 +63,6 @@ interface IStaking {
     function lockedAmount(address _delegator) external view returns (uint256);
 
     function slashIndexer(address _indexer, uint256 _amount) external;
+
+    function stakeCommission(address _indexer, uint256 _amount) external;
 }

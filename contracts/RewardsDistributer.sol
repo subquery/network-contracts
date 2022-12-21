@@ -287,7 +287,10 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             uint256 commission = MathUtil.mulDiv(commissionRate, rewardInfo.eraReward, PER_MILL);
 
             info[indexer].accSQTPerStake += MathUtil.mulDiv(rewardInfo.eraReward - commission, PER_TRILL, totalStake);
-            IERC20(settings.getSQToken()).safeTransfer(indexer, commission);
+    
+            // stake the commission to indexer
+            IERC20(settings.getSQToken()).safeTransfer(settings.getStaking(), commission);
+            IStaking(settings.getStaking()).stakeCommission(indexer, commission);
 
             emit DistributeRewards(indexer, rewardInfo.lastClaimEra, commission);
 
