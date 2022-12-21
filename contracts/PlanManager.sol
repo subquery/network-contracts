@@ -186,7 +186,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         delete planIds[msg.sender][deploymentId];
         for (uint256 i; i < ids.length; i++) {
             if (_planId != ids[i]) {
-                planIds[msg.sender][deploymentId].push(_planId);
+                planIds[msg.sender][deploymentId].push(ids[i]);
             }
         }
 
