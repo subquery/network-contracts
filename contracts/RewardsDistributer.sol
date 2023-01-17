@@ -17,6 +17,7 @@ import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
+import './interfaces/IIndexerRegistry.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
 
@@ -283,7 +284,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             uint256 totalStake = rewardsStaking.getTotalStakingAmount(indexer);
             require(totalStake > 0, 'Non-Indexer');
 
-            uint256 commissionRate = rewardsStaking.getCommissionRate(indexer);
+            uint256 commissionRate = IIndexerRegistry(settings.getIndexerRegistry()).getCommissionRate(indexer);
             uint256 commission = MathUtil.mulDiv(commissionRate, rewardInfo.eraReward, PER_MILL);
 
             info[indexer].accSQTPerStake += MathUtil.mulDiv(rewardInfo.eraReward - commission, PER_TRILL, totalStake);

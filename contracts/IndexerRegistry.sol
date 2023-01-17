@@ -13,6 +13,7 @@ import './interfaces/ISettings.sol';
 import './interfaces/IQueryRegistry.sol';
 import './interfaces/IEraManager.sol';
 import './Constants.sol';
+import './interfaces/IRewardsStaking.sol';
 
 /**
  * @title Indexer Registry Contract
@@ -45,6 +46,16 @@ import './Constants.sol';
 contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
     using SafeERC20 for IERC20;
 
+    /**
+    * @dev Commission rate information. One per Indexer.
+    * Commission rate change need to be applied at the Era after next Era.
+    */
+    struct CommissionRate {
+        uint256 era;         // last update era
+        uint256 valueAt;     // value at the era
+        uint256 valueAfter;  // value to be refreshed from next era
+    }
+
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
@@ -58,6 +69,8 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
     mapping(address => address) public controllerToIndexer;
     /// @notice The minimum stake amount for Indexer, set by owner.
     uint256 public minimumStakingAmount;
+    // Delegation tax rate per indexer
+    mapping(address => CommissionRate) public commissionRates;
 
     /// @dev ### EVENTS
     /// @notice Emitted when user register to an Indexer.
@@ -70,6 +83,9 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
     event SetControllerAccount(address indexed indexer, address indexed controller);
     /// @notice Emitted when Indexer remove the controller account.
     event RemoveControllerAccount(address indexed indexer, address indexed controller);
+    /// @notice Emitted when Indexer set their commissionRate.
+    event SetCommissionRate(address indexed indexer, uint256 amount);
+
 
     /**
      * @dev ### FUNCTIONS
@@ -117,7 +133,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
         metadataByIndexer[msg.sender] = _metadata;
 
         IStaking staking = IStaking(settings.getStaking());
-        staking.setInitialCommissionRate(msg.sender, _rate);
+        setInitialCommissionRate(msg.sender, _rate);
         staking.stake(msg.sender, _amount);
 
         emit RegisterIndexer(msg.sender, _amount, _metadata);
@@ -192,5 +208,49 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
      */
     function isController(address _address) external view returns (bool) {
         return controllerToIndexer[_address] != ZERO_ADDRESS;
+    }
+
+    /**
+     * @dev Set initial commissionRate only called by indexerRegistry contract,
+     * when indexer do registration. The commissionRate need to apply at once.
+     */
+    function setInitialCommissionRate(address indexer, uint256 rate) private {
+        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
+        require(rewardsStaking.getTotalStakingAmount(indexer) == 0, 'Not settled');
+        require(rate <= PER_MILL, 'Invalid rate');
+        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
+        commissionRates[indexer] = CommissionRate(eraNumber, rate, rate);
+
+        emit SetCommissionRate(indexer, rate);
+    }
+
+    /**
+     * @dev Set commissionRate only called by Indexer.
+     * The commissionRate need to apply at two Eras after.
+     */
+    function setCommissionRate(uint256 rate) external {
+        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
+        require(isIndexer[msg.sender], 'Not indexer');
+        require(rate <= PER_MILL, 'Invalid rate');
+        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
+        rewardsStaking.onICRChange(msg.sender, eraNumber + 2);
+        CommissionRate storage commissionRate = commissionRates[msg.sender];
+        if (commissionRate.era < eraNumber) {
+            commissionRate.era = eraNumber;
+            commissionRate.valueAt = commissionRate.valueAfter;
+        }
+        commissionRate.valueAfter = rate;
+
+        emit SetCommissionRate(msg.sender, rate);
+    }
+
+    function getCommissionRate(address indexer) external view returns (uint256) {
+        uint256 era = IEraManager(settings.getEraManager()).eraNumber();
+        CommissionRate memory rate = commissionRates[indexer];
+        if ((rate.era + 1) < era) {
+            return rate.valueAfter;
+        } else {
+            return rate.valueAt;
+        }
     }
 }

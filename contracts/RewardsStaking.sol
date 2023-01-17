@@ -16,6 +16,7 @@ import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
+import './interfaces/IIndexerRegistry.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
 
@@ -125,7 +126,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
             totalStakingAmount[_indexer] = staking.getTotalStakingAmount(_indexer);
 
             //apply first onICRChgange
-            uint256 newCommissionRate = staking.getCommissionRate(_indexer);
+            uint256 newCommissionRate = IIndexerRegistry(settings.getIndexerRegistry()).getCommissionRate(_indexer);
             commissionRates[_indexer] = newCommissionRate;
 
             emit StakeChanged(_indexer, _indexer, newDelegation);
@@ -208,7 +209,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
         require(lastSettledEra[indexer] < rewardInfo.lastClaimEra, 'Rewards not collected');
 
         IStaking staking = IStaking(settings.getStaking());
-        uint256 newCommissionRate = staking.getCommissionRate(indexer);
+        uint256 newCommissionRate = IIndexerRegistry(settings.getIndexerRegistry()).getCommissionRate(indexer);
         commissionRates[indexer] = newCommissionRate;
         pendingCommissionRateChange[indexer] = 0;
         _updateTotalStakingAmount(staking, indexer, rewardInfo.lastClaimEra);

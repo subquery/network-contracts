@@ -14,16 +14,6 @@ struct StakingAmount {
 }
 
 /**
- * @dev Commission rate information. One per Indexer.
- * Commission rate change need to be applied at the Era after next Era.
- */
-struct CommissionRate {
-    uint256 era;         // last update era
-    uint256 valueAt;     // value at the era
-    uint256 valueAfter;  // value to be refreshed from next era
-}
-
-/**
  * @dev Unbond amount information. One per request per Delegator.
  * Delegator can withdraw the unbond amount after the lockPeriod.
  */
@@ -52,13 +42,7 @@ interface IStaking {
 
     function getTotalStakingAmount(address _indexer) external view returns (uint256);
 
-    function getCommissionRate(address indexer) external view returns (uint256);
-
     function getAfterDelegationAmount(address _delegator, address _indexer) external view returns (uint256);
-
-    function setInitialCommissionRate(address indexer, uint256 rate) external;
-
-    function setCommissionRate(uint256 rate) external;
 
     function lockedAmount(address _delegator) external view returns (uint256);
 

@@ -113,9 +113,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     // Delegating indexer number by delegator and indexer
     mapping(address => mapping(address => uint256)) public stakingIndexerNos;
 
-    // Delegation tax rate per indexer
-    mapping(address => CommissionRate) public commissionRates;
-
     // Staking indexer lengths
     mapping(address => uint256) public stakingIndexerLengths;
 
@@ -145,11 +142,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * @dev Emitted when delegtor cancel unbond request.
      */
     event UnbondCancelled(address indexed source, address indexed indexer, uint256 amount, uint256 index);
-
-    /**
-     * @dev Emitted when Indexer set their commissionRate.
-     */
-    event SetCommissionRate(address indexed indexer, uint256 amount);
 
     // -- Functions --
 
@@ -181,42 +173,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     function setUnbondFeeRateBP(uint256 _unbondFeeRate) external onlyOwner {
         require(_unbondFeeRate < PER_MILL, 'Invaild unbondFeeRate');
         unbondFeeRate = _unbondFeeRate;
-    }
-
-    /**
-     * @dev Set initial commissionRate only called by indexerRegistry contract,
-     * when indexer do registration. The commissionRate need to apply at once.
-     */
-    function setInitialCommissionRate(address indexer, uint256 rate) external {
-        require(msg.sender == settings.getIndexerRegistry(), 'Only IndexerRegistry');
-        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
-        require(rewardsStaking.getTotalStakingAmount(indexer) == 0, 'Not settled');
-        require(rate <= PER_MILL, 'Invalid rate');
-        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
-        commissionRates[indexer] = CommissionRate(eraNumber, rate, rate);
-
-        emit SetCommissionRate(indexer, rate);
-    }
-
-    /**
-     * @dev Set commissionRate only called by Indexer.
-     * The commissionRate need to apply at two Eras after.
-     */
-    function setCommissionRate(uint256 rate) external {
-        IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
-        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
-        require(indexerRegistry.isIndexer(msg.sender), 'Not indexer');
-        require(rate <= PER_MILL, 'Invalid rate');
-        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
-        rewardsStaking.onICRChange(msg.sender, eraNumber + 2);
-        CommissionRate storage commissionRate = commissionRates[msg.sender];
-        if (commissionRate.era < eraNumber) {
-            commissionRate.era = eraNumber;
-            commissionRate.valueAt = commissionRate.valueAfter;
-        }
-        commissionRate.valueAfter = rate;
-
-        emit SetCommissionRate(msg.sender, rate);
     }
 
     /**
@@ -377,6 +333,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         address _indexer,
         uint256 _amount
     ) internal {
+        require(unbondingLength[_source] - withdrawnLength[_source] <= 20, 'reach unbound limit');
         _removeDelegation(_source, _indexer, _amount);
 
         uint256 index = unbondingLength[_source];
@@ -467,11 +424,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         uint256 withdrawingLength = unbondingLength[msg.sender] - withdrawnLength[msg.sender];
         require(withdrawingLength > 0, 'Need unbond');
 
-        // withdraw the max top 10 requests
-        if (withdrawingLength > 10) {
-            withdrawingLength = 10;
-        }
-
         uint256 time;
         uint256 latestWithdrawnLength = withdrawnLength[msg.sender];
         for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
@@ -500,10 +452,10 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             uint256 latestWithdrawnLength = withdrawnLength[_indexer];
             for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
                 //skip zero amount unbond request
-                if (unbondingAmount[_indexer][i].amount == 0) {
-                    withdrawnLength[_indexer]++;
-                    continue;
-                }
+                // if (unbondingAmount[_indexer][i].amount == 0) {
+                //     withdrawnLength[_indexer]++;
+                //     continue;
+                // }
                 if (amount > unbondingAmount[_indexer][i].amount) {
                     amount -= unbondingAmount[_indexer][i].amount;
                     delete unbondingAmount[_indexer][i];
@@ -542,11 +494,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         return StakingUtil.currentStaking(totalStakingAmount[_indexer], eraNumber);
     }
 
-    function getCommissionRate(address indexer) external view returns (uint256) {
-        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
-        return StakingUtil.currentCommission(commissionRates[indexer], eraNumber);
-    }
-
     function getAfterDelegationAmount(address _source, address _indexer) external view override returns (uint256) {
         return delegation[_source][_indexer].valueAfter;
     }
@@ -568,12 +515,10 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     function getSlashableAmount(address _indexer) external view returns (uint256) {
         uint256 slashableAmount = delegation[_indexer][_indexer].valueAfter;
         uint256 withdrawingLength = unbondingLength[_indexer] - withdrawnLength[_indexer];
-        if (withdrawingLength > 0) {
-            uint256 latestWithdrawnLength = withdrawnLength[_indexer];
-            for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
-                slashableAmount += unbondingAmount[_indexer][i].amount;
-            }
-        } 
+        uint256 latestWithdrawnLength = withdrawnLength[_indexer];
+        for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
+            slashableAmount += unbondingAmount[_indexer][i].amount;
+        }
         return slashableAmount;
     }
 }

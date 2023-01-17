@@ -17,14 +17,6 @@ library StakingUtil {
         return amount.valueAt;
     }
 
-    function currentCommission(CommissionRate memory rate, uint256 era) internal pure returns (uint256) {
-        if ((rate.era + 1) < era) {
-            return rate.valueAfter;
-        } else {
-            return rate.valueAt;
-        }
-    }
-
     function currentDelegation(StakingAmount memory amount, uint256 era) internal pure returns (uint256) {
         if (amount.era < era) {
             return amount.valueAfter;
