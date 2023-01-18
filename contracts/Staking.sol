@@ -288,7 +288,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         address _indexer,
         uint256 _amount
     ) internal {
-        require(_amount > 0, 'S005');
         require(delegation[_source][_indexer].valueAfter >= _amount, 'S005');
 
         delegation[_source][_indexer].valueAfter -= _amount;
