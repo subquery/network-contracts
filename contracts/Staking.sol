@@ -398,20 +398,22 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * burn the withdrawn fees and transfer the rest to delegator.
      */
     function _withdrawARequest(uint256 _index) internal {
-        // burn specific percentage
-        uint256 amount = unbondingAmount[msg.sender][_index].amount;
-        uint256 burnAmount = MathUtil.mulDiv(unbondFeeRate, amount, PER_MILL);
-        uint256 availableAmount = amount - burnAmount;
-
-        address SQToken = settings.getSQToken();
-        ISQToken(SQToken).burn(burnAmount);
-        IERC20(SQToken).safeTransfer(msg.sender, availableAmount);
-
-        lockedAmount[msg.sender] -= amount;
-
         withdrawnLength[msg.sender]++;
 
-        emit UnbondWithdrawn(msg.sender, availableAmount, _index);
+        uint256 amount = unbondingAmount[msg.sender][_index].amount;
+        if (amount > 0) {
+            // burn specific percentage
+            uint256 burnAmount = MathUtil.mulDiv(unbondFeeRate, amount, PER_MILL);
+            uint256 availableAmount = amount - burnAmount;
+
+            address SQToken = settings.getSQToken();
+            ISQToken(SQToken).burn(burnAmount);
+            IERC20(SQToken).safeTransfer(msg.sender, availableAmount);
+
+            lockedAmount[msg.sender] -= amount;
+
+            emit UnbondWithdrawn(msg.sender, availableAmount, _index);
+        }
     }
 
     /**
@@ -423,16 +425,9 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         uint256 withdrawingLength = unbondingLength[msg.sender] - withdrawnLength[msg.sender];
         require(withdrawingLength > 0, 'S009');
 
-        uint256 time;
         uint256 latestWithdrawnLength = withdrawnLength[msg.sender];
         for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
-            time = block.timestamp - unbondingAmount[msg.sender][i].startTime;
-            if (time < lockPeriod) {
-                break;
-            }
-            //skip withdraw zero amount unbond request (canceled unbond request)
-            if (unbondingAmount[msg.sender][i].amount == 0) {
-                withdrawnLength[msg.sender]++;
+            if (block.timestamp - unbondingAmount[msg.sender][i].startTime < lockPeriod) {
                 break;
             }
 
