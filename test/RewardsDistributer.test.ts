@@ -192,6 +192,7 @@ describe('RewardsDistributer Contract', () => {
             expect((await rewardsHelper.getRewardsAddTable(indexer.address, 4, 1))[0]).to.be.eq(etherParse('0'));
             expect((await rewardsHelper.getRewardsRemoveTable(indexer.address, 4, 1))[0]).to.be.eq(etherParse('0'));
             await rewardsDistributor.connect(indexer).claim(indexer.address);
+            // TODO: further investiget why the balance changed ?
             expect(await (await token.balanceOf(indexer.address)).div(1e14)).to.be.eq(13499);
             rewards = await (await token.balanceOf(indexer.address)).div(1e14);
         });
@@ -207,6 +208,7 @@ describe('RewardsDistributer Contract', () => {
             expect(await eraManager.eraNumber()).to.be.eq(5);
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(4);
             await rewardsDistributor.connect(indexer).claim(indexer.address);
+            // TODO: further investiget why the balance changed ?
             expect(await (await token.balanceOf(indexer.address)).div(1e14)).to.be.eq(13499);
         });
 
