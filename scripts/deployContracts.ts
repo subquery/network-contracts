@@ -48,6 +48,8 @@ import {
     Vesting__factory,
     ConsumerHost,
     ConsumerHost__factory,
+    DisputeManager,
+    DisputeManager__factory,
 } from '../src';
 
 interface FactoryContstructor {
@@ -77,6 +79,7 @@ export type Contracts = {
     permissionedExchange: PermissionedExchange;
     vesting: Vesting;
     consumerHost: ConsumerHost;
+    disputeManager: DisputeManager;
 };
 
 const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: string}, FactoryContstructor]>> = {
@@ -96,6 +99,7 @@ const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: s
 
     PermissionedExchange: [CONTRACTS.PermissionedExchange, PermissionedExchange__factory],
     ConsumerHost: [CONTRACTS.ConsumerHost, ConsumerHost__factory],
+    DisputeManager: [CONTRACTS.DisputeManager, DisputeManager__factory],
 };
 
 export const deployProxy = async <C extends Contract>(
@@ -442,6 +446,16 @@ export async function deployContracts(
         consumerHost.deployTransaction.hash
     );
 
+    const [disputeManager, DMInnerAddr] = await deployProxy<DisputeManager>(proxyAdmin, DisputeManager__factory, wallet, overrides);
+    const initDisputeManager = await disputeManager.initialize(
+        ...(config['DisputeManager'] as [string]),
+        deployment.Settings.address,
+        overrides
+    );
+    await initDisputeManager.wait();
+    updateDeployment(deployment, 'DisputeManager', disputeManager.address, DMInnerAddr, disputeManager.deployTransaction.hash);
+
+
     // Register addresses on settings contract
     const txToken = await settings.setTokenAddresses(
         deployment.SQToken.address,
@@ -464,6 +478,7 @@ export async function deployContracts(
         deployment.EraManager.address,
         deployment.PlanManager.address,
         deployment.ServiceAgreementRegistry.address,
+        deployment.DisputeManager.address,
         overrides as any
     );
 
@@ -493,6 +508,7 @@ export async function deployContracts(
             permissionedExchange,
             vesting,
             consumerHost,
+            disputeManager,
         },
     ];
 }

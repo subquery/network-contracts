@@ -50,6 +50,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
             ServiceAgreementRegistry: [0], //threshold
             IndexerRegistry: ['1000000000000000000000'],
             ConsumerHost: [1], // Fee Percentage, default is 1%
+            DisputeManager: ['1000000000000000000000'], // minimumDeposit
         },
         {},
         true

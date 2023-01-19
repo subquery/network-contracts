@@ -19,6 +19,7 @@ import Airdropper from './artifacts/contracts/Airdropper.sol/Airdropper.json';
 import PermissionedExchange from './artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json';
 import Vesting from './artifacts/contracts/Vesting.sol/Vesting.json';
 import ConsumerHost from './artifacts/contracts/ConsumerHost.sol/ConsumerHost.json';
+import DisputeManager from './artifacts/contracts/DisputeManager.sol/DisputeManager.json';
 
 export default {
     Settings,
@@ -42,4 +43,5 @@ export default {
     PermissionedExchange,
     Vesting,
     ConsumerHost,
+    DisputeManager,
 };

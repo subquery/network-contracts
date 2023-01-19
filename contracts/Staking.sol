@@ -14,6 +14,7 @@ import './interfaces/IEraManager.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISQToken.sol';
+import './interfaces/IDisputeManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
@@ -112,9 +113,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     // Delegating indexer number by delegator and indexer
     mapping(address => mapping(address => uint256)) public stakingIndexerNos;
 
-    // Delegation tax rate per indexer
-    mapping(address => CommissionRate) public commissionRates;
-
     // Staking indexer lengths
     mapping(address => uint256) public stakingIndexerLengths;
 
@@ -145,11 +143,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      */
     event UnbondCancelled(address indexed source, address indexed indexer, uint256 amount, uint256 index);
 
-    /**
-     * @dev Emitted when Indexer set their commissionRate.
-     */
-    event SetCommissionRate(address indexed indexer, uint256 amount);
-
     // -- Functions --
 
     /**
@@ -178,44 +171,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     }
 
     function setUnbondFeeRateBP(uint256 _unbondFeeRate) external onlyOwner {
-        require(_unbondFeeRate < PER_MILL, 'Invaild unbondFeeRate');
+        require(_unbondFeeRate < PER_MILL, 'S001');
         unbondFeeRate = _unbondFeeRate;
-    }
-
-    /**
-     * @dev Set initial commissionRate only called by indexerRegistry contract,
-     * when indexer do registration. The commissionRate need to apply at once.
-     */
-    function setInitialCommissionRate(address indexer, uint256 rate) external {
-        require(msg.sender == settings.getIndexerRegistry(), 'Only IndexerRegistry');
-        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
-        require(rewardsStaking.getTotalStakingAmount(indexer) == 0, 'Not settled');
-        require(rate <= PER_MILL, 'Invalid rate');
-        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
-        commissionRates[indexer] = CommissionRate(eraNumber, rate, rate);
-
-        emit SetCommissionRate(indexer, rate);
-    }
-
-    /**
-     * @dev Set commissionRate only called by Indexer.
-     * The commissionRate need to apply at two Eras after.
-     */
-    function setCommissionRate(uint256 rate) external {
-        IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
-        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
-        require(indexerRegistry.isIndexer(msg.sender), 'Not indexer');
-        require(rate <= PER_MILL, 'Invalid rate');
-        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
-        rewardsStaking.onICRChange(msg.sender, eraNumber + 2);
-        CommissionRate storage commissionRate = commissionRates[msg.sender];
-        if (commissionRate.era < eraNumber) {
-            commissionRate.era = eraNumber;
-            commissionRate.valueAt = commissionRate.valueAfter;
-        }
-        commissionRate.valueAfter = rate;
-
-        emit SetCommissionRate(msg.sender, rate);
     }
 
     /**
@@ -248,7 +205,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         require(
             delegation[_indexer][_indexer].valueAfter * indexerLeverageLimit >=
                 totalStakingAmount[_indexer].valueAfter + _amount,
-            'Delegation limitation'
+            'S002'
         );
     }
 
@@ -257,7 +214,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         address _indexer,
         uint256 _amount
     ) internal {
-        require(_amount > 0, 'Invalid delegation');
+        require(_amount > 0, 'S003');
         if (_isEmptyDelegation(_source, _indexer)) {
             stakingIndexerNos[_source][_indexer] = stakingIndexerLengths[_source];
             stakingIndexers[_source][stakingIndexerLengths[_source]] = _indexer;
@@ -268,7 +225,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             totalStakingAmount[_indexer].valueAt == 0 &&
             totalStakingAmount[_indexer].valueAfter == 0;
         if (firstStake) {
-            require(_source == _indexer, 'Not indexer');
+            require(_source == _indexer, 'S004');
             delegation[_source][_indexer].valueAt = _amount;
             totalStakingAmount[_indexer].valueAt = _amount;
             delegation[_source][_indexer].valueAfter = _amount;
@@ -300,21 +257,26 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     function stake(address _indexer, uint256 _amount) external override {
         reflectEraUpdate(_indexer, _indexer);
         if (_isEmptyDelegation(_indexer, _indexer)) {
-            require(msg.sender == settings.getIndexerRegistry(), 'Only IndexerRegistry');
+            require(msg.sender == settings.getIndexerRegistry(), 'G001');
             indexers[indexerLength] = _indexer;
             indexerNo[_indexer] = indexerLength;
             indexerLength++;
         } else {
-            require(msg.sender == _indexer, 'Only indexer');
+            require(msg.sender == _indexer, 'G002');
         }
         _delegateToIndexer(_indexer, _indexer, _amount);
+    }
+
+    function stakeCommission(address _indexer, uint256 _amount) external {
+        require(msg.sender == settings.getRewardsDistributer(), 'G003');
+        //_addDelegation(_indexer, _indexer, _amount);
     }
 
     /**
      * @dev Delegator stake to Indexer, Indexer cannot call this.
      */
     function delegate(address _indexer, uint256 _amount) external override {
-        require(msg.sender != _indexer, 'Only delegator');
+        require(msg.sender != _indexer, 'G004');
         reflectEraUpdate(msg.sender, _indexer);
         // delegation limit should not exceed
         _checkDelegateLimitation(_indexer, _amount);
@@ -326,8 +288,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         address _indexer,
         uint256 _amount
     ) internal {
-        require(_amount > 0, 'Invalid amount');
-        require(delegation[_source][_indexer].valueAfter >= _amount, 'Insufficient delegation');
+        require(delegation[_source][_indexer].valueAfter >= _amount && _amount > 0, 'S005');
 
         delegation[_source][_indexer].valueAfter -= _amount;
         totalStakingAmount[_indexer].valueAfter -= _amount;
@@ -355,7 +316,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         uint256 _amount
     ) external override {
         address _source = msg.sender;
-        require(from_indexer != msg.sender, 'Only delegator');
+        require(from_indexer != msg.sender, 'G004');
         // delegation limit should not exceed
         _checkDelegateLimitation(to_indexer, _amount);
 
@@ -371,6 +332,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         address _indexer,
         uint256 _amount
     ) internal {
+        require(unbondingLength[_source] - withdrawnLength[_source] <= 20, 'S006');
         _removeDelegation(_source, _indexer, _amount);
 
         uint256 index = unbondingLength[_source];
@@ -384,11 +346,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     }
 
     function cancelUnbonding(uint256 unbondReqId) external {
-        require(unbondReqId >= withdrawnLength[msg.sender], 'Withdrawn');
+        require(unbondReqId >= withdrawnLength[msg.sender], 'S007');
         UnbondAmount memory unbond = unbondingAmount[msg.sender][unbondReqId];
-        require(unbond.amount > 0, 'Invalid unbond');
+        require(unbond.amount > 0, 'S007');
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
-        require(indexerRegistry.isIndexer(unbond.indexer), 'Unregistered');
+        require(indexerRegistry.isIndexer(unbond.indexer), 'S007');
 
         delete unbondingAmount[msg.sender][unbondReqId];
         if (msg.sender != unbond.indexer) {
@@ -411,12 +373,12 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             indexerNo[indexers[indexerLength - 1]] = indexerNo[_indexer];
             indexerLength--;
         } else {
-            require(msg.sender == _indexer, 'Only indexer');
+            require(msg.sender == _indexer, 'G002');
 
             uint256 minimumStakingAmount = IIndexerRegistry(settings.getIndexerRegistry()).minimumStakingAmount();
             uint256 stakingAmountAfter = this.getAfterDelegationAmount(_indexer, _indexer) - _amount;
-            require(stakingAmountAfter >= minimumStakingAmount, 'Insufficient unstake');
-            require(stakingAmountAfter * indexerLeverageLimit >= totalStakingAmount[_indexer].valueAfter - _amount, 'Insufficient unstake');
+            require(stakingAmountAfter >= minimumStakingAmount, 'S008');
+            require(stakingAmountAfter * indexerLeverageLimit >= totalStakingAmount[_indexer].valueAfter - _amount, 'S008');
         }
         _startUnbond(_indexer, _indexer, _amount);
     }
@@ -426,7 +388,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      */
     function undelegate(address _indexer, uint256 _amount) external override {
         // check if called by an indexer
-        require(_indexer != msg.sender, 'Only delegator');
+        require(_indexer != msg.sender, 'G004');
         reflectEraUpdate(msg.sender, _indexer);
         _startUnbond(msg.sender, _indexer, _amount);
     }
@@ -459,13 +421,9 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * Each withdraw need to exceed lockPeriod.
      */
     function widthdraw() external override {
+        require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(msg.sender), 'G005');
         uint256 withdrawingLength = unbondingLength[msg.sender] - withdrawnLength[msg.sender];
-        require(withdrawingLength > 0, 'Need unbond');
-
-        // withdraw the max top 10 requests
-        if (withdrawingLength > 10) {
-            withdrawingLength = 10;
-        }
+        require(withdrawingLength > 0, 'S009');
 
         uint256 latestWithdrawnLength = withdrawnLength[msg.sender];
         for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
@@ -477,6 +435,44 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         }
     }
 
+    // TODO: need to have fully cover test for this function
+    function slashIndexer(address _indexer, uint256 _amount) external {
+        require(msg.sender == settings.getDisputeManager(), 'G005');
+        require(_amount <= this.getSlashableAmount(_indexer), 'S010');
+
+        uint256 amount = _amount;
+
+        uint256 withdrawingLength = unbondingLength[_indexer] - withdrawnLength[_indexer];
+        if (withdrawingLength > 0) {
+            uint256 latestWithdrawnLength = withdrawnLength[_indexer];
+            for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
+                if (amount > unbondingAmount[_indexer][i].amount) {
+                    amount -= unbondingAmount[_indexer][i].amount;
+                    delete unbondingAmount[_indexer][i];
+                    withdrawnLength[_indexer]++;
+                } else if (amount == unbondingAmount[_indexer][i].amount){
+                    delete unbondingAmount[_indexer][i];
+                    withdrawnLength[_indexer]++; 
+                    amount = 0;
+                    break;
+                } else {
+                    unbondingAmount[_indexer][i].amount -= amount;
+                    amount = 0;
+                    break;
+                }
+            }
+        }
+
+        if (amount > 0) {
+            delegation[_indexer][_indexer].valueAt -= amount;
+            totalStakingAmount[_indexer].valueAt -= amount;
+            delegation[_indexer][_indexer].valueAfter -= amount;
+            totalStakingAmount[_indexer].valueAfter -= amount;
+        }
+        
+        IERC20(settings.getSQToken()).safeTransfer(msg.sender, _amount);
+    }
+
     // -- Views --
 
     function _isEmptyDelegation(address _source, address _indexer) internal view returns (bool) {
@@ -486,11 +482,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     function getTotalStakingAmount(address _indexer) external view override returns (uint256) {
         uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
         return StakingUtil.currentStaking(totalStakingAmount[_indexer], eraNumber);
-    }
-
-    function getCommissionRate(address indexer) external view returns (uint256) {
-        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
-        return StakingUtil.currentCommission(commissionRates[indexer], eraNumber);
     }
 
     function getAfterDelegationAmount(address _source, address _indexer) external view override returns (uint256) {
@@ -509,5 +500,15 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         }
 
         return unbondAmounts;
+    }
+
+    function getSlashableAmount(address _indexer) external view returns (uint256) {
+        uint256 slashableAmount = delegation[_indexer][_indexer].valueAfter;
+        uint256 withdrawingLength = unbondingLength[_indexer] - withdrawnLength[_indexer];
+        uint256 latestWithdrawnLength = withdrawnLength[_indexer];
+        for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
+            slashableAmount += unbondingAmount[_indexer][i].amount;
+        }
+        return slashableAmount;
     }
 }

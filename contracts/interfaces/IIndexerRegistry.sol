@@ -12,7 +12,11 @@ interface IIndexerRegistry {
 
     function indexerToController(address _address) external view returns (address);
 
-    function setCommissionRate(uint256 rate) external;
-
     function minimumStakingAmount() external view returns (uint256);
+
+    function getCommissionRate(address indexer) external view returns (uint256);
+
+    function setInitialCommissionRate(address indexer, uint256 rate) external;
+
+    function setCommissionRate(uint256 rate) external;
 }

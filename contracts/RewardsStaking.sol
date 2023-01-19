@@ -16,6 +16,7 @@ import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
+import './interfaces/IIndexerRegistry.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
 
@@ -92,6 +93,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
         _;
     }
 
+    modifier onlyIndexerRegistry() {
+        require(msg.sender == settings.getIndexerRegistry(), 'Only IndexerRegistry');
+        _;
+    }
+
     /**
      * @dev Callback method of stake change, called by Staking contract when
      * Indexers or Delegators try to change their stake amount.
@@ -125,7 +131,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
             totalStakingAmount[_indexer] = staking.getTotalStakingAmount(_indexer);
 
             //apply first onICRChgange
-            uint256 newCommissionRate = staking.getCommissionRate(_indexer);
+            uint256 newCommissionRate = IIndexerRegistry(settings.getIndexerRegistry()).getCommissionRate(_indexer);
             commissionRates[_indexer] = newCommissionRate;
 
             emit StakeChanged(_indexer, _indexer, newDelegation);
@@ -151,7 +157,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
      * and wait to apply at two Eras later.
      * Last era's reward need to be collected before this can pass.
      */
-    function onICRChange(address indexer, uint256 startEra) external onlyStaking {
+    function onICRChange(address indexer, uint256 startEra) external onlyIndexerRegistry {
         uint256 currentEra = _getCurrentEra();
         require(startEra > currentEra, 'Too early');
 
@@ -208,7 +214,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
         require(lastSettledEra[indexer] < rewardInfo.lastClaimEra, 'Rewards not collected');
 
         IStaking staking = IStaking(settings.getStaking());
-        uint256 newCommissionRate = staking.getCommissionRate(indexer);
+        uint256 newCommissionRate = IIndexerRegistry(settings.getIndexerRegistry()).getCommissionRate(indexer);
         commissionRates[indexer] = newCommissionRate;
         pendingCommissionRateChange[indexer] = 0;
         _updateTotalStakingAmount(staking, indexer, rewardInfo.lastClaimEra);

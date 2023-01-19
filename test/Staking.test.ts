@@ -132,21 +132,21 @@ describe('Staking Contract', () => {
         it('staking by indexer with invalid caller should fail', async () => {
             // not indexer
             await expect(staking.connect(indexer2).stake(indexer.address, etherParse('1'))).to.be.revertedWith(
-                'Only indexer'
+                'G002'
             );
         });
 
         it('unstaking by indexer with invalid params should fail', async () => {
             // not indexer
             await expect(staking.connect(indexer2).unstake(indexer.address, etherParse('1'))).to.be.revertedWith(
-                'Only indexer'
+                'G002'
             );
             // amount execess minum requirement
             await expect(
                 staking
                     .connect(indexer)
                     .unstake(indexer.address, await staking.getAfterDelegationAmount(indexer.address, indexer.address))
-            ).to.be.revertedWith('Insufficient unstake');
+            ).to.be.revertedWith('S008');
         });
 
         it('unstaking over indexerLeverageLimit should fail', async () => {
@@ -160,26 +160,26 @@ describe('Staking Contract', () => {
             await staking.connect(delegator).delegate(indexer.address, maxDelegateAmount);
 
             await expect(staking.connect(indexer).unstake(indexer.address, etherParse('1'))).to.be.revertedWith(
-                'Insufficient unstake'
+                'S008'
             );
         });
 
         it('staking to unregisted indexer should fail', async () => {
             await expect(staking.connect(delegator).stake(delegator.address, etherParse('1'))).to.be.revertedWith(
-                'Only IndexerRegistry'
+                'G001'
             );
         });
 
         it('redelegate with invalid params should fail', async () => {
             // self delegation
             await expect(staking.redelegate(indexer.address, indexer2.address, etherParse('1'))).to.be.revertedWith(
-                'Only delegator'
+                'G004'
             );
             // out of amount
             await staking.connect(delegator).delegate(indexer.address, etherParse('1'));
             await expect(
                 staking.connect(delegator).redelegate(indexer.address, indexer2.address, etherParse('2'))
-            ).to.be.revertedWith('Insufficient delegation');
+            ).to.be.revertedWith('S005');
         });
 
         it('staking by delegator should work', async () => {
@@ -211,7 +211,7 @@ describe('Staking Contract', () => {
 
         it('delegate by indexer should fail', async () => {
             await expect(staking.connect(indexer).delegate(indexer.address, etherParse('1'))).to.be.revertedWith(
-                'Only delegator'
+                'G004'
             );
         });
 
@@ -222,7 +222,7 @@ describe('Staking Contract', () => {
 
             await expect(
                 staking.connect(delegator).delegate(indexer.address, indexerStakingAmount.mul(indexerLeverageLimit))
-            ).to.be.revertedWith('Delegation limitation');
+            ).to.be.revertedWith('S002');
         });
     });
 
@@ -311,21 +311,21 @@ describe('Staking Contract', () => {
 
         it('request undelegate with invlaid params should fail', async () => {
             // indexer unstake out of balance
-            await expect(staking.undelegate(indexer.address, amount)).to.be.revertedWith('Only delegator');
+            await expect(staking.undelegate(indexer.address, amount)).to.be.revertedWith('G004');
             // amount should be positive
             await expect(staking.connect(delegator).undelegate(indexer.address, etherParse('0'))).to.be.revertedWith(
-                'Invalid amount'
+                'S005'
             );
             // delegator undelegate out of balance
             await expect(staking.connect(delegator).undelegate(indexer.address, etherParse('4'))).to.be.revertedWith(
-                'Insufficient delegation'
+                'S005'
             );
         });
 
         it('request unstake with invalid caller should fail', async () => {
             // invalid caller
             await expect(staking.connect(indexer2).unstake(indexer.address, etherParse('1'))).to.be.revertedWith(
-                'Only indexer'
+                'G002'
             );
         });
     });
@@ -362,24 +362,24 @@ describe('Staking Contract', () => {
             await rewardsStaking.applyStakeChange(indexer.address, indexer.address);
             await indexerRegistry.connect(indexer).unregisterIndexer();
             await startNewEra(mockProvider, eraManager);
-            await expect(staking.connect(delegator).cancelUnbonding(0)).to.be.revertedWith('Unregistered');
+            await expect(staking.connect(delegator).cancelUnbonding(0)).to.be.revertedWith('S007');
         });
 
         it('cancel withdrawed unbonding should fail', async () => {
             await staking.connect(delegator).undelegate(indexer.address, etherParse('1'));
             await timeTravel(mockProvider, 60 * 60 * 24 * 10);
             await staking.connect(delegator).widthdraw();
-            await expect(staking.connect(delegator).cancelUnbonding(0)).to.be.revertedWith('Withdrawn');
+            await expect(staking.connect(delegator).cancelUnbonding(0)).to.be.revertedWith('S007');
         });
 
         it('cancel invalid unbonding should fail', async () => {
-            await expect(staking.connect(delegator).cancelUnbonding(10)).to.be.revertedWith('Invalid unbond');
+            await expect(staking.connect(delegator).cancelUnbonding(10)).to.be.revertedWith('S007');
         });
 
         it('cancelUnbonding should follow delegation limitation', async () => {
             await staking.connect(delegator).undelegate(indexer.address, etherParse('1'));
             await staking.setIndexerLeverageLimit(1);
-            await expect(staking.connect(delegator).cancelUnbonding(0)).to.be.revertedWith('Delegation limitation');
+            await expect(staking.connect(delegator).cancelUnbonding(0)).to.be.revertedWith('S002');
         });
     });
 
@@ -448,7 +448,7 @@ describe('Staking Contract', () => {
             await checkUnbondingChanges(delegatorBalance, 5, 5);
         });
 
-        it('withdraw max 10 undelegate requests should work', async () => {
+        it('withdraw undelegate requests should work', async () => {
             // request 12 undelegate requests
             for (let i = 0; i < 12; i++) {
                 await staking.connect(delegator).undelegate(indexer.address, etherParse('0.1'));
@@ -468,13 +468,7 @@ describe('Staking Contract', () => {
             await staking.connect(delegator).widthdraw();
             // check balance and unbonding storage
             const {availableAmount} = await availableWidthdraw(BigNumber.from(etherParse('0.1')));
-            delegatorBalance = delegatorBalance.add(availableAmount.mul(10));
-            await checkUnbondingChanges(delegatorBalance, 15, 10);
-
-            // second withdraw claim the other 2 requests
-            await staking.connect(delegator).widthdraw();
-            // check balance and unbonding storage
-            delegatorBalance = delegatorBalance.add(availableAmount.mul(2));
+            delegatorBalance = delegatorBalance.add(availableAmount.mul(12));
             await checkUnbondingChanges(delegatorBalance, 15, 12);
 
             // make the next 3 undelegate requests ready to withdraw
@@ -486,26 +480,26 @@ describe('Staking Contract', () => {
 
         it('withdraw an unbond with invalid status should fail', async () => {
             // no unbonding requests for withdrawing
-            await expect(staking.connect(delegator).widthdraw()).to.be.revertedWith('Need unbond');
+            await expect(staking.connect(delegator).widthdraw()).to.be.revertedWith('S009');
         });
     });
 
     describe('Set Commission Rate', () => {
         it('set commission rate should work', async () => {
-            expect(await staking.getCommissionRate(indexer.address)).to.equal('0');
-            await staking.connect(indexer).setCommissionRate(100);
-            expect(await staking.getCommissionRate(indexer.address)).to.equal('0');
+            expect(await indexerRegistry.getCommissionRate(indexer.address)).to.equal('0');
+            await indexerRegistry.connect(indexer).setCommissionRate(100);
+            expect(await indexerRegistry.getCommissionRate(indexer.address)).to.equal('0');
             await startNewEra(mockProvider, eraManager);
-            expect(await staking.getCommissionRate(indexer.address)).to.equal('0');
+            expect(await indexerRegistry.getCommissionRate(indexer.address)).to.equal('0');
             await startNewEra(mockProvider, eraManager);
-            expect(await staking.getCommissionRate(indexer.address)).to.equal('100');
+            expect(await indexerRegistry.getCommissionRate(indexer.address)).to.equal('100');
         });
 
         it('set commission rate with invalid params should fail', async () => {
             // not an indexer
-            await expect(staking.connect(delegator).setCommissionRate(100)).to.be.revertedWith('Not indexer');
+            await expect(indexerRegistry.connect(delegator).setCommissionRate(100)).to.be.revertedWith('Not indexer');
             // rate greater than COMMISSION_RATE_MULTIPLIER
-            await expect(staking.connect(indexer).setCommissionRate(1e7)).to.be.revertedWith('Invalid rate');
+            await expect(indexerRegistry.connect(indexer).setCommissionRate(1e7)).to.be.revertedWith('Invalid rate');
         });
     });
 });
