@@ -435,6 +435,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         }
     }
 
+    // TODO: need to have fully cover test for this function
     function slashIndexer(address _indexer, uint256 _amount) external {
         require(msg.sender == settings.getDisputeManager(), 'G005');
         require(_amount <= this.getSlashableAmount(_indexer), 'S010');
