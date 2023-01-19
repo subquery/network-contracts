@@ -89,21 +89,17 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
         require(state != DisputeState.Ongoing, 'invalid state');
         Dispute storage dispute = disputes[disputeId];
         require(dispute.state == DisputeState.Ongoing, 'dispute already finalized');
-        //accept dispute 
-        //slash indexer
-        //reward fisherman
+        //accept dispute, slash indexer, reward fisherman
         if (state == DisputeState.Accepted) {
             require(newDeposit > dispute.depositAmount, 'invalid newDeposit');
             uint256 rewardAmount = newDeposit - dispute.depositAmount;
             require(rewardAmount <= indexerSlashAmount, 'invalid newDeposit');
             IStaking(settings.getStaking()).slashIndexer(dispute.indexer, indexerSlashAmount);
         } else if (state == DisputeState.Rejected) {
-            //reject dispute 
-            //slash fisherman
+            //reject dispute, slash fisherman
             require(newDeposit < dispute.depositAmount, 'invalid newDeposit');
         } else if (state == DisputeState.Cancelled) {
-            //cancel dispute
-            //return fisherman deposit
+            //cancel dispute, return fisherman deposit
             require(newDeposit == dispute.depositAmount, 'invalid newDeposit');
         }
 
