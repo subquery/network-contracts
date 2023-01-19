@@ -269,7 +269,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
 
     function stakeCommission(address _indexer, uint256 _amount) external {
         require(msg.sender == settings.getRewardsDistributer(), 'G003');
-        _addDelegation(_indexer, _indexer, _amount);
+        //_addDelegation(_indexer, _indexer, _amount);
     }
 
     /**
@@ -288,7 +288,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         address _indexer,
         uint256 _amount
     ) internal {
-        require(delegation[_source][_indexer].valueAfter >= _amount, 'S005');
+        require(delegation[_source][_indexer].valueAfter >= _amount && _amount > 0, 'S005');
 
         delegation[_source][_indexer].valueAfter -= _amount;
         totalStakingAmount[_indexer].valueAfter -= _amount;

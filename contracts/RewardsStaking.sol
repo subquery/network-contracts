@@ -93,6 +93,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
         _;
     }
 
+    modifier onlyIndexerRegistry() {
+        require(msg.sender == settings.getIndexerRegistry(), 'Only IndexerRegistry');
+        _;
+    }
+
     /**
      * @dev Callback method of stake change, called by Staking contract when
      * Indexers or Delegators try to change their stake amount.
@@ -152,7 +157,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
      * and wait to apply at two Eras later.
      * Last era's reward need to be collected before this can pass.
      */
-    function onICRChange(address indexer, uint256 startEra) external onlyStaking {
+    function onICRChange(address indexer, uint256 startEra) external onlyIndexerRegistry {
         uint256 currentEra = _getCurrentEra();
         require(startEra > currentEra, 'Too early');
 

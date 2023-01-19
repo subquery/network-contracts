@@ -47,7 +47,7 @@ describe('IndexerRegistry Contract', () => {
             expect(await staking.getAfterDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
                 etherParse('1000')
             );
-            expect(await staking.getCommissionRate(wallet_1.address)).to.equal(0);
+            expect(await indexerRegistry.getCommissionRate(wallet_1.address)).to.equal(0);
             expect(await rewardsStaking.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
                 etherParse('1000')
             );

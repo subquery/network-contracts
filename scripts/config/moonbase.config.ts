@@ -16,5 +16,6 @@ export default {
         PurchaseOfferMarket: [1e5, '0x0000000000000000000000000000000000000000'],
         IndexerRegistry: ['1000000000000000000000'],
         ConsumerHost: [1], // Fee Percentage, default is 1%
+        DisputeManager: ['1000000000000000000000'], // minimumDeposit
     },
 };

@@ -47,7 +47,7 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
 
     event DisputeOpen(uint256 indexed disputeId, address fisherman, address indexer, DisputeType _type);
 
-    function initialize(ISettings _settings, uint256 _minimumDeposit) external initializer {
+    function initialize(uint256 _minimumDeposit, ISettings _settings) external initializer {
         __Ownable_init();
 
         settings = _settings;

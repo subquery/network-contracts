@@ -124,5 +124,11 @@
         "address": "0x01ad7b1e3B31680F69dF121CBe8BCD1846DD0843",
         "bytecodeHash": "b3ecc83291d62436a25aa75e81388ac35bdeb48e2ae3cfe7dbd0d1d021031a0a",
         "lastUpdate": "Sun, 18 Dec 2022 23:29:03 GMT"
+    },
+    "DisputeManager": {
+        "innerAddress": "0x5c0B495684731f608dA7Fb143A126CdbfDB78ABc",
+        "address": "0x01ad7b1e3B31680F69dF121CBe8BCD1846DD0843",
+        "bytecodeHash": "b3ecc83291d62436a25aa75e81388ac35bdeb48e2ae3cfe7dbd0d1d021031a0a",
+        "lastUpdate": "Sun, 18 Dec 2022 23:29:03 GMT"
     }
 }
