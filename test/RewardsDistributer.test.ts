@@ -22,6 +22,8 @@ import {
 } from '../src';
 import {startNewEra, time, acceptPlan, etherParse, timeTravel} from './helper';
 
+// FIXME: there are many values changed in the test, need to evalutate whether it is correct
+
 describe('RewardsDistributer Contract', () => {
     const mockProvider = waffle.provider;
     let root, indexer, consumer, delegator, delegator2;
