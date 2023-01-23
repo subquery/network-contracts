@@ -69,7 +69,6 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
         require(_deposit >= minimumDeposit, 'Not meet the minimum deposit');
         IERC20(settings.getSQToken()).safeTransferFrom(msg.sender, address(this), _deposit);
 
-        // initial the channel
         Dispute storage dispute = disputes[nextDisputeId];
         dispute.disputeId = nextDisputeId;
         dispute.indexer = _indexer;
