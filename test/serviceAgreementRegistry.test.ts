@@ -6,7 +6,7 @@ import {BigNumber} from 'ethers';
 import {ethers, waffle} from 'hardhat';
 import {deployContracts} from './setup';
 import {deploymentIds, DEPLOYMENT_ID, METADATA_HASH, VERSION, mmrRoot} from './constants';
-import {createPurchaseOffer, futureTimestamp, time, timeTravel, etherParse} from './helper';
+import {createPurchaseOffer, futureTimestamp, time, timeTravel, etherParse, eventFrom} from './helper';
 import {
     SQToken,
     Staking,
@@ -492,24 +492,10 @@ describe('Service Agreement Registry Contract', () => {
             expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_1)).to.eql(true);
             expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_2)).to.eql(false);
             let tx = await serviceAgreementRegistry.connect(consumer).addUser(consumer.address, user_2);
-            let receipt = await tx.wait();
-            let evt = receipt.events.find(
-                (log) => log.topics[0] === utils.id('UserAdded(address,address)')
-            );
-            let event = serviceAgreementRegistry.interface.decodeEventLog(
-                serviceAgreementRegistry.interface.getEvent('UserAdded'),
-                evt.data
-            );
+            let event = await eventFrom(tx, serviceAgreementRegistry, "UserAdded(address,address)");
             expect(event.user).to.eql(user_2);
             tx = await serviceAgreementRegistry.connect(consumer).removeUser(consumer.address, user_1);
-            receipt = await tx.wait();
-            evt = receipt.events.find(
-                (log) => log.topics[0] === utils.id('UserRemoved(address,address)')
-            );
-            event = serviceAgreementRegistry.interface.decodeEventLog(
-                serviceAgreementRegistry.interface.getEvent('UserRemoved'),
-                evt.data
-            );
+            event = await eventFrom(tx, serviceAgreementRegistry, "UserRemoved(address,address)");
             expect(event.user).to.eql(user_1);
             expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_1)).to.eql(false);
             expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_2)).to.eql(true);

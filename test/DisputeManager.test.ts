@@ -4,12 +4,12 @@
 import {expect} from 'chai';
 import {ethers, waffle} from 'hardhat';
 import {deployContracts} from './setup';
-import {etherParse, registerIndexer, startNewEra, time} from './helper';
+import {etherParse, registerIndexer, startNewEra, time, eventFrom} from './helper';
 import {DEPLOYMENT_ID} from './constants';
 import {DisputeManager, SQToken, Staking, IndexerRegistry, EraManager, RewardsDistributer, RewardsStaking, RewardsHelper} from '../src';
 import {utils} from 'ethers';
 
-describe.only('Dispute Manager Contract', () => {
+describe('Dispute Manager Contract', () => {
     const mockProvider = waffle.provider;
     let root, indexer, fisherman;
     let disputeManager: DisputeManager;
@@ -47,14 +47,7 @@ describe.only('Dispute Manager Contract', () => {
         it('createDispute should work', async () => {
             await token.connect(root).transfer(fisherman.address, etherParse("1000"));
             const tx = await disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('1000'), 0);
-            const receipt = await tx.wait();
-            const evt = receipt.events.find(
-                (log) => log.topics[0] === utils.id('DisputeOpen(uint256,address,address,uint8)')
-            );
-            const event = disputeManager.interface.decodeEventLog(
-                disputeManager.interface.getEvent('DisputeOpen'),
-                evt.data
-            );
+            const event = await eventFrom(tx, disputeManager, "DisputeOpen(uint256,address,address,uint8)")
             expect(event.fisherman).to.eql(fisherman.address);
             expect(event.indexer).to.eql(indexer.address);
             expect(event._type).to.eql(0);
