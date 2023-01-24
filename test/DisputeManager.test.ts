@@ -7,7 +7,6 @@ import {deployContracts} from './setup';
 import {etherParse, registerIndexer, startNewEra, time, eventFrom} from './helper';
 import {DEPLOYMENT_ID} from './constants';
 import {DisputeManager, SQToken, Staking, IndexerRegistry, EraManager, RewardsDistributer, RewardsStaking, RewardsHelper} from '../src';
-import {utils} from 'ethers';
 
 describe('Dispute Manager Contract', () => {
     const mockProvider = waffle.provider;
@@ -201,16 +200,9 @@ describe('Dispute Manager Contract', () => {
 
         it('indexer cannot widthdraw if on dispute', async () => {
             await staking.connect(indexer).unstake(indexer.address, etherParse('2'));
-            await startNewEra(mockProvider, eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(indexer.address);
-            await rewardsStaking.applyStakeChange(indexer.address, indexer.address);
-            await startNewEra(mockProvider, eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(indexer.address);
-            await startNewEra(mockProvider, eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             await expect(
                 staking.connect(indexer).widthdraw()
-            ).to.be.revertedWith('G005');
+            ).to.be.revertedWith('G006');
         });
     });
 });

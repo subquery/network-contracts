@@ -422,7 +422,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * Each withdraw need to exceed lockPeriod.
      */
     function widthdraw() external override {
-        require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(msg.sender), 'G005');
+        require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(msg.sender), 'G006');
         uint256 withdrawingLength = unbondingLength[msg.sender] - withdrawnLength[msg.sender];
         require(withdrawingLength > 0, 'S009');
 
