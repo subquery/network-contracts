@@ -267,10 +267,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         _delegateToIndexer(_indexer, _indexer, _amount);
     }
 
-    function stakeCommission(address _indexer, uint256 _amount) external {
-        require(msg.sender == settings.getRewardsDistributer(), 'G003');
-        //_addDelegation(_indexer, _indexer, _amount);
-    }
+    //TODO: stake the commission to indexer
+    // function stakeCommission(address _indexer, uint256 _amount) external {
+    //     require(msg.sender == settings.getRewardsDistributer(), 'G003');
+    //     //_addDelegation(_indexer, _indexer, _amount);
+    // }
 
     /**
      * @dev Delegator stake to Indexer, Indexer cannot call this.
@@ -421,7 +422,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * Each withdraw need to exceed lockPeriod.
      */
     function widthdraw() external override {
-        require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(msg.sender), 'G005');
+        require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(msg.sender), 'G006');
         uint256 withdrawingLength = unbondingLength[msg.sender] - withdrawnLength[msg.sender];
         require(withdrawingLength > 0, 'S009');
 

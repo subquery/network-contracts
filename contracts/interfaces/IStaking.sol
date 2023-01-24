@@ -48,5 +48,6 @@ interface IStaking {
 
     function slashIndexer(address _indexer, uint256 _amount) external;
 
-    function stakeCommission(address _indexer, uint256 _amount) external;
+    //TODO: stake the commission to indexer
+    // function stakeCommission(address _indexer, uint256 _amount) external;
 }

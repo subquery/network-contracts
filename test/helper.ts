@@ -4,7 +4,14 @@ import {ServiceAgreementRegistry} from './../src/typechain/ServiceAgreementRegis
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import {MockProvider} from 'ethereum-waffle';
-import {BigNumber, Contract, Wallet, utils} from 'ethers';
+import {
+    BaseContract,
+    BigNumber,
+    Wallet,
+    ContractTransaction,
+    utils,
+    Contract,
+} from "ethers";
 import {IndexerRegistry, EraManager, PlanManager} from '../src';
 import {METADATA_HASH, VERSION} from './constants';
 const {constants, time} = require('@openzeppelin/test-helpers');
@@ -109,4 +116,16 @@ export async function acceptPlan(
 
 export function etherParse(etherNum: string) {
     return BigNumber.from(web3.utils.toWei(etherNum, 'ether'));
+}
+
+type Event = utils.Result;
+export async function eventFrom(tx: ContractTransaction, contract: BaseContract, event: string): Promise<Event> {
+    const receipt = await tx.wait();
+    const evt = receipt.events.find((log) => log.topics[0] === utils.id(event));
+
+    const eventName = event.split('(')[0];
+    return contract.interface.decodeEventLog(
+        contract.interface.getEvent(eventName),
+        evt.data
+    );
 }

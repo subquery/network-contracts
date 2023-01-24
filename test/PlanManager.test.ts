@@ -17,7 +17,7 @@ import {
     SQToken,
     Staking,
 } from '../src';
-import {constants, registerIndexer, startNewEra, time, etherParse} from './helper';
+import {constants, registerIndexer, startNewEra, time, etherParse, eventFrom} from './helper';
 import {utils} from 'ethers';
 
 describe('PlanManger Contract', () => {
@@ -229,14 +229,7 @@ describe('PlanManger Contract', () => {
             const rewardsDistrBalance = await token.balanceOf(rewardsDistributor.address);
             await token.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, plan.price);
             const tx = await planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, planId);
-            const receipt = await tx.wait();
-            const evt = receipt.events.find(
-                (log) => log.topics[0] === utils.id('ClosedAgreementCreated(address,address,bytes32,uint256)')
-            );
-            const agreementId = serviceAgreementRegistry.interface.decodeEventLog(
-                serviceAgreementRegistry.interface.getEvent('ClosedAgreementCreated'),
-                evt.data
-            ).serviceAgreementId;
+            const agreementId = (await eventFrom(tx, serviceAgreementRegistry, "ClosedAgreementCreated(address,address,bytes32,uint256)")).serviceAgreementId;
 
             // check balances
             expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(plan.price));
