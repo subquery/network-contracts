@@ -9,7 +9,7 @@ import {DEPLOYMENT_ID} from './constants';
 import {DisputeManager, SQToken, Staking, IndexerRegistry, EraManager, RewardsDistributer, RewardsStaking, RewardsHelper} from '../src';
 import {utils} from 'ethers';
 
-describe('Dispute Manager Contract', () => {
+describe.only('Dispute Manager Contract', () => {
     const mockProvider = waffle.provider;
     let root, indexer, fisherman;
     let disputeManager: DisputeManager;
@@ -43,55 +43,57 @@ describe('Dispute Manager Contract', () => {
         expect(await disputeManager.minimumDeposit()).to.equal(etherParse('10'));
     });
 
-    it('createDispute should work', async () => {
-        await token.connect(root).transfer(fisherman.address, etherParse("1000"));
-        let tx = await disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('1000'), 0);
-        let receipt = await tx.wait();
-        let evt = receipt.events.find(
-            (log) => log.topics[0] === utils.id('DisputeOpen(uint256,address,address,uint8)')
-        );
-        let event = disputeManager.interface.decodeEventLog(
-            disputeManager.interface.getEvent('DisputeOpen'),
-            evt.data
-        );
-        expect(event.fisherman).to.eql(fisherman.address);
-        expect(event.indexer).to.eql(indexer.address);
-        expect(event._type).to.eql(0);
+    describe('Create Dispute', () => {
+        it('createDispute should work', async () => {
+            await token.connect(root).transfer(fisherman.address, etherParse("1000"));
+            const tx = await disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('1000'), 0);
+            const receipt = await tx.wait();
+            const evt = receipt.events.find(
+                (log) => log.topics[0] === utils.id('DisputeOpen(uint256,address,address,uint8)')
+            );
+            const event = disputeManager.interface.decodeEventLog(
+                disputeManager.interface.getEvent('DisputeOpen'),
+                evt.data
+            );
+            expect(event.fisherman).to.eql(fisherman.address);
+            expect(event.indexer).to.eql(indexer.address);
+            expect(event._type).to.eql(0);
 
 
-        expect(await disputeManager.nextDisputeId()).to.equal(2);
-        expect(await disputeManager.disputeIdByIndexer(indexer.address,0)).to.equal(1);
+            expect(await disputeManager.nextDisputeId()).to.equal(2);
+            expect(await disputeManager.disputeIdByIndexer(indexer.address,0)).to.equal(1);
 
-        let dispute = await disputeManager.disputes(1);
-        expect(dispute.disputeId).to.equal(1);
-        expect(dispute.indexer).to.equal(indexer.address);
-        expect(dispute.fisherman).to.equal(fisherman.address);
-        expect(dispute.depositAmount).to.equal(etherParse('1000'));
-        expect(dispute.deploymentId).to.equal(DEPLOYMENT_ID);
-        expect(dispute.dtype).to.equal(0);
-        expect(dispute.state).to.equal(0);
+            const dispute = await disputeManager.disputes(1);
+            expect(dispute.disputeId).to.equal(1);
+            expect(dispute.indexer).to.equal(indexer.address);
+            expect(dispute.fisherman).to.equal(fisherman.address);
+            expect(dispute.depositAmount).to.equal(etherParse('1000'));
+            expect(dispute.deploymentId).to.equal(DEPLOYMENT_ID);
+            expect(dispute.dtype).to.equal(0);
+            expect(dispute.state).to.equal(0);
 
-        expect(await token.balanceOf(fisherman.address)).equal(0);
-    });
+            expect(await token.balanceOf(fisherman.address)).equal(0);
+        });
 
-    it('createDispute not reach MinimumDeposit should fail', async () => {
-        await token.connect(root).transfer(fisherman.address, etherParse("1000"));
-        await expect(
-            disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('10'), 0)
-        ).to.be.revertedWith('Not meet the minimum deposit');
-    });
+        it('createDispute not reach MinimumDeposit should fail', async () => {
+            await token.connect(root).transfer(fisherman.address, etherParse("1000"));
+            await expect(
+                disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('10'), 0)
+            ).to.be.revertedWith('Not meet the minimum deposit');
+        });
 
-    it('createDispute on an indexer over 20 times should fail', async () => {
-        await token.connect(root).transfer(fisherman.address, etherParse("1000"));
-        await disputeManager.setMinimumDeposit(etherParse('1'));
-        let count = 0;
-        while(count <= 20){
-            await disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('1'), 0);
-            count++;
-        }
-        await expect(
-            disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('1'), 0)
-        ).to.be.revertedWith('reach dispute limit');
+        it('createDispute on an indexer over 20 times should fail', async () => {
+            await token.connect(root).transfer(fisherman.address, etherParse("1000"));
+            await disputeManager.setMinimumDeposit(etherParse('1'));
+            let count = 0;
+            while(count <= 20){
+                await disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('1'), 0);
+                count++;
+            }
+            await expect(
+                disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('1'), 0)
+            ).to.be.revertedWith('reach dispute limit');
+        });
     });
 
     describe('finalizeDispute', () => {
@@ -145,7 +147,7 @@ describe('Dispute Manager Contract', () => {
 
             expect((await staking.getUnbondingAmounts(indexer.address)).length).equal(0);
 
-            let dispute = await disputeManager.disputes(1);
+            const dispute = await disputeManager.disputes(1);
             expect(dispute.state).to.equal(1);
         });
 
@@ -164,7 +166,7 @@ describe('Dispute Manager Contract', () => {
 
             expect((await staking.getUnbondingAmounts(indexer.address)).length).equal(0);
 
-            let dispute = await disputeManager.disputes(1);
+            const dispute = await disputeManager.disputes(1);
             expect(dispute.state).to.equal(1);
         });
 
@@ -173,7 +175,7 @@ describe('Dispute Manager Contract', () => {
             expect(await staking.getTotalStakingAmount(indexer.address)).equal(etherParse('2000'));
             expect(await token.balanceOf(fisherman.address)).equal(etherParse('900'));
 
-            let dispute = await disputeManager.disputes(1);
+            const dispute = await disputeManager.disputes(1);
             expect(dispute.state).to.equal(2);
         });
 
@@ -182,7 +184,7 @@ describe('Dispute Manager Contract', () => {
             expect(await staking.getTotalStakingAmount(indexer.address)).equal(etherParse('2000'));
             expect(await token.balanceOf(fisherman.address)).equal(etherParse('1000'));
 
-            let dispute = await disputeManager.disputes(1);
+            const dispute = await disputeManager.disputes(1);
             expect(dispute.state).to.equal(3);
         });
 
@@ -202,6 +204,20 @@ describe('Dispute Manager Contract', () => {
             await expect(
                 disputeManager.finalizeDispute(1, 3, 0, etherParse('100'))
             ).to.be.revertedWith('invalid newDeposit');
+        });
+
+        it('indexer cannot widthdraw if on dispute', async () => {
+            await staking.connect(indexer).unstake(indexer.address, etherParse('2'));
+            await startNewEra(mockProvider, eraManager);
+            await rewardsDistributor.collectAndDistributeRewards(indexer.address);
+            await rewardsStaking.applyStakeChange(indexer.address, indexer.address);
+            await startNewEra(mockProvider, eraManager);
+            await rewardsDistributor.collectAndDistributeRewards(indexer.address);
+            await startNewEra(mockProvider, eraManager);
+            await rewardsDistributor.collectAndDistributeRewards(indexer.address);
+            await expect(
+                staking.connect(indexer).widthdraw()
+            ).to.be.revertedWith('G005');
         });
     });
 });

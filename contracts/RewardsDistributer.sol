@@ -291,6 +291,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     
             // stake the commission to indexer
             IERC20(settings.getSQToken()).safeTransfer(indexer, commission);
+            //TODO: stake the commission to indexer
             // IStaking(settings.getStaking()).stakeCommission(indexer, commission);
 
             emit DistributeRewards(indexer, rewardInfo.lastClaimEra, commission);

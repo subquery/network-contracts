@@ -267,6 +267,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         _delegateToIndexer(_indexer, _indexer, _amount);
     }
 
+    //TODO: stake the commission to indexer
     // function stakeCommission(address _indexer, uint256 _amount) external {
     //     require(msg.sender == settings.getRewardsDistributer(), 'G003');
     //     //_addDelegation(_indexer, _indexer, _amount);
