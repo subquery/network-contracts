@@ -134,7 +134,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      */
     function widthdraw() external override {
         Staking staking = Staking(settings.getStaking());
-        require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(msg.sender), 'G005');
+        require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(msg.sender), 'G006');
         uint256 withdrawingLength = staking.unbondingLength(msg.sender) - staking.withdrawnLength(msg.sender);
         require(withdrawingLength > 0, 'S009');
 
@@ -145,7 +145,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
                 break;
             }
 
-            staking._withdrawARequest(i);
+            staking._withdrawARequest(msg.sender, i);
         }
     }
 

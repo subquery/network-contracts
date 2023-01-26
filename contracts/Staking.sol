@@ -302,10 +302,10 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * @dev Withdraw a single request.
      * burn the withdrawn fees and transfer the rest to delegator.
      */
-    function _withdrawARequest(uint256 _index) external onlyStakingManager {
-        withdrawnLength[msg.sender]++;
+    function _withdrawARequest(address _source, uint256 _index) external onlyStakingManager {
+        withdrawnLength[_source]++;
 
-        uint256 amount = unbondingAmount[msg.sender][_index].amount;
+        uint256 amount = unbondingAmount[_source][_index].amount;
         if (amount > 0) {
             // burn specific percentage
             uint256 burnAmount = MathUtil.mulDiv(unbondFeeRate, amount, PER_MILL);
@@ -313,11 +313,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
 
             address SQToken = settings.getSQToken();
             ISQToken(SQToken).burn(burnAmount);
-            IERC20(SQToken).safeTransfer(msg.sender, availableAmount);
+            IERC20(SQToken).safeTransfer(_source, availableAmount);
 
-            lockedAmount[msg.sender] -= amount;
+            lockedAmount[_source] -= amount;
 
-            emit UnbondWithdrawn(msg.sender, availableAmount, _index);
+            emit UnbondWithdrawn(_source, availableAmount, _index);
         }
     }
 
