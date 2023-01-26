@@ -4,7 +4,7 @@
 import {expect} from 'chai';
 import {ethers, waffle} from 'hardhat';
 
-import {IndexerRegistry, EraManager, SQToken, Staking, VSQToken} from '../src';
+import {IndexerRegistry, EraManager, SQToken, Staking, VSQToken, StakingManager} from '../src';
 import {deployContracts} from './setup';
 import {registerIndexer, startNewEra, etherParse} from './helper';
 
@@ -13,6 +13,7 @@ describe('VSQToken Contract', () => {
     let root, indexer, indexer2, delegator;
     let token: SQToken;
     let staking: Staking;
+    let stakingManager: StakingManager;
     let eraManager: EraManager;
     let indexerRegistry: IndexerRegistry;
     let vtoken: VSQToken;
@@ -22,6 +23,7 @@ describe('VSQToken Contract', () => {
         const deployment = await deployContracts(root, root);
         token = deployment.token;
         staking = deployment.staking;
+        stakingManager = deployment.stakingManager;
         eraManager = deployment.eraManager;
         indexerRegistry = deployment.indexerRegistry;
         vtoken = deployment.vtoken;
@@ -36,8 +38,8 @@ describe('VSQToken Contract', () => {
     });
 
     it('get balance of VSQT Token should work', async () => {
-        await staking.connect(delegator).delegate(indexer.address, etherParse('5'));
-        await staking.connect(delegator).delegate(indexer2.address, etherParse('5'));
+        await stakingManager.connect(delegator).delegate(indexer.address, etherParse('5'));
+        await stakingManager.connect(delegator).delegate(indexer2.address, etherParse('5'));
         expect(await token.balanceOf(indexer.address)).to.equal(etherParse('1000'));
         expect(await vtoken.balanceOf(indexer.address)).to.equal(etherParse('2000'));
         expect(await token.balanceOf(indexer2.address)).to.equal(etherParse('1000'));
@@ -45,10 +47,10 @@ describe('VSQToken Contract', () => {
         expect(await token.balanceOf(delegator.address)).to.equal(etherParse('5'));
         expect(await vtoken.balanceOf(delegator.address)).to.equal(etherParse('15'));
 
-        await staking.connect(delegator).undelegate(indexer.address, etherParse('2'));
+        await stakingManager.connect(delegator).undelegate(indexer.address, etherParse('2'));
         await startNewEra(mockProvider, eraManager);
         expect(await vtoken.balanceOf(delegator.address)).to.equal(etherParse('15'));
-        await staking.connect(delegator).widthdraw();
+        await stakingManager.connect(delegator).widthdraw();
         expect(await token.balanceOf(delegator.address)).to.equal(etherParse('6.998'));
         expect(await vtoken.balanceOf(delegator.address)).to.equal(etherParse('14.998'));
     });

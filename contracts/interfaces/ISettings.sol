@@ -16,6 +16,7 @@ interface ISettings {
     function setTokenAddresses(
         address _sqToken,
         address _staking,
+        address _stakingManager,
         address _rewardsDistributer,
         address _rewardsPool,
         address _rewardsStaking,
@@ -32,6 +33,10 @@ interface ISettings {
     function setStaking(address _staking) external;
 
     function getStaking() external view returns (address);
+
+    function setStakingManager(address _stakingManager) external;
+
+    function getStakingManager() external view returns (address);
 
     function setIndexerRegistry(address _indexerRegistry) external;
 

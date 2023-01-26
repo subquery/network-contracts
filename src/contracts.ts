@@ -2,6 +2,7 @@ import SQToken from './artifacts/contracts/SQToken.sol/SQToken.json';
 import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import Settings from './artifacts/contracts/Settings.sol/Settings.json';
 import Staking from './artifacts/contracts/Staking.sol/Staking.json';
+import StakingManager from './artifacts/contracts/StakingManager.sol/StakingManager.json';
 import IndexerRegistry from './artifacts/contracts/IndexerRegistry.sol/IndexerRegistry.json';
 import QueryRegistry from './artifacts/contracts/QueryRegistry.sol/QueryRegistry.json';
 import InflationController from './artifacts/contracts/InflationController.sol/InflationController.json';
@@ -26,6 +27,7 @@ export default {
     SQToken,
     VSQToken,
     Staking,
+    StakingManager,
     IndexerRegistry,
     QueryRegistry,
     InflationController,
