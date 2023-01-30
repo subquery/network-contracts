@@ -8,12 +8,12 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IQueryRegistry.sol';
 import './interfaces/IEraManager.sol';
 import './Constants.sol';
 import './interfaces/IRewardsStaking.sol';
+import './interfaces/IStakingManager.sol';
 
 /**
  * @title Indexer Registry Contract
@@ -132,9 +132,8 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
         isIndexer[msg.sender] = true;
         metadataByIndexer[msg.sender] = _metadata;
 
-        IStaking staking = IStaking(settings.getStaking());
         setInitialCommissionRate(msg.sender, _rate);
-        staking.stake(msg.sender, _amount);
+        IStakingManager(settings.getStakingManager()).stake(msg.sender, _amount);
 
         emit RegisterIndexer(msg.sender, _amount, _metadata);
     }
@@ -153,9 +152,9 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
         isIndexer[msg.sender] = false;
         delete metadataByIndexer[msg.sender];
 
-        IStaking staking = IStaking(settings.getStaking());
-        uint256 amount = staking.getAfterDelegationAmount(msg.sender, msg.sender);
-        staking.unstake(msg.sender, amount);
+        IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
+        uint256 amount = stakingManager.getAfterDelegationAmount(msg.sender, msg.sender);
+        stakingManager.unstake(msg.sender, amount);
 
         emit UnregisterIndexer(msg.sender);
     }

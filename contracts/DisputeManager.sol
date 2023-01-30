@@ -8,7 +8,7 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-import './interfaces/IStaking.sol';
+import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/ISQToken.sol';
@@ -93,7 +93,7 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
             require(newDeposit > dispute.depositAmount, 'invalid newDeposit');
             uint256 rewardAmount = newDeposit - dispute.depositAmount;
             require(rewardAmount <= indexerSlashAmount, 'invalid newDeposit');
-            IStaking(settings.getStaking()).slashIndexer(dispute.indexer, indexerSlashAmount);
+            IStakingManager(settings.getStakingManager()).slashIndexer(dispute.indexer, indexerSlashAmount);
         } else if (state == DisputeState.Rejected) {
             //reject dispute, slash fisherman
             require(newDeposit < dispute.depositAmount, 'invalid newDeposit');

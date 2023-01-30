@@ -11,6 +11,7 @@ import './Constants.sol';
 contract Settings is ISettings, Ownable, Constants {
     address public sqToken;
     address public staking;
+    address public stakingManager;
     address public indexerRegistry;
     address public queryRegistry;
     address public eraManager;
@@ -53,6 +54,7 @@ contract Settings is ISettings, Ownable, Constants {
     function setTokenAddresses(
         address _sqToken,
         address _staking,
+        address _stakingManager,
         address _rewardsDistributer,
         address _rewardsPool,
         address _rewardsStaking,
@@ -63,6 +65,7 @@ contract Settings is ISettings, Ownable, Constants {
     ) external override onlyOwner {
         require(_sqToken != ZERO_ADDRESS);
         require(_staking != ZERO_ADDRESS);
+        require(_stakingManager != ZERO_ADDRESS);
         require(_inflationController != ZERO_ADDRESS);
         require(_vesting != ZERO_ADDRESS);
         require(_rewardsDistributer != ZERO_ADDRESS);
@@ -73,6 +76,7 @@ contract Settings is ISettings, Ownable, Constants {
 
         sqToken = _sqToken;
         staking = _staking;
+        stakingManager = _stakingManager;
         rewardsDistributer = _rewardsDistributer;
         rewardsPool = _rewardsPool;
         rewardsStaking = _rewardsStaking;
@@ -98,6 +102,15 @@ contract Settings is ISettings, Ownable, Constants {
 
     function getStaking() external view override returns (address) {
         return staking;
+    }
+
+    function setStakingManager(address _stakingManager) external override onlyOwner {
+        require(_stakingManager != ZERO_ADDRESS);
+        stakingManager = _stakingManager;
+    }
+
+    function getStakingManager() external view override returns (address) {
+        return stakingManager;
     }
 
     function setIndexerRegistry(address _indexerRegistry) external override onlyOwner {

@@ -10,7 +10,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 
 import './Constants.sol';
-import './interfaces/IStaking.sol';
+import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IRewardsPool.sol';
@@ -151,8 +151,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
 
         // indexer joined the deployment pool firstly.
         if (pool.labor[indexer] == 0) {
-            IStaking staking = IStaking(settings.getStaking());
-            uint256 myStake = staking.getTotalStakingAmount(indexer);
+            IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
+            uint256 myStake = stakingManager.getTotalStakingAmount(indexer);
             require(myStake > 0, 'Not indexer');
             pool.stake[indexer] = myStake;
             pool.totalStake += myStake;

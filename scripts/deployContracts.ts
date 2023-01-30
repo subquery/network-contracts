@@ -14,6 +14,8 @@ import {
     QueryRegistry__factory,
     InflationController,
     Staking,
+    StakingManager,
+    StakingManager__factory,
     Settings__factory,
     QueryRegistry,
     PlanManager__factory,
@@ -64,6 +66,7 @@ export type Contracts = {
     token: SQToken;
     vtoken: VSQToken;
     staking: Staking;
+    stakingManager: StakingManager;
     eraManager: EraManager;
     indexerRegistry: IndexerRegistry;
     queryRegistry: QueryRegistry;
@@ -93,6 +96,7 @@ const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: s
     RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
     ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
+    StakingManager: [CONTRACTS.StakingManager, StakingManager__factory],
     EraManager: [CONTRACTS.EraManager, EraManager__factory],
     PurchaseOfferMarket: [CONTRACTS.PurchaseOfferMarket, PurchaseOfferMarket__factory],
     StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
@@ -232,6 +236,12 @@ export async function deployContracts(
     );
     await initStaking.wait();
     updateDeployment(deployment, 'Staking', staking.address, SInnerAddr, staking.deployTransaction.hash);
+
+    // deploy StakingManager contract
+    const [stakingManager, SMInnerAddr] = await deployProxy<StakingManager>(proxyAdmin, StakingManager__factory, wallet, overrides);
+    const stakingManagerInit = await stakingManager.initialize(deployment.Settings.address, overrides);
+    await stakingManagerInit.wait();
+    updateDeployment(deployment, 'StakingManager', stakingManager.address, SMInnerAddr, stakingManager.deployTransaction.hash);
 
     // deploy Era manager
     const [eraManager, EMInnerAddr] = await deployProxy<EraManager>(proxyAdmin, EraManager__factory, wallet, overrides);
@@ -460,6 +470,7 @@ export async function deployContracts(
     const txToken = await settings.setTokenAddresses(
         deployment.SQToken.address,
         deployment.Staking.address,
+        deployment.StakingManager.address,
         deployment.RewardsDistributer.address,
         deployment.RewardsPool.address,
         deployment.RewardsStaking.address,
@@ -492,6 +503,7 @@ export async function deployContracts(
             token: sqtToken,
             vtoken: vsqtToken,
             staking,
+            stakingManager,
             eraManager,
             indexerRegistry,
             queryRegistry,

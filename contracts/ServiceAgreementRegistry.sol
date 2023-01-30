@@ -14,7 +14,7 @@ import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IQueryRegistry.sol';
 import './interfaces/IRewardsDistributer.sol';
-import './interfaces/IStaking.sol';
+import './interfaces/IStakingManager.sol';
 import './interfaces/IPlanManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
@@ -190,8 +190,8 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
             'Indexing service is not available'
         );
 
-        IStaking staking = IStaking(settings.getStaking());
-        uint256 totalStake = staking.getTotalStakingAmount(indexer);
+        IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
+        uint256 totalStake = stakingManager.getTotalStakingAmount(indexer);
 
         uint256 lockedAmount = agreement.lockedAmount;
         uint256 period = periodInDay(agreement.period);

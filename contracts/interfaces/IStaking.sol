@@ -24,30 +24,7 @@ struct UnbondAmount {
 }
 
 interface IStaking {
-    function stake(address _indexer, uint256 _amount) external;
-
-    function unstake(address _indexer, uint256 _amount) external;
-
-    function delegate(address _delegator, uint256 _amount) external;
-
-    function redelegate(
-        address from_indexer,
-        address to_indexer,
-        uint256 _amount
-    ) external;
-
-    function undelegate(address _indexer, uint256 _amount) external;
-
-    function widthdraw() external;
-
-    function getTotalStakingAmount(address _indexer) external view returns (uint256);
-
-    function getAfterDelegationAmount(address _delegator, address _indexer) external view returns (uint256);
-
     function lockedAmount(address _delegator) external view returns (uint256);
 
-    function slashIndexer(address _indexer, uint256 _amount) external;
-
-    //TODO: stake the commission to indexer
-    // function stakeCommission(address _indexer, uint256 _amount) external;
+    function stakeCommission(address _indexer, uint256 _amount) external;
 }

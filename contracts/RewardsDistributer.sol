@@ -8,7 +8,6 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IPermissionedExchange.sol';
@@ -18,6 +17,7 @@ import './interfaces/IRewardsPool.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/IIndexerRegistry.sol';
+import './interfaces/IStakingManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
 

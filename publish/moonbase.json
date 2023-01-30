@@ -47,6 +47,12 @@
         "bytecodeHash": "03d4b85270a4b07845e9064ee51f334ad31689a993264970b939eb29dce0dbf6",
         "lastUpdate": "Sun, 04 Dec 2022 22:55:51 GMT"
     },
+    "StakingManager": {
+        "innerAddress": "0x759e46e0176eF48309d313654cC1FceCc0E9890b",
+        "address": "0x89b8288640B27A4bA43a4C95C4B627adD129Feb5",
+        "bytecodeHash": "03d4b85270a4b07845e9064ee51f334ad31689a993264970b939eb29dce0dbf6",
+        "lastUpdate": "Sun, 04 Dec 2022 22:55:51 GMT"
+    },
     "EraManager": {
         "innerAddress": "0x1072c7514B497d5d0f1E6Adf570964e5b862b8a5",
         "address": "0x7a91eF214454a4C26A66B8091AB740B5ec369691",
