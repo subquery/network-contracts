@@ -23,8 +23,14 @@ struct UnbondAmount {
     uint256 startTime; // unbond start time
 }
 
+enum UnbondType {
+    Undelegation,
+    Unstake,
+    Commission
+}
+
 interface IStaking {
     function lockedAmount(address _delegator) external view returns (uint256);
 
-    function stakeCommission(address _indexer, uint256 _amount) external;
+    function unbondCommission(address _indexer, uint256 _amount) external;
 }

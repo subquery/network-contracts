@@ -129,7 +129,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     /**
      * @dev Emitted when request unbond.
      */
-    event UnbondRequested(address indexed source, address indexed indexer, uint256 amount, uint256 index);
+    event UnbondRequested(address indexed source, address indexed indexer, uint256 amount, uint256 index, UnbondType _type);
 
     /**
      * @dev Emitted when request withdraw.
@@ -291,10 +291,14 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     function startUnbond(
         address _source,
         address _indexer,
-        uint256 _amount
-    ) external onlyStakingManager {
+        uint256 _amount,
+        UnbondType _type
+    ) external {
+        require(msg.sender == settings.getStakingManager() || msg.sender == address(this), 'G008');
         require(unbondingLength[_source] - withdrawnLength[_source] <= 20, 'S006');
-        this.removeDelegation(_source, _indexer, _amount);
+        if(_type != UnbondType.Commission){
+            this.removeDelegation(_source, _indexer, _amount);
+        }
 
         uint256 index = unbondingLength[_source];
         UnbondAmount storage uamount = unbondingAmount[_source][index];
@@ -303,7 +307,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         uamount.indexer = _indexer;
         unbondingLength[_source]++;
 
-        emit UnbondRequested(_source, _indexer, _amount, index);
+        emit UnbondRequested(_source, _indexer, _amount, index, _type);
     }
 
     /**
@@ -362,9 +366,10 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         IERC20(settings.getSQToken()).safeTransfer(settings.getDisputeManager(), _amount);
     }
 
-    function stakeCommission(address _indexer, uint256 _amount) external {
+    function unbondCommission(address _indexer, uint256 _amount) external {
         require(msg.sender == settings.getRewardsDistributer(), 'G003');
-        //_addDelegation(_indexer, _indexer, _amount);
+        lockedAmount[_indexer] += _amount;
+        this.startUnbond(_indexer, _indexer, _amount, UnbondType.Commission);
     }
 
     // -- Views --

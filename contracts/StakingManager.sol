@@ -73,7 +73,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
             (,,uint256 totalStakingAmount) = staking.totalStakingAmount(_indexer);
             require(stakingAmountAfter * staking.indexerLeverageLimit() >= totalStakingAmount - _amount, 'S008');
         }
-        staking.startUnbond(_indexer, _indexer, _amount);
+        staking.startUnbond(_indexer, _indexer, _amount, UnbondType.Unstake);
     }
 
     /**
@@ -84,7 +84,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         require(_indexer != msg.sender, 'G004');
         Staking staking = Staking(settings.getStaking());
         staking.reflectEraUpdate(msg.sender, _indexer);
-        staking.startUnbond(msg.sender, _indexer, _amount);
+        staking.startUnbond(msg.sender, _indexer, _amount, UnbondType.Undelegation);
     }
 
     /**
