@@ -103,7 +103,7 @@ describe('Dispute Manager Contract', () => {
 
         it('accept dispute with indexer has 0 unbonding amount should work', async () => {
             await disputeManager.finalizeDispute(1, 1, etherParse('10'), etherParse('1005'));
-            expect(await staking.getTotalStakingAmount(indexer.address)).equal(etherParse('1990'));
+            expect(await stakingManager.getTotalStakingAmount(indexer.address)).equal(etherParse('1990'));
             expect(await token.balanceOf(fisherman.address)).equal(etherParse('1005'));
         });
 
@@ -114,13 +114,13 @@ describe('Dispute Manager Contract', () => {
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             await rewardsStaking.applyStakeChange(indexer.address, indexer.address);
 
-            expect(await staking.getTotalStakingAmount(indexer.address)).equal(etherParse('1988'));
+            expect(await stakingManager.getTotalStakingAmount(indexer.address)).equal(etherParse('1988'));
             await disputeManager.finalizeDispute(1, 1, etherParse('11'), etherParse('1005'));
-            expect(await staking.getTotalStakingAmount(indexer.address)).equal(etherParse('1988'));
+            expect(await stakingManager.getTotalStakingAmount(indexer.address)).equal(etherParse('1988'));
 
             expect(await token.balanceOf(fisherman.address)).equal(etherParse('1005'));
 
-            expect((await staking.getUnbondingAmounts(indexer.address))[0].amount).equal(etherParse('1'));
+            expect((await stakingManager.getUnbondingAmounts(indexer.address))[0].amount).equal(etherParse('1'));
 
             let dispute = await disputeManager.disputes(1);
             expect(dispute.state).to.equal(1);
@@ -133,13 +133,13 @@ describe('Dispute Manager Contract', () => {
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             await rewardsStaking.applyStakeChange(indexer.address, indexer.address);
 
-            expect(await staking.getTotalStakingAmount(indexer.address)).equal(etherParse('1988'));
+            expect(await stakingManager.getTotalStakingAmount(indexer.address)).equal(etherParse('1988'));
             await disputeManager.finalizeDispute(1, 1, etherParse('12'), etherParse('1005'));
-            expect(await staking.getTotalStakingAmount(indexer.address)).equal(etherParse('1988'));
+            expect(await stakingManager.getTotalStakingAmount(indexer.address)).equal(etherParse('1988'));
 
             expect(await token.balanceOf(fisherman.address)).equal(etherParse('1005'));
 
-            expect((await staking.getUnbondingAmounts(indexer.address)).length).equal(0);
+            expect((await stakingManager.getUnbondingAmounts(indexer.address)).length).equal(0);
 
             const dispute = await disputeManager.disputes(1);
             expect(dispute.state).to.equal(1);
@@ -152,13 +152,13 @@ describe('Dispute Manager Contract', () => {
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             await rewardsStaking.applyStakeChange(indexer.address, indexer.address);
 
-            expect(await staking.getTotalStakingAmount(indexer.address)).equal(etherParse('1988'));
+            expect(await stakingManager.getTotalStakingAmount(indexer.address)).equal(etherParse('1988'));
             await disputeManager.finalizeDispute(1, 1, etherParse('13'), etherParse('1005'));
-            expect(await staking.getTotalStakingAmount(indexer.address)).equal(etherParse('1987'));
+            expect(await stakingManager.getTotalStakingAmount(indexer.address)).equal(etherParse('1987'));
 
             expect(await token.balanceOf(fisherman.address)).equal(etherParse('1005'));
 
-            expect((await staking.getUnbondingAmounts(indexer.address)).length).equal(0);
+            expect((await stakingManager.getUnbondingAmounts(indexer.address)).length).equal(0);
 
             const dispute = await disputeManager.disputes(1);
             expect(dispute.state).to.equal(1);
@@ -166,7 +166,7 @@ describe('Dispute Manager Contract', () => {
 
         it('reject dispute should work', async () => {
             await disputeManager.finalizeDispute(1, 2, 0, etherParse('900'));
-            expect(await staking.getTotalStakingAmount(indexer.address)).equal(etherParse('2000'));
+            expect(await stakingManager.getTotalStakingAmount(indexer.address)).equal(etherParse('2000'));
             expect(await token.balanceOf(fisherman.address)).equal(etherParse('900'));
 
             const dispute = await disputeManager.disputes(1);
@@ -175,7 +175,7 @@ describe('Dispute Manager Contract', () => {
 
         it('cancel dispute should work', async () => {
             await disputeManager.finalizeDispute(1, 3, 0, etherParse('1000'));
-            expect(await staking.getTotalStakingAmount(indexer.address)).equal(etherParse('2000'));
+            expect(await stakingManager.getTotalStakingAmount(indexer.address)).equal(etherParse('2000'));
             expect(await token.balanceOf(fisherman.address)).equal(etherParse('1000'));
 
             const dispute = await disputeManager.disputes(1);

@@ -8,7 +8,7 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-import './interfaces/IStaking.sol';
+import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IPermissionedExchange.sol';
@@ -117,9 +117,9 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
             rewardsDistributer.setLastClaimEra(_indexer, currentEra - 1);
             lastSettledEra[_indexer] = currentEra - 1;
 
-            IStaking staking = IStaking(settings.getStaking());
+            IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
             //apply first onStakeChange
-            uint256 newDelegation = staking.getAfterDelegationAmount(_indexer, _indexer);
+            uint256 newDelegation = stakingManager.getAfterDelegationAmount(_indexer, _indexer);
             delegation[_indexer][_indexer] = newDelegation;
 
             uint256 newAmount = MathUtil.mulDiv(newDelegation, rewardInfo.accSQTPerStake, PER_TRILL);
@@ -128,7 +128,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
             //make sure the eraReward be 0, when indexer reregister
             rewardsDistributer.resetEraReward(_indexer, currentEra);
 
-            totalStakingAmount[_indexer] = staking.getTotalStakingAmount(_indexer);
+            totalStakingAmount[_indexer] = stakingManager.getTotalStakingAmount(_indexer);
 
             //apply first onICRChgange
             uint256 newCommissionRate = IIndexerRegistry(settings.getIndexerRegistry()).getCommissionRate(_indexer);
@@ -183,8 +183,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
         rewardsDistributer.claimFrom(indexer, staker);
 
         // run hook for delegation change
-        IStaking staking = IStaking(settings.getStaking());
-        uint256 newDelegation = staking.getAfterDelegationAmount(staker, indexer);
+        IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
+        uint256 newDelegation = stakingManager.getAfterDelegationAmount(staker, indexer);
         delegation[staker][indexer] = newDelegation;
 
         uint256 newAmount = MathUtil.mulDiv(newDelegation, rewardInfo.accSQTPerStake, PER_TRILL);
@@ -198,7 +198,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
         pendingStakerNos[indexer][lastStaker] = stakerIndex;
         pendingStakeChangeLength[indexer]--;
 
-        _updateTotalStakingAmount(staking, indexer, lastClaimEra);
+        _updateTotalStakingAmount(stakingManager, indexer, lastClaimEra);
         emit StakeChanged(indexer, staker, newDelegation);
     }
 
@@ -213,11 +213,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
         IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(indexer);
         require(lastSettledEra[indexer] < rewardInfo.lastClaimEra, 'Rewards not collected');
 
-        IStaking staking = IStaking(settings.getStaking());
+        IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
         uint256 newCommissionRate = IIndexerRegistry(settings.getIndexerRegistry()).getCommissionRate(indexer);
         commissionRates[indexer] = newCommissionRate;
         pendingCommissionRateChange[indexer] = 0;
-        _updateTotalStakingAmount(staking, indexer, rewardInfo.lastClaimEra);
+        _updateTotalStakingAmount(stakingManager, indexer, rewardInfo.lastClaimEra);
         emit ICRChanged(indexer, newCommissionRate);
     }
 
@@ -246,12 +246,12 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
     /**
      * @dev Update the totalStakingAmount of the indexer with the state from Staking contract.
      * Called when applyStakeChange or applyICRChange.
-     * @param staking Staking contract interface
+     * @param stakingManager Staking contract interface
      * @param indexer Indexer address
      */
-    function _updateTotalStakingAmount(IStaking staking, address indexer, uint256 lastClaimEra) private {
+    function _updateTotalStakingAmount(IStakingManager stakingManager, address indexer, uint256 lastClaimEra) private {
         if (checkAndReflectSettlement(indexer, lastClaimEra)) {
-            totalStakingAmount[indexer] = staking.getTotalStakingAmount(indexer);
+            totalStakingAmount[indexer] = stakingManager.getTotalStakingAmount(indexer);
         }
     }
 

@@ -8,7 +8,6 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IQueryRegistry.sol';
 import './interfaces/IEraManager.sol';
@@ -153,8 +152,9 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
         isIndexer[msg.sender] = false;
         delete metadataByIndexer[msg.sender];
 
-        uint256 amount = IStaking(settings.getStaking()).getAfterDelegationAmount(msg.sender, msg.sender);
-        IStakingManager(settings.getStakingManager()).unstake(msg.sender, amount);
+        IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
+        uint256 amount = stakingManager.getAfterDelegationAmount(msg.sender, msg.sender);
+        stakingManager.unstake(msg.sender, amount);
 
         emit UnregisterIndexer(msg.sender);
     }

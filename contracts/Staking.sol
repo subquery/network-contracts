@@ -16,7 +16,6 @@ import './interfaces/ISQToken.sol';
 import './interfaces/IDisputeManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
-import './utils/StakingUtil.sol';
 
 /**
  * @title Staking Contract
@@ -137,8 +136,13 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      */
     event UnbondWithdrawn(address indexed source, uint256 amount, uint256 index);
 
+    /**
+     * @dev Emitted when delegtor cancel unbond request.
+     */
+    event UnbondCancelled(address indexed source, address indexed indexer, uint256 amount, uint256 index);
+
     modifier onlyStakingManager() {
-        require(msg.sender == settings.getStakingManager() || msg.sender == address(this), 'Only StakingManager');
+        require(msg.sender == settings.getStakingManager(), 'G007');
         _;
     }
 
@@ -192,7 +196,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         }
     }
 
-    function _checkDelegateLimitation(address _indexer, uint256 _amount) external onlyStakingManager {
+    function checkDelegateLimitation(address _indexer, uint256 _amount) external onlyStakingManager {
         require(
             delegation[_indexer][_indexer].valueAfter * indexerLeverageLimit >=
                 totalStakingAmount[_indexer].valueAfter + _amount,
@@ -200,35 +204,38 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         );
     }
 
-    function _registerIndexer(address _indexer) external onlyStakingManager {
+    function addIndexer(address _indexer) external onlyStakingManager {
         indexers[indexerLength] = _indexer;
         indexerNo[_indexer] = indexerLength;
         indexerLength++;
     }
 
-    function _unregisterIndexer(address _indexer) external onlyStakingManager {
+    function removeIndexer(address _indexer) external onlyStakingManager {
         indexers[indexerNo[_indexer]] = indexers[indexerLength - 1];
         indexerNo[indexers[indexerLength - 1]] = indexerNo[_indexer];
         indexerLength--;
     }
 
-    function _removeUnbondingAmount(address _source, uint256 _unbondReqId) external onlyStakingManager {
+    function removeUnbondingAmount(address _source, uint256 _unbondReqId) external onlyStakingManager {
+        UnbondAmount memory ua = unbondingAmount[_source][_unbondReqId];
+        emit UnbondCancelled(_source, ua.indexer, ua.amount, _unbondReqId);
         delete unbondingAmount[_source][_unbondReqId];
     }
 
-    function _addDelegation(
+    function addDelegation(
         address _source,
         address _indexer,
         uint256 _amount
-    ) external onlyStakingManager {
+    ) external {
+        require(msg.sender == settings.getStakingManager() || msg.sender == address(this), 'G008');
         require(_amount > 0, 'S003');
-        if (this._isEmptyDelegation(_source, _indexer)) {
+        if (this.isEmptyDelegation(_source, _indexer)) {
             stakingIndexerNos[_source][_indexer] = stakingIndexerLengths[_source];
             stakingIndexers[_source][stakingIndexerLengths[_source]] = _indexer;
             stakingIndexerLengths[_source]++;
         }
         // first stake from indexer
-        bool firstStake = this._isEmptyDelegation(_indexer, _indexer) &&
+        bool firstStake = this.isEmptyDelegation(_indexer, _indexer) &&
             totalStakingAmount[_indexer].valueAt == 0 &&
             totalStakingAmount[_indexer].valueAfter == 0;
         if (firstStake) {
@@ -247,21 +254,22 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         emit DelegationAdded(_source, _indexer, _amount);
     }
 
-    function _delegateToIndexer(
+    function delegateToIndexer(
         address _source,
         address _indexer,
         uint256 _amount
     ) external onlyStakingManager {
         IERC20(settings.getSQToken()).safeTransferFrom(_source, address(this), _amount);
 
-        this._addDelegation(_source, _indexer, _amount);
+        this.addDelegation(_source, _indexer, _amount);
     }
 
-    function _removeDelegation(
+    function removeDelegation(
         address _source,
         address _indexer,
         uint256 _amount
-    ) external onlyStakingManager {
+    ) external {
+        require(msg.sender == settings.getStakingManager() || msg.sender == address(this), 'G008');
         require(delegation[_source][_indexer].valueAfter >= _amount && _amount > 0, 'S005');
 
         delegation[_source][_indexer].valueAfter -= _amount;
@@ -280,13 +288,13 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         rewardsStaking.onStakeChange(_indexer, _source);
     }
 
-    function _startUnbond(
+    function startUnbond(
         address _source,
         address _indexer,
         uint256 _amount
     ) external onlyStakingManager {
         require(unbondingLength[_source] - withdrawnLength[_source] <= 20, 'S006');
-        this._removeDelegation(_source, _indexer, _amount);
+        this.removeDelegation(_source, _indexer, _amount);
 
         uint256 index = unbondingLength[_source];
         UnbondAmount storage uamount = unbondingAmount[_source][index];
@@ -302,7 +310,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * @dev Withdraw a single request.
      * burn the withdrawn fees and transfer the rest to delegator.
      */
-    function _withdrawARequest(address _source, uint256 _index) external onlyStakingManager {
+    function withdrawARequest(address _source, uint256 _index) external onlyStakingManager {
         withdrawnLength[_source]++;
 
         uint256 amount = unbondingAmount[_source][_index].amount;
@@ -321,7 +329,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         }
     }
 
-    function _slashIndexer(address _indexer, uint256 _amount) external onlyStakingManager {
+    function slashIndexer(address _indexer, uint256 _amount) external onlyStakingManager {
         uint256 amount = _amount;
         uint256 withdrawingLength = unbondingLength[_indexer] - withdrawnLength[_indexer];
         if (withdrawingLength > 0) {
@@ -354,42 +362,14 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         IERC20(settings.getSQToken()).safeTransfer(settings.getDisputeManager(), _amount);
     }
 
+    function stakeCommission(address _indexer, uint256 _amount) external {
+        require(msg.sender == settings.getRewardsDistributer(), 'G003');
+        //_addDelegation(_indexer, _indexer, _amount);
+    }
+
     // -- Views --
 
-    function _isEmptyDelegation(address _source, address _indexer) external view returns (bool) {
+    function isEmptyDelegation(address _source, address _indexer) external view returns (bool) {
         return delegation[_source][_indexer].valueAt == 0 && delegation[_source][_indexer].valueAfter == 0;
-    }
-
-    function getTotalStakingAmount(address _indexer) external view override returns (uint256) {
-        uint256 eraNumber = IEraManager(settings.getEraManager()).eraNumber();
-        return StakingUtil.currentStaking(totalStakingAmount[_indexer], eraNumber);
-    }
-
-    function getAfterDelegationAmount(address _source, address _indexer) external view override returns (uint256) {
-        return delegation[_source][_indexer].valueAfter;
-    }
-
-    function getUnbondingAmounts(address _source) external view returns (UnbondAmount[] memory) {
-        uint256 withdrawingLength = unbondingLength[_source] - withdrawnLength[_source];
-        UnbondAmount[] memory unbondAmounts = new UnbondAmount[](withdrawingLength);
-
-        uint256 i;
-        uint256 latestWithdrawnLength = withdrawnLength[_source];
-        for (uint256 j = latestWithdrawnLength; j < latestWithdrawnLength + withdrawingLength; j++) {
-            unbondAmounts[i] = unbondingAmount[_source][j];
-            i++;
-        }
-
-        return unbondAmounts;
-    }
-
-    function getSlashableAmount(address _indexer) external view returns (uint256) {
-        uint256 slashableAmount = delegation[_indexer][_indexer].valueAfter;
-        uint256 withdrawingLength = unbondingLength[_indexer] - withdrawnLength[_indexer];
-        uint256 latestWithdrawnLength = withdrawnLength[_indexer];
-        for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
-            slashableAmount += unbondingAmount[_indexer][i].amount;
-        }
-        return slashableAmount;
     }
 }

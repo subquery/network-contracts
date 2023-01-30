@@ -25,8 +25,6 @@ struct UnbondAmount {
 
 interface IStaking {
     function lockedAmount(address _delegator) external view returns (uint256);
-    
-    function getTotalStakingAmount(address _indexer) external view returns (uint256);
 
-    function getAfterDelegationAmount(address _delegator, address _indexer) external view returns (uint256);
+    function stakeCommission(address _indexer, uint256 _amount) external;
 }

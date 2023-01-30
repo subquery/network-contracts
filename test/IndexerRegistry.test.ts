@@ -5,7 +5,7 @@ import {expect} from 'chai';
 import {ethers} from 'hardhat';
 import {deployContracts} from './setup';
 import {METADATA_HASH, METADATA_1_HASH, VERSION, DEPLOYMENT_ID} from './constants';
-import {IndexerRegistry, SQToken, QueryRegistry, Staking, RewardsStaking} from '../src';
+import {IndexerRegistry, SQToken, QueryRegistry, Staking, RewardsStaking, StakingManager} from '../src';
 import {etherParse, registerIndexer} from './helper';
 
 const {constants} = require('@openzeppelin/test-helpers');
@@ -15,6 +15,7 @@ describe('IndexerRegistry Contract', () => {
 
     let token: SQToken;
     let staking: Staking;
+    let stakingManager: StakingManager;
     let queryRegistry: QueryRegistry;
     let indexerRegistry: IndexerRegistry;
     let rewardsStaking: RewardsStaking;
@@ -29,6 +30,7 @@ describe('IndexerRegistry Contract', () => {
         const deployment = await deployContracts(wallet_0, wallet_1);
         token = deployment.token;
         staking = deployment.staking;
+        stakingManager = deployment.stakingManager;
         queryRegistry = deployment.queryRegistry;
         indexerRegistry = deployment.indexerRegistry;
         rewardsStaking = deployment.rewardsStaking;
@@ -44,7 +46,7 @@ describe('IndexerRegistry Contract', () => {
             // check state changes
             expect(await indexerRegistry.isIndexer(wallet_1.address)).to.equal(true);
             expect(await indexerRegistry.metadataByIndexer(wallet_1.address)).to.equal(METADATA_HASH);
-            expect(await staking.getAfterDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
+            expect(await stakingManager.getAfterDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
                 etherParse('1000')
             );
             expect(await indexerRegistry.getCommissionRate(wallet_1.address)).to.equal(0);

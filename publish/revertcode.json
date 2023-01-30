@@ -5,6 +5,8 @@
     "G004": "Caller should only be Delegator",
     "G005": "Caller should only be DisputeManager",
     "G006": "Indexer is on dispute",
+    "G007": "Caller should only be StakingManager",
+    "G008": "Caller invaild",
     "S001": "Invaild unbondFeeRate",
     "S002": "Reach delegation limitation",
     "S003": "Invalid delegation amount",
@@ -14,5 +16,5 @@
     "S007": "Invaild unbondReqId to cancel",
     "S008": "Insufficient unstake amount",
     "S009": "No unbound request to widthdraw",
-    "S010": "Invaild amount to slash indexer",
+    "S010": "Invaild amount to slash indexer"
 }

@@ -8,19 +8,9 @@ interface IStakingManager {
 
     function unstake(address _indexer, uint256 _amount) external;
 
-    function delegate(address _delegator, uint256 _amount) external;
-
-    function redelegate(
-        address from_indexer,
-        address to_indexer,
-        uint256 _amount
-    ) external;
-
-    function undelegate(address _indexer, uint256 _amount) external;
-
-    function widthdraw() external;
-
     function slashIndexer(address _indexer, uint256 _amount) external;
 
-    function stakeCommission(address _indexer, uint256 _amount) external;
+    function getTotalStakingAmount(address _indexer) external view returns (uint256);
+
+    function getAfterDelegationAmount(address _delegator, address _indexer) external view returns (uint256);
 }
