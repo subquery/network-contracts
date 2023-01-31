@@ -17,6 +17,7 @@ import './interfaces/IRewardsPool.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/IIndexerRegistry.sol';
+import './interfaces/IStaking.sol';
 import './interfaces/IStakingManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
@@ -289,10 +290,9 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
             info[indexer].accSQTPerStake += MathUtil.mulDiv(rewardInfo.eraReward - commission, PER_TRILL, totalStake);
     
-            // stake the commission to indexer
-            IERC20(settings.getSQToken()).safeTransfer(indexer, commission);
-            //TODO: stake the commission to indexer
-            // IStaking(settings.getStaking()).stakeCommission(indexer, commission);
+            // add commission to unbonding request
+            IERC20(settings.getSQToken()).safeTransfer(settings.getStaking(), commission);
+            IStaking(settings.getStaking()).unbondCommission(indexer, commission);
 
             emit DistributeRewards(indexer, rewardInfo.lastClaimEra, commission);
 

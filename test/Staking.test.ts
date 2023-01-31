@@ -275,7 +275,7 @@ describe('Staking Contract', () => {
             // request the first unbond
             await expect(stakingManager.connect(delegator).undelegate(indexer.address, etherParse('1')))
                 .to.be.emit(staking, 'UnbondRequested')
-                .withArgs(delegator.address, indexer.address, etherParse('1'), 0);
+                .withArgs(delegator.address, indexer.address, etherParse('1'), 0, 0);
             const startTime = await lastestTime(mockProvider);
 
             // check changes of staking storage
