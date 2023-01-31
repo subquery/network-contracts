@@ -3,7 +3,7 @@
 
 import {expect} from 'chai';
 import {ethers, waffle} from 'hardhat';
-import {BigNumber, utils} from 'ethers';
+import {BigNumber, providers, utils} from 'ethers';
 import {deployContracts} from './setup';
 import {METADATA_HASH, DEPLOYMENT_ID, VERSION} from './constants';
 import {
@@ -207,10 +207,20 @@ describe('RewardsDistributer Contract', () => {
             const stakingBalance = await token.balanceOf(staking.address);
             const tx = await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             const event = await eventFrom(tx, rewardsDistributor, "DistributeRewards(address,uint256,uint256)");
+
             expect(await token.balanceOf(rewardsDistributor.address)).to.be.eq(balance.sub(event.rewards));
             expect(await token.balanceOf(staking.address)).to.be.eq(stakingBalance.add(event.rewards));
-            const unbond = await staking.unbondingAmount(indexer.address, 0);
+
+            let eventFilter = staking.filters.UnbondRequested();
+            const evt = (await staking.queryFilter(eventFilter))[0];
+            const unbondEvent = staking.interface.decodeEventLog(
+                staking.interface.getEvent("UnbondRequested"),
+                evt.data
+            );
+            const unbond = await staking.unbondingAmount(indexer.address, unbondEvent.index);
             expect(unbond.amount).to.be.eq(event.rewards);
+            expect(unbondEvent.amount).to.be.eq(event.rewards);
+            expect(unbondEvent._type).to.be.eq(2);
         });
 
         it('should be able to batch collect and distribute rewards', async () => {
