@@ -4,14 +4,7 @@ import {ServiceAgreementRegistry} from './../src/typechain/ServiceAgreementRegis
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import {MockProvider} from 'ethereum-waffle';
-import {
-    BaseContract,
-    BigNumber,
-    Wallet,
-    ContractTransaction,
-    utils,
-    Contract,
-} from "ethers";
+import {BaseContract, BigNumber, Wallet, ContractTransaction, utils, Contract} from 'ethers';
 import {IndexerRegistry, EraManager, PlanManager} from '../src';
 import {METADATA_HASH, VERSION} from './constants';
 const {constants, time} = require('@openzeppelin/test-helpers');
@@ -111,7 +104,7 @@ export async function acceptPlan(
     await planManager.createPlanTemplate(time.duration.days(period).toString(), 1000, 100, METADATA_HASH);
     await planManager.connect(indexer).createPlan(value, 0, DEPLOYMENT_ID);
 
-    await planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, 1);
+    await planManager.connect(consumer).acceptPlan(1);
 }
 
 export function etherParse(etherNum: string) {
@@ -124,8 +117,5 @@ export async function eventFrom(tx: ContractTransaction, contract: BaseContract,
     const evt = receipt.events.find((log) => log.topics[0] === utils.id(event));
 
     const eventName = event.split('(')[0];
-    return contract.interface.decodeEventLog(
-        contract.interface.getEvent(eventName),
-        evt.data
-    );
+    return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data);
 }

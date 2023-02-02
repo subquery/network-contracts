@@ -35,7 +35,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     /// @notice The id for next plan template
     uint256 public nextTemplateId;
 
-    /// @notice The id for next plan
+    /// @notice The id for next plan, start from 1, PurchaseOfferMarket will use 0.
     uint256 public nextPlanId;
 
     /// @notice TemplateId => Template
@@ -72,6 +72,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
 
         settings = _settings;
         limit = 5;
+        nextPlanId = 1;
     }
 
     /**

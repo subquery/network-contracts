@@ -50,9 +50,9 @@ describe('PlanManger Contract', () => {
 
     describe('Plan Manager Config', () => {
         it('set indexer plan limit should work', async () => {
-            expect(await planManager.indexerPlanLimit()).to.equal(5);
+            expect(await planManager.limit()).to.equal(5);
             await planManager.setIndexerPlanLimit(10);
-            expect(await planManager.indexerPlanLimit()).to.equal(10);
+            expect(await planManager.limit()).to.equal(10);
         });
 
         it('set indexer plan limit without owner should fail', async () => {
@@ -71,8 +71,8 @@ describe('PlanManger Contract', () => {
             await expect(planManager.createPlanTemplate(100, 100, 10, METADATA_HASH))
                 .to.be.emit(planManager, 'PlanTemplateCreated')
                 .withArgs(1);
-            expect(await planManager.planTemplateIds()).to.equal(2);
-            const planTemplate = await planManager.planTemplates(1);
+            expect(await planManager.nextTemplateId()).to.equal(2);
+            const planTemplate = await planManager.getPlanTemplate(1);
             expect(planTemplate.period).to.equal(100);
             expect(planTemplate.dailyReqCap).to.equal(100);
             expect(planTemplate.rateLimit).to.equal(10);
@@ -84,11 +84,11 @@ describe('PlanManger Contract', () => {
             await expect(planManager.updatePlanTemplateStatus(0, false))
                 .to.be.emit(planManager, 'PlanTemplateStatusChanged')
                 .withArgs(0, false);
-            let planTemplate = await planManager.planTemplates(0);
+            let planTemplate = await planManager.getPlanTemplate(0);
             expect(planTemplate.active).to.equal(false);
 
             await planManager.updatePlanTemplateStatus(0, true);
-            planTemplate = await planManager.planTemplates(0);
+            planTemplate = await planManager.getPlanTemplate(0);
             expect(planTemplate.active).to.equal(true);
         });
 
@@ -96,7 +96,7 @@ describe('PlanManger Contract', () => {
             await expect(planManager.updatePlanTemplateMetadata(0, metadatas[1]))
                 .to.be.emit(planManager, 'PlanTemplateMetadataChanged')
                 .withArgs(0, metadatas[1]);
-            let planTemplate = await planManager.planTemplates(0);
+            let planTemplate = await planManager.getPlanTemplate(0);
             expect(planTemplate.metadata).to.equal(metadatas[1]);
         });
 
@@ -138,51 +138,33 @@ describe('PlanManger Contract', () => {
     describe('Plan Management', () => {
         beforeEach(async () => {
             await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '2000');
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 100, 10, METADATA_HASH);
+            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH); // template_id = 0
+            await planManager.createPlanTemplate(time.duration.days(3).toString(), 100, 10, METADATA_HASH); // template_id = 1
         });
 
         it('create plan should work', async () => {
             await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID))
                 .to.be.emit(planManager, 'PlanCreated')
-                .withArgs(indexer.address, DEPLOYMENT_ID, 0, 1, etherParse('2'));
+                .withArgs(1, indexer.address, DEPLOYMENT_ID, 0, etherParse('2'));
 
             // check plan
-            expect(await planManager.nextPlanId(indexer.address)).to.equal(1);
-            const plan = await planManager.plans(indexer.address, 1);
+            expect(await planManager.nextPlanId()).to.equal(2);
+            const plan = await planManager.getPlan(1);
             expect(plan.price).to.equal(etherParse('2'));
             expect(plan.active).to.equal(true);
-            expect(plan.planTemplateId).to.equal(0);
+            expect(plan.templateId).to.equal(0);
             expect(plan.deploymentId).to.equal(DEPLOYMENT_ID);
-            // check planIds
-            expect(await planManager.planIds(indexer.address, DEPLOYMENT_ID, 0)).to.equal(1);
-
-            // create second plan object
-            await planManager.createPlan(100, 1, DEPLOYMENT_ID);
-            expect(await planManager.planIds(indexer.address, DEPLOYMENT_ID, 1)).to.equal(2);
         });
 
         it('remove plan should work', async () => {
             // creaet plan
             await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
             // remove plan
-            await expect(planManager.removePlan(1))
-                .to.be.emit(planManager, 'PlanRemoved')
-                .withArgs(indexer.address, 1, DEPLOYMENT_ID);
+            await expect(planManager.removePlan(1)).to.be.emit(planManager, 'PlanRemoved').withArgs(1);
 
             // check plan
-            expect(await planManager.nextPlanId(indexer.address)).to.equal(1);
-            const plan = await planManager.plans(indexer.address, 1);
+            const plan = await planManager.getPlan(1);
             expect(plan.active).to.equal(false);
-        });
-
-        it('Plan Id shoud auto increment', async () => {
-            // creaet plan
-            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
-            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
-            await planManager.removePlan(2);
-            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
-            expect(await planManager.nextPlanId(indexer.address)).to.equal(3);
         });
 
         it('create plan with invalid params should fail', async () => {
@@ -193,9 +175,11 @@ describe('PlanManger Contract', () => {
             await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID)).to.be.revertedWith(
                 'Inactive plan template'
             );
-            // reach plan limitation
-            for (let i = 0; i < 5; i++) {
-                await planManager.createPlan(etherParse('1'), 1, DEPLOYMENT_ID);
+
+            // check overflow limit
+            const limit = await planManager.limit();
+            for (let i = 0; i < limit.toNumber(); i++) {
+                await planManager.createPlan(100, 1, DEPLOYMENT_ID);
             }
             await expect(planManager.createPlan(100, 1, DEPLOYMENT_ID)).to.be.revertedWith(
                 'Indexer plan limitation reached'
@@ -203,7 +187,7 @@ describe('PlanManger Contract', () => {
         });
 
         it('remove plan with invalid params should fail', async () => {
-            await expect(planManager.removePlan(0)).to.be.revertedWith('Inactive plan can not be removed');
+            await expect(planManager.removePlan(0)).to.be.revertedWith('Missing plan');
         });
     });
 
@@ -220,16 +204,18 @@ describe('PlanManger Contract', () => {
             // create plan template
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
             // default plan -> planId: 0
-            await planManager.createPlan(etherParse('2'), 0, constants.ZERO_BYTES32);
+            await planManager.createPlan(etherParse('2'), 0, constants.ZERO_BYTES32); // plan id = 1;
         });
 
         const checkAcceptPlan = async (planId: number) => {
             const balance = await token.balanceOf(consumer.address);
-            const plan = await planManager.plans(indexer.address, planId);
+            const plan = await planManager.getPlan(planId);
             const rewardsDistrBalance = await token.balanceOf(rewardsDistributor.address);
             await token.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, plan.price);
-            const tx = await planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, planId);
-            const agreementId = (await eventFrom(tx, serviceAgreementRegistry, "ClosedAgreementCreated(address,address,bytes32,uint256)")).serviceAgreementId;
+            const tx = await planManager.connect(consumer).acceptPlan(planId);
+            const agreementId = (
+                await eventFrom(tx, serviceAgreementRegistry, 'ClosedAgreementCreated(address,address,bytes32,uint256)')
+            ).serviceAgreementId;
 
             // check balances
             expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(plan.price));
@@ -290,26 +276,7 @@ describe('PlanManger Contract', () => {
             // approve token to serviceAgreementRegistry
             await token.connect(consumer).approve(serviceAgreementRegistry.address, etherParse('2'));
 
-            await expect(
-                planManager.connect(consumer).acceptPlan(consumer.address, DEPLOYMENT_ID, 1)
-            ).to.be.revertedWith('Indexing service is not available');
-            // inactive plan
-            await expect(
-                planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, 2)
-            ).to.be.revertedWith('Inactive plan');
-            // empty deploymentId
-            await expect(
-                planManager.connect(consumer).acceptPlan(indexer.address, constants.ZERO_BYTES32, 1)
-            ).to.be.revertedWith('DeploymentId can not be empty');
-            // plan not match
-            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
-            await expect(
-                planManager.connect(consumer).acceptPlan(indexer.address, deploymentIds[1], 2)
-            ).to.be.revertedWith('Plan not match with the deployment');
-            //  default plan can not override
-            await expect(
-                planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, 1)
-            ).to.be.revertedWith('Plan not match with the deployment');
+            await expect(planManager.connect(consumer).acceptPlan(2)).to.be.revertedWith('Inactive plan');
         });
     });
 });

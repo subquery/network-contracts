@@ -40,8 +40,8 @@ describe('startup script', () => {
             expect((await sdk.airdropper.roundRecord(0)).roundDeadline).to.equal(config.setupConfig.endTime);
             expect((await sdk.airdropper.roundRecord(0)).unclaimedAmount).to.equal(2100);
 
-            const { setupConfig } = config;
-            const { airdrops, amounts } = setupConfig;
+            const {setupConfig} = config;
+            const {airdrops, amounts} = setupConfig;
 
             for (const [i, airdrop] of airdrops.entries()) {
                 expect(await sdk.airdropper.airdropRecord(airdrop, 0)).to.equal(amounts[i]);
@@ -49,17 +49,17 @@ describe('startup script', () => {
         });
 
         it('planTemplate setups should work', async () => {
-            expect(await sdk.planManager.planTemplateIds()).to.be.equal(5);
-            const { setupConfig } = config;
+            expect(await sdk.planManager.nextTemplateId()).to.be.equal(5);
+            const {setupConfig} = config;
 
             for (const [i, p] of setupConfig.planTemplates.entries()) {
-                expect((await sdk.planManager.planTemplates(i)).period).to.be.equal(p.period);
+                expect((await sdk.planManager.getPlanTemplate(i)).period).to.be.equal(p.period);
             }
         });
 
         it('dictionaries should be created', async () => {
-            const { dictionaries } = config;
-            for (const [i, d] of dictionaries.entries()){
+            const {dictionaries} = config;
+            for (const [i, d] of dictionaries.entries()) {
                 const info = await sdk.queryRegistry.queryInfos(i);
                 expect(info.latestDeploymentId).to.be.equal(cidToBytes32(d.deploymentId));
                 expect(info.latestVersion).to.be.equal(cidToBytes32(d.versionCid));
