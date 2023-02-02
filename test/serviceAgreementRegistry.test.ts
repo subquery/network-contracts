@@ -441,9 +441,9 @@ describe('Service Agreement Registry Contract', () => {
             await planManager.connect(wallet2).acceptPlan(1);
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
-            expect((await planManager.getPlan(1))[3]).to.be.eq(true);
+            expect((await planManager.getPlan(1)).active).to.be.eq(true);
             await planManager.connect(wallet1).removePlan(1);
-            expect((await planManager.getPlan(1))[3]).to.be.eq(false);
+            expect((await planManager.getPlan(1)).active).to.be.eq(false);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
                 'Plan is inactive'
