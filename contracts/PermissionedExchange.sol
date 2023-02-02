@@ -100,7 +100,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         address _account,
         uint256 _amount
     ) external {
-        require(exchangeController[msg.sender] == true, 'Not controller');
+        require(exchangeController[msg.sender] == true, 'PE001');
         tradeQuota[_token][_account] += _amount;
         emit QuotaAdded(_token, _account, _amount);
         emit QuotaAdded(_token, _account, _amount);
@@ -125,8 +125,8 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         uint256 _pairId,
         uint256 _tokenGiveBalance
     ) public onlyOwner {
-        require(_expireDate > block.timestamp, 'invalid expireDate');
-        require(_amountGive > 0 && _amountGet > 0, 'invalid amount');
+        require(_expireDate > block.timestamp, 'PE002');
+        require(_amountGive > 0 && _amountGet > 0, 'PE003');
         if (_tokenGiveBalance > 0){
             IERC20(_tokenGive).safeTransferFrom(msg.sender, address(this), _tokenGiveBalance);
         }
@@ -161,7 +161,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         uint256 _expireDate,
         uint256 _tokenGiveBalance
     ) public onlyOwner {
-        require(_tokenGiveBalance > 0, 'pair orders should have balance');
+        require(_tokenGiveBalance > 0, 'PE004');
         sendOrder(_tokenGive, _tokenGet, _amountGive, _amountGet, _expireDate, nextOrderId+1, _tokenGiveBalance);
         sendOrder(_tokenGet, _tokenGive, _amountGet, _amountGive, _expireDate, nextOrderId-1, 0);
     }
@@ -175,12 +175,12 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     function trade(uint256 _orderId, uint256 _amount) public {
         ExchangeOrder storage order = orders[_orderId];
         if (order.tokenGet == settings.getSQToken()) {
-            require(tradeQuota[order.tokenGet][msg.sender] >= _amount, 'tradeQuota reached');
+            require(tradeQuota[order.tokenGet][msg.sender] >= _amount, 'PE005');
         }
-        require(order.expireDate > block.timestamp, 'order invalid');
+        require(order.expireDate > block.timestamp, 'PE006');
         uint256 amount = (order.amountGive * _amount) / order.amountGet;
-        require(amount > 0, 'trade amount too small');
-        require(amount <= order.tokenGiveBalance, 'trade amount exceed order balance');
+        require(amount > 0, 'PE007');
+        require(amount <= order.tokenGiveBalance, 'PE008');
         order.tokenGiveBalance -= amount;
         if (order.tokenGet == settings.getSQToken()) {
             tradeQuota[order.tokenGet][msg.sender] -= _amount;
@@ -202,8 +202,8 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      */
     function settleExpiredOrder(uint256 _orderId) public {
         ExchangeOrder memory order = orders[_orderId];
-        require(order.expireDate != 0, 'order not exist');
-        require(order.expireDate < block.timestamp, 'order not expired');
+        require(order.expireDate != 0, 'PE009');
+        require(order.expireDate < block.timestamp, 'PE010');
         if (order.tokenGiveBalance != 0) {
             IERC20(order.tokenGive).safeTransfer(order.sender, order.tokenGiveBalance);
         }
@@ -223,8 +223,8 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      */
     function cancelOrder(uint256 _orderId) public {
         ExchangeOrder memory order = orders[_orderId];
-        require(order.expireDate != 0, 'order not exist');
-        require(msg.sender == order.sender, 'only order sender allowed');
+        require(order.expireDate != 0, 'PE009');
+        require(msg.sender == order.sender, 'PE011');
         if (order.tokenGiveBalance != 0) {
             IERC20(order.tokenGive).safeTransfer(order.sender, order.tokenGiveBalance);
         }

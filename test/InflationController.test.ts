@@ -80,7 +80,7 @@ describe('Inflation Controller Contract', () => {
 
         it('set inflation rate with invalid params should fail', async () => {
             await expect(inflationController.setInflationRate(1000001)).to.be.revertedWith(
-                'InflationRate value is out of range'
+                'IC001'
             );
         });
     });

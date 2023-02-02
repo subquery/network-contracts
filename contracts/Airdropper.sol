@@ -40,8 +40,8 @@ contract Airdropper is Ownable {
         uint256 _roundStratTime,
         uint256 _roundDeadline
     ) external onlyOwner returns (uint256) {
-        require(_roundStratTime > block.timestamp && _roundDeadline > _roundStratTime, 'invaild round time set');
-        require(_tokenAddr != address(0), 'invaild token address');
+        require(_roundStratTime > block.timestamp && _roundDeadline > _roundStratTime, 'A001');
+        require(_tokenAddr != address(0), 'G009');
         roundRecord[nextRoundId] = Round(_tokenAddr, _roundStratTime, _roundDeadline, 0);
         nextRoundId += 1;
         emit RoundCreated(nextRoundId - 1, _tokenAddr, _roundStratTime, _roundDeadline);
@@ -53,9 +53,9 @@ contract Airdropper is Ownable {
         uint256 _roundId,
         uint256 _amount
     ) private {
-        require(roundRecord[_roundId].roundStartTime > block.timestamp, 'invaild round to airdrop');
-        require(airdropRecord[_addr][_roundId] == 0, 'duplicate airdrop');
-        require(_amount > 0, 'invaild airdrop amount');
+        require(roundRecord[_roundId].roundStartTime > block.timestamp, 'A002');
+        require(airdropRecord[_addr][_roundId] == 0, 'A003');
+        require(_amount > 0, 'A004');
 
         IERC20(roundRecord[_roundId].tokenAddress).safeTransferFrom(msg.sender, address(this), _amount);
         airdropRecord[_addr][_roundId] = _amount;
@@ -68,7 +68,7 @@ contract Airdropper is Ownable {
         uint256[] calldata _roundId,
         uint256[] calldata _amount
     ) external onlyOwner {
-        require(_addr.length == _roundId.length && _addr.length == _amount.length, 'invaild parameters');
+        require(_addr.length == _roundId.length && _addr.length == _amount.length, 'G010');
         for (uint256 i = 0; i < _addr.length; i++) {
             _airdrop(_addr[i], _roundId[i], _amount[i]);
         }
@@ -78,14 +78,14 @@ contract Airdropper is Ownable {
         require(
             roundRecord[_roundId].roundDeadline > block.timestamp &&
                 roundRecord[_roundId].roundStartTime < block.timestamp,
-            'invaild round to claim'
+            'A005'
         );
         uint256 amount = airdropRecord[msg.sender][_roundId];
-        require(amount != 0, 'nothing claim');
+        require(amount != 0, 'A006');
 
         require(
             IERC20(roundRecord[_roundId].tokenAddress).balanceOf(address(this)) >= amount,
-            'Airdropper: insufficient assets'
+            'A007'
         );
         IERC20(roundRecord[_roundId].tokenAddress).safeTransfer(msg.sender, amount);
         airdropRecord[msg.sender][_roundId] = 0;
@@ -101,13 +101,13 @@ contract Airdropper is Ownable {
     }
 
     function settleEndedRound(uint256 _roundId) public {
-        require(roundRecord[_roundId].roundDeadline < block.timestamp, 'invaild round to settle');
+        require(roundRecord[_roundId].roundDeadline < block.timestamp, 'A008');
         uint256 unclaimAmount = roundRecord[_roundId].unclaimedAmount;
-        require(unclaimAmount != 0, 'none token left');
+        require(unclaimAmount != 0, 'A009');
         require(
             IERC20(roundRecord[_roundId].tokenAddress).balanceOf(address(this)) >=
                 roundRecord[_roundId].unclaimedAmount,
-            'Airdropper: insufficient assets'
+            'A007'
         );
         IERC20(roundRecord[_roundId].tokenAddress).safeTransfer(
             settleDestination,

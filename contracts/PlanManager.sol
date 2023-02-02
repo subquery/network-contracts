@@ -113,9 +113,9 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         uint256 _rateLimit,
         bytes32 _metadata
     ) external onlyOwner {
-        require(_period > 0, 'Period need to be positive');
-        require(_dailyReqCap > 0, 'DailyReqCap need to be positive');
-        require(_rateLimit > 0, 'RateLimit need to be positive');
+        require(_period > 0, 'PM001');
+        require(_dailyReqCap > 0, 'PM002');
+        require(_rateLimit > 0, 'PM003');
 
         planTemplates[planTemplateIds] = PlanTemplate(_period, _dailyReqCap, _rateLimit, _metadata, true);
 
@@ -130,7 +130,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param _metadata metadata to update
      */
     function updatePlanTemplateMetadata(uint256 _planTemplateId, bytes32 _metadata) external onlyOwner {
-        require(planTemplates[_planTemplateId].period > 0, 'Plan template not existing');
+        require(planTemplates[_planTemplateId].period > 0, 'PM004');
 
         planTemplates[_planTemplateId].metadata = _metadata;
 
@@ -143,7 +143,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param _active plan template active or not
      */
     function updatePlanTemplateStatus(uint256 _planTemplateId, bool _active) external onlyOwner {
-        require(planTemplates[_planTemplateId].period > 0, 'Plan template not existing');
+        require(planTemplates[_planTemplateId].period > 0, 'PM004');
 
         planTemplates[_planTemplateId].active = _active;
 
@@ -161,9 +161,9 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         uint256 _planTemplateId,
         bytes32 _deploymentId
     ) external {
-        require(_price > 0, 'Price need to be positive');
-        require(planTemplates[_planTemplateId].active, 'Inactive plan template');
-        require(planIds[msg.sender][_deploymentId].length < indexerPlanLimit, 'Indexer plan limitation reached');
+        require(_price > 0, 'PM005');
+        require(planTemplates[_planTemplateId].active, 'PM006');
+        require(planIds[msg.sender][_deploymentId].length < indexerPlanLimit, 'PM007');
 
         nextPlanId[msg.sender]++;
         plans[msg.sender][nextPlanId[msg.sender]] = Plan(_price, _planTemplateId, _deploymentId, true);
@@ -177,7 +177,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param _planId Plan id to remove
      */
     function removePlan(uint256 _planId) external {
-        require(plans[msg.sender][_planId].active, 'Inactive plan can not be removed');
+        require(plans[msg.sender][_planId].active, 'PM008');
 
         bytes32 deploymentId = plans[msg.sender][_planId].deploymentId;
 
@@ -207,11 +207,11 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         uint256 _planId
     ) external {
         Plan memory plan = plans[_indexer][_planId];
-        require(plan.active, 'Inactive plan');
-        require(_deploymentId != bytes32(0), 'DeploymentId can not be empty');
+        require(plan.active, 'PM009');
+        require(_deploymentId != bytes32(0), 'PM010');
         require(
             plan.deploymentId == ((planIds[_indexer][_deploymentId].length == 0) ? bytes32(0) : _deploymentId),
-            'Plan not match with the deployment'
+            'PM011'
         );
 
         // create closed service agreement contract
@@ -228,7 +228,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         // deposit SQToken into serviceAgreementRegistry contract
         require(
             IERC20(settings.getSQToken()).transferFrom(msg.sender, settings.getServiceAgreementRegistry(), plan.price),
-            'transfer fail'
+            'G013'
         );
 
         // register the agreement to service agreement registry contract

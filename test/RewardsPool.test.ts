@@ -90,7 +90,7 @@ describe('RewardsPool Contract', () => {
             const rewards2 = await rewardsPool.getReward(deploymentId0, era, indexer0.address);
             expect(rewards2[0]).to.be.eq(0); // claimed
             expect(rewards2[1]).to.be.eq(etherParse('6')); // reward
-            await expect(rewardsPool.collect(deploymentId0, indexer0.address)).to.be.revertedWith('No reward');
+            await expect(rewardsPool.collect(deploymentId0, indexer0.address)).to.be.revertedWith('RP005');
 
             await rewardsPool.collect(deploymentId0, indexer1.address);
             await rewardsPool.collect(deploymentId0, indexer2.address);

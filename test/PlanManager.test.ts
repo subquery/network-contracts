@@ -114,23 +114,23 @@ describe('PlanManger Contract', () => {
             );
             // invalid `planTemplateId`
             await expect(planManager.updatePlanTemplateStatus(1, false)).to.be.revertedWith(
-                'Plan template not existing'
+                'PM004'
             );
             // invalid `planTemplateId`
             await expect(planManager.updatePlanTemplateMetadata(1, metadatas[1])).to.be.revertedWith(
-                'Plan template not existing'
+                'PM004'
             );
             // invalid period
             await expect(planManager.createPlanTemplate(0, 1000, 100, METADATA_HASH)).to.be.revertedWith(
-                'Period need to be positive'
+                'PM001'
             );
             // invalid daily request cap
             await expect(planManager.createPlanTemplate(1000, 0, 100, METADATA_HASH)).to.be.revertedWith(
-                'DailyReqCap need to be positive'
+                'PM002'
             );
             // invalid rate limit
             await expect(planManager.createPlanTemplate(1000, 1000, 0, METADATA_HASH)).to.be.revertedWith(
-                'RateLimit need to be positive'
+                'PM003'
             );
         });
     });
@@ -187,23 +187,23 @@ describe('PlanManger Contract', () => {
 
         it('create plan with invalid params should fail', async () => {
             // price == 0
-            await expect(planManager.createPlan(0, 0, DEPLOYMENT_ID)).to.be.revertedWith('Price need to be positive');
+            await expect(planManager.createPlan(0, 0, DEPLOYMENT_ID)).to.be.revertedWith('PM005');
             // inactive plan template
             await planManager.updatePlanTemplateStatus(0, false);
             await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID)).to.be.revertedWith(
-                'Inactive plan template'
+                'PM006'
             );
             // reach plan limitation
             for (let i = 0; i < 5; i++) {
                 await planManager.createPlan(etherParse('1'), 1, DEPLOYMENT_ID);
             }
             await expect(planManager.createPlan(100, 1, DEPLOYMENT_ID)).to.be.revertedWith(
-                'Indexer plan limitation reached'
+                'PM007'
             );
         });
 
         it('remove plan with invalid params should fail', async () => {
-            await expect(planManager.removePlan(0)).to.be.revertedWith('Inactive plan can not be removed');
+            await expect(planManager.removePlan(0)).to.be.revertedWith('PM008');
         });
     });
 
@@ -296,7 +296,7 @@ describe('PlanManger Contract', () => {
             // inactive plan
             await expect(
                 planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, 2)
-            ).to.be.revertedWith('Inactive plan');
+            ).to.be.revertedWith('PM009');
             // empty deploymentId
             await expect(
                 planManager.connect(consumer).acceptPlan(indexer.address, constants.ZERO_BYTES32, 1)
@@ -305,11 +305,11 @@ describe('PlanManger Contract', () => {
             await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
             await expect(
                 planManager.connect(consumer).acceptPlan(indexer.address, deploymentIds[1], 2)
-            ).to.be.revertedWith('Plan not match with the deployment');
+            ).to.be.revertedWith('PM011');
             //  default plan can not override
             await expect(
                 planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, 1)
-            ).to.be.revertedWith('Plan not match with the deployment');
+            ).to.be.revertedWith('PM011');
         });
     });
 });

@@ -73,7 +73,7 @@ describe('Dispute Manager Contract', () => {
             await token.connect(root).transfer(fisherman.address, etherParse("1000"));
             await expect(
                 disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('10'), 0)
-            ).to.be.revertedWith('Not meet the minimum deposit');
+            ).to.be.revertedWith('D002');
         });
 
         it('createDispute on an indexer over 20 times should fail', async () => {
@@ -86,7 +86,7 @@ describe('Dispute Manager Contract', () => {
             }
             await expect(
                 disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('1'), 0)
-            ).to.be.revertedWith('reach dispute limit');
+            ).to.be.revertedWith('D001');
         });
     });
 
@@ -185,19 +185,19 @@ describe('Dispute Manager Contract', () => {
         it('finalizeDispute with invaild parameter should fail', async () => {
             await expect(
                 disputeManager.finalizeDispute(1, 1, etherParse('13'), etherParse('2000'))
-            ).to.be.revertedWith('invalid newDeposit');
+            ).to.be.revertedWith('D005');
 
             await expect(
                 disputeManager.finalizeDispute(1, 1, etherParse('13'), etherParse('900'))
-            ).to.be.revertedWith('invalid newDeposit');
+            ).to.be.revertedWith('D005');
 
             await expect(
                 disputeManager.finalizeDispute(1, 2, 0, etherParse('1100'))
-            ).to.be.revertedWith('invalid newDeposit');
+            ).to.be.revertedWith('D005');
 
             await expect(
                 disputeManager.finalizeDispute(1, 3, 0, etherParse('100'))
-            ).to.be.revertedWith('invalid newDeposit');
+            ).to.be.revertedWith('D005');
         });
 
         it('indexer cannot widthdraw if on dispute', async () => {

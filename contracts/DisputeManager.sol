@@ -65,8 +65,8 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
         uint256 _deposit,  
         DisputeType _type
     ) external {
-        require(disputeIdByIndexer[_indexer].length <= 20, 'reach dispute limit');
-        require(_deposit >= minimumDeposit, 'Not meet the minimum deposit');
+        require(disputeIdByIndexer[_indexer].length <= 20, 'D001');
+        require(_deposit >= minimumDeposit, 'D002');
         IERC20(settings.getSQToken()).safeTransferFrom(msg.sender, address(this), _deposit);
 
         Dispute storage dispute = disputes[nextDisputeId];
@@ -85,21 +85,21 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
     }
 
     function finalizeDispute(uint256 disputeId, DisputeState state, uint256 indexerSlashAmount, uint256 newDeposit) external onlyOwner {
-        require(state != DisputeState.Ongoing, 'invalid state');
+        require(state != DisputeState.Ongoing, 'D003');
         Dispute storage dispute = disputes[disputeId];
-        require(dispute.state == DisputeState.Ongoing, 'dispute already finalized');
+        require(dispute.state == DisputeState.Ongoing, 'D004');
         //accept dispute, slash indexer, reward fisherman
         if (state == DisputeState.Accepted) {
-            require(newDeposit > dispute.depositAmount, 'invalid newDeposit');
+            require(newDeposit > dispute.depositAmount, 'D005');
             uint256 rewardAmount = newDeposit - dispute.depositAmount;
-            require(rewardAmount <= indexerSlashAmount, 'invalid newDeposit');
+            require(rewardAmount <= indexerSlashAmount, 'D005');
             IStakingManager(settings.getStakingManager()).slashIndexer(dispute.indexer, indexerSlashAmount);
         } else if (state == DisputeState.Rejected) {
             //reject dispute, slash fisherman
-            require(newDeposit < dispute.depositAmount, 'invalid newDeposit');
+            require(newDeposit < dispute.depositAmount, 'D005');
         } else if (state == DisputeState.Cancelled) {
             //cancel dispute, return fisherman deposit
-            require(newDeposit == dispute.depositAmount, 'invalid newDeposit');
+            require(newDeposit == dispute.depositAmount, 'D005');
         }
 
         dispute.state = state;

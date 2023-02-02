@@ -126,8 +126,8 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
         bytes32 _metadata,
         uint256 _rate
     ) external {
-        require(!isIndexer[msg.sender], 'Already registered');
-        require(_amount >= minimumStakingAmount, 'Not meet the minimum staking amount');
+        require(!isIndexer[msg.sender], 'IR001');
+        require(_amount >= minimumStakingAmount, 'IR002');
 
         isIndexer[msg.sender] = true;
         metadataByIndexer[msg.sender] = _metadata;
@@ -142,10 +142,10 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
      * @notice Indexer call to unregister, need to check no running indexing projects on this Indexer from QueryRegistry contract. This function will call unstake for Indexer to make sure indexer unstaking all staked SQT Token after unregister.
      */
     function unregisterIndexer() external {
-        require(isIndexer[msg.sender], 'Not registered');
+        require(isIndexer[msg.sender], 'IR003');
         require(
             IQueryRegistry(settings.getQueryRegistry()).numberOfIndexingDeployments(msg.sender) == 0,
-            'Can not unregister from the network due to running indexing projects'
+            'IR004'
         );
 
         removeControllerAccount();
@@ -164,7 +164,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
      * @param _metadata Indexer metadata to update
      */
     function updateMetadata(bytes32 _metadata) external {
-        require(isIndexer[msg.sender], 'Not an indexer');
+        require(isIndexer[msg.sender], 'G002');
         metadataByIndexer[msg.sender] = _metadata;
         emit UpdateMetadata(msg.sender, _metadata);
     }
@@ -175,8 +175,8 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
      */
     function setControllerAccount(address _controller) external {
         // ensure to not use a controller used by someone else
-        require(isIndexer[msg.sender], 'Only indexer can set controller account');
-        require(controllerToIndexer[_controller] == ZERO_ADDRESS, 'Controller account is used by an indexer already');
+        require(isIndexer[msg.sender], 'G002');
+        require(controllerToIndexer[_controller] == ZERO_ADDRESS, 'IR005');
 
         // remove previous controller to indexer link
         address prevController = indexerToController[msg.sender];
@@ -192,7 +192,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
      * @notice Indexers call to remove the controller account. need to remove both indexerToController and controllerToIndexer.
      */
     function removeControllerAccount() public {
-        require(isIndexer[msg.sender], 'Only indexer can remove controller account');
+        require(isIndexer[msg.sender], 'G002');
         // remove 2 directional links between indexer and controller
         address _controller = indexerToController[msg.sender];
         delete indexerToController[msg.sender];
@@ -215,8 +215,8 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
      */
     function setInitialCommissionRate(address indexer, uint256 rate) private {
         IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
-        require(rewardsStaking.getTotalStakingAmount(indexer) == 0, 'Not settled');
-        require(rate <= PER_MILL, 'Invalid rate');
+        require(rewardsStaking.getTotalStakingAmount(indexer) == 0, 'RS001');
+        require(rate <= PER_MILL, 'IR006');
         uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
         commissionRates[indexer] = CommissionRate(eraNumber, rate, rate);
 
@@ -229,8 +229,8 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
      */
     function setCommissionRate(uint256 rate) external {
         IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
-        require(isIndexer[msg.sender], 'Not indexer');
-        require(rate <= PER_MILL, 'Invalid rate');
+        require(isIndexer[msg.sender], 'G002');
+        require(rate <= PER_MILL, 'IR006');
         uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
         rewardsStaking.onICRChange(msg.sender, eraNumber + 2);
         CommissionRate storage commissionRate = commissionRates[msg.sender];

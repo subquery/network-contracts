@@ -262,7 +262,7 @@ describe('ConsumerHost Contract', () => {
             expect(fee1).to.equal(etherParse('0.04')); // 0.01 + 0.02 + 0.01
             await consumerHost.connect(wallet_0).setFeePercentage(BigNumber.from(2));
             await expect(consumerHost.connect(wallet_0).setFeePercentage(BigNumber.from(101))).to.be.revertedWith(
-                'Invalid feePercentage'
+                'C001'
             );
             await fundChannel(channelId3, indexer, hoster, consumer2, cBalance2.nonce, etherParse('1'), true);
             const fee2 = await consumerHost.fee();

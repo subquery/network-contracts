@@ -100,7 +100,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     /// @dev MODIFIER
     /// @notice require caller is indexer
     modifier onlyIndexer() {
-        require(IIndexerRegistry(settings.getIndexerRegistry()).isIndexer(msg.sender), 'caller is not an indexer');
+        require(IIndexerRegistry(settings.getIndexerRegistry()).isIndexer(msg.sender), 'G002');
         _;
     }
 
@@ -116,7 +116,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         address _penaltyDestination
     ) external initializer {
         __Ownable_init();
-        require(_penaltyRate < PER_MILL, 'Invalid penalty rate');
+        require(_penaltyRate < PER_MILL, 'PO001');
 
         settings = _settings;
         penaltyRate = _penaltyRate;
@@ -128,7 +128,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * @param _penaltyRate penalty rate to set
      */
     function setPenaltyRate(uint256 _penaltyRate) external onlyOwner {
-        require(_penaltyRate < PER_MILL, 'Invalid penalty rate');
+        require(_penaltyRate < PER_MILL, 'PO001');
         penaltyRate = _penaltyRate;
     }
 
@@ -157,12 +157,12 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         uint256 _minimumAcceptHeight,
         uint256 _expireDate
     ) external {
-        require(_expireDate > block.timestamp, 'invalid expiration');
-        require(_deposit > 0, 'should deposit positive amount');
-        require(_limit > 0, 'should limit positive amount');
+        require(_expireDate > block.timestamp, 'PO002');
+        require(_deposit > 0, 'PO003');
+        require(_limit > 0, 'PO004');
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         (, , , , bool active) = planManager.getPlanTemplate(_planTemplateId);
-        require(active, 'PlanTemplate inactive');
+        require(active, 'PO005');
 
         offers[numOffers] = PurchaseOffer(
             _deposit,
@@ -179,7 +179,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         // send SQToken from msg.sender to the contract (this) - deposit * limit
         require(
             IERC20(settings.getSQToken()).transferFrom(msg.sender, address(this), _deposit * _limit),
-            'transfer fail'
+            'G013'
         );
 
         emit PurchaseOfferCreated(
@@ -202,8 +202,8 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      */
     function cancelPurchaseOffer(uint256 _offerId) external {
         PurchaseOffer memory offer = offers[_offerId];
-        require(msg.sender == offer.consumer, 'only offerer can cancel the offer');
-        require(offers[_offerId].active, 'invalid offerId');
+        require(msg.sender == offer.consumer, 'PO006');
+        require(offers[_offerId].active, 'PO007');
 
         //- deposit * limit
         uint256 unfulfilledValue = offer.deposit * (offer.limit - offer.numAcceptedContracts);
@@ -219,7 +219,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         }
 
         // send remaining SQToken from the contract to consumer (this)
-        require(IERC20(settings.getSQToken()).transfer(msg.sender, unfulfilledValue), 'transfer fail');
+        require(IERC20(settings.getSQToken()).transfer(msg.sender, unfulfilledValue), 'G013');
 
         delete offers[_offerId];
 
@@ -237,12 +237,12 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * @param _mmrRoot mmrRoot to accept the purchase offer
      */
     function acceptPurchaseOffer(uint256 _offerId, bytes32 _mmrRoot) external onlyIndexer {
-        require(offers[_offerId].active, 'invalid offerId');
-        require(!isExpired(_offerId), 'offer expired');
-        require(!acceptedOffer[_offerId][msg.sender], 'offer accepted already');
+        require(offers[_offerId].active, 'PO007');
+        require(!isExpired(_offerId), 'PO008');
+        require(!acceptedOffer[_offerId][msg.sender], 'PO009');
         require(
             offers[_offerId].limit > offers[_offerId].numAcceptedContracts,
-            'number of contracts already reached limit'
+            'PO010'
         );
 
         // increate number of accepted contracts
@@ -269,7 +269,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         // deposit SQToken into the service agreement registry contract
         require(
             IERC20(settings.getSQToken()).transfer(settings.getServiceAgreementRegistry(), offer.deposit),
-            'transfer fail'
+            'G013'
         );
         // register the agreement to service agreement registry contract
         IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());

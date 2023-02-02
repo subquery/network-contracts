@@ -89,18 +89,18 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     event StopIndexing(address indexed indexer, bytes32 indexed deploymentId);
 
     modifier onlyIndexer() {
-        require(IIndexerRegistry(settings.getIndexerRegistry()).isIndexer(msg.sender), 'caller is not an indexer');
+        require(IIndexerRegistry(settings.getIndexerRegistry()).isIndexer(msg.sender), 'G002');
         _;
     }
 
     modifier onlyIndexerController() {
-        require(IIndexerRegistry(settings.getIndexerRegistry()).isController(msg.sender), 'caller is not a controller');
+        require(IIndexerRegistry(settings.getIndexerRegistry()).isController(msg.sender), 'IR007');
         _;
     }
 
     modifier onlyCreator() {
         if (creatorRestricted) {
-            require(creatorWhitelist[msg.sender], 'Address is not authorised to operate query project');
+            require(creatorWhitelist[msg.sender], 'QR001');
         }
         _;
     }
@@ -154,10 +154,10 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     function canModifyStatus(IndexingStatus memory currentStatus, uint256 _timestamp) private view {
         require(
             currentStatus.status != IndexingServiceStatus.NOTINDEXING,
-            'can not update status for NOTINDEXING services'
+            'QR002'
         );
-        require(currentStatus.timestamp < _timestamp, 'only timestamp that is after previous timestamp is valid');
-        require(_timestamp <= block.timestamp, 'timestamp cannot be in the future');
+        require(currentStatus.timestamp < _timestamp, 'QR003');
+        require(_timestamp <= block.timestamp, 'QR004');
     }
     /**
      * @notice check if the IndexingStatus available to update BlockHeight
@@ -165,7 +165,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     function canModifyBlockHeight(IndexingStatus memory currentStatus, uint256 blockheight) private pure {
         require(
             blockheight >= currentStatus.blockHeight,
-            'can not update status when blockheight submitted < current value'
+            'QR005'
         );
     }
 
@@ -178,7 +178,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         bytes32 deploymentId
     ) external onlyCreator {
         uint256 queryId = nextQueryId;
-        require(!deploymentIds[deploymentId], 'Deployment Id already registered');
+        require(!deploymentIds[deploymentId], 'QR006');
         queryInfos[queryId] = QueryInfo(queryId, msg.sender, version, deploymentId, metadata);
         queryInfoIdsByOwner[msg.sender].push(queryId);
         nextQueryId++;
@@ -191,7 +191,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
      */
     function updateQueryProjectMetadata(uint256 queryId, bytes32 metadata) external onlyCreator {
         address queryOwner = queryInfos[queryId].owner;
-        require(queryOwner == msg.sender, 'no permission to update query project metadata');
+        require(queryOwner == msg.sender, 'QR007');
         queryInfos[queryId].metadata = metadata;
         emit UpdateQueryMetadata(queryOwner, queryId, metadata);
     }
@@ -205,8 +205,8 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         bytes32 version
     ) external onlyCreator {
         address queryOwner = queryInfos[queryId].owner;
-        require(queryOwner == msg.sender, 'no permission to update query project deployment');
-        require(!deploymentIds[deploymentId], 'Deployment Id already registered');
+        require(queryOwner == msg.sender, 'QR008');
+        require(!deploymentIds[deploymentId], 'QR006');
         queryInfos[queryId].latestDeploymentId = deploymentId;
         queryInfos[queryId].latestVersion = version;
         deploymentIds[deploymentId] = true;
@@ -218,8 +218,8 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
      */
     function startIndexing(bytes32 deploymentId) external onlyIndexer {
         IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender].status;
-        require(currentStatus == IndexingServiceStatus.NOTINDEXING, 'indexing status should be NOTINDEXING status');
-        require(deploymentIds[deploymentId], 'Deployment Id not registered');
+        require(currentStatus == IndexingServiceStatus.NOTINDEXING, 'QR009');
+        require(deploymentIds[deploymentId], 'QR006');
         deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingStatus(
             deploymentId,
             0,
@@ -272,14 +272,14 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     function stopIndexing(bytes32 deploymentId) external onlyIndexer {
         IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender].status;
 
-        require(currentStatus != IndexingServiceStatus.NOTINDEXING, 'can not stop indexing for NOTINDEXING services');
+        require(currentStatus != IndexingServiceStatus.NOTINDEXING, 'QR010');
 
         require(
             !IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).hasOngoingClosedServiceAgreement(
                 msg.sender,
                 deploymentId
             ),
-            'cannot stop indexing with an ongoing service agreement'
+            'QR011'
         );
 
         deploymentStatusByIndexer[deploymentId][msg.sender].status = IndexingServiceStatus.NOTINDEXING;
