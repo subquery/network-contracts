@@ -203,8 +203,8 @@ describe('PlanManger Contract', () => {
             await queryRegistry.updateIndexingStatusToReady(DEPLOYMENT_ID);
             // create plan template
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
-            // default plan -> planId: 0
-            await planManager.createPlan(etherParse('2'), 0, constants.ZERO_BYTES32); // plan id = 1;
+            // default plan -> planId: 1
+            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID); // plan id = 1;
         });
 
         const checkAcceptPlan = async (planId: number) => {
@@ -264,19 +264,20 @@ describe('PlanManger Contract', () => {
         });
 
         it('accept plan with specific deployment plan should work', async () => {
-            // plan for specific deploymentId -> planId: 2
-            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
-            await checkAcceptPlan(2);
-        });
+            await planManager.createPlan(etherParse('2'), 0, constants.ZERO_BYTES32);
 
-        it('accept plan with invalid params should fail', async () => {
-            // indexing service unavailable
-            await planManager.connect(consumer).createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
-
-            // approve token to serviceAgreementRegistry
+            // query not acitve should not work
             await token.connect(consumer).approve(serviceAgreementRegistry.address, etherParse('2'));
+            await expect(planManager.connect(consumer).acceptPlan(2)).to.be.revertedWith(
+                'Indexing service is not available'
+            );
 
-            await expect(planManager.connect(consumer).acceptPlan(2)).to.be.revertedWith('Inactive plan');
+            // update query status
+            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, constants.ZERO_BYTES32);
+            await queryRegistry.startIndexing(constants.ZERO_BYTES32);
+            await queryRegistry.updateIndexingStatusToReady(constants.ZERO_BYTES32);
+
+            await checkAcceptPlan(2);
         });
     });
 });

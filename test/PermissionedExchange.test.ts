@@ -113,7 +113,7 @@ describe('PermissionedExchange Contract', () => {
             // create plan template
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
             // default plan -> planId: 1
-            await planManager.connect(indexer).createPlan(etherParse('10'), 0, constants.ZERO_BYTES32);
+            await planManager.connect(indexer).createPlan(etherParse('10'), 0, DEPLOYMENT_ID);
             await sqToken.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, etherParse('50'));
             await planManager.connect(consumer).acceptPlan(1);
         });
