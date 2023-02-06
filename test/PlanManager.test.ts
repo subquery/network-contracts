@@ -207,12 +207,12 @@ describe('PlanManger Contract', () => {
             await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID); // plan id = 1;
         });
 
-        const checkAcceptPlan = async (planId: number) => {
+        const checkAcceptPlan = async (planId: number, deploymentId: string) => {
             const balance = await token.balanceOf(consumer.address);
             const plan = await planManager.getPlan(planId);
             const rewardsDistrBalance = await token.balanceOf(rewardsDistributor.address);
             await token.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, plan.price);
-            const tx = await planManager.connect(consumer).acceptPlan(planId);
+            const tx = await planManager.connect(consumer).acceptPlan(planId, deploymentId);
             const agreementId = (
                 await eventFrom(tx, serviceAgreementRegistry, 'ClosedAgreementCreated(address,address,bytes32,uint256)')
             ).serviceAgreementId;
@@ -224,13 +224,13 @@ describe('PlanManger Contract', () => {
         };
 
         it('accept plan with default plan should work', async () => {
-            const agreementId = await checkAcceptPlan(1);
+            const agreementId = await checkAcceptPlan(1, DEPLOYMENT_ID);
             const agreement = await serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
             expect(agreement.lockedAmount).to.be.eq(etherParse('2'));
         });
 
         it('claim and distribute rewards by an indexer should work', async () => {
-            await checkAcceptPlan(1);
+            await checkAcceptPlan(1, DEPLOYMENT_ID);
 
             expect((await rewardsDistributor.getRewardInfo(indexer.address)).accSQTPerStake).eq(0);
             const era = await startNewEra(mockProvider, eraManager);
@@ -254,7 +254,7 @@ describe('PlanManger Contract', () => {
         });
 
         it('reward claim should work', async () => {
-            await checkAcceptPlan(1);
+            await checkAcceptPlan(1, DEPLOYMENT_ID);
             await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.connect(indexer).collectAndDistributeRewards(indexer.address);
             const balance = await token.balanceOf(indexer.address);
@@ -265,19 +265,20 @@ describe('PlanManger Contract', () => {
 
         it('accept plan with specific deployment plan should work', async () => {
             await planManager.createPlan(etherParse('2'), 0, constants.ZERO_BYTES32);
+            const newDeployment = deploymentIds[1];
 
             // query not acitve should not work
             await token.connect(consumer).approve(serviceAgreementRegistry.address, etherParse('2'));
-            await expect(planManager.connect(consumer).acceptPlan(2)).to.be.revertedWith(
+            await expect(planManager.connect(consumer).acceptPlan(2, newDeployment)).to.be.revertedWith(
                 'Indexing service is not available'
             );
 
             // update query status
-            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, constants.ZERO_BYTES32);
-            await queryRegistry.startIndexing(constants.ZERO_BYTES32);
-            await queryRegistry.updateIndexingStatusToReady(constants.ZERO_BYTES32);
+            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, newDeployment);
+            await queryRegistry.startIndexing(newDeployment);
+            await queryRegistry.updateIndexingStatusToReady(newDeployment);
 
-            await checkAcceptPlan(2);
+            await checkAcceptPlan(2, newDeployment);
         });
     });
 });

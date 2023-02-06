@@ -407,7 +407,7 @@ describe('Service Agreement Registry Contract', () => {
         });
 
         it('renew agreement generated from planManager should work', async () => {
-            await planManager.connect(wallet2).acceptPlan(1);
+            await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             const addTable = await rewardsHelper.getRewardsAddTable(wallet1.address, 2, 10);
             const removeTable = await rewardsHelper.getRewardsRemoveTable(wallet1.address, 2, 12);
 
@@ -438,7 +438,7 @@ describe('Service Agreement Registry Contract', () => {
         });
 
         it('Indexers should be able to trun off renew', async () => {
-            await planManager.connect(wallet2).acceptPlan(1);
+            await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             expect((await planManager.getPlan(1)).active).to.be.eq(true);
@@ -451,7 +451,7 @@ describe('Service Agreement Registry Contract', () => {
         });
 
         it('customer cannot renew expired agreement', async () => {
-            await planManager.connect(wallet2).acceptPlan(1);
+            await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(20).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
@@ -460,7 +460,7 @@ describe('Service Agreement Registry Contract', () => {
         });
 
         it('only customer can renew agreement', async () => {
-            await planManager.connect(wallet2).acceptPlan(1);
+            await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet1).renewAgreement(agreementId)).to.be.revertedWith(
@@ -469,7 +469,7 @@ describe('Service Agreement Registry Contract', () => {
         });
 
         it('cannot renew upcoming agreement', async () => {
-            await planManager.connect(wallet2).acceptPlan(1);
+            await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId);

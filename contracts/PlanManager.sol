@@ -163,16 +163,22 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @notice Allow Consumer to accept a plan created by an indexer.
      * Consumer transfer token to ServiceAgreementRegistry contract and a service agreement will be created when they accept the plan.
      * @param planId plan Id to accept
+     * @param deploymentId project deployment Id
      */
-    function acceptPlan(uint256 planId) external {
+    function acceptPlan(uint256 planId, bytes32 deploymentId) external {
         Plan memory plan = plans[planId];
         require(plan.active, 'Inactive plan');
+        if (plan.deploymentId != bytes32(0)) {
+            require(plan.deploymentId == deploymentId, 'Deployment not match');
+        } else {
+            require(deploymentId != bytes32(0), 'Invalid deploymentId');
+        }
 
         // create closed service agreement contract
         ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
             msg.sender,
             plan.indexer,
-            plan.deploymentId,
+            deploymentId,
             plan.price,
             block.timestamp,
             templates[plan.templateId].period,

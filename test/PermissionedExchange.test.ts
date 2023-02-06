@@ -115,7 +115,7 @@ describe('PermissionedExchange Contract', () => {
             // default plan -> planId: 1
             await planManager.connect(indexer).createPlan(etherParse('10'), 0, DEPLOYMENT_ID);
             await sqToken.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, etherParse('50'));
-            await planManager.connect(consumer).acceptPlan(1);
+            await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
         });
 
         it('claimed reward should add to quota', async () => {

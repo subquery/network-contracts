@@ -103,7 +103,7 @@ export async function acceptPlan(
 ) {
     await planManager.createPlanTemplate(time.duration.days(period).toString(), 1000, 100, METADATA_HASH);
     await planManager.connect(indexer).createPlan(value, 0, DEPLOYMENT_ID);
-    await planManager.connect(consumer).acceptPlan((await planManager.nextPlanId()).toNumber() - 1);
+    await planManager.connect(consumer).acceptPlan((await planManager.nextPlanId()).toNumber() - 1, DEPLOYMENT_ID);
 }
 
 export function etherParse(etherNum: string) {
