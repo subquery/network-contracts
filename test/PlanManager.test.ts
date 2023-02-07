@@ -269,7 +269,7 @@ describe('PlanManger Contract', () => {
             // query not acitve should not work
             await token.connect(consumer).approve(serviceAgreementRegistry.address, etherParse('2'));
             await expect(planManager.connect(consumer).acceptPlan(1, newDeployment)).to.be.revertedWith(
-                'Indexing service is not available'
+                'SA005'
             );
 
             // update query status

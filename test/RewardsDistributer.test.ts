@@ -438,7 +438,7 @@ describe('RewardsDistributer Contract', () => {
             await startNewEra(mockProvider, eraManager);
             //for now era2 and era3 rewards not be distributed
             await expect(stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'))).to.be.revertedWith(
-                'Unless collect at last era'
+                'RS002'
             );
         });
 
@@ -454,7 +454,7 @@ describe('RewardsDistributer Contract', () => {
             await startNewEra(mockProvider, eraManager);
             //distribute era3
             await expect(rewardsStaking.applyStakeChange(indexer.address, delegator.address)).to.be.revertedWith(
-                'Rewards not collected'
+                'RS006'
             );
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             await rewardsStaking.applyStakeChange(indexer.address, delegator.address);
@@ -518,7 +518,7 @@ describe('RewardsDistributer Contract', () => {
             await indexerRegistry.connect(indexer).setCommissionRate(200);
             await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
-            await expect(rewardsStaking.applyICRChange(indexer.address)).to.be.revertedWith('No pending');
+            await expect(rewardsStaking.applyICRChange(indexer.address)).to.be.revertedWith('RS005');
         });
 
         it('not apply commission rate should fail', async () => {
@@ -762,7 +762,7 @@ describe('RewardsDistributer Contract', () => {
             await startNewEra(mockProvider, eraManager);
             // 3. delegator can not undelegate from the indexer
             await expect(stakingManager.connect(delegator).undelegate(indexer.address, etherParse('0.1'))).to.be.revertedWith(
-                'Need apply pending'
+                'RS003'
             );
             // 4. one of the delegator call `collectAndDistributeRewards` and `applyStakeChange`
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);

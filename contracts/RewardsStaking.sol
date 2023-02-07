@@ -89,12 +89,12 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
     }
 
     modifier onlyStaking() {
-        require(msg.sender == settings.getStaking(), 'Only Staking');
+        require(msg.sender == settings.getStaking(), 'G016');
         _;
     }
 
     modifier onlyIndexerRegistry() {
-        require(msg.sender == settings.getIndexerRegistry(), 'Only IndexerRegistry');
+        require(msg.sender == settings.getIndexerRegistry(), 'G017');
         _;
     }
 
@@ -138,10 +138,10 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
             emit ICRChanged(_indexer, newCommissionRate);
             emit SettledEraUpdated(_indexer, currentEra - 1);
         } else {
-            require(rewardsDistributer.collectAndDistributeEraRewards(currentEra, _indexer) == currentEra - 1, 'Unless collect at last era');
+            require(rewardsDistributer.collectAndDistributeEraRewards(currentEra, _indexer) == currentEra - 1, 'RS002');
             IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(_indexer);
 
-            require(checkAndReflectSettlement(_indexer, rewardInfo.lastClaimEra), 'Need apply pending');
+            require(checkAndReflectSettlement(_indexer, rewardInfo.lastClaimEra), 'RS003');
             if (!_pendingStakeChange(_indexer, _source)) {
                 pendingStakers[_indexer][pendingStakeChangeLength[_indexer]] = _source;
                 pendingStakerNos[_indexer][_source] = pendingStakeChangeLength[_indexer];
@@ -159,13 +159,13 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
      */
     function onICRChange(address indexer, uint256 startEra) external onlyIndexerRegistry {
         uint256 currentEra = _getCurrentEra();
-        require(startEra > currentEra, 'Too early');
+        require(startEra > currentEra, 'RS004');
 
         IRewardsDistributer rewardsDistributer = _getRewardsDistributer();
-        require(rewardsDistributer.collectAndDistributeEraRewards(currentEra, indexer) == currentEra - 1, 'Unless collect at last era');
+        require(rewardsDistributer.collectAndDistributeEraRewards(currentEra, indexer) == currentEra - 1, 'RS002');
         IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(indexer);
 
-        require(checkAndReflectSettlement(indexer, rewardInfo.lastClaimEra), 'Need apply pending');
+        require(checkAndReflectSettlement(indexer, rewardInfo.lastClaimEra), 'RS003');
         pendingCommissionRateChange[indexer] = startEra;
     }
 
@@ -177,8 +177,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
         IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(indexer);
         uint256 lastClaimEra = rewardInfo.lastClaimEra;
 
-        require(_pendingStakeChange(indexer, staker), 'No pending');
-        require(lastSettledEra[indexer] < lastClaimEra, 'Rewards not collected');
+        require(_pendingStakeChange(indexer, staker), 'RS005');
+        require(lastSettledEra[indexer] < lastClaimEra, 'RS006');
 
         rewardsDistributer.claimFrom(indexer, staker);
 
@@ -207,11 +207,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
      */
     function applyICRChange(address indexer) external {
         uint256 currentEra = _getCurrentEra();
-        require(pendingCommissionRateChange[indexer] != 0 && pendingCommissionRateChange[indexer] <= currentEra, 'No pending');
+        require(pendingCommissionRateChange[indexer] != 0 && pendingCommissionRateChange[indexer] <= currentEra, 'RS005');
 
         IRewardsDistributer rewardsDistributer = _getRewardsDistributer();
         IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(indexer);
-        require(lastSettledEra[indexer] < rewardInfo.lastClaimEra, 'Rewards not collected');
+        require(lastSettledEra[indexer] < rewardInfo.lastClaimEra, 'RS006');
 
         IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
         uint256 newCommissionRate = IIndexerRegistry(settings.getIndexerRegistry()).getCommissionRate(indexer);

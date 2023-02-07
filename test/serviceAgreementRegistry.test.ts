@@ -182,7 +182,7 @@ describe('Service Agreement Registry Contract', () => {
             );
 
             await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(3, mmrRoot)).to.be.revertedWith(
-                'Indexer reward reached to the limit'
+                'SA006'
             );
 
             await purchaseOfferMarket.createPurchaseOffer(
@@ -194,18 +194,18 @@ describe('Service Agreement Registry Contract', () => {
                 (await futureTimestamp(mockProvider)) + 86400
             );
             await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(4, mmrRoot)).to.be.revertedWith(
-                'Indexing service is not available'
+                'SA005'
             );
 
             await expect(
                 serviceAgreementRegistry.connect(wallet1).establishServiceAgreement(serviceAgreementRegistry.address)
-            ).to.be.revertedWith('No access');
+            ).to.be.revertedWith('SA004');
 
             await serviceAgreementRegistry.addEstablisher(wallet1.address);
 
             await expect(
                 serviceAgreementRegistry.connect(wallet1).establishServiceAgreement(serviceAgreementRegistry.address)
-            ).to.be.revertedWith('Agreement does not exist');
+            ).to.be.revertedWith('SA001');
         });
     });
 
@@ -402,7 +402,7 @@ describe('Service Agreement Registry Contract', () => {
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(3).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
-                'Plan is inactive'
+                'PM009'
             );
         });
 
@@ -446,7 +446,7 @@ describe('Service Agreement Registry Contract', () => {
             expect((await planManager.getPlan(1)).active).to.be.eq(false);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
-                'Plan is inactive'
+                'PM009'
             );
         });
 
@@ -455,7 +455,7 @@ describe('Service Agreement Registry Contract', () => {
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(20).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
-                'Agreement ended'
+                'SA009'
             );
         });
 
@@ -464,7 +464,7 @@ describe('Service Agreement Registry Contract', () => {
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet1).renewAgreement(agreementId)).to.be.revertedWith(
-                'Sender is not the consumer'
+                'SA007'
             );
         });
 
@@ -477,7 +477,7 @@ describe('Service Agreement Registry Contract', () => {
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await expect(
                 serviceAgreementRegistry.connect(wallet2).renewAgreement(upcomingAgreementId)
-            ).to.be.revertedWith('Cannot renew upcoming agreement');
+            ).to.be.revertedWith('SA008');
         });
     });
 
@@ -505,10 +505,10 @@ describe('Service Agreement Registry Contract', () => {
             const consumer = wallet2;
             const user_1 = '0xD0D81970D25259E5Ca17D42c3f5094B5fd8e7713';
             await expect(serviceAgreementRegistry.addUser(consumer.address, user_1)).to.be.revertedWith(
-                'Only consumer can add user'
+                'SA002'
             );
             await expect(serviceAgreementRegistry.removeUser(consumer.address, user_1)).to.be.revertedWith(
-                'Only consumer can remove user'
+                'SA003'
             );
         });
     });

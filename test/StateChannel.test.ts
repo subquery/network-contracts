@@ -161,7 +161,7 @@ describe('StateChannel Contract', () => {
             await openChannel(channelId, indexer, consumer, etherParse('0.5'), etherParse('0.1'), 6);
             await expect(
                 openChannel(channelId, indexer, consumer, etherParse('0.5'), etherParse('0.5'), 60)
-            ).to.be.revertedWith('ChannelId already existed');
+            ).to.be.revertedWith('SC001');
         });
 
         it('can repeat same channel Id after channel is finalized', async () => {
@@ -241,7 +241,7 @@ describe('StateChannel Contract', () => {
             expect(state1.spent).to.equal(0);
             expect(state1.status).to.equal(2); // Terminate
 
-            await expect(stateChannel.claim(channelId)).to.be.revertedWith('Channel not expired');
+            await expect(stateChannel.claim(channelId)).to.be.revertedWith('SC008');
 
             await delay(6);
             await stateChannel.claim(channelId);
@@ -262,7 +262,7 @@ describe('StateChannel Contract', () => {
             expect(state1.spent).to.equal(etherParse('0.1'));
             expect(state1.status).to.equal(2); // Terminate
 
-            await expect(stateChannel.claim(channelId)).to.be.revertedWith('Channel not expired');
+            await expect(stateChannel.claim(channelId)).to.be.revertedWith('SC008');
 
             await delay(6);
             await stateChannel.claim(channelId);
@@ -289,7 +289,7 @@ describe('StateChannel Contract', () => {
             expect(state2.spent).to.equal(0);
             expect(state2.status).to.equal(0); // Finalized
 
-            await expect(stateChannel.claim(channelId)).to.be.revertedWith('Channel not expired');
+            await expect(stateChannel.claim(channelId)).to.be.revertedWith('SC008');
         });
 
         it('terminate State Channel with continue fund', async () => {
@@ -309,7 +309,7 @@ describe('StateChannel Contract', () => {
             expect(consumer.address).to.equal(recover);
 
             await expect(stateChannel.fund(channelId, etherParse('0.1'), '0x', sign)).to.be.revertedWith(
-                'Channel lost efficacy'
+                'SC003'
             );
 
             // extend the expiration
@@ -333,7 +333,7 @@ describe('StateChannel Contract', () => {
 
             await expect(
                 stateChannel.extend(channelId, preExpirationAt, nextExpiration, indexerSign, consumerSign)
-            ).to.be.revertedWith('Request is expired');
+            ).to.be.revertedWith('SC002');
         });
     });
 });
