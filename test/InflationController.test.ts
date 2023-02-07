@@ -93,7 +93,7 @@ describe('Inflation Controller Contract', () => {
 
         it('mintInflatedTokens only be called by eraManager', async () => {
             await expect(inflationController.mintInflatedTokens()).to.be.revertedWith(
-                'Can only be called by eraManager'
+                'G012'
             );
         });
 

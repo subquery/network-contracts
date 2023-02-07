@@ -230,11 +230,10 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(msg.sender == agreement.consumer, 'Sender is not the consumer');
         require(agreement.startDate < block.timestamp, 'Cannot renew upcoming agreement');
-        require(agreement.planId != 0, 'Agreement cannot renew without planId');
 
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
-        (, , , bool active) = planManager.getPlan(agreement.indexer, agreement.planId);
-        require(active, 'Plan is inactive');
+        Plan memory plan = planManager.getPlan(agreement.planId);
+        require(plan.active, 'Plan is inactive');
         require((agreement.startDate + agreement.period) > block.timestamp, 'Agreement ended');
 
         // create closed service agreement

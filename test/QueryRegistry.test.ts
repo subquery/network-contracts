@@ -200,7 +200,7 @@ describe('Query Registry Contract', () => {
 
         it('start indexing should fail for unregistered deployment id', async () => {
             const deploymentId = deploymentIds[1];
-            await expect(queryRegistry.startIndexing(deploymentId)).to.be.revertedWith('Deployment Id not registered');
+            await expect(queryRegistry.startIndexing(deploymentId)).to.be.revertedWith('QR006');
         });
 
         it('update indexing status to ready should work', async () => {

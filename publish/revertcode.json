@@ -74,7 +74,7 @@
     "PM005": "Price need to be positive",
     "PM006": "Inactive plan template",
     "PM007": "Indexer plan limitation reached",
-    "PM008": "Inactive plan can not be removed",
+    "PM008": "Invaild plan can not be removed",
     "PM009": "Inactive plan",
     "PM010": "DeploymentId can not be empty",
     "PM011": "Plan not match with the deployment",
