@@ -111,7 +111,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      * @param _alphaDenominator the denominator of the alpha
      */
     function setAlpha(int32 _alphaNumerator, int32 _alphaDenominator) public onlyOwner {
-        require(_alphaNumerator > 0 && _alphaDenominator > 0, "!alpha");
+        require(_alphaNumerator > 0 && _alphaDenominator > 0, "RP001");
         alphaNumerator = _alphaNumerator;
         alphaDenominator = _alphaDenominator;
 
@@ -136,7 +136,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      * @param amount the labor of services
      */
     function labor(bytes32 deploymentId, address indexer, uint256 amount) external {
-        require(amount > 0, 'Invalid amount');
+        require(amount > 0, 'RP002');
         IERC20(settings.getSQToken()).safeTransferFrom(msg.sender, address(this), amount);
 
         uint256 era = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
@@ -153,7 +153,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         if (pool.labor[indexer] == 0) {
             IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
             uint256 myStake = stakingManager.getTotalStakingAmount(indexer);
-            require(myStake > 0, 'Not indexer');
+            require(myStake > 0, 'RP003');
             pool.stake[indexer] = myStake;
             pool.totalStake += myStake;
         }
@@ -203,7 +203,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      */
     function collectEra(uint256 era, bytes32 deploymentId, address indexer) external {
         uint256 currentEra = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
-        require(currentEra > era, 'Waiting Era');
+        require(currentEra > era, 'RP004');
         _collect(era, deploymentId, indexer);
     }
 
@@ -214,7 +214,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      */
     function batchCollectEra(uint256 era, address indexer) external {
         uint256 currentEra = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
-        require(currentEra > era, 'Waiting Era');
+        require(currentEra > era, 'RP004');
         _batchCollect(era, indexer);
     }
 
@@ -254,7 +254,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     function _collect(uint256 era, bytes32 deploymentId, address indexer) private {
         EraPool storage eraPool = pools[era];
         Pool storage pool = eraPool.pools[deploymentId];
-        require(pool.totalStake > 0 && pool.totalReward > 0 && pool.labor[indexer] > 0, 'No reward');
+        require(pool.totalStake > 0 && pool.totalReward > 0 && pool.labor[indexer] > 0, 'RP005');
 
         uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[indexer], pool.stake[indexer], pool.totalStake);
 

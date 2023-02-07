@@ -123,7 +123,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
      * We are using the statu `consumerAuthAllows` offchain.
      */
     function addUser(address consumer, address user) external {
-        require(msg.sender == consumer, 'Only consumer can add user');
+        require(msg.sender == consumer, 'SA002');
         consumerAuthAllows[consumer][user] = true;
         emit UserAdded(consumer, user);
     }
@@ -132,7 +132,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
      * @dev Consumer remove users can request access token from indexer.
      */
     function removeUser(address consumer, address user) external {
-        require(msg.sender == consumer, 'Only consumer can remove user');
+        require(msg.sender == consumer, 'SA003');
         delete consumerAuthAllows[consumer][user];
         emit UserRemoved(consumer, user);
     }
@@ -151,7 +151,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
 
     function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement) external returns (uint256) {
         if (msg.sender != address(this)) {
-            require(establisherWhitelist[msg.sender], 'No access');
+            require(establisherWhitelist[msg.sender], 'SA004');
         }
         closedServiceAgreements[nextServiceAgreementId] = agreement;
         uint256 agreementId = nextServiceAgreementId;
@@ -174,12 +174,12 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
      */
     function establishServiceAgreement(uint256 agreementId) external {
         if (msg.sender != address(this)) {
-            require(establisherWhitelist[msg.sender], 'No access');
+            require(establisherWhitelist[msg.sender], 'SA004');
         }
 
         //for now only support closed service agreement
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
-        require(agreement.consumer != address(0), 'Agreement does not exist');
+        require(agreement.consumer != address(0), 'SA001');
 
         address indexer = agreement.indexer;
         address consumer = agreement.consumer;
@@ -187,7 +187,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
 
         require(
             IQueryRegistry(settings.getQueryRegistry()).isIndexingAvailable(deploymentId, indexer),
-            'Indexing service is not available'
+            'SA005'
         );
 
         IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
@@ -198,7 +198,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         sumDailyReward[indexer] += lockedAmount / period;
         require(
             totalStake >= MathUtil.mulDiv(sumDailyReward[indexer], threshold, PER_MILL),
-            'Indexer reward reached to the limit'
+            'SA006'
         );
 
         closedServiceAgreementIds[indexer][indexerCsaLength[indexer]] = agreementId;
@@ -228,13 +228,13 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
     function renewAgreement(uint256 agreementId) external {
         //for now only support closed service agreement
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
-        require(msg.sender == agreement.consumer, 'Sender is not the consumer');
-        require(agreement.startDate < block.timestamp, 'Cannot renew upcoming agreement');
+        require(msg.sender == agreement.consumer, 'SA007');
+        require(agreement.startDate < block.timestamp, 'SA008');
 
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         Plan memory plan = planManager.getPlan(agreement.planId);
-        require(plan.active, 'Plan is inactive');
-        require((agreement.startDate + agreement.period) > block.timestamp, 'Agreement ended');
+        require(plan.active, 'PM009');
+        require((agreement.startDate + agreement.period) > block.timestamp, 'SA009');
 
         // create closed service agreement
         ClosedServiceAgreementInfo memory newAgreement = ClosedServiceAgreementInfo(
@@ -255,12 +255,12 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
     }
 
     function clearEndedAgreement(address indexer, uint256 id) public {
-        require(id < indexerCsaLength[indexer], 'Agreement does not exist');
+        require(id < indexerCsaLength[indexer], 'SA001');
 
         uint256 agreementId = closedServiceAgreementIds[indexer][id];
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
-        require(agreement.consumer != address(0), 'Agreement does not exist');
-        require(block.timestamp > (agreement.startDate + agreement.period), 'Agreement not complete');
+        require(agreement.consumer != address(0), 'SA001');
+        require(block.timestamp > (agreement.startDate + agreement.period), 'SA010');
 
         uint256 lockedAmount = agreement.lockedAmount;
         uint256 period = periodInDay(agreement.period);

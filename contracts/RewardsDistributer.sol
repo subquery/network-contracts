@@ -90,7 +90,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     event RewardsChanged(address indexed indexer, uint256 indexed eraIdx, uint256 additions, uint256 removals);
 
     modifier onlyRewardsStaking() {
-        require(msg.sender == settings.getRewardsStaking(), 'Only RewardsStaking');
+        require(msg.sender == settings.getRewardsStaking(), 'G014');
         _;
     }
 
@@ -152,9 +152,9 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * @param agreementId agreement Id
      */
     function increaseAgreementRewards(uint256 agreementId) external {
-        require(settings.getServiceAgreementRegistry() == msg.sender, 'Only ServiceAgreementRegistry');
+        require(settings.getServiceAgreementRegistry() == msg.sender, 'G015');
         ClosedServiceAgreementInfo memory agreement = IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).getClosedServiceAgreement(agreementId);
-        require(agreement.consumer != address(0), 'Invalid agreemenrt');
+        require(agreement.consumer != address(0), 'SA001');
         IEraManager eraManager = IEraManager(settings.getEraManager());
 
         address indexer = agreement.indexer;
@@ -229,8 +229,8 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * @param era uint256
      */
     function addInstantRewards(address indexer, address sender, uint256 amount, uint256 era) external {
-        require(era <= _getCurrentEra(), 'Waiting Era');
-        require(era >= info[indexer].lastClaimEra, 'Era expired');
+        require(era <= _getCurrentEra(), 'RD001');
+        require(era >= info[indexer].lastClaimEra, 'RD002');
         IERC20(settings.getSQToken()).safeTransferFrom(sender, address(this), amount);
 
         RewardInfo storage rewardInfo = info[indexer];
@@ -250,7 +250,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     function collectAndDistributeRewards(address indexer) public {
         // check current era is after lastClaimEra
         uint256 currentEra = _getCurrentEra();
-        require(info[indexer].lastClaimEra < currentEra - 1, 'Waiting next era');
+        require(info[indexer].lastClaimEra < currentEra - 1, 'RD003');
         collectAndDistributeEraRewards(currentEra, indexer);
     }
 
@@ -261,7 +261,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      */
     function collectAndDistributeEraRewards(uint256 currentEra, address indexer) public returns (uint256) {
         RewardInfo storage rewardInfo = info[indexer];
-        require(rewardInfo.lastClaimEra > 0, 'Invalid indexer');
+        require(rewardInfo.lastClaimEra > 0, 'RD004');
         // skip when it has been claimed for currentEra - 1, no throws
         if (rewardInfo.lastClaimEra >= currentEra - 1) {
             return rewardInfo.lastClaimEra;
@@ -269,7 +269,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
         IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
         rewardsStaking.checkAndReflectSettlement(indexer, rewardInfo.lastClaimEra);
-        require(rewardInfo.lastClaimEra <= rewardsStaking.getLastSettledEra(indexer), 'Pending stake or ICR');
+        require(rewardInfo.lastClaimEra <= rewardsStaking.getLastSettledEra(indexer), 'RD005');
 
         rewardInfo.lastClaimEra++;
 
@@ -283,7 +283,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         delete rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
         if (rewardInfo.eraReward != 0) {
             uint256 totalStake = rewardsStaking.getTotalStakingAmount(indexer);
-            require(totalStake > 0, 'Non-Indexer');
+            require(totalStake > 0, 'RD006');
 
             uint256 commissionRate = IIndexerRegistry(settings.getIndexerRegistry()).getCommissionRate(indexer);
             uint256 commission = MathUtil.mulDiv(commissionRate, rewardInfo.eraReward, PER_MILL);
@@ -306,7 +306,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * @notice Claim rewards of msg.sender for specific indexer.
      */
     function claim(address indexer) public {
-        require(claimFrom(indexer, msg.sender) > 0, 'No rewards');
+        require(claimFrom(indexer, msg.sender) > 0, 'RD007');
     }
 
     /**

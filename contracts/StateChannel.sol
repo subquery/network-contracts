@@ -139,11 +139,11 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         bytes memory consumerSign
     ) public {
         // check channel exist
-        require(channels[channelId].status == ChannelStatus.Finalized, 'ChannelId already existed');
+        require(channels[channelId].status == ChannelStatus.Finalized, 'SC001');
 
         // check indexer registered
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
-        require(indexerRegistry.isIndexer(indexer), 'indexer is not registered');
+        require(indexerRegistry.isIndexer(indexer), 'IR003');
         address controller = indexerRegistry.indexerToController(indexer);
 
         // check sign
@@ -151,9 +151,9 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             abi.encode(channelId, indexer, consumer, amount, price, expiration, deploymentId, callback)
         );
         if (_isContract(consumer)) {
-            require(consumer.supportsInterface(type(IConsumer).interfaceId), 'Contract is not IConsumer');
+            require(consumer.supportsInterface(type(IConsumer).interfaceId), 'G018');
             IConsumer cConsumer = IConsumer(consumer);
-            require(cConsumer.checkSign(channelId, payload, consumerSign), 'Invalid consumer signature');
+            require(cConsumer.checkSign(channelId, payload, consumerSign), 'C006');
             cConsumer.paid(channelId, amount, callback);
         } else {
             _checkSign(payload, consumerSign, consumer, address(0));
@@ -197,12 +197,12 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address indexer = channels[channelId].indexer;
         address consumer = channels[channelId].consumer;
         address controller = IIndexerRegistry(settings.getIndexerRegistry()).indexerToController(indexer);
-        require(channels[channelId].expiredAt == preExpirationAt, 'Request is expired');
+        require(channels[channelId].expiredAt == preExpirationAt, 'SC002');
 
         // check sign
         bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, preExpirationAt, expiration));
         if (_isContract(consumer)) {
-            require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'Invalid consumer signature');
+            require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'C006');
         } else {
             _checkSign(payload, consumerSign, consumer, address(0));
         }
@@ -222,7 +222,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     function fund(uint256 channelId, uint256 amount, bytes memory callback, bytes memory sign) public {
         require(
             channels[channelId].status == ChannelStatus.Open && channels[channelId].expiredAt > block.timestamp,
-            'Channel lost efficacy'
+            'SC003'
         );
 
         address indexer = channels[channelId].indexer;
@@ -232,12 +232,12 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         // check sign
         if (_isContract(consumer)) {
             IConsumer cConsumer = IConsumer(consumer);
-            require(cConsumer.checkSign(channelId, payload, sign), 'Invalid consumer signature');
+            require(cConsumer.checkSign(channelId, payload, sign), 'C006');
             cConsumer.paid(channelId, amount, callback);
         } else {
             bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
             address sConsumer = ECDSA.recover(hash, sign);
-            require(sConsumer == consumer, 'Invalid consumer signature');
+            require(sConsumer == consumer, 'C006');
         }
 
         // transfer the balance to contract
@@ -253,10 +253,10 @@ contract StateChannel is Initializable, OwnableUpgradeable {
      */
     function checkpoint(QueryState calldata query) public {
         // check channel status
-        require(channels[query.channelId].status == ChannelStatus.Open, 'Channel must be actived');
+        require(channels[query.channelId].status == ChannelStatus.Open, 'SC004');
 
         // check spent
-        require(query.spent > channels[query.channelId].spent, 'Query state must bigger than channel state');
+        require(query.spent > channels[query.channelId].spent, 'SC005');
 
         // check sign
         bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));
@@ -284,18 +284,18 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         if (_isContract(state.consumer)) {
             isConsumer = IConsumer(state.consumer).checkSender(query.channelId, msg.sender);
         }
-        require(isIndexer || isConsumer, 'Invalid sender');
+        require(isIndexer || isConsumer, 'G008');
 
         // check state
         bool allowState = state.expiredAt > block.timestamp && query.spent >= state.spent && query.spent < state.total;
-        require(allowState, 'Query state must bigger than channel state');
+        require(allowState, 'SC005');
 
         // check sign
         if (query.spent > 0) {
             bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));
             _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
         } else {
-            require(!query.isFinal, 'Unspent need expiration');
+            require(!query.isFinal, 'SC006');
         }
 
         // update channel state.
@@ -318,19 +318,19 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         ChannelState storage state = channels[query.channelId];
 
         // check state and sender
-        require(state.status == ChannelStatus.Terminating, 'Not terminating');
+        require(state.status == ChannelStatus.Terminating, 'SC007');
         if (state.terminateByIndexer) {
             bool isConsumer = msg.sender == state.consumer;
             if (_isContract(state.consumer)) {
                 isConsumer = IConsumer(state.consumer).checkSender(query.channelId, msg.sender);
             }
-            require(isConsumer, 'Invalid sender');
+            require(isConsumer, 'G008');
         } else {
-            require(msg.sender == state.indexer, 'Invalid sender');
+            require(msg.sender == state.indexer, 'G008');
         }
 
         // check count
-        require(query.spent >= state.spent, 'Query state must bigger than channel state');
+        require(query.spent >= state.spent, 'SC005');
 
         // check sign
         bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));
@@ -356,7 +356,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         bool isClaimable2 = isClaimable1 ||
             (channels[channelId].status == ChannelStatus.Open && channels[channelId].expiredAt < block.timestamp);
 
-        require(isClaimable2, 'Channel not expired');
+        require(isClaimable2, 'SC008');
         _finalize(channelId);
     }
 
@@ -372,7 +372,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address controller = IIndexerRegistry(settings.getIndexerRegistry()).indexerToController(indexer);
         address consumer = channels[channelId].consumer;
         if (_isContract(consumer)) {
-            require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'Invalid consumer signature');
+            require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'C006');
         } else {
             _checkSign(payload, consumerSign, consumer, address(0));
         }
@@ -388,7 +388,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     ) private pure {
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
         address signIndexer = ECDSA.recover(hash, indexerSign);
-        require(signIndexer == channelIndexer || signIndexer == channelController, 'Invalid signature');
+        require(signIndexer == channelIndexer || signIndexer == channelController, 'SC009');
     }
 
     /// @notice Settlement the new state

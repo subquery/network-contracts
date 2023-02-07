@@ -108,7 +108,7 @@ describe('Query Registry Contract', () => {
         it('cannot create a project with an existing deploymentId', async () => {
             const [metadata, version, deploymentId] = [metadatas[0], versions[0], deploymentIds[0]];
             await expect(queryRegistry.createQueryProject(metadata, version, deploymentId)).to.be.revertedWith(
-                'Deployment Id already registered'
+                'QR006'
             );
         });
 
@@ -126,7 +126,7 @@ describe('Query Registry Contract', () => {
             const [metadata, version, deploymentId] = [metadatas[0], versions[0], deploymentIds[1]];
             await expect(
                 queryRegistry.connect(wallet_1).createQueryProject(metadata, version, deploymentId)
-            ).to.be.revertedWith('Address is not authorised to operate query project');
+            ).to.be.revertedWith('QR001');
         });
 
         it('any account can create a project not in creatorRestrict mode', async () => {
@@ -168,16 +168,16 @@ describe('Query Registry Contract', () => {
             // no permission to update metadata
             await expect(
                 queryRegistry.connect(wallet_1).updateQueryProjectMetadata(0, metadatas[1])
-            ).to.be.revertedWith('no permission to update query project metadata');
+            ).to.be.revertedWith('QR007');
             // no permission to update deployment
             await expect(
                 queryRegistry.connect(wallet_1).updateDeployment(0, deploymentIds[1], versions[1])
-            ).to.be.revertedWith('no permission to update query project deployment');
+            ).to.be.revertedWith('QR008');
         });
 
         it('should fail to update deployment to one already used', async () => {
             await expect(queryRegistry.updateDeployment(0, deploymentId, versions[0])).to.be.revertedWith(
-                'Deployment Id already registered'
+                'QR006'
             );
         });
     });
@@ -200,7 +200,7 @@ describe('Query Registry Contract', () => {
 
         it('start indexing should fail for unregistered deployment id', async () => {
             const deploymentId = deploymentIds[1];
-            await expect(queryRegistry.startIndexing(deploymentId)).to.be.revertedWith('Deployment Id not registered');
+            await expect(queryRegistry.startIndexing(deploymentId)).to.be.revertedWith('QR006');
         });
 
         it('update indexing status to ready should work', async () => {
@@ -280,34 +280,34 @@ describe('Query Registry Contract', () => {
         it('start indexing with invalid condition should fail', async () => {
             // caller is not indexer
             await expect(queryRegistry.connect(wallet_1).startIndexing(deploymentId)).to.be.revertedWith(
-                'caller is not an indexer'
+                'G002'
             );
             // current status is not `NOTINDEXING`
             await queryRegistry.startIndexing(deploymentId);
             await expect(queryRegistry.startIndexing(deploymentId)).to.be.revertedWith(
-                'indexing status should be NOTINDEXING status'
+                'QR009'
             );
             // update status to ready
             await queryRegistry.updateIndexingStatusToReady(deploymentId);
             await expect(queryRegistry.startIndexing(deploymentId)).to.be.revertedWith(
-                'indexing status should be NOTINDEXING status'
+                'QR009'
             );
         });
 
         it('update indexing to ready with invalid status should fail', async () => {
             // caller is not indexer
             await expect(queryRegistry.connect(wallet_1).updateIndexingStatusToReady(deploymentId)).to.be.revertedWith(
-                'caller is not an indexer'
+                'G002'
             );
             // current status is `NONSTARTED`
             await expect(queryRegistry.updateIndexingStatusToReady(deploymentId)).to.be.revertedWith(
-                'can not update status for NOTINDEXING services'
+                'QR002'
             );
             // current status `NOTINDEXING`
             await queryRegistry.startIndexing(deploymentId);
             await queryRegistry.stopIndexing(deploymentId);
             await expect(queryRegistry.updateIndexingStatusToReady(deploymentId)).to.be.revertedWith(
-                'can not update status for NOTINDEXING services'
+                'QR002'
             );
         });
 
@@ -315,9 +315,9 @@ describe('Query Registry Contract', () => {
             let timestamp = await lastestTime(mockProvider);
             let status = await queryRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address);
             // caller is not a controller
-            await expect(reportStatus(timestamp, undefined, wallet_0)).to.be.revertedWith('caller is not a controller');
+            await expect(reportStatus(timestamp, undefined, wallet_0)).to.be.revertedWith('IR007');
             // current status is `NONSTARTED`
-            await expect(reportStatus(timestamp)).to.be.revertedWith('can not update status for NOTINDEXING services');
+            await expect(reportStatus(timestamp)).to.be.revertedWith('QR002');
             await queryRegistry.startIndexing(deploymentId);
             timestamp = await lastestTime(mockProvider);
             await delay(2);
@@ -325,30 +325,30 @@ describe('Query Registry Contract', () => {
             status = await queryRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address);
             timestamp = await lastestTime(mockProvider);
             await expect(reportStatus(timestamp, status.blockHeight.toNumber() - 1, wallet_1)).to.be.revertedWith(
-                'can not update status when blockheight submitted < current value'
+                'QR005'
             );
             // invalid timestamp
             await reportStatus(timestamp);
             await expect(reportStatus(timestamp)).to.be.revertedWith(
-                'only timestamp that is after previous timestamp is valid'
+                'QR003'
             );
-            await expect(reportStatus(timestamp + 1000)).to.be.revertedWith('timestamp cannot be in the future');
+            await expect(reportStatus(timestamp + 1000)).to.be.revertedWith('QR004');
         });
 
         it('stop indexing with invalid condition should fail', async () => {
             // caller is not an indexer
             await expect(queryRegistry.connect(wallet_1).stopIndexing(deploymentId)).to.be.revertedWith(
-                'caller is not an indexer'
+                'G002'
             );
             // current status is `NOTINDEXING`
             await expect(queryRegistry.stopIndexing(deploymentId)).to.be.revertedWith(
-                'can not stop indexing for NOTINDEXING services'
+                'QR010'
             );
             // current status is `NOTINDEXING`
             await queryRegistry.startIndexing(deploymentId);
             await queryRegistry.stopIndexing(deploymentId);
             await expect(queryRegistry.stopIndexing(deploymentId)).to.be.revertedWith(
-                'can not stop indexing for NOTINDEXING services'
+                'QR010'
             );
             // have ongoing service agreement
             await queryRegistry.startIndexing(deploymentId);
@@ -358,7 +358,7 @@ describe('Query Registry Contract', () => {
             await createPurchaseOffer(purchaseOfferMarket, token, deploymentId, await futureTimestamp(mockProvider));
             await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
             await expect(queryRegistry.stopIndexing(deploymentId)).to.be.revertedWith(
-                'cannot stop indexing with an ongoing service agreement'
+                'QR011'
             );
         });
     });

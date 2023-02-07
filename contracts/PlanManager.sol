@@ -91,9 +91,9 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param metadata plan metadata
      */
     function createPlanTemplate(uint256 period, uint256 dailyReqCap, uint256 rateLimit, bytes32 metadata) external onlyOwner {
-        require(period > 0, 'Period need to be positive');
-        require(dailyReqCap > 0, 'DailyReqCap need to be positive');
-        require(rateLimit > 0, 'RateLimit need to be positive');
+        require(period > 0, 'PM001');
+        require(dailyReqCap > 0, 'PM002');
+        require(rateLimit > 0, 'PM003');
 
         templates[nextTemplateId] = PlanTemplate(period, dailyReqCap, rateLimit, metadata, true);
 
@@ -107,7 +107,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param metadata metadata to update
      */
     function updatePlanTemplateMetadata(uint256 templateId, bytes32 metadata) external onlyOwner {
-        require(templates[templateId].period > 0, 'Plan template not existing');
+        require(templates[templateId].period > 0, 'PM004');
 
         templates[templateId].metadata = metadata;
 
@@ -120,7 +120,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param active plan template active or not
      */
     function updatePlanTemplateStatus(uint256 templateId, bool active) external onlyOwner {
-        require(templates[templateId].period > 0, 'Plan template not existing');
+        require(templates[templateId].period > 0, 'PM004');
 
         templates[templateId].active = active;
 
@@ -134,9 +134,9 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param deploymentId project deployment Id on plan
      */
     function createPlan(uint256 price, uint256 templateId, bytes32 deploymentId) external {
-        require(price > 0, 'Price need to be positive');
-        require(templates[templateId].active, 'Inactive plan template');
-        require(limits[msg.sender][deploymentId] < limit, 'Indexer plan limitation reached');
+        require(price > 0, 'PM005');
+        require(templates[templateId].active, 'PM006');
+        require(limits[msg.sender][deploymentId] < limit, 'PM007');
 
         plans[nextPlanId] = Plan(msg.sender, price, templateId, deploymentId, true);
         limits[msg.sender][deploymentId] += 1;
@@ -150,7 +150,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param planId Plan id to remove
      */
     function removePlan(uint256 planId) external {
-        require(plans[planId].indexer == msg.sender, 'Missing plan');
+        require(plans[planId].indexer == msg.sender, 'PM008');
 
         bytes32 deploymentId = plans[planId].deploymentId;
         limits[msg.sender][deploymentId] -= 1;
@@ -167,11 +167,11 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      */
     function acceptPlan(uint256 planId, bytes32 deploymentId) external {
         Plan memory plan = plans[planId];
-        require(plan.active, 'Inactive plan');
+        require(plan.active, 'PM009');
         if (plan.deploymentId != bytes32(0)) {
-            require(plan.deploymentId == deploymentId, 'Deployment not match');
+            require(plan.deploymentId == deploymentId, 'PM010');
         } else {
-            require(deploymentId != bytes32(0), 'Invalid deploymentId');
+            require(deploymentId != bytes32(0), 'PM011');
         }
 
         // create closed service agreement contract

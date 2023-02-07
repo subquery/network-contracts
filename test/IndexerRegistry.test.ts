@@ -58,7 +58,7 @@ describe('IndexerRegistry Contract', () => {
 
         it('registered indexer reregister should fail', async () => {
             await expect(indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0)).to.be.revertedWith(
-                'Already registered'
+                'IR001'
             );
         });
 
@@ -73,7 +73,7 @@ describe('IndexerRegistry Contract', () => {
         it('update metadata with invalid caller should fail', async () => {
             // caller is not an indexer
             await expect(indexerRegistry.connect(wallet_1).updateMetadata(METADATA_1_HASH)).to.be.revertedWith(
-                'Not an indexer'
+                'G002'
             );
         });
     });
@@ -105,7 +105,7 @@ describe('IndexerRegistry Contract', () => {
         it('set controller account with invalid caller should fail', async () => {
             // caller is not an indexer
             await expect(indexerRegistry.connect(wallet_1).setControllerAccount(wallet_0.address)).to.be.revertedWith(
-                'Only indexer can set controller account'
+                'G002'
             );
         });
 
@@ -115,7 +115,7 @@ describe('IndexerRegistry Contract', () => {
             await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '2000');
             // wallet_1 try to add wallet_2 as controller should fail
             await expect(indexerRegistry.connect(wallet_1).setControllerAccount(wallet_2.address)).to.be.revertedWith(
-                'Controller account is used by an indexer already'
+                'IR005'
             );
         });
 
@@ -132,7 +132,7 @@ describe('IndexerRegistry Contract', () => {
         it('remove controller account with invalid caller should fail', async () => {
             // caller is not an indexer
             await expect(indexerRegistry.connect(wallet_1).removeControllerAccount()).to.be.revertedWith(
-                'Only indexer can remove controller account'
+                'G002'
             );
         });
     });
@@ -152,13 +152,13 @@ describe('IndexerRegistry Contract', () => {
 
         it('deregister with invalid status should fail', async () => {
             // unregisted account
-            await expect(indexerRegistry.connect(wallet_1).unregisterIndexer()).to.be.revertedWith('Not registered');
+            await expect(indexerRegistry.connect(wallet_1).unregisterIndexer()).to.be.revertedWith('IR003');
 
             // with running projects
             await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
             await queryRegistry.startIndexing(DEPLOYMENT_ID);
             await expect(indexerRegistry.unregisterIndexer()).to.be.revertedWith(
-                'Can not unregister from the network due to running indexing projects'
+                'IR004'
             );
         });
     });

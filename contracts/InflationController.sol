@@ -46,7 +46,7 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
         address _inflationDestination
     ) external initializer {
         __Ownable_init();
-        require(_inflationRate < PER_MILL, 'InflationRate value is out of range');
+        require(_inflationRate < PER_MILL, 'IC001');
 
         settings = _settings;
         inflationRate = _inflationRate;
@@ -59,7 +59,7 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
      * @param _inflationRate One year inflationRate for SQT token
      */
     function setInflationRate(uint256 _inflationRate) external onlyOwner {
-        require(_inflationRate < PER_MILL, 'InflationRate value is out of range');
+        require(_inflationRate < PER_MILL, 'IC001');
         inflationRate = _inflationRate;
     }
 
@@ -75,9 +75,9 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
      * @notice Can only called by eraManager when startNewEra, it will calculate and mint the inflation SQT token for last Era according to the inflation rate.
      */
     function mintInflatedTokens() external {
-        require(msg.sender == settings.getEraManager(), 'Can only be called by eraManager');
+        require(msg.sender == settings.getEraManager(), 'G012');
         uint256 passedTime = block.timestamp - lastInflationTimestamp;
-        require(passedTime > 0, 'Already minted this Era');
+        require(passedTime > 0, 'IC002');
 
         uint256 passedTimeRate = MathUtil.mulDiv(passedTime * inflationRate, PER_BILL / PER_MILL, YEAR_SECONDS);
         lastInflationTimestamp = block.timestamp;

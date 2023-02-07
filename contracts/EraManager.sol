@@ -39,7 +39,7 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
      */
     function initialize(ISettings _settings, uint256 _eraPeriod) external initializer {
         __Ownable_init();
-        require(_eraPeriod > 0, 'eraPeriod can not be 0');
+        require(_eraPeriod > 0, 'E001');
 
         settings = _settings;
         eraPeriod = _eraPeriod;
@@ -51,7 +51,7 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
      * @notice Start a new era if time already passed
      */
     function startNewEra() public {
-        require(eraStartTime + eraPeriod < block.timestamp, 'Current era is still active');
+        require(eraStartTime + eraPeriod < block.timestamp, 'E002');
 
         eraNumber++;
         eraStartTime = block.timestamp;
@@ -79,7 +79,7 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
      * @return eraNumber The calculated Era number
      */
     function timestampToEraNumber(uint256 timestamp) external view returns (uint256) {
-        require(timestamp >= eraStartTime, 'only further timestamp available');
+        require(timestamp >= eraStartTime, 'E003');
         return eraNumber + ((timestamp - eraStartTime) / eraPeriod);
     }
 
@@ -88,7 +88,7 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
      * @param newEraPeriod New Era Period to update
      */
     function updateEraPeriod(uint256 newEraPeriod) external onlyOwner {
-        require(newEraPeriod > 0, 'new era can not be 0');
+        require(newEraPeriod > 0, 'E001');
 
         eraPeriod = newEraPeriod;
 
