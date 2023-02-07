@@ -161,8 +161,8 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         require(_deposit > 0, 'should deposit positive amount');
         require(_limit > 0, 'should limit positive amount');
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
-        (, , , , bool active) = planManager.getPlanTemplate(_planTemplateId);
-        require(active, 'PlanTemplate inactive');
+        PlanTemplate memory template = planManager.getPlanTemplate(_planTemplateId);
+        require(template.active, 'PlanTemplate inactive');
 
         offers[numOffers] = PurchaseOffer(
             _deposit,
@@ -253,7 +253,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         offerMmrRoot[_offerId][msg.sender] = _mmrRoot;
 
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
-        (uint256 period, , , , ) = planManager.getPlanTemplate(offer.planTemplateId);
+        PlanTemplate memory template = planManager.getPlanTemplate(offer.planTemplateId);
         // create closed service agreement contract
         ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
             offer.consumer,
@@ -261,7 +261,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
             offer.deploymentId,
             offer.deposit,
             block.timestamp,
-            period,
+            template.period,
             0,
             offer.planTemplateId
         );

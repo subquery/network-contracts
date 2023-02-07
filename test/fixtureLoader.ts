@@ -175,7 +175,12 @@ export const loaders = {
         {ipfs, sdk, rootAccount}: Context
     ) {
         console.log(`PlanTemplate Start`);
-        const templates = await sdk.planManager.templates();
+        const next = await sdk.planManager.nextTemplateId();
+        let templates;
+        for (let i = 0; i < next.toNumber(); i++) {
+            const template = await sdk.planManager.getPlanTemplate(i);
+            templates.push(template);
+        }
         console.log(templates);
         const match = templates.findIndex(
             (tpl) => tpl.dailyReqCap.eq(dailyReqCap) && tpl.period.eq(period) && tpl.rateLimit.eq(rateLimit)

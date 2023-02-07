@@ -81,8 +81,8 @@ describe('Service Agreement Registry Contract', () => {
 
         await queryRegistry.setCreatorRestricted(false);
 
-        //period 1000 s
-        //planTemplateId: 0
+        // period 1000 s
+        // planTemplateId: 0
         await planManager.createPlanTemplate(1000, 1000, 100, METADATA_HASH);
 
         await serviceAgreementRegistry.setThreshold(allowanceMultiplerBP);
@@ -378,21 +378,22 @@ describe('Service Agreement Registry Contract', () => {
             await queryRegistry.connect(wallet1).startIndexing(deploymentIds[0]);
             await queryRegistry.connect(wallet1).updateIndexingStatusToReady(deploymentIds[0]);
 
-            //period 10 days
-            //planTemplateId: 1
+            // period 10 days
+            // planTemplateId: 1
             await planManager.createPlanTemplate(time.duration.days(10).toString(), 1000, 100, METADATA_HASH);
 
             // create purchase offer
-            //value 100*2
-            //period 10 days
-            //use planTemplateId: 1
+            // value 100*2
+            // period 10 days
+            // use planTemplateId: 1
             await purchaseOfferMarket
                 .connect(wallet2)
                 .createPurchaseOffer(deploymentIds[0], 1, 100, 2, 100, await futureTimestamp(mockProvider));
             // create plan
-            //value 100
-            //period 10 days
-            //use planTemplateId: 1
+            // value 100
+            // period 10 days
+            // use planTemplateId: 1
+            // use planId: 1
             await planManager.connect(wallet1).createPlan(100, 1, deploymentIds[0]);
         });
 
@@ -401,12 +402,12 @@ describe('Service Agreement Registry Contract', () => {
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(3).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
-                'Agreement cannot renew without planId'
+                'Plan is inactive'
             );
         });
 
         it('renew agreement generated from planManager should work', async () => {
-            await planManager.connect(wallet2).acceptPlan(wallet1.address, deploymentIds[0], 1);
+            await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             const addTable = await rewardsHelper.getRewardsAddTable(wallet1.address, 2, 10);
             const removeTable = await rewardsHelper.getRewardsRemoveTable(wallet1.address, 2, 12);
 
@@ -437,12 +438,12 @@ describe('Service Agreement Registry Contract', () => {
         });
 
         it('Indexers should be able to trun off renew', async () => {
-            await planManager.connect(wallet2).acceptPlan(wallet1.address, deploymentIds[0], 1);
+            await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
-            expect((await planManager.getPlan(wallet1.address, 1))[3]).to.be.eq(true);
+            expect((await planManager.getPlan(1)).active).to.be.eq(true);
             await planManager.connect(wallet1).removePlan(1);
-            expect((await planManager.getPlan(wallet1.address, 1))[3]).to.be.eq(false);
+            expect((await planManager.getPlan(1)).active).to.be.eq(false);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
                 'Plan is inactive'
@@ -450,7 +451,7 @@ describe('Service Agreement Registry Contract', () => {
         });
 
         it('customer cannot renew expired agreement', async () => {
-            await planManager.connect(wallet2).acceptPlan(wallet1.address, deploymentIds[0], 1);
+            await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(20).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
@@ -459,7 +460,7 @@ describe('Service Agreement Registry Contract', () => {
         });
 
         it('only customer can renew agreement', async () => {
-            await planManager.connect(wallet2).acceptPlan(wallet1.address, deploymentIds[0], 1);
+            await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet1).renewAgreement(agreementId)).to.be.revertedWith(
@@ -468,7 +469,7 @@ describe('Service Agreement Registry Contract', () => {
         });
 
         it('cannot renew upcoming agreement', async () => {
-            await planManager.connect(wallet2).acceptPlan(wallet1.address, deploymentIds[0], 1);
+            await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId);
@@ -492,10 +493,10 @@ describe('Service Agreement Registry Contract', () => {
             expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_1)).to.eql(true);
             expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_2)).to.eql(false);
             let tx = await serviceAgreementRegistry.connect(consumer).addUser(consumer.address, user_2);
-            let event = await eventFrom(tx, serviceAgreementRegistry, "UserAdded(address,address)");
+            let event = await eventFrom(tx, serviceAgreementRegistry, 'UserAdded(address,address)');
             expect(event.user).to.eql(user_2);
             tx = await serviceAgreementRegistry.connect(consumer).removeUser(consumer.address, user_1);
-            event = await eventFrom(tx, serviceAgreementRegistry, "UserRemoved(address,address)");
+            event = await eventFrom(tx, serviceAgreementRegistry, 'UserRemoved(address,address)');
             expect(event.user).to.eql(user_1);
             expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_1)).to.eql(false);
             expect(await serviceAgreementRegistry.consumerAuthAllows(consumer.address, user_2)).to.eql(true);
