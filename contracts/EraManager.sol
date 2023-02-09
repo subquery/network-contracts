@@ -24,6 +24,7 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
     uint256 public eraNumber;
     /// @notice Current era start time in unix timestamp
     uint256 public eraStartTime;
+    bool public maintenance;
 
     /// @dev ### EVENTS
     /// @notice Emitted when admin update the eraPeriod
@@ -47,10 +48,19 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
         emit NewEraStart(eraNumber, msg.sender);
     }
 
+    function enableMaintenance() external onlyOwner {
+        maintenance = true;
+    }
+
+    function disableMaintenance() external onlyOwner {
+        maintenance = false;
+    }
+
     /**
      * @notice Start a new era if time already passed
      */
     function startNewEra() public {
+        require(!maintenance, 'G019');
         require(eraStartTime + eraPeriod < block.timestamp, 'E002');
 
         eraNumber++;
@@ -67,6 +77,7 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
      * @return eraNumber New Era number
      */
     function safeUpdateAndGetEra() external returns (uint256) {
+        require(!maintenance, 'G019');
         if (eraStartTime + eraPeriod < block.timestamp) {
             startNewEra();
         }

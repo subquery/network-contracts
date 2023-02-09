@@ -13,8 +13,10 @@ import './interfaces/ISettings.sol';
 import './interfaces/IPurchaseOfferMarket.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IPlanManager.sol';
+import './interfaces/IEraManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
+
 
 /**
  * @title Purchase Offer Market Contract
@@ -157,6 +159,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         uint256 _minimumAcceptHeight,
         uint256 _expireDate
     ) external {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         require(_expireDate > block.timestamp, 'PO002');
         require(_deposit > 0, 'PO003');
         require(_limit > 0, 'PO004');
@@ -201,6 +204,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * @param _offerId purchase offer id to cancel
      */
     function cancelPurchaseOffer(uint256 _offerId) external {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         PurchaseOffer memory offer = offers[_offerId];
         require(msg.sender == offer.consumer, 'PO006');
         require(offers[_offerId].active, 'PO007');
@@ -237,6 +241,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * @param _mmrRoot mmrRoot to accept the purchase offer
      */
     function acceptPurchaseOffer(uint256 _offerId, bytes32 _mmrRoot) external onlyIndexer {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         require(offers[_offerId].active, 'PO007');
         require(!isExpired(_offerId), 'PO008');
         require(!acceptedOffer[_offerId][msg.sender], 'PO009');
