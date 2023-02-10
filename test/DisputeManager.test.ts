@@ -101,8 +101,10 @@ describe('Dispute Manager Contract', () => {
             
         });
 
-        it('accept dispute with indexer has 0 unbonding amount should work', async () => {
-            await disputeManager.finalizeDispute(1, 1, etherParse('10'), etherParse('1005'));
+        it.only('accept dispute with indexer has 0 unbonding amount should work', async () => {
+            expect(await disputeManager.finalizeDispute(1, 1, etherParse('10'), etherParse('1005')))
+                .to.be.emit(disputeManager, 'DisputeManager')
+                .withArgs(1, 1, etherParse('10'), etherParse('1005'));
             expect(await stakingManager.getTotalStakingAmount(indexer.address)).equal(etherParse('1990'));
             expect(await token.balanceOf(fisherman.address)).equal(etherParse('1005'));
         });
