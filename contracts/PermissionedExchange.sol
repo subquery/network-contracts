@@ -9,6 +9,7 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
 import './interfaces/ISettings.sol';
+import './interfaces/IEraManager.sol';
 
 /**
  * @title PermissionedExchange Contract
@@ -173,6 +174,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      * @param _amount The amount to trade.
      */
     function trade(uint256 _orderId, uint256 _amount) public {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         ExchangeOrder storage order = orders[_orderId];
         if (order.tokenGet == settings.getSQToken()) {
             require(tradeQuota[order.tokenGet][msg.sender] >= _amount, 'PE005');
@@ -201,6 +203,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      * @param _orderId The order id to settle.
      */
     function settleExpiredOrder(uint256 _orderId) public {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         ExchangeOrder memory order = orders[_orderId];
         require(order.expireDate != 0, 'PE009');
         require(order.expireDate < block.timestamp, 'PE010');

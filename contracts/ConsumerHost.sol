@@ -11,6 +11,8 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 import './interfaces/IConsumer.sol';
+import './interfaces/IEraManager.sol';
+import './interfaces/ISettings.sol';
 
 /**
  * @title Consumer Host Contract
@@ -32,15 +34,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     }
 
     /// @dev ### STATES
+    ISettings private settings;
     /// @notice The Signer account address
     address[] private signers;
     mapping(address => uint256) private signerIndex;
-
-    /// @notice The SQT contract address
-    address public SQT;
-
-    /// @notice The StateChannel contract address
-    address public channel;
 
     /// @notice The fee charged from consumer payment service
     uint256 public fee;
@@ -76,47 +73,22 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     /**
      * @dev ### FUNCTIONS
      * @notice Initialize the contract, setup the SQT, StateChannel, and feePercentage.
-     * @param _sqt SQT contract address
-     * @param _channel StateChannel contract address
+     * @param _settings Settings contract address
      * @param _feePercentage fee percentage
      */
     function initialize(
+        ISettings _settings,
         address _sqt,
         address _channel,
         uint256 _feePercentage
     ) external initializer {
         __Ownable_init();
-        SQT = _sqt;
-        channel = _channel;
+        settings = _settings;
         feePercentage = _feePercentage;
 
         // Approve Token to State Channel.
-        IERC20 sqt = IERC20(SQT);
-        sqt.approve(channel, sqt.totalSupply());
-    }
-
-    /**
-     * @notice Update SQT contract
-     * @param _sqt SQT contract address
-     */
-    function setSQT(address _sqt) external onlyOwner {
-        SQT = _sqt;
-
-        // Approve Token to State Channel.
-        IERC20 sqt = IERC20(SQT);
-        sqt.approve(channel, sqt.totalSupply());
-    }
-
-    /**
-     * @notice Update StateChannel contract
-     * @param _channel StateChannel contract address
-     */
-    function setChannel(address _channel) external onlyOwner {
-        channel = _channel;
-
-        // Approve Token to State Channel.
-        IERC20 sqt = IERC20(SQT);
-        sqt.approve(channel, sqt.totalSupply());
+        IERC20 sqt = IERC20(_sqt);
+        sqt.approve(_channel, sqt.totalSupply());
     }
 
     /**
@@ -135,7 +107,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      */
     function collectFee(address account, uint256 amount) external onlyOwner {
         require(fee >= amount, 'C002');
-        IERC20(SQT).safeTransfer(account, amount);
+        IERC20(settings.getSQToken()).safeTransfer(account, amount);
         fee -= amount;
     }
 
@@ -177,6 +149,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @notice Approve host can use consumer balance
      */
     function approve() external {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         Consumer storage consumer = consumers[msg.sender];
         consumer.approved = true;
         emit Approve(msg.sender);
@@ -186,6 +159,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @notice Disapprove host can use consumer balance
      */
     function disapprove() external {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         Consumer storage consumer = consumers[msg.sender];
         consumer.approved = false;
         emit Disapprove(msg.sender);
@@ -196,10 +170,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param amount the amount
      */
     function deposit(uint256 amount, bool isApprove) external {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         // transfer the balance to contract
-        IERC20 sqt = IERC20(SQT);
+        IERC20 sqt = IERC20(settings.getSQToken());
         sqt.safeTransferFrom(msg.sender, address(this), amount);
-        sqt.safeIncreaseAllowance(channel, amount);
+        sqt.safeIncreaseAllowance(settings.getStateChannel(), amount);
 
         Consumer storage consumer = consumers[msg.sender];
         consumer.balance += amount;
@@ -216,11 +191,12 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param amount the amount
      */
     function withdraw(uint256 amount) external {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         Consumer storage consumer = consumers[msg.sender];
         require(consumer.balance >= amount, 'C002');
 
         // transfer the balance to consumer
-        IERC20(SQT).safeTransfer(msg.sender, amount);
+        IERC20(settings.getSQToken()).safeTransfer(msg.sender, amount);
         consumer.balance -= amount;
 
         emit Withdraw(msg.sender, amount, consumer.balance);
@@ -237,7 +213,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         uint256 amount,
         bytes memory callback
     ) external {
-        require(msg.sender == channel, 'G011');
+        require(msg.sender == settings.getStateChannel(), 'G011');
         (address consumer, bytes memory sign) = abi.decode(callback, (address, bytes));
         if (channels[channelId] == address(0)) {
             channels[channelId] = consumer;
@@ -271,7 +247,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param amount the amount back to consumer
      */
     function claimed(uint256 channelId, uint256 amount) external {
-        require(msg.sender == channel, 'G011');
+        require(msg.sender == settings.getStateChannel(), 'G011');
 
         address consumer = channels[channelId];
         Consumer storage info = consumers[consumer];

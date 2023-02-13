@@ -442,6 +442,7 @@ export async function deployContracts(
         overrides
     );
     const initConsumerHost = await consumerHost.initialize(
+        settings.address,
         sqtToken.address,
         stateChannel.address,
         ...(config['ConsumerHost'] as [number]),
@@ -490,6 +491,7 @@ export async function deployContracts(
         deployment.PlanManager.address,
         deployment.ServiceAgreementRegistry.address,
         deployment.DisputeManager.address,
+        deployment.StateChannel.address,
         overrides as any
     );
 
