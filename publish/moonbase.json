@@ -132,9 +132,9 @@
         "lastUpdate": "Thu, 09 Feb 2023 22:16:26 GMT"
     },
     "DisputeManager": {
-        "innerAddress": "0x15f4982A02Dd86e14dBE7c8ff6FE4C74b6181a3c",
+        "innerAddress": "0xBE39c421c8D1266AfA2E53719bbeFa68695dF8FB",
         "address": "0x5458Ef4596f6ef833009aeB4A5f99646f451BB7e",
-        "bytecodeHash": "8ce14ba1b49691cdbe3431059393abc0162ade860cea7cee1527ad2cec1d1ea6",
-        "lastUpdate": "Thu, 09 Feb 2023 22:17:36 GMT"
+        "bytecodeHash": "2ea0d436276a6b17329d5007546692f810dadf6076ca7196fdb667526a243734",
+        "lastUpdate": "Mon, 13 Feb 2023 20:53:39 GMT"
     }
 }
