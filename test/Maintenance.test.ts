@@ -40,7 +40,7 @@ describe('Maintenance Mode Test', () => {
     let purchaseOfferMarket: PurchaseOfferMarket;
     let stakingManager: StakingManager;
 
-    beforeEach(async () => {
+    before(async () => {
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
         const deployment = await deployContracts(wallet_0, wallet_0);
         permissionedExchange = deployment.permissionedExchange;
@@ -56,6 +56,30 @@ describe('Maintenance Mode Test', () => {
         consumerHost = deployment.consumerHost;
         purchaseOfferMarket = deployment.purchaseOfferMarket;
         stakingManager = deployment.stakingManager;
+
+        await token.transfer(wallet_1.address, etherParse("10000"));
+        await token.transfer(wallet_2.address, etherParse("10000"));
+        await token.connect(wallet_1).increaseAllowance(staking.address, etherParse('10000'));
+        await token.connect(wallet_2).increaseAllowance(staking.address, etherParse('10000'));
+        await token.increaseAllowance(staking.address, etherParse('10000'));
+        await token.increaseAllowance(purchaseOfferMarket.address, etherParse('10000'));
+        await indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0);
+        await indexerRegistry.connect(wallet_2).registerIndexer(etherParse('1000'), METADATA_HASH, 0);
+
+        await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
+        await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
+        await purchaseOfferMarket.createPurchaseOffer(
+            DEPLOYMENT_ID,
+            0,
+            etherParse('1'),
+            1,
+            100,
+            await futureTimestamp(mockProvider)
+        );
+        
+        await stakingManager.connect(wallet_1).delegate(wallet_0.address, etherParse('10'));
+        await stakingManager.connect(wallet_1).undelegate(wallet_0.address, etherParse('1'));
+        await startNewEra(mockProvider,eraManager);
 
         await eraManager.connect(wallet_0).enableMaintenance();
     });
@@ -81,13 +105,9 @@ describe('Maintenance Mode Test', () => {
 
     describe('IndexerRegistry check', () => {
         it('registerIndexer should ban in maintenance mode', async () => {
-            await expect(indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0)).to.be.revertedWith('G019');
+            await expect(indexerRegistry.connect(wallet_1).registerIndexer(etherParse('1000'), METADATA_HASH, 0)).to.be.revertedWith('G019');
         });
         it('unregisterIndexer should ban in maintenance mode', async () => {
-            await eraManager.disableMaintenance();
-            await token.increaseAllowance(staking.address, etherParse('1000'));
-            await indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0);
-            await eraManager.enableMaintenance();
             await expect(indexerRegistry.unregisterIndexer()).to.be.revertedWith('G019');
         });
     });
@@ -117,34 +137,18 @@ describe('Maintenance Mode Test', () => {
     });
 
     describe('PlanManager check', () => {
-        beforeEach(async () => {
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
-        });
         it('createPlan should ban in maintenance mode', async () => {
             await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID)).to.be.revertedWith('G019');
         });
         it('removePlan should ban in maintenance mode', async () => {
-            await eraManager.disableMaintenance();
-            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
-            await eraManager.enableMaintenance();
             await expect(planManager.removePlan(0)).to.be.revertedWith('G019');
         });
         it('acceptPlan should ban in maintenance mode', async () => {
-            await eraManager.disableMaintenance();
-            await token.increaseAllowance(staking.address, etherParse('1000'));
-            await token.increaseAllowance(serviceAgreementRegistry.address, etherParse('1000'));
-            await indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0);
-            await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
-            await eraManager.enableMaintenance();
             await expect(planManager.acceptPlan(0, DEPLOYMENT_ID)).to.be.revertedWith('G019');
         });
     });
 
     describe('PurchaseOfferMarket check', () => {
-        beforeEach(async () => {
-            await token.increaseAllowance(purchaseOfferMarket.address, etherParse('2'));
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
-        });
         it('createPurchaseOffer should ban in maintenance mode', async () => {
             await expect(purchaseOfferMarket.createPurchaseOffer(
                 DEPLOYMENT_ID,
@@ -157,32 +161,10 @@ describe('Maintenance Mode Test', () => {
         });
 
         it('cancelPurchaseOffer should ban in maintenance mode', async () => {
-            await eraManager.disableMaintenance();
-            await purchaseOfferMarket.createPurchaseOffer(
-                DEPLOYMENT_ID,
-                0,
-                etherParse('1'),
-                1,
-                100,
-                await futureTimestamp(mockProvider)
-            );
-            await eraManager.enableMaintenance();
             await expect(purchaseOfferMarket.cancelPurchaseOffer(0)).to.be.revertedWith('G019');
         });
 
         it('acceptPurchaseOffer should ban in maintenance mode', async () => {
-            await eraManager.disableMaintenance();
-            await token.increaseAllowance(staking.address, etherParse('1000'));
-            await indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0);
-            await purchaseOfferMarket.createPurchaseOffer(
-                DEPLOYMENT_ID,
-                0,
-                etherParse('1'),
-                1,
-                100,
-                await futureTimestamp(mockProvider)
-            );
-            await eraManager.enableMaintenance();
             await expect(purchaseOfferMarket.acceptPurchaseOffer(0,mmrRoot)).to.be.revertedWith('G019');
         });
     });
@@ -197,20 +179,6 @@ describe('Maintenance Mode Test', () => {
     });
 
     describe('StakingManager check', () => {
-        beforeEach(async () => {
-            await eraManager.disableMaintenance();
-            await token.transfer(wallet_1.address, etherParse("10000"));
-            await token.transfer(wallet_2.address, etherParse("10000"));
-            await token.connect(wallet_1).increaseAllowance(staking.address, etherParse('10000'));
-            await token.connect(wallet_2).increaseAllowance(staking.address, etherParse('10000'));
-            await token.increaseAllowance(staking.address, etherParse('10000'));
-            await indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0);
-            await indexerRegistry.connect(wallet_2).registerIndexer(etherParse('1000'), METADATA_HASH, 0);
-            await stakingManager.connect(wallet_1).delegate(wallet_0.address, etherParse('10'));
-            await stakingManager.connect(wallet_1).undelegate(wallet_0.address, etherParse('1'));
-            await startNewEra(mockProvider,eraManager);
-            await eraManager.enableMaintenance();
-        });
         it('stake should ban in maintenance mode', async () => {
             await expect(stakingManager.stake(wallet_0.address, etherParse('1'))).to.be.revertedWith('G019');
         });
