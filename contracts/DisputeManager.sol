@@ -47,6 +47,8 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
 
     event DisputeOpen(uint256 indexed disputeId, address fisherman, address indexer, DisputeType _type);
 
+    event DisputeFinalized(uint256 indexed disputeId, DisputeState state, uint256 slashAmount, uint256 returnAmount);
+
     function initialize(uint256 _minimumDeposit, ISettings _settings) external initializer {
         __Ownable_init();
 
@@ -112,6 +114,8 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
                 disputeIdByIndexer[dispute.indexer].push(ids[i]);
             }
         }
+
+        emit DisputeFinalized(disputeId, state, indexerSlashAmount, newDeposit);
     }
 
     function isOnDispute(address indexer) external returns (bool) {
