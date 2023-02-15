@@ -3,7 +3,7 @@ import {ethers, waffle} from 'hardhat';
 
 import {deployContracts} from './setup';
 import {setupNetwork, SetupSdk} from '../scripts/startup';
-import {cidToBytes32, futureTimestamp} from './helper';
+import {cidToBytes32, futureTimestamp, timeTravel} from './helper';
 import jsonConfig from 'scripts/config/startup.json';
 
 describe('startup script', () => {
