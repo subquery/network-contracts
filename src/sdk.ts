@@ -77,6 +77,7 @@ export class ContractSDK {
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options?: SdkOptions) {
         this._contractDeployments =
             options?.deploymentDetails || require(`./publish/${options?.network || 'testnet'}.json`);
+        this._revertCodes = revertCodes;
         this._isReady = this._init().then(() => this);
     }
 
@@ -279,7 +280,6 @@ export class ContractSDK {
             this.initContract(PermissionedExchange__factory, this._contractDeployments.PermissionedExchange.address),
             this.initContract(ConsumerHost__factory, this._contractDeployments.ConsumerHost.address),
         ]);
-        this._revertCodes = revertCodes;
         this._settings = settings;
         this._sqToken = sqToken;
         this._staking = staking;
