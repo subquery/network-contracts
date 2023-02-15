@@ -27,11 +27,14 @@ export type SetupSdk = {
 
 export async function setupNetwork(sdk: SetupSdk, config?: typeof networkConfig) {
     const {setupConfig, exchange, dictionaries} = config ?? networkConfig;
-    const {airdrops, amounts, rounds, planTemplates, startTime, endTime} = setupConfig;
+    const {airdrops, amounts, rounds, planTemplates} = setupConfig;
     // FIXME: fix airdop setup later
     await sdk.sqToken.increaseAllowance(sdk.airdropper.address, '10000000');
 
-    // Create Airdrop rounds
+    const now = Date.now();
+    const startTime = Math.floor(now / 1000);
+    const endTime = startTime + 864000;
+    // Create Airdrop rounds period --- 10 days
     await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
     await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
 
