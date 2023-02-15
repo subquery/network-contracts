@@ -1,14 +1,12 @@
 import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
+import {ethers} from 'hardhat';
 
-import {deployContracts} from './setup';
+import {deployContracts} from '../test/setup';
 import {setupNetwork, SetupSdk} from '../scripts/startup';
-import {cidToBytes32, futureTimestamp, timeTravel} from './helper';
+import {cidToBytes32} from '../test/helper';
 import jsonConfig from 'scripts/config/startup.json';
 
 describe('startup script', () => {
-    const mockProvider = waffle.provider;
-
     let sdk: SetupSdk;
     let config: typeof jsonConfig;
     let wallet;
