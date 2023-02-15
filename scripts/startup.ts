@@ -32,8 +32,8 @@ export async function setupNetwork(sdk: SetupSdk, config?: typeof networkConfig)
 
     // Create Airdrop round with period --- 10 days
     console.info('Create and send airdrop');
-    const now = Date.now();
-    const startTime = Math.floor(now / 1000) + 600;
+    const provider = new ethers.providers.StaticJsonRpcProvider(moonbaseConfig.network.endpoint, 1280);
+    const startTime = (await provider.getBlock(await provider.getBlockNumber())).timestamp +600;
     const endTime = startTime + 864000;
     await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
     await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
