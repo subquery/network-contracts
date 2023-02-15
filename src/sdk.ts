@@ -8,6 +8,8 @@ import {
     Settings__factory,
     Staking,
     Staking__factory,
+    StakingManager,
+    StakingManager__factory,
     IndexerRegistry,
     IndexerRegistry__factory,
     InflationController,
@@ -52,6 +54,7 @@ export class ContractSDK {
     private _settings?: Settings;
     private _sqToken?: SQToken;
     private _staking?: Staking;
+    private _stakingManager?: StakingManager;
     private _indexerRegistry?: IndexerRegistry;
     private _queryRegistry?: QueryRegistry;
     private _inflationController?: InflationController;
@@ -93,6 +96,13 @@ export class ContractSDK {
             throw new Error(`_staking address not found`);
         }
         return this._staking;
+    }
+
+    get stakingManager(): StakingManager {
+        if (!this._stakingManager) {
+            throw new Error(`_stakingManager address not found`);
+        }
+        return this._stakingManager;
     }
 
     get indexerRegistry(): IndexerRegistry {
@@ -219,6 +229,7 @@ export class ContractSDK {
             settings,
             sqToken,
             staking,
+            stakingManager,
             indexerRegistry,
             queryRegistry,
             inflationController,
@@ -238,6 +249,7 @@ export class ContractSDK {
             this.initContract(Settings__factory, this._contractDeployments.Settings?.address),
             this.initContract(SQToken__factory, this._contractDeployments.SQToken?.address),
             this.initContract(Staking__factory, this._contractDeployments.Staking?.address),
+            this.initContract(StakingManager__factory, this._contractDeployments.StakingManager?.address),
             this.initContract(IndexerRegistry__factory, this._contractDeployments.IndexerRegistry?.address),
             this.initContract(QueryRegistry__factory, this._contractDeployments.QueryRegistry?.address),
             this.initContract(InflationController__factory, this._contractDeployments.InflationController.address),
@@ -260,6 +272,7 @@ export class ContractSDK {
         this._settings = settings;
         this._sqToken = sqToken;
         this._staking = staking;
+        this._stakingManager = stakingManager;
         this._indexerRegistry = indexerRegistry;
         this._inflationController = inflationController;
         this._queryRegistry = queryRegistry;
