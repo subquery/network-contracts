@@ -11,6 +11,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IPlanManager.sol';
+import './interfaces/IEraManager.sol';
 
 /**
  * @title Plan Manager Contract
@@ -134,6 +135,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param deploymentId project deployment Id on plan
      */
     function createPlan(uint256 price, uint256 templateId, bytes32 deploymentId) external {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         require(price > 0, 'PM005');
         require(templates[templateId].active, 'PM006');
         require(limits[msg.sender][deploymentId] < limit, 'PM007');
@@ -150,6 +152,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param planId Plan id to remove
      */
     function removePlan(uint256 planId) external {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         require(plans[planId].indexer == msg.sender, 'PM008');
 
         bytes32 deploymentId = plans[planId].deploymentId;
@@ -166,6 +169,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param deploymentId project deployment Id
      */
     function acceptPlan(uint256 planId, bytes32 deploymentId) external {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         Plan memory plan = plans[planId];
         require(plan.active, 'PM009');
         if (plan.deploymentId != bytes32(0)) {

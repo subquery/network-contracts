@@ -101,7 +101,7 @@ describe('Dispute Manager Contract', () => {
             
         });
 
-        it.only('accept dispute with indexer has 0 unbonding amount should work', async () => {
+        it('accept dispute with indexer has 0 unbonding amount should work', async () => {
             expect(await disputeManager.finalizeDispute(1, 1, etherParse('10'), etherParse('1005')))
                 .to.be.emit(disputeManager, 'DisputeManager')
                 .withArgs(1, 1, etherParse('10'), etherParse('1005'));

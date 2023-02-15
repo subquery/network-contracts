@@ -313,6 +313,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * @notice Claculate the Rewards for user and tranfrer token to user.
      */
     function claimFrom(address indexer, address user) public returns (uint256) {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         uint256 rewards = userRewards(indexer, user);
         if (rewards == 0) return 0;
         info[indexer].rewardDebt[user] += rewards;
