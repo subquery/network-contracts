@@ -11,7 +11,7 @@ import moonbaseConfig from './config/moonbase.config';
 import {Airdropper, ContractSDK, PermissionedExchange, QueryRegistry, SQToken} from '../src';
 import deployment from '../publish/moonbase.json';
 import {METADATA_HASH} from '../test/constants';
-import {cidToBytes32, etherParse} from '../test/helper';
+import {cidToBytes32, createProvider, lastestTime} from '../test/helper';
 import networkConfig from './config/startup.json';
 import {PlanManager} from '../src/typechain/PlanManager';
 import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
@@ -32,8 +32,8 @@ export async function setupNetwork(sdk: SetupSdk, config?: typeof networkConfig)
 
     // Create Airdrop round with period --- 10 days
     console.info('Create and send airdrop');
-    const provider = new ethers.providers.StaticJsonRpcProvider(moonbaseConfig.network.endpoint, 1280);
-    const startTime = (await provider.getBlock(await provider.getBlockNumber())).timestamp +600;
+    const provider = createProvider(moonbaseConfig.network.endpoint, 1280);
+    const startTime = (await lastestTime(provider)) +600;
     const endTime = startTime + 864000;
     await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
     await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);

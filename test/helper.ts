@@ -1,28 +1,34 @@
-import {QueryRegistry} from './../src/typechain/QueryRegistry';
-import {ServiceAgreementRegistry} from './../src/typechain/ServiceAgreementRegistry';
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
+
+import {ServiceAgreementRegistry} from './../src/typechain/ServiceAgreementRegistry';
+import {ethers} from 'ethers';
 
 import {MockProvider} from 'ethereum-waffle';
 import {BaseContract, BigNumber, Wallet, ContractTransaction, utils, Contract} from 'ethers';
 import {IndexerRegistry, EraManager, PlanManager} from '../src';
-import {METADATA_HASH, VERSION} from './constants';
+import {METADATA_HASH} from './constants';
 const {constants, time} = require('@openzeppelin/test-helpers');
 import web3 from 'web3';
+import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
 export {constants, time};
+
+export function createProvider(url: string, chain: number): StaticJsonRpcProvider {
+    return new ethers.providers.StaticJsonRpcProvider(url, chain);
+}
 
 export async function timeTravel(provider: MockProvider, seconds: number) {
     await provider.send('evm_increaseTime', [seconds]);
     await provider.send('evm_mine', []);
 }
 
-export async function lastestBlock(provider: MockProvider) {
+export async function lastestBlock(provider: MockProvider | StaticJsonRpcProvider) {
     const blockBefore = await provider.send('eth_getBlockByNumber', ['latest', false]);
     return blockBefore;
 }
 
-export async function lastestTime(provider: MockProvider) {
+export async function lastestTime(provider: MockProvider | StaticJsonRpcProvider) {
     const block = await lastestBlock(provider);
     return BigNumber.from(block.timestamp).toNumber();
 }

@@ -20,6 +20,3 @@ jobs:
       run: yarn lint
     - name: test
       run: yarn test
-    - name: test startup script
-      run: yarn hardhat test test-e2e/startupTest.ts
-

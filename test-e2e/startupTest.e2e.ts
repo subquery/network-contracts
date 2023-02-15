@@ -6,7 +6,7 @@ import {setupNetwork, SetupSdk} from '../scripts/startup';
 import {cidToBytes32} from '../test/helper';
 import jsonConfig from 'scripts/config/startup.json';
 
-describe('startup script', () => {
+describe.only('startup script', () => {
     let sdk: SetupSdk;
     let config: typeof jsonConfig;
     let wallet;
