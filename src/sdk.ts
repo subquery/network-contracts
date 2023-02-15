@@ -1,6 +1,6 @@
 import type {Contract, Signer} from 'ethers';
 import type {Provider as AbstractProvider} from '@ethersproject/abstract-provider';
-import {ContractDeployment, SdkOptions} from './types';
+import {ContractDeployment, RevertCodes, SdkOptions} from './types';
 import {
     SQToken,
     SQToken__factory,
@@ -42,6 +42,8 @@ import {
     ConsumerHost__factory,
 } from './typechain';
 
+import revertCodes from './publish/revertcode.json';
+
 export class ContractSDK {
     static async create(signerOrProvider: AbstractProvider | Signer, options?: SdkOptions): Promise<ContractSDK> {
         const sdk = new ContractSDK(signerOrProvider, options);
@@ -50,6 +52,7 @@ export class ContractSDK {
 
     private _isReady: Promise<ContractSDK>;
     private _contractDeployments: ContractDeployment;
+    private _revertCodes: RevertCodes;
 
     private _settings?: Settings;
     private _sqToken?: SQToken;
@@ -75,6 +78,13 @@ export class ContractSDK {
         this._contractDeployments =
             options?.deploymentDetails || require(`./publish/${options?.network || 'testnet'}.json`);
         this._isReady = this._init().then(() => this);
+    }
+
+    get revertCodes(): RevertCodes {
+        if (!this._revertCodes) {
+            throw new Error(`revert codes cannot be found`);
+        }
+        return this._revertCodes;
     }
 
     get settings(): Settings {
@@ -269,6 +279,7 @@ export class ContractSDK {
             this.initContract(PermissionedExchange__factory, this._contractDeployments.PermissionedExchange.address),
             this.initContract(ConsumerHost__factory, this._contractDeployments.ConsumerHost.address),
         ]);
+        this._revertCodes = revertCodes;
         this._settings = settings;
         this._sqToken = sqToken;
         this._staking = staking;
