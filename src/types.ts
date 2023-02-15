@@ -2,6 +2,8 @@ import type CONTRACTS from './contracts';
 
 export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'moonbase' | 'hardhat';
 
+export type RevertCodes = {[key: string]: string}
+
 export type HardhatDeploymentConfig = {
     readonly network: {
         name: SubqueryNetwork;
