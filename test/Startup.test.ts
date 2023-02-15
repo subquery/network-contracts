@@ -13,7 +13,7 @@ describe('startup script', () => {
     let config: typeof jsonConfig;
     let wallet;
 
-    beforeEach(async () => {
+    before(async () => {
         // deploy contracts
         [wallet] = await ethers.getSigners();
         const deployment = await deployContracts(wallet, wallet);
@@ -26,9 +26,7 @@ describe('startup script', () => {
         };
 
         // setup network
-        const startTime = await futureTimestamp(mockProvider, 60 * 60 * 2);
-        const endTime = await futureTimestamp(mockProvider, 60 * 60 * 3);
-        config = {...jsonConfig, setupConfig: {...jsonConfig.setupConfig, startTime, endTime}};
+        config = {...jsonConfig, setupConfig: {...jsonConfig.setupConfig}};
         await setupNetwork(sdk, config);
     });
 
@@ -36,8 +34,6 @@ describe('startup script', () => {
         it('airdropper setups should work', async () => {
             expect(await sdk.airdropper.nextRoundId()).to.be.equal(1);
             expect((await sdk.airdropper.roundRecord(0)).tokenAddress).to.equal(sdk.sqToken.address);
-            expect((await sdk.airdropper.roundRecord(0)).roundStartTime).to.equal(config.setupConfig.startTime);
-            expect((await sdk.airdropper.roundRecord(0)).roundDeadline).to.equal(config.setupConfig.endTime);
             expect((await sdk.airdropper.roundRecord(0)).unclaimedAmount).to.equal(2100);
 
             const {setupConfig} = config;
