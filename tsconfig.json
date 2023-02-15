@@ -18,7 +18,7 @@
   "include": [
     "src",
     "test",
-    "test-e2e",
+    "test/e2e",
     "scripts"
   ],
   "files": ["./hardhat.config.ts"]

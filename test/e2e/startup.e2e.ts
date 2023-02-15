@@ -1,12 +1,12 @@
 import {expect} from 'chai';
 import {ethers} from 'hardhat';
 
-import {deployContracts} from '../test/setup';
-import {setupNetwork, SetupSdk} from '../scripts/startup';
-import {cidToBytes32} from '../test/helper';
+import {deployContracts} from '../setup';
+import {setupNetwork, SetupSdk} from '../../scripts/startup';
+import {cidToBytes32} from '../helper';
 import jsonConfig from 'scripts/config/startup.json';
 
-describe.only('startup script', () => {
+describe('startup script', () => {
     let sdk: SetupSdk;
     let config: typeof jsonConfig;
     let wallet;
