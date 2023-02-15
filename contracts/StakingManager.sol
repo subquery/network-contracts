@@ -9,8 +9,8 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './Staking.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/IIndexerRegistry.sol';
-import './utils/StakingUtil.sol';
 import './interfaces/IEraManager.sol';
+import './utils/StakingUtil.sol';
 
 contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
 
@@ -109,6 +109,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
     }
 
     function cancelUnbonding(uint256 unbondReqId) external {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         Staking staking = Staking(settings.getStaking());
         require(unbondReqId >= staking.withdrawnLength(msg.sender), 'S007');
         (address indexer, uint256 amount, uint256 startTime) = staking.unbondingAmount(msg.sender, unbondReqId);
@@ -128,6 +129,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      * Each withdraw need to exceed lockPeriod.
      */
     function widthdraw() external {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         Staking staking = Staking(settings.getStaking());
         require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(msg.sender), 'G006');
         uint256 withdrawingLength = staking.unbondingLength(msg.sender) - staking.withdrawnLength(msg.sender);
