@@ -6,7 +6,7 @@ import {setupNetwork, SetupSdk} from '../scripts/startup';
 import {cidToBytes32, futureTimestamp} from './helper';
 import jsonConfig from 'scripts/config/startup.json';
 
-describe.only('startup script', () => {
+describe('startup script', () => {
     const mockProvider = waffle.provider;
 
     let sdk: SetupSdk;
