@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import {ethers} from 'hardhat';
+import {ethers, waffle} from 'hardhat';
 
 import {deployContracts} from '../setup';
 import {setupNetwork, SetupSdk} from '../../scripts/startup';
@@ -13,6 +13,7 @@ describe('startup script', () => {
 
     before(async () => {
         // deploy contracts
+        const mockProvider = waffle.provider;
         [wallet] = await ethers.getSigners();
         const deployment = await deployContracts(wallet, wallet);
         sdk = {
@@ -25,7 +26,7 @@ describe('startup script', () => {
 
         // setup network
         config = {...jsonConfig, setupConfig: {...jsonConfig.setupConfig}};
-        await setupNetwork(sdk, config);
+        await setupNetwork(sdk, mockProvider, config);
     });
 
     describe('startup', async () => {

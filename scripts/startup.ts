@@ -11,7 +11,7 @@ import moonbaseConfig from './config/moonbase.config';
 import {Airdropper, ContractSDK, PermissionedExchange, QueryRegistry, SQToken} from '../src';
 import deployment from '../publish/moonbase.json';
 import {METADATA_HASH} from '../test/constants';
-import {cidToBytes32, createProvider, lastestTime} from '../test/helper';
+import {cidToBytes32, createProvider, lastestTime, Provider} from '../test/helper';
 import networkConfig from './config/startup.json';
 import {PlanManager} from '../src/typechain/PlanManager';
 import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
@@ -25,16 +25,21 @@ export type SetupSdk = {
     permissionedExchange: PermissionedExchange;
 };
 
-export async function setupNetwork(sdk: SetupSdk, config?: typeof networkConfig) {
+async function getAirdropTimeConfig(provider) {
+    const startTime = (await lastestTime(provider)) +600;
+    const endTime = startTime + 864000;
+
+    return { startTime, endTime };
+}
+
+export async function setupNetwork(sdk: SetupSdk, provider: Provider, config?: typeof networkConfig) {
     const {setupConfig, exchange, dictionaries} = config ?? networkConfig;
-    const {airdrops, amounts, rounds, planTemplates} = setupConfig;
+    const {airdrops, amounts, rounds, planTemplates, } = setupConfig;
     await sdk.sqToken.increaseAllowance(sdk.airdropper.address, '10000000');
 
     // Create Airdrop round with period --- 10 days
     console.info('Create and send airdrop');
-    const provider = createProvider(moonbaseConfig.network.endpoint, 1280);
-    const startTime = (await lastestTime(provider)) +600;
-    const endTime = startTime + 864000;
+    const { startTime, endTime } = await getAirdropTimeConfig(provider);
     await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
     await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
 
@@ -112,7 +117,7 @@ const main = async () => {
     const {wallet, provider} = await setup(config.network);
     const sdk = await ContractSDK.create(wallet, {deploymentDetails: deployment});
 
-    await setupNetwork(sdk);
+    await setupNetwork(sdk, provider);
     await setupPermissionExchange(sdk, provider as StaticJsonRpcProvider, wallet);
 
     if ((provider as EvmRpcProvider).api) {
