@@ -16,7 +16,6 @@
         "docs:generate": "hardhat docgen",
         "deploy": "ts-node --transpileOnly scripts/deploy.ts",
         "upgrade": "ts-node --transpileOnly scripts/upgrade.ts",
-        "publish": "ts-node --transpileOnly scripts/publish.ts",
         "setup": "ts-node --transpileOnly scripts/startup.ts",
         "seed:testnet": "ts-node scripts/seed.ts test/fixtures/testnet.yaml"
     },
