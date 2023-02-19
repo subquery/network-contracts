@@ -43,11 +43,15 @@ describe('Airdropper Contract', () => {
 
     describe('round test', () => {
         it('create round should work', async () => {
-            await airdropper.createRound(
+            const startTime = (await lastestTime(mockProvider)) + 3600;
+            const endTime = await futureTimestamp(mockProvider, 60 * 60 * 24 * 3);
+            await expect(airdropper.createRound(
                 sqtAddress,
-                (await lastestTime(mockProvider)) + 60 * 60,
-                await futureTimestamp(mockProvider, 60 * 60 * 24 * 3)
-            );
+                startTime,
+                endTime
+            )).to.be.emit(airdropper, 'RoundCreated')
+            .withArgs(0, sqtAddress, startTime, endTime);
+            
             expect((await airdropper.roundRecord(0)).tokenAddress).to.equal(sqtAddress);
             expect(await airdropper.nextRoundId()).to.equal(1);
         });
