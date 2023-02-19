@@ -40,7 +40,8 @@ export async function setupNetwork(sdk: SetupSdk, provider: Provider, config?: t
     // Create Airdrop round with period --- 10 days
     console.info('Create and send airdrop');
     const { startTime, endTime } = await getAirdropTimeConfig(provider);
-    await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
+    const tx = await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
+    tx.wait(2);
     await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
 
     console.info('Setup plan templates');
