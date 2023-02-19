@@ -8,7 +8,7 @@ import {ethers, waffle} from 'hardhat';
 
 import {IndexerRegistry, EraManager, SQToken, Staking, StakingManager, RewardsDistributer, RewardsStaking} from '../src';
 import {deployContracts} from './setup';
-import {lastestTime, registerIndexer, startNewEra, timeTravel, etherParse, eventFrom} from './helper';
+import {lastestTime, registerIndexer, startNewEra, timeTravel, etherParse} from './helper';
 
 describe('Staking Contract', () => {
     const mockProvider = waffle.provider;
@@ -116,7 +116,7 @@ describe('Staking Contract', () => {
 
         it('staking by indexer should work', async () => {
             await token.connect(indexer).increaseAllowance(staking.address, etherParse('1'));
-            const tx = await stakingManager.connect(indexer).stake(indexer.address, etherParse('1'));
+            await stakingManager.connect(indexer).stake(indexer.address, etherParse('1'));
             // check staking changes
             expect(await stakingManager.getAfterDelegationAmount(indexer.address, indexer.address)).to.equal(
                 etherParse('1002')
