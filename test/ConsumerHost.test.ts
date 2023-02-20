@@ -4,7 +4,7 @@
 import {expect} from 'chai';
 import {ethers} from 'hardhat';
 import {deployContracts} from './setup';
-import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
+import {deploymentIds} from './constants';
 import {
     ConsumerHost,
     IndexerRegistry,
@@ -15,8 +15,8 @@ import {
     Staking,
     StateChannel,
 } from '../src';
-import {constants, registerIndexer, startNewEra, time, delay, etherParse} from './helper';
-import {utils, Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
+import {registerIndexer, delay, etherParse} from './helper';
+import {Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
 
 describe('ConsumerHost Contract', () => {
     const deploymentId = deploymentIds[0];
@@ -25,9 +25,6 @@ describe('ConsumerHost Contract', () => {
     let token: SQToken;
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
-    let eraManager: EraManager;
-    let rewardsDistributor: RewardsDistributer;
-    let rewardsPool: RewardsPool;
     let stateChannel: StateChannel;
     let consumerHost: ConsumerHost;
 
@@ -167,9 +164,6 @@ describe('ConsumerHost Contract', () => {
         indexerRegistry = deployment.indexerRegistry;
         staking = deployment.staking;
         token = deployment.token;
-        rewardsDistributor = deployment.rewardsDistributer;
-        rewardsPool = deployment.rewardsPool;
-        eraManager = deployment.eraManager;
         stateChannel = deployment.stateChannel;
         consumerHost = deployment.consumerHost;
     });
@@ -193,6 +187,50 @@ describe('ConsumerHost Contract', () => {
             await consumerHost.connect(wallet_0).removeSigner(consumer2.address);
             expect((await consumerHost.getSigners())[0]).to.equal(hoster.address);
         });
+
+        it('Approve host can use consumer balance should work', async () => {
+            await expect(consumerHost.connect(consumer).approve())
+            .to.be.emit(consumerHost, 'Approve')
+            .withArgs(consumer.address);
+            expect((await consumerHost.consumers(consumer.address)).approved).to.equal(true);
+        });
+
+        it('Disapprove host can use consumer balance should work', async () => {
+            await consumerHost.connect(consumer).approve();
+            await expect(consumerHost.connect(consumer).disapprove())
+            .to.be.emit(consumerHost, 'Disapprove')
+            .withArgs(consumer.address);
+            expect((await consumerHost.consumers(consumer.address)).approved).to.equal(false);
+        });
+
+        it('Consumer deposit should work', async () => {
+            await token.connect(wallet_0).transfer(consumer.address, etherParse('10'));
+            await token.connect(consumer).increaseAllowance(consumerHost.address, etherParse('10'));
+
+            await expect(consumerHost.connect(consumer).deposit(etherParse('10'), false))
+            .to.be.emit(consumerHost, 'Deposit')
+            .withArgs(consumer.address, etherParse('10'), etherParse('10'));
+
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('0'));
+            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('10'));
+            expect((await consumerHost.consumers(consumer.address)).balance).to.equal(etherParse('10'));
+        });
+
+        it('Consumer withdraw should work', async () => {
+            await token.connect(wallet_0).transfer(consumer.address, etherParse('10'));
+            await token.connect(consumer).increaseAllowance(consumerHost.address, etherParse('10'));
+            await consumerHost.connect(consumer).deposit(etherParse('10'), false);
+
+            await expect(consumerHost.connect(consumer).withdraw(etherParse('10')))
+            .to.be.emit(consumerHost, 'Withdraw')
+            .withArgs(consumer.address, etherParse('10'), etherParse('0'));
+
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('10'));
+            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('0'));
+            expect((await consumerHost.consumers(consumer.address)).balance).to.equal(etherParse('0'));
+        });
+
+
     });
 
     describe('Consumer Host State Channel should work', () => {
