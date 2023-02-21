@@ -41,7 +41,9 @@ describe('IndexerRegistry Contract', () => {
         it('register indexer should work', async () => {
             await expect(registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '2000'))
                 .to.be.emit(indexerRegistry, 'RegisterIndexer')
-                .withArgs(wallet_1.address, etherParse('1000'), METADATA_HASH);
+                .withArgs(wallet_1.address, etherParse('1000'), METADATA_HASH)
+                .to.be.emit(indexerRegistry, 'SetCommissionRate')
+                .withArgs(wallet_1.address, 0);
 
             // check state changes
             expect(await indexerRegistry.isIndexer(wallet_1.address)).to.equal(true);
@@ -75,6 +77,13 @@ describe('IndexerRegistry Contract', () => {
             await expect(indexerRegistry.connect(wallet_1).updateMetadata(METADATA_1_HASH)).to.be.revertedWith(
                 'G002'
             );
+        });
+
+        it('indexer setCommissionRate should work', async () => {
+            await expect(indexerRegistry.setCommissionRate(10))
+                .to.be.emit(indexerRegistry, 'SetCommissionRate')
+                .withArgs(wallet_0.address, 10);
+            expect((await indexerRegistry.commissionRates(wallet_0.address)).valueAfter).to.equal(10);
         });
     });
 
