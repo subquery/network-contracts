@@ -1,12 +1,12 @@
 import {writeFileSync} from 'fs';
-import setup from './setup';
+
 import {DeploymentConfig} from '../src/types';
-import localConfig from './config/local.config';
+import setup from './setup';
+import {deployContracts} from './deployContracts';
+import mainnetConfig from './config/mainnet.config';
 import keplerConfig from './config/kepler.config';
 import testnetConfig from './config/testnet.config';
-import mainnetConfig from './config/mainnet.config';
-import {deployContracts} from './deployContracts';
-import moonbaseConfig from './config/moonbase.config';
+import localConfig from './config/local.config';
 
 const main = async () => {
     let config: DeploymentConfig;
@@ -17,17 +17,14 @@ const main = async () => {
             config = mainnetConfig as DeploymentConfig;
             dev = false;
             break;
-        case '--testnet':
-            config = testnetConfig as DeploymentConfig;
-            break;
-        case '--moonbase':
-            config = moonbaseConfig as DeploymentConfig;
-            break;
         case '--kepler':
             config = keplerConfig as DeploymentConfig;
             break;
+        case '--testnet':
+            config = testnetConfig as DeploymentConfig;
+            break;
         default:
-            config = localConfig();
+            config = localConfig as DeploymentConfig;
     }
 
     if (process.env.ENDPOINT) {

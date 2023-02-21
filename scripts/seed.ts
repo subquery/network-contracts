@@ -1,19 +1,21 @@
 import {JsonRpcProvider} from '@ethersproject/providers';
-import {ContractSDK} from '../src';
-import assert from 'assert';
 import {Wallet} from '@ethersproject/wallet';
-import moduleAlias from 'module-alias';
 import {utils} from 'ethers';
+import assert from 'assert';
+import moduleAlias from 'module-alias';
 import {create} from 'ipfs-http-client';
 import yaml from 'js-yaml';
-import {Context, loaders} from '../test/fixtureLoader';
 import fs from 'fs';
+
+import {ContractSDK} from '../src';
+import {Context, loaders} from '../test/fixtureLoader';
 
 moduleAlias.addAlias('./publish', '../publish');
 moduleAlias.addAlias('./artifacts', '../artifacts');
 
 async function init(): Promise<Context> {
-    const ENDPOINT = process.env['ENDPOINT'] ?? 'https://sqtn.api.onfinality.io/public';
+    const ENDPOINT = process.env['ENDPOINT'];
+    assert(ENDPOINT, `can't find $ENDPOINT in env`);
     const provider = new JsonRpcProvider(ENDPOINT);
     const sdk = await ContractSDK.create(provider, {network: 'testnet'});
     const rootAccountSeed = process.env['SEED'];

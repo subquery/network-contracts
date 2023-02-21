@@ -1,8 +1,8 @@
 import {ContractFactory, Contract, Overrides} from 'ethers';
 import sha256 from 'sha256';
+import {Wallet} from '@ethersproject/wallet';
 import CONTRACTS from '../src/contracts';
 import {ContractDeployment, DeploymentConfig} from '../src/types';
-import {Wallet} from '@ethersproject/wallet';
 
 import {
     ProxyAdmin,
@@ -238,10 +238,21 @@ export async function deployContracts(
     updateDeployment(deployment, 'Staking', staking.address, SInnerAddr, staking.deployTransaction.hash);
 
     // deploy StakingManager contract
-    const [stakingManager, SMInnerAddr] = await deployProxy<StakingManager>(proxyAdmin, StakingManager__factory, wallet, overrides);
+    const [stakingManager, SMInnerAddr] = await deployProxy<StakingManager>(
+        proxyAdmin,
+        StakingManager__factory,
+        wallet,
+        overrides
+    );
     const stakingManagerInit = await stakingManager.initialize(deployment.Settings.address, overrides);
     await stakingManagerInit.wait();
-    updateDeployment(deployment, 'StakingManager', stakingManager.address, SMInnerAddr, stakingManager.deployTransaction.hash);
+    updateDeployment(
+        deployment,
+        'StakingManager',
+        stakingManager.address,
+        SMInnerAddr,
+        stakingManager.deployTransaction.hash
+    );
 
     // deploy Era manager
     const [eraManager, EMInnerAddr] = await deployProxy<EraManager>(proxyAdmin, EraManager__factory, wallet, overrides);
@@ -457,15 +468,25 @@ export async function deployContracts(
         consumerHost.deployTransaction.hash
     );
 
-    const [disputeManager, DMInnerAddr] = await deployProxy<DisputeManager>(proxyAdmin, DisputeManager__factory, wallet, overrides);
+    const [disputeManager, DMInnerAddr] = await deployProxy<DisputeManager>(
+        proxyAdmin,
+        DisputeManager__factory,
+        wallet,
+        overrides
+    );
     const initDisputeManager = await disputeManager.initialize(
         ...(config['DisputeManager'] as [string]),
         deployment.Settings.address,
         overrides
     );
     await initDisputeManager.wait();
-    updateDeployment(deployment, 'DisputeManager', disputeManager.address, DMInnerAddr, disputeManager.deployTransaction.hash);
-
+    updateDeployment(
+        deployment,
+        'DisputeManager',
+        disputeManager.address,
+        DMInnerAddr,
+        disputeManager.deployTransaction.hash
+    );
 
     // Register addresses on settings contract
     const txToken = await settings.setTokenAddresses(

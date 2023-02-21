@@ -1,27 +1,28 @@
 import type CONTRACTS from './contracts';
 
-export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'moonbase' | 'hardhat';
+export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'local';
 
 export type HardhatDeploymentConfig = {
     readonly network: {
         name: SubqueryNetwork;
-        endpoint?: string;
         platform: 'hardhat';
+        endpoint?: string;
         providerConfig: {
             chainId: number;
-            name: 'hardhat-local';
+            name: 'Hardhat';
         };
     };
     readonly contracts: {[contract: string]: any[]};
 };
+
 export type MoonbeamDeploymentConfig = {
     readonly network: {
         name: SubqueryNetwork;
-        endpoint?: string;
         platform: 'moonbeam';
+        endpoint?: string;
         providerConfig: {
             chainId: number;
-            name: 'moonbase-alpha' | 'moonbeam-river';
+            name: 'Moonbeam';
         };
     };
     readonly contracts: {[contract: string]: any[]};

@@ -1,11 +1,12 @@
 export default {
     network: {
-        name: 'kepler',
-        endpoint: {
-            eth: 'https://eth-rpc-karura.aca-api.network/',
-            substrate: 'wss://eth-rpc-karura.aca-api.network/ws',
+        name: 'testnet',
+        platform: '',
+        endpoint: '',
+        providerConfig: {
+            chainId: 0,
+            name: 'Testnet',
         },
-        platform: 'moonbeam',
     },
     contracts: {
         InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination

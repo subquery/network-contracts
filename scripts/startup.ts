@@ -1,20 +1,20 @@
 import {ethers, Wallet} from 'ethers';
+import {StaticJsonRpcProvider} from '@ethersproject/providers';
 
 import setup from './setup';
 import {DeploymentConfig} from '../src/types';
+import {Airdropper, ContractSDK, PermissionedExchange, QueryRegistry, SQToken} from '../src';
+import {PlanManager} from '../src/typechain/PlanManager';
 import localConfig from './config/local.config';
 import keplerConfig from './config/kepler.config';
 import testnetConfig from './config/testnet.config';
 import mainnetConfig from './config/mainnet.config';
-import moonbaseConfig from './config/moonbase.config';
-import {Airdropper, ContractSDK, PermissionedExchange, QueryRegistry, SQToken} from '../src';
-import deployment from '../publish/moonbase.json';
+import networkConfig from './config/startup.json';
 import {METADATA_HASH} from '../test/constants';
 import {cidToBytes32, createProvider, lastestTime, Provider} from '../test/helper';
-import networkConfig from './config/startup.json';
-import {PlanManager} from '../src/typechain/PlanManager';
 import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
-import {StaticJsonRpcProvider} from '@ethersproject/providers';
+
+import deployment from '../publish/testnet.json';
 
 export type SetupSdk = {
     sqToken: SQToken;
@@ -89,17 +89,14 @@ const main = async () => {
         case '--mainnet':
             config = mainnetConfig as DeploymentConfig;
             break;
-        case '--testnet':
-            config = testnetConfig as DeploymentConfig;
-            break;
-        case '--moonbase':
-            config = moonbaseConfig as DeploymentConfig;
-            break;
         case '--kepler':
             config = keplerConfig as DeploymentConfig;
             break;
+        case '--testnet':
+            config = testnetConfig as DeploymentConfig;
+            break;
         default:
-            config = localConfig();
+            config = localConfig as DeploymentConfig;
     }
 
     if (process.env.ENDPOINT) {

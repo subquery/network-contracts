@@ -1,12 +1,11 @@
 import fs, {writeFileSync} from 'fs';
 import setup from './setup';
 import {DeploymentConfig} from '../src/types';
-import localConfig from './config/local.config';
-import testnetConfig from './config/testnet.config';
+import {upgradeContracts} from './deployContracts';
 import mainnetConfig from './config/mainnet.config';
 import keplerConfig from './config/kepler.config';
-import {upgradeContracts} from './deployContracts';
-import moonbaseConfig from './config/moonbase.config';
+import testnetConfig from './config/testnet.config';
+import localConfig from './config/local.config';
 
 const main = async () => {
     let config: DeploymentConfig;
@@ -21,11 +20,8 @@ const main = async () => {
         case '--kepler':
             config = keplerConfig as DeploymentConfig;
             break;
-        case '--moonbase':
-            config = moonbaseConfig as DeploymentConfig;
-            break;
         default:
-            config = localConfig();
+            config = localConfig as DeploymentConfig;
     }
     if (process.env.ENDPOINT) {
         console.log(`use overiden endpoint ${process.env.ENDPOINT}`);
@@ -40,10 +36,6 @@ const main = async () => {
 
     writeFileSync(filePath, JSON.stringify(deployment, null, 4));
     console.log('Exported the deployment result to ', filePath);
-
-    if ((provider as EvmRpcProvider).api) {
-        await (provider as EvmRpcProvider).api.disconnect();
-    }
 };
 
 main();
