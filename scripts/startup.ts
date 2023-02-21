@@ -1,5 +1,4 @@
-import {EvmRpcProvider} from '@acala-network/eth-providers';
-import { ethers, Wallet } from 'ethers';
+import {ethers, Wallet} from 'ethers';
 
 import setup from './setup';
 import {DeploymentConfig} from '../src/types';
@@ -15,7 +14,7 @@ import {cidToBytes32, createProvider, lastestTime, Provider} from '../test/helpe
 import networkConfig from './config/startup.json';
 import {PlanManager} from '../src/typechain/PlanManager';
 import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
-import { StaticJsonRpcProvider } from '@ethersproject/providers';
+import {StaticJsonRpcProvider} from '@ethersproject/providers';
 
 export type SetupSdk = {
     sqToken: SQToken;
@@ -26,20 +25,20 @@ export type SetupSdk = {
 };
 
 async function getAirdropTimeConfig(provider) {
-    const startTime = (await lastestTime(provider)) +600;
+    const startTime = (await lastestTime(provider)) + 600;
     const endTime = startTime + 864000;
 
-    return { startTime, endTime };
+    return {startTime, endTime};
 }
 
 export async function setupNetwork(sdk: SetupSdk, provider: Provider, config?: typeof networkConfig) {
     const {setupConfig, exchange, dictionaries} = config ?? networkConfig;
-    const {airdrops, amounts, rounds, planTemplates, } = setupConfig;
+    const {airdrops, amounts, rounds, planTemplates} = setupConfig;
     await sdk.sqToken.increaseAllowance(sdk.airdropper.address, '10000000');
 
     // Create Airdrop round with period --- 10 days
     console.info('Create and send airdrop');
-    const { startTime, endTime } = await getAirdropTimeConfig(provider);
+    const {startTime, endTime} = await getAirdropTimeConfig(provider);
     const tx = await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
     tx.wait(2);
     await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
@@ -71,10 +70,7 @@ async function setupPermissionExchange(sdk: SetupSdk, provider: StaticJsonRpcPro
     const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = networkConfig.exchange;
     const usdcContract = new ethers.Contract(usdcAddress, Token.abi, provider);
 
-    await usdcContract.connect(wallet).increaseAllowance(
-        sdk.permissionedExchange.address,
-        tokenGiveBalance
-    );
+    await usdcContract.connect(wallet).increaseAllowance(sdk.permissionedExchange.address, tokenGiveBalance);
 
     await sdk.permissionedExchange.createPairOrders(
         usdcAddress,
@@ -108,11 +104,7 @@ const main = async () => {
 
     if (process.env.ENDPOINT) {
         console.log(`use overridden endpoint ${process.env.ENDPOINT}`);
-        if (config.network.platform === 'acala') {
-            config.network.endpoint = {...config.network.endpoint, eth: process.env.ENDPOINT};
-        } else {
-            config.network.endpoint = process.env.ENDPOINT;
-        }
+        config.network.endpoint = process.env.ENDPOINT;
     }
 
     const {wallet, provider} = await setup(config.network);
@@ -120,10 +112,6 @@ const main = async () => {
 
     await setupNetwork(sdk, provider);
     await setupPermissionExchange(sdk, provider as StaticJsonRpcProvider, wallet);
-
-    if ((provider as EvmRpcProvider).api) {
-        await (provider as EvmRpcProvider).api.disconnect();
-    }
 };
 
 main();

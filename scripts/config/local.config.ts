@@ -8,14 +8,6 @@ const endpoint = process.env.ENDPOINT;
 const wsUrl = process.env.WS_URL;
 
 const networkConfig = {
-    acala: {
-        name: 'local',
-        endpoint: {
-            eth: endpoint,
-            substrate: wsUrl,
-        },
-        platform,
-    },
     moonbeam: {
         name: 'local',
         endpoint,

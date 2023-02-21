@@ -5,7 +5,6 @@ import localConfig from './config/local.config';
 import keplerConfig from './config/kepler.config';
 import testnetConfig from './config/testnet.config';
 import mainnetConfig from './config/mainnet.config';
-import {EvmRpcProvider} from '@acala-network/eth-providers';
 import {deployContracts} from './deployContracts';
 import moonbaseConfig from './config/moonbase.config';
 
@@ -33,11 +32,7 @@ const main = async () => {
 
     if (process.env.ENDPOINT) {
         console.log(`use overridden endpoint ${process.env.ENDPOINT}`);
-        if (config.network.platform === 'acala') {
-            config.network.endpoint = {...config.network.endpoint, eth: process.env.ENDPOINT};
-        } else {
-            config.network.endpoint = process.env.ENDPOINT;
-        }
+        config.network.endpoint = process.env.ENDPOINT;
     }
 
     const {wallet, provider, overrides} = await setup(config.network);

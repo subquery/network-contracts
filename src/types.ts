@@ -26,16 +26,8 @@ export type MoonbeamDeploymentConfig = {
     };
     readonly contracts: {[contract: string]: any[]};
 };
-export type AcalaDeploymentConfig = {
-    readonly network: {
-        name: SubqueryNetwork;
-        endpoint?: {eth: string; substrate: string};
-        platform: 'acala';
-    };
-    readonly contracts: {[contract: string]: any[]};
-};
 
-export type DeploymentConfig = AcalaDeploymentConfig | MoonbeamDeploymentConfig | HardhatDeploymentConfig;
+export type DeploymentConfig = MoonbeamDeploymentConfig | HardhatDeploymentConfig;
 
 export type ContractDeploymentDetail = {
     innerAddress?: string;

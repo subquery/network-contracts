@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
+
 import {ApiPromise, WsProvider} from '@polkadot/api';
 import {keyring} from '@polkadot/ui-keyring';
+
 import fs, {writeFileSync} from 'fs';
 import {DeploymentConfig} from '../src/types';
 import localConfig from './config/local.config';

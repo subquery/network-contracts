@@ -5,7 +5,7 @@ export default {
             eth: 'https://eth-rpc-karura.aca-api.network/',
             substrate: 'wss://eth-rpc-karura.aca-api.network/ws',
         },
-        platform: 'acala',
+        platform: 'moonbeam',
     },
     contracts: {
         InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
