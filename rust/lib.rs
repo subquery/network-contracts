@@ -2,8 +2,8 @@ use ethers::{abi::Abi, contract::Contract, providers::Middleware, types::Address
 use serde_json::Value;
 use std::sync::Arc;
 
-const MAINNET_ADDRESS: &str = include_str!("../publish/testnet.json");
-const KEPLER_ADDRESS: &str = include_str!("../publish/testnet.json");
+const MAINNET_ADDRESS: &str = include_str!("../publish/mainnet.json");
+const KEPLER_ADDRESS: &str = include_str!("../publish/kepler.json");
 const TESTNET_ADDRESS: &str = include_str!("../publish/testnet.json");
 
 #[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
@@ -19,6 +19,15 @@ impl Network {
             Network::Mainnet => MAINNET_ADDRESS,
             Network::Kepler => KEPLER_ADDRESS,
             Network::Testnet => TESTNET_ADDRESS,
+        }
+    }
+
+    pub fn from_str(s: &str) -> Self {
+        match s {
+            "mainnet" => Network::Mainnet,
+            "kepler" => Network::Kepler,
+            "testnet" => Network::Testnet,
+            _ => Network::Testnet,
         }
     }
 }
@@ -77,6 +86,12 @@ contract!(
     staking,
     "Staking",
     include_str!("../artifacts/contracts/Staking.sol/Staking.json")
+);
+
+contract!(
+    staking_manager,
+    "StakingManager",
+    include_str!("../artifacts/contracts/StakingManager.sol/StakingManager.json")
 );
 
 contract!(
@@ -181,4 +196,10 @@ contract!(
     consumer_host,
     "ConsumerHost",
     include_str!("../artifacts/contracts/ConsumerHost.sol/ConsumerHost.json")
+);
+
+contract!(
+    dispute_manager,
+    "DisputeManager",
+    include_str!("../artifacts/contracts/DisputeManager.sol/DisputeManager.json")
 );
