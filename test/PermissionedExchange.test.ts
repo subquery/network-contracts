@@ -88,7 +88,9 @@ describe('PermissionedExchange Contract', () => {
         it('add Quota should work', async () => {
             await permissionedExchange.setController(wallet_1.address, true);
             expect(await permissionedExchange.tradeQuota(sqtAddress, wallet_2.address)).to.equal(0);
-            await permissionedExchange.connect(wallet_1).addQuota(sqtAddress, wallet_2.address, etherParse('5'));
+            await expect(permissionedExchange.connect(wallet_1).addQuota(sqtAddress, wallet_2.address, etherParse('5')))
+                .to.be.emit(permissionedExchange, 'QuotaAdded')
+                .withArgs(sqtAddress, wallet_2.address, etherParse('5'));
             expect(await permissionedExchange.tradeQuota(sqtAddress, wallet_2.address)).to.be.eq(etherParse('5'));
         });
 
@@ -121,7 +123,7 @@ describe('PermissionedExchange Contract', () => {
         it('claimed reward should add to quota', async () => {
             const balance_before = await sqToken.balanceOf(indexer.address);
             await startNewEra(mockProvider, eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(indexer.address);
+            await expect(rewardsDistributor.collectAndDistributeRewards(indexer.address));
             let balance = await sqToken.balanceOf(indexer.address);
             let quota = await permissionedExchange.tradeQuota(sqToken.address, indexer.address);
             expect(balance.sub(balance_before)).to.eq(quota);
@@ -135,15 +137,18 @@ describe('PermissionedExchange Contract', () => {
     describe('order operations', () => {
         it('only send order should work', async () => {
             expect(await permissionedExchange.nextOrderId()).to.be.eq(1);
-            await permissionedExchange.sendOrder(
+            const expiredTime = await futureTimestamp(mockProvider, 60 * 60 * 24);
+            await expect(permissionedExchange.sendOrder(
                 asqtAddress,
                 sqtAddress,
                 etherParse('1'),
                 etherParse('5'),
-                await futureTimestamp(mockProvider, 60 * 60 * 24),
+                expiredTime,
                 0,
                 etherParse('10')
-            );
+            ))
+                .to.be.emit(permissionedExchange, 'ExchangeOrderSent')
+                .withArgs(1, wallet_0.address, asqtAddress, sqtAddress, etherParse('1'), etherParse('5'), expiredTime);
             expect(await permissionedExchange.nextOrderId()).to.be.eq(2);
             expect(await (await permissionedExchange.orders(1)).sender).to.be.eq(wallet_0.address);
             expect(await (await permissionedExchange.orders(1)).amountGet).to.be.eq(etherParse('5'));
@@ -264,7 +269,9 @@ describe('PermissionedExchange Contract', () => {
             await expect(permissionedExchange.connect(wallet_2).trade(2, etherParse('100'))).to.be.revertedWith(
                 'PE008'
             );
-            await permissionedExchange.connect(wallet_2).trade(2, etherParse('5'));
+            await expect(permissionedExchange.connect(wallet_2).trade(2, etherParse('5')))
+                .to.be.emit(permissionedExchange, 'Trade')
+                .withArgs(2, asqtAddress, etherParse('5'), sqtAddress, etherParse('10'));
             expect(await asqToken.balanceOf(wallet_2.address)).to.be.eq(etherParse('996'));
             expect(await sqToken.balanceOf(wallet_2.address)).to.be.eq(etherParse('1008'));
             expect(await sqToken.balanceOf(permissionedExchange.address)).to.be.eq(etherParse('0'));

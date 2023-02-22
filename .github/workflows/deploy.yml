@@ -14,10 +14,9 @@ on:
       network:
         type: choice
         description: 'network used to publish contracts'
-        default: moonbase
+        default: testnet
         required: true
-        options: 
-          - moonbase
+        options:
           - testnet
 
 jobs:
@@ -43,13 +42,13 @@ jobs:
       - name: Bump & Build
         run: npm version prerelease --no-git-tag-version && yarn build
 
-      # Deploy contracts to acala testnet
+      # Deploy contracts
       - name: Deploy contracts
         run: yarn deploy --${{ github.event.inputs.network }} && scripts/copy_deployment_json.sh # Uses SEED env var
         env:
           ENDPOINT: ${{ github.event.inputs.endpoint }}
           DEPLOY_PRINT: true
-      
+
       - name: Setup contracts
         run: yarn setup --${{ github.event.inputs.network }}
 

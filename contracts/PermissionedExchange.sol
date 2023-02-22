@@ -104,7 +104,6 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         require(exchangeController[msg.sender] == true, 'PE001');
         tradeQuota[_token][_account] += _amount;
         emit QuotaAdded(_token, _account, _amount);
-        emit QuotaAdded(_token, _account, _amount);
     }
 
     /**

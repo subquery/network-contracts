@@ -14,10 +14,9 @@ on:
       network:
         type: choice
         description: 'network used to publish contracts'
-        default: moonbase
+        default: testnet
         required: true
-        options: 
-          - moonbase
+        options:
           - testnet
 
 jobs:
@@ -43,7 +42,7 @@ jobs:
       - name: Bump & Build
         run: npm version prerelease --no-git-tag-version && yarn build
 
-      # Deploy contracts to moonbeam alpha
+      # Deploy contracts
       - name: Upgrade Changed Contracts
         run: yarn upgrade --${{ github.event.inputs.network }} && scripts/copy_deployment_json.sh # Uses SEED env var
         env:

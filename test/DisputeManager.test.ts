@@ -47,12 +47,9 @@ describe('Dispute Manager Contract', () => {
     describe('Create Dispute', () => {
         it('createDispute should work', async () => {
             await token.connect(root).transfer(fisherman.address, etherParse("1000"));
-            const tx = await disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('1000'), 0);
-            const event = await eventFrom(tx, disputeManager, "DisputeOpen(uint256,address,address,uint8)")
-            expect(event.fisherman).to.eql(fisherman.address);
-            expect(event.indexer).to.eql(indexer.address);
-            expect(event._type).to.eql(0);
-
+            await expect(disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('1000'), 0))
+            .to.be.emit(disputeManager, 'DisputeOpen')
+            .withArgs(1, fisherman.address, indexer.address, 0);
 
             expect(await disputeManager.nextDisputeId()).to.equal(2);
             expect(await disputeManager.disputeIdByIndexer(indexer.address,0)).to.equal(1);
