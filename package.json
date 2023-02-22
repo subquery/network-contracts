@@ -16,8 +16,7 @@
         "docs:generate": "hardhat docgen",
         "deploy": "ts-node --transpileOnly scripts/deploy.ts",
         "upgrade": "ts-node --transpileOnly scripts/upgrade.ts",
-        "setup": "ts-node --transpileOnly scripts/startup.ts",
-        "seed:testnet": "ts-node scripts/seed.ts test/fixtures/testnet.yaml"
+        "setup": "ts-node --transpileOnly scripts/startup.ts"
     },
     "devDependencies": {
         "@ethersproject/abstract-provider": "~5.5.1",
