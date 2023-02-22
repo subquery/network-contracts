@@ -10,12 +10,11 @@ import {IndexerRegistry, EraManager, PlanManager} from '../src';
 import {METADATA_HASH} from './constants';
 const {constants, time} = require('@openzeppelin/test-helpers');
 import web3 from 'web3';
-import { StaticJsonRpcProvider } from '@ethersproject/providers';
-import { EvmRpcProvider } from '@acala-network/eth-providers';
+import {StaticJsonRpcProvider} from '@ethersproject/providers';
 
 export {constants, time};
 
-export type Provider = MockProvider | StaticJsonRpcProvider | EvmRpcProvider;
+export type Provider = MockProvider | StaticJsonRpcProvider;
 
 export function createProvider(url: string, chain: number): StaticJsonRpcProvider {
     return new ethers.providers.StaticJsonRpcProvider(url, chain);

@@ -16,12 +16,9 @@
         "docs:generate": "hardhat docgen",
         "deploy": "ts-node --transpileOnly scripts/deploy.ts",
         "upgrade": "ts-node --transpileOnly scripts/upgrade.ts",
-        "setup": "ts-node --transpileOnly scripts/startup.ts",
-        "seed:testnet": "ts-node scripts/seed.ts test/fixtures/testnet.yaml"
+        "setup": "ts-node --transpileOnly scripts/startup.ts"
     },
     "devDependencies": {
-        "@acala-network/bodhi": "^2.4.12",
-        "@acala-network/eth-providers": "^2.4.12",
         "@ethersproject/abstract-provider": "~5.5.1",
         "@ethersproject/address": "~5.5.0",
         "@ethersproject/bignumber": "~5.5.0",
@@ -39,7 +36,6 @@
         "@nomiclabs/hardhat-web3": "^2.0.0",
         "@openzeppelin/contracts": "^4.5.0",
         "@openzeppelin/test-helpers": "^0.5.15",
-        "@polkadot/ui-keyring": "^2.9.4",
         "@typechain/ethers-v5": "9.0.0",
         "@typechain/hardhat": "^6.0.0",
         "@types/chai": "^4.3.0",
@@ -75,11 +71,6 @@
     },
     "dependencies": {
         "@openzeppelin/contracts-upgradeable": "^4.5.2"
-    },
-    "resolutions": {
-        "@polkadot/util": "9.1.1",
-        "@polkadot/util-crypto": "9.1.1",
-        "@polkadot/wasm-crypto": "6.0.1"
     },
     "lint-staged": {
         "*.ts": [

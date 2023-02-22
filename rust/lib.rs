@@ -2,22 +2,23 @@ use ethers::{abi::Abi, contract::Contract, providers::Middleware, types::Address
 use serde_json::Value;
 use std::sync::Arc;
 
+const MAINNET_ADDRESS: &str = include_str!("../publish/testnet.json");
+const KEPLER_ADDRESS: &str = include_str!("../publish/testnet.json");
 const TESTNET_ADDRESS: &str = include_str!("../publish/testnet.json");
-const MOONBASE_ADDRESS: &str = include_str!("../publish/moonbase.json");
 
 #[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
 pub enum Network {
-    Testnet,
-    Moonbase,
     Mainnet,
+    Kepler,
+    Testnet,
 }
 
 impl Network {
     fn address(&self) -> &str {
         match self {
+            Network::Mainnet => MAINNET_ADDRESS,
+            Network::Kepler => KEPLER_ADDRESS,
             Network::Testnet => TESTNET_ADDRESS,
-            Network::Moonbase => MOONBASE_ADDRESS,
-            Network::Mainnet => TESTNET_ADDRESS,
         }
     }
 }
