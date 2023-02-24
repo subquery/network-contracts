@@ -58,6 +58,7 @@
     "IR005": "Controller account is used by an indexer already",
     "IR006": "Invalid commission rate",
     "IR007": "caller is not a controller",
+    "IR008": "Invalid indexer metadata",
     "IC001": "InflationRate value is out of range",
     "IC002": "Already minted this Era",
     "PE001": "Not controller",

@@ -34,6 +34,7 @@ interface IQueryRegistry {
     function updateIndexingStatusToReady(bytes32 deploymentId) external;
 
     function reportIndexingStatus(
+        address indexer,
         bytes32 deploymentId,
         uint256 _blockheight,
         bytes32 _mmrRoot,

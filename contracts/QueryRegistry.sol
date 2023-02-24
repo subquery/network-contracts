@@ -93,11 +93,6 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         _;
     }
 
-    modifier onlyIndexerController() {
-        require(IIndexerRegistry(settings.getIndexerRegistry()).isController(msg.sender), 'IR007');
-        _;
-    }
-
     modifier onlyCreator() {
         if (creatorRestricted) {
             require(creatorWhitelist[msg.sender], 'QR001');
@@ -249,12 +244,13 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
      * @notice Indexer report its indexing status with a specific deploymentId
      */
     function reportIndexingStatus(
+        address indexer,
         bytes32 deploymentId,
         uint256 _blockheight,
         bytes32 _mmrRoot,
         uint256 _timestamp
-    ) external onlyIndexerController {
-        address indexer = IIndexerRegistry(settings.getIndexerRegistry()).controllerToIndexer(msg.sender);
+    ) external {
+        require(indexer == msg.sender || IIndexerRegistry(settings.getIndexerRegistry()).getController(indexer) == msg.sender, 'IR007');
 
         IndexingStatus storage currentStatus = deploymentStatusByIndexer[deploymentId][indexer];
         canModifyStatus(currentStatus, _timestamp);

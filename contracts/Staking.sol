@@ -196,7 +196,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         }
     }
 
-    function checkDelegateLimitation(address _indexer, uint256 _amount) external onlyStakingManager {
+    function checkDelegateLimitation(address _indexer, uint256 _amount) external view onlyStakingManager {
         require(
             delegation[_indexer][_indexer].valueAfter * indexerLeverageLimit >=
                 totalStakingAmount[_indexer].valueAfter + _amount,
@@ -362,7 +362,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             delegation[_indexer][_indexer].valueAfter -= amount;
             totalStakingAmount[_indexer].valueAfter -= amount;
         }
-        
+
         IERC20(settings.getSQToken()).safeTransfer(settings.getDisputeManager(), _amount);
     }
 

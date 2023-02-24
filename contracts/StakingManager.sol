@@ -112,7 +112,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         Staking staking = Staking(settings.getStaking());
         require(unbondReqId >= staking.withdrawnLength(msg.sender), 'S007');
-        (address indexer, uint256 amount, uint256 startTime) = staking.unbondingAmount(msg.sender, unbondReqId);
+        (address indexer, uint256 amount,) = staking.unbondingAmount(msg.sender, unbondReqId);
         require(amount > 0, 'S007');
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
         require(indexerRegistry.isIndexer(indexer), 'S007');
