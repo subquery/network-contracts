@@ -169,8 +169,7 @@ function updateDeployment(
 export async function deployContracts(
     wallet: Wallet,
     config: DeploymentConfig['contracts'],
-    overrides: Overrides | {} = {},
-    dev: boolean | true
+    overrides: Overrides | {} = {}
 ): Promise<[Partial<ContractDeployment>, Contracts]> {
     const deployment: Partial<ContractDeployment> = {};
     if (process.env.DEBUG) {

@@ -2,16 +2,11 @@ import {ethers, Wallet} from 'ethers';
 import {StaticJsonRpcProvider} from '@ethersproject/providers';
 
 import setup from './setup';
-import {DeploymentConfig} from '../src/types';
 import {Airdropper, ContractSDK, PermissionedExchange, QueryRegistry, SQToken} from '../src';
 import {PlanManager} from '../src/typechain/PlanManager';
-import localConfig from './config/local.config';
-import keplerConfig from './config/kepler.config';
-import testnetConfig from './config/testnet.config';
-import mainnetConfig from './config/mainnet.config';
 import networkConfig from './config/startup.json';
 import {METADATA_HASH} from '../test/constants';
-import {cidToBytes32, createProvider, lastestTime, Provider} from '../test/helper';
+import {cidToBytes32, lastestTime, Provider} from '../test/helper';
 import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
 
 import deployment from '../publish/testnet.json';
@@ -83,28 +78,7 @@ async function setupPermissionExchange(sdk: SetupSdk, provider: StaticJsonRpcPro
 }
 
 const main = async () => {
-    let config: DeploymentConfig;
-
-    switch (process.argv[2]) {
-        case '--mainnet':
-            config = mainnetConfig as DeploymentConfig;
-            break;
-        case '--kepler':
-            config = keplerConfig as DeploymentConfig;
-            break;
-        case '--testnet':
-            config = testnetConfig as DeploymentConfig;
-            break;
-        default:
-            config = localConfig as DeploymentConfig;
-    }
-
-    if (process.env.ENDPOINT) {
-        console.log(`use overridden endpoint ${process.env.ENDPOINT}`);
-        config.network.endpoint = process.env.ENDPOINT;
-    }
-
-    const {wallet, provider} = await setup(config.network);
+    const {wallet, provider} = await setup(process.argv[2]);
     const sdk = await ContractSDK.create(wallet, {deploymentDetails: deployment});
 
     await setupNetwork(sdk, provider);

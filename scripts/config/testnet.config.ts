@@ -1,13 +1,4 @@
 export default {
-    network: {
-        name: 'testnet',
-        platform: 'moonbeam',
-        endpoint: 'https://moonbeam-alpha.api.onfinality.io/public',
-        providerConfig: {
-            chainId: 1287,
-            name: 'Moonbase-alpha',
-        },
-    },
     contracts: {
         InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
         Staking: [3600], // LockPeriod
