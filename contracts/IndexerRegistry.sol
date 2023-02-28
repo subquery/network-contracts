@@ -64,7 +64,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
     uint256 public minimumStakingAmount;
 
     /// @notice Indexer's metadata: indexer => metadata, if metadata = 0, no indexer
-    mapping(address => bytes32) public indexers;
+    mapping(address => bytes32) public metadata;
 
     /// @notice Delegation tax rate per indexer: indexer => commissionRate
     mapping(address => CommissionRate) public commissionRates;
@@ -91,6 +91,12 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
     /// @notice Emitted when Indexer set their commissionRate.
     event SetCommissionRate(address indexed indexer, uint256 amount);
 
+    /// @dev MODIFIER
+    /// @notice only indexer can call
+    modifier onlyIndexer() {
+        require(metadata[msg.sender] != bytes32(0), 'G002');
+        _;
+    }
 
     /**
      * @dev ### FUNCTIONS
@@ -123,30 +129,29 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
     /**
      * @notice call to register to an Indexer, this function will interacte with staking contract to handle the Indexer first stake and commission rate setup.
      * @param amount Indexer init staked amount(must over minimumStakingAmount)
-     * @param metadata Indexer metadata
+     * @param _metadata Indexer metadata
      * @param rate Indexer init commission rate
      */
-    function registerIndexer(uint256 amount, bytes32 metadata, uint256 rate) external {
-        require(indexers[msg.sender] == bytes32(0), 'IR001');
+    function registerIndexer(uint256 amount, bytes32 _metadata, uint256 rate) external {
+        require(metadata[msg.sender] == bytes32(0), 'IR001');
         require(amount >= minimumStakingAmount, 'IR002');
-        require(metadata != bytes32(0), 'IR005');
+        require(_metadata != bytes32(0), 'IR005');
 
-        indexers[msg.sender] = metadata;
+        metadata[msg.sender] = _metadata;
         setInitialCommissionRate(msg.sender, rate);
         IStakingManager(settings.getStakingManager()).stake(msg.sender, amount);
 
-        emit RegisterIndexer(msg.sender, amount, metadata);
+        emit RegisterIndexer(msg.sender, amount, _metadata);
     }
 
     /**
      * @notice Indexer call to unregister, need to check no running indexing projects on this Indexer from QueryRegistry contract.
      *  This function will call unstake for Indexer to make sure indexer unstaking all staked SQT Token after unregister.
      */
-    function unregisterIndexer() external {
-        require(indexers[msg.sender] != bytes32(0), 'IR003');
+    function unregisterIndexer() external onlyIndexer {
         require(IQueryRegistry(settings.getQueryRegistry()).numberOfIndexingDeployments(msg.sender) == 0, 'IR004');
 
-        delete indexers[msg.sender];
+        delete metadata[msg.sender];
         delete controllers[msg.sender];
 
         IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
@@ -157,25 +162,22 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
     }
 
     /**
-     * @notice Indexers call to update their Metadata.
-     * @param metadata Indexer metadata to update
+     * @notice Indexer call to update their Metadata.
+     * @param _metadata Indexer metadata to update
      */
-    function updateMetadata(bytes32 metadata) external {
-        require(indexers[msg.sender] != bytes32(0), 'G002');
-        require(metadata != bytes32(0), 'IR005');
+    function updateMetadata(bytes32 _metadata) external onlyIndexer {
+        require(_metadata != bytes32(0), 'IR005');
 
-        indexers[msg.sender] = metadata;
+        metadata[msg.sender] = _metadata;
 
-        emit UpdateMetadata(msg.sender, metadata);
+        emit UpdateMetadata(msg.sender, _metadata);
     }
 
     /**
      * @notice Indexers call to set the controller account, since indexer only allowed to set one controller account, we need to remove the previous controller account.
      * @param controller The address of controller account, indexer to set
      */
-    function setControllerAccount(address controller) external {
-        require(indexers[msg.sender] != bytes32(0), 'G002');
-
+    function setControllerAccount(address controller) external onlyIndexer {
         controllers[msg.sender] = controller;
 
         emit SetControllerAccount(msg.sender, controller);
@@ -184,9 +186,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
     /**
      * @notice Indexers call to remove the controller account. need to remove both controllers and controllerToIndexer.
      */
-    function removeControllerAccount() public {
-        require(indexers[msg.sender] != bytes32(0), 'G002');
-
+    function removeControllerAccount() public onlyIndexer {
         address controller = controllers[msg.sender];
         delete controllers[msg.sender];
 
@@ -199,7 +199,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
      * @return Result of is the address is a indexer account
      */
     function isIndexer(address _address) external view returns (bool) {
-        return indexers[_address] != bytes32(0);
+        return metadata[_address] != bytes32(0);
     }
 
     /**
@@ -230,8 +230,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
      * @dev Set commissionRate only called by Indexer.
      * The commissionRate need to apply at two Eras after.
      */
-    function setCommissionRate(uint256 rate) external {
-        require(indexers[msg.sender] != bytes32(0), 'G002');
+    function setCommissionRate(uint256 rate) external onlyIndexer {
         require(rate <= PER_MILL, 'IR006');
 
         uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
