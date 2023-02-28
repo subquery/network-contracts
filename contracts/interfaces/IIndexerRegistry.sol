@@ -6,11 +6,7 @@ pragma solidity 0.8.15;
 interface IIndexerRegistry {
     function isIndexer(address _address) external view returns (bool);
 
-    function isController(address _address) external view returns (bool);
-
-    function controllerToIndexer(address _address) external view returns (address);
-
-    function indexerToController(address _address) external view returns (address);
+    function getController(address indexer) external view returns (address);
 
     function minimumStakingAmount() external view returns (uint256);
 

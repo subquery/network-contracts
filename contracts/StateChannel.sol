@@ -143,8 +143,8 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         // check indexer registered
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
-        require(indexerRegistry.isIndexer(indexer), 'IR003');
-        address controller = indexerRegistry.indexerToController(indexer);
+        require(indexerRegistry.isIndexer(indexer), 'G002');
+        address controller = indexerRegistry.getController(indexer);
 
         // check sign
         bytes32 payload = keccak256(
@@ -196,7 +196,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     ) public {
         address indexer = channels[channelId].indexer;
         address consumer = channels[channelId].consumer;
-        address controller = IIndexerRegistry(settings.getIndexerRegistry()).indexerToController(indexer);
+        address controller = IIndexerRegistry(settings.getIndexerRegistry()).getController(indexer);
         require(channels[channelId].expiredAt == preExpirationAt, 'SC002');
 
         // check sign
@@ -369,7 +369,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         bytes memory consumerSign
     ) private view {
         address indexer = channels[channelId].indexer;
-        address controller = IIndexerRegistry(settings.getIndexerRegistry()).indexerToController(indexer);
+        address controller = IIndexerRegistry(settings.getIndexerRegistry()).getController(indexer);
         address consumer = channels[channelId].consumer;
         if (_isContract(consumer)) {
             require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'C006');

@@ -160,7 +160,7 @@ export const loaders = {
         console.log(`IndexerController Start for ${indexer}`);
         const indexerWallet = accounts[indexer];
         const controllerWallet = accounts[controller];
-        const currentController = await sdk.indexerRegistry.indexerToController(indexerWallet.address);
+        const currentController = await sdk.indexerRegistry.getController(indexerWallet.address);
         if (currentController.toLowerCase() === controllerWallet.address.toLowerCase()) {
             console.log('IndexerController skip - not changed');
             return;
