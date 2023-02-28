@@ -51,7 +51,7 @@ const setup = async (argv: string) => {
         config.network.rpcUrls = [process.env.ENDPOINT];
     }
 
-    if (config.network.chainName === 'Polygon' || config.network.chainName === 'Mumbai' || config.network.chainName === 'Hardaht' || config.network.chainName === 'Moonbase-alpha') {
+    if (['Polygon', 'Mumbai', 'Hardaht', 'Moonbase-alpha'].includes(config.network.chainName)) {
         const {wallet, provider, overrides} =  await setupCommon(config.network);
         return {config, wallet, provider, overrides}
     } else {

@@ -2,15 +2,11 @@ import type CONTRACTS from './contracts';
 
 export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'moonbase' | 'local';
 
-export type DeploymentConfig = {
-    network: network;
-    contracts: {[contract: string]: any[]};
-};
-
-export type network = {
+export type Network = {
     chainId: string,
     chainName: string,
     rpcUrls: string[],
+    blockExplorerUrls: string[],
     iconUrls: string[],
     nativeCurrency: {
         name: string,
@@ -18,6 +14,11 @@ export type network = {
         decimals: number
     }
 }
+
+export type DeploymentConfig = {
+    network: Network;
+    contracts: {[contract: string]: any[]};
+};
 
 export type ContractDeploymentDetail = {
     innerAddress?: string;
