@@ -58,7 +58,7 @@ impl Network {
             "mainnet" => Network::Mainnet,
             "kepler" => Network::Kepler,
             "testnet" => Network::Testnet,
-            _ => Network::Testnet,
+            _ => CURRENT_NETWORK,
         }
     }
 
