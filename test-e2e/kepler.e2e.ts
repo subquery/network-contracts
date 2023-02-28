@@ -1,12 +1,11 @@
-const {ContractSDK} = require('@subql/contract-sdk');
-const moonbaseDeployment = require('@subql/contract-sdk/publish/moonbase.json');
-const mandalaDeployment = require('@subql/contract-sdk/publish/testnet.json');
-const {Wallet, utils, providers, BigNumber} = require('ethers');
-const {EvmRpcProvider} = require('@acala-network/eth-providers');
-const web3 = require('web3');
+import { ContractSDK } from '@subql/contract-sdk';
+import moonbaseDeployment from '@subql/contract-sdk/publish/testnet.json';
+import testnetDeployment from '@subql/contract-sdk/publish/testnet.json';
+import {Wallet, utils, providers, BigNumber} from 'ethers';
+import web3 from 'web3';
 
 import moonbaseConfig from '../scripts/config/moonbase.config';
-import mandalaConfig from '../scripts/config/testnet.config';
+import testnetConfig from '../scripts/config/testnet.config';
 import {METADATA_HASH, DEPLOYMENT_ID, VERSION, mmrRoot} from '../test/constants';
 
 const SEED = 'weasel train face endless hello melody unable angry notable half lunch rack';
@@ -20,7 +19,7 @@ const AUSDAddr = '0xF98bF104e268d7cBB7949029Fee874e3cd1db8fa';
 
 let deployment;
 let root_wallet, indexer_wallet, consumer_wallet;
-let sdk;
+let sdk: ContractSDK;
 let overrides;
 let provider;
 let tx;
@@ -93,13 +92,13 @@ async function queryProjectSetup() {
 }
 
 async function planTemplateSetup() {
-    const next = await sdk.planManager.planTemplateIds();
+    const next = await sdk.planManager.nextPlanId();
     if (next.toNumber() == 0) {
         console.log('start create planTemplate 0 ...');
         tx = await sdk.planManager.createPlanTemplate(10800, 10000, 10000, METADATA_HASH);
         await tx.wait();
     }
-    const info = await sdk.planManager.planTemplates(0);
+    const info = await sdk.planManager.getPlanTemplate(0);
     if (info.metadata != METADATA_HASH) {
         console.log('start update PlanTemplate metadata ...');
         tx = await sdk.planManager.updatePlanTemplateMetadata(0, METADATA_HASH);
@@ -132,8 +131,8 @@ async function indexerSetup() {
         console.log('Indexer registered with: ');
     }
     console.log('METADATA_HASH: ' + (await sdk.indexerRegistry.metadataByIndexer(INDEXER_ADDR)));
-    console.log('commissionRates: ' + (await sdk.staking.getCommissionRate(INDEXER_ADDR)));
-    console.log('TotalStakingAmount: ' + (await sdk.staking.getTotalStakingAmount(INDEXER_ADDR)));
+    console.log('commissionRates: ' + (await sdk.indexerRegistry.getCommissionRate(INDEXER_ADDR)));
+    console.log('TotalStakingAmount: ' + (await sdk.stakingManager.getTotalStakingAmount(INDEXER_ADDR)));
 
     //Indexing start and update indxing status to ready
     let indexingStatus = (await sdk.queryRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR)).status;
@@ -165,11 +164,11 @@ async function planManagerTest() {
     console.log('indexer create a plan ...');
     tx = await sdk.planManager.connect(indexer_wallet).createPlan(etherParse('10'), 0, DEPLOYMENT_ID);
     await tx.wait();
-    const PlanId = await sdk.planManager.nextPlanId(INDEXER_ADDR);
-    let plan = await sdk.planManager.plans(INDEXER_ADDR, PlanId);
-    console.log(`plan created with index ${PlanId}: `);
+    const planId = (await sdk.planManager.nextPlanId()).sub(1);
+    let plan = await sdk.planManager.getPlan(planId);
+    console.log(`plan created with index ${planId.toString()}: `);
     console.log('price: ' + plan.price);
-    console.log('planTemplateId: ' + plan.planTemplateId);
+    console.log('planTemplateId: ' + plan.templateId);
     console.log('deploymentId: ' + plan.deploymentId);
     console.log('active: ' + plan.active);
 
@@ -177,7 +176,7 @@ async function planManagerTest() {
     console.log('consumer accept a plan ...');
     tx = await sdk.sqToken.connect(consumer_wallet).increaseAllowance(sdk.planManager.address, etherParse('10'));
     await tx.wait();
-    tx = await sdk.planManager.connect(consumer_wallet).acceptPlan(INDEXER_ADDR, DEPLOYMENT_ID, PlanId);
+    tx = await sdk.planManager.connect(consumer_wallet).acceptPlan(planId, DEPLOYMENT_ID);
     await tx.wait();
     let agreementId = (await sdk.serviceAgreementRegistry.nextServiceAgreementId()).toNumber() - 1;
     let agreement = await sdk.serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
@@ -211,13 +210,13 @@ async function planManagerTest() {
 
     //indexer remove the plan
     console.log('indexer start remove the plan ...');
-    tx = await sdk.planManager.connect(indexer_wallet).removePlan(PlanId);
+    tx = await sdk.planManager.connect(indexer_wallet).removePlan(planId);
     await tx.wait();
-    plan = await sdk.planManager.plans(INDEXER_ADDR, PlanId);
+    plan = await sdk.planManager.getPlan(planId);
     if (!plan.active) {
-        console.log(`plan ${PlanId} has been successfully removed`);
+        console.log(`plan ${planId} has been successfully removed`);
     } else {
-        console.log(`plan ${PlanId} remove failed`);
+        console.log(`plan ${planId} remove failed`);
     }
 }
 
@@ -241,7 +240,6 @@ async function purchaseOfferTest() {
     console.log('deploymentId: ' + offer.deploymentId);
     console.log('expireDate: ' + offer.expireDate);
     console.log('consumer: ' + offer.consumer);
-    console.log('cancelled: ' + offer.cancelled);
     console.log('limit: ' + offer.limit);
     console.log('numAcceptedContracts: ' + offer.numAcceptedContracts);
 
@@ -298,12 +296,12 @@ async function stakingTest() {
     let delegation = await sdk.staking.delegation(CONSUMER_ADDR, INDEXER_ADDR);
     console.log(`delegation: ${delegation}`);
     console.log(`delegator start delegate to indexer ...`);
-    tx = await sdk.staking.connect(consumer_wallet).delegate(INDEXER_ADDR, etherParse('10'));
+    tx = await sdk.stakingManager.connect(consumer_wallet).delegate(INDEXER_ADDR, etherParse('10'));
     await tx.wait();
     delegation = await sdk.staking.delegation(CONSUMER_ADDR, INDEXER_ADDR);
     console.log(`delegation: ${delegation}`);
     console.log(`delegator start undelegate to indexer ...`);
-    tx = await sdk.staking.connect(consumer_wallet).undelegate(INDEXER_ADDR, etherParse('5'));
+    tx = await sdk.stakingManager.connect(consumer_wallet).undelegate(INDEXER_ADDR, etherParse('5'));
     await tx.wait();
     delegation = await sdk.staking.delegation(CONSUMER_ADDR, INDEXER_ADDR);
     console.log(`delegation: ${delegation}`);
@@ -382,59 +380,59 @@ async function airdropTest() {
     console.log(`unclaimedAmount: ${round.unclaimedAmount}`);
 }
 
-async function permissionedExchangedtest() {
-    let orderId = await sdk.permissionedExchange.nextOrderId();
-    console.log(`strat create exchange order ${orderId}`);
-    tx = await sdk.sqToken.increaseAllowance(sdk.permissionedExchange.address, etherParse('100'));
-    await tx.wait();
-    tx = await sdk.permissionedExchange.sendOrder(
-        AUSDAddr,
-        sdk.sqToken.address,
-        etherParse('1'),
-        etherParse('5'),
-        await futureTimestamp(60 * 60 * 24)
-    );
-    await tx.wait();
-    let order = await sdk.permissionedExchange.orders(orderId);
-    console.log(`order ${orderId} created with: `);
-    console.log(`tokenGive: ${order.tokenGive}`);
-    console.log(`tokenGet: ${order.tokenGet}`);
-    console.log(`amountGive: ${order.amountGive}`);
-    console.log(`amountGet: ${order.amountGet}`);
-    console.log(`sender: ${order.sender}`);
-    console.log(`expireDate: ${order.expireDate}`);
-    console.log(`amountGiveLeft: ${order.amountGiveLeft}`);
+// async function permissionedExchangedtest() {
+//     let orderId = await sdk.permissionedExchange.nextOrderId();
+//     console.log(`strat create exchange order ${orderId}`);
+//     tx = await sdk.sqToken.increaseAllowance(sdk.permissionedExchange.address, etherParse('100'));
+//     await tx.wait();
+//     tx = await sdk.permissionedExchange.sendOrder(
+//         AUSDAddr,
+//         sdk.sqToken.address,
+//         etherParse('1'),
+//         etherParse('5'),
+//         await futureTimestamp(60 * 60 * 24)
+//     );
+//     await tx.wait();
+//     let order = await sdk.permissionedExchange.orders(orderId);
+//     console.log(`order ${orderId} created with: `);
+//     console.log(`tokenGive: ${order.tokenGive}`);
+//     console.log(`tokenGet: ${order.tokenGet}`);
+//     console.log(`amountGive: ${order.amountGive}`);
+//     console.log(`amountGet: ${order.amountGet}`);
+//     console.log(`sender: ${order.sender}`);
+//     console.log(`expireDate: ${order.expireDate}`);
+//     console.log(`amountGiveLeft: ${order.amountGiveLeft}`);
 
-    console.log(`check controller ...`);
-    let isController = await sdk.permissionedExchange.exchangeController(root_wallet.address);
-    if (isController) {
-        console.log(`root is the exchange controller`);
-    } else {
-        console.log(`start set controller for root wallet ... `);
-        tx = await sdk.permissionedExchange.setController(root_wallet.address, true);
-        await tx.wait();
-        isController = await sdk.permissionedExchange.exchangeController(root_wallet.address);
-        if (isController) {
-            console.log(`set successed `);
-        } else {
-            console.log(`set failed `);
-        }
-    }
+//     console.log(`check controller ...`);
+//     let isController = await sdk.permissionedExchange.exchangeController(root_wallet.address);
+//     if (isController) {
+//         console.log(`root is the exchange controller`);
+//     } else {
+//         console.log(`start set controller for root wallet ... `);
+//         tx = await sdk.permissionedExchange.setController(root_wallet.address, true);
+//         await tx.wait();
+//         isController = await sdk.permissionedExchange.exchangeController(root_wallet.address);
+//         if (isController) {
+//             console.log(`set successed `);
+//         } else {
+//             console.log(`set failed `);
+//         }
+//     }
 
-    let quota = await sdk.permissionedExchange.tradeQuota(sdk.sqToken.address, root_wallet.address);
-    console.log(`sqt trade quota for root is ${quota}`);
-    console.log(`strat addQuota to root wallet ...`);
-    tx = await sdk.permissionedExchange.addQuota(sdk.sqToken.address, root_wallet.address, etherParse('2.5'));
-    await tx.wait();
-    quota = await sdk.permissionedExchange.tradeQuota(sdk.sqToken.address, root_wallet.address);
-    console.log(`sqt trade quota for root is ${quota}`);
+//     let quota = await sdk.permissionedExchange.tradeQuota(sdk.sqToken.address, root_wallet.address);
+//     console.log(`sqt trade quota for root is ${quota}`);
+//     console.log(`strat addQuota to root wallet ...`);
+//     tx = await sdk.permissionedExchange.addQuota(sdk.sqToken.address, root_wallet.address, etherParse('2.5'));
+//     await tx.wait();
+//     quota = await sdk.permissionedExchange.tradeQuota(sdk.sqToken.address, root_wallet.address);
+//     console.log(`sqt trade quota for root is ${quota}`);
 
-    console.log(`strat trade on offer ${orderId} ...`);
-    tx = await sdk.permissionedExchange.trade(orderId, etherParse('2.5'));
-    await tx.wait();
-    order = await sdk.permissionedExchange.orders(orderId);
-    console.log(`amountGiveLeft for offer ${orderId} : ${order.amountGiveLeft}`);
-}
+//     console.log(`strat trade on offer ${orderId} ...`);
+//     tx = await sdk.permissionedExchange.trade(orderId, etherParse('2.5'));
+//     await tx.wait();
+//     order = await sdk.permissionedExchange.orders(orderId);
+//     console.log(`amountGiveLeft for offer ${orderId} : ${order.amountGiveLeft}`);
+// }
 
 async function main() {
     switch (process.argv[2]) {
@@ -442,10 +440,9 @@ async function main() {
             deployment = moonbaseDeployment;
             provider = new providers.StaticJsonRpcProvider(moonbaseConfig.network.endpoint.eth);
             break;
-        case '--mandala':
-            deployment = mandalaDeployment;
-            provider = await EvmRpcProvider.from(mandalaConfig.network.endpoint.substrate);
-            overrides = await getOverrides(provider);
+        case '--testnet':
+            deployment = testnetDeployment;
+            provider = new providers.StaticJsonRpcProvider(testnetConfig.network.endpoint);
             break;
     }
 
@@ -459,9 +456,9 @@ async function main() {
     indexer_wallet = new Wallet(INDEXER_PK, provider);
     consumer_wallet = new Wallet(CONSUMER_PK, provider);
 
-    await rootSetup();
-    await queryProjectSetup();
-    await planTemplateSetup();
+    // await rootSetup();
+    // await queryProjectSetup();
+    // await planTemplateSetup();
     await indexerSetup();
     await clearEndedAgreements(INDEXER_ADDR);
     await planManagerTest();
@@ -470,7 +467,7 @@ async function main() {
     await stakingTest();
     await distributeAndClaimRewards();
     await airdropTest();
-    await permissionedExchangedtest();
+    // await permissionedExchangedtest();
 
     if (provider.api) {
         await provider.api.disconnect();

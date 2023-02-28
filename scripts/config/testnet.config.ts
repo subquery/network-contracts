@@ -1,11 +1,11 @@
 export default {
     network: {
         name: 'testnet',
-        platform: 'moonbeam',
-        endpoint: 'https://moonbeam-alpha.api.onfinality.io/public',
+        platform: 'mumbai',
+        endpoint: 'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78',
         providerConfig: {
-            chainId: 1287,
-            name: 'Moonbase-alpha',
+            chainId: 80001,
+            name: 'Mumbai',
         },
     },
     contracts: {

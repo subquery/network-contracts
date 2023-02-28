@@ -9,7 +9,7 @@
         "build": "yarn build:contract && yarn build:ts",
         "lint": "solhint contracts/**/*.sol",
         "test": "hardhat test",
-        "e2e-test:mandala": "node -r ts-node/register/transpile-only test-e2e/kepler.e2e.ts --mandala",
+        "e2e-test:testnet": "node -r ts-node/register/transpile-only test-e2e/kepler.e2e.ts --testnet",
         "e2e-test:moonbase": "node -r ts-node/register/transpile-only test-e2e/kepler.e2e.ts --moonbase",
         "test:coverage": "hardhat coverage",
         "prepare": "husky install",
@@ -38,6 +38,7 @@
         "@nomiclabs/hardhat-web3": "^2.0.0",
         "@openzeppelin/contracts": "^4.5.0",
         "@openzeppelin/test-helpers": "^0.5.15",
+        "@subql/contract-sdk": "0.12.1-0",
         "@typechain/ethers-v5": "9.0.0",
         "@typechain/hardhat": "^6.0.0",
         "@types/chai": "^4.3.0",
@@ -72,8 +73,7 @@
         "vuepress": "^1.9.7"
     },
     "dependencies": {
-        "@polkadot/ui-keyring": "^2.9.4",
-        "@subql/contract-sdk": "^0.10.2-8"
+        "@polkadot/ui-keyring": "^2.9.4"
     },
     "resolutions": {
         "@polkadot/util": "9.1.1",

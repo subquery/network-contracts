@@ -3371,14 +3371,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@subql/contract-sdk@npm:^0.10.2-8":
-  version: 0.10.2-47
-  resolution: "@subql/contract-sdk@npm:0.10.2-47"
+"@subql/contract-sdk@npm:0.12.1-0":
+  version: 0.12.1-0
+  resolution: "@subql/contract-sdk@npm:0.12.1-0"
   dependencies:
     "@openzeppelin/contracts-upgradeable": ^4.5.2
-    "@polkadot/ui-keyring": ^2.9.4
-    solidity-docgen: ^0.6.0-beta.25
-  checksum: 4ef9b8a46d29ef53c35bde05fb2bb9434b5b6a1459fc9aeb9d86e9a3ac99dcdfc1e80e869348e3fbd5f79f2325144dc95bed89141d2574893812ffc9d8aa91c1
+  checksum: c6183654dc28e8a9ba3a4bc1724f23e1b4c30f80e94e4e91dd69034c9458af4867c022d08610b7a233b03b3e6196a6d8ad64bbb1a2a9a5b6cae3513ae3550c48
   languageName: node
   linkType: hard
 
@@ -3404,7 +3402,7 @@ __metadata:
     "@openzeppelin/contracts": ^4.5.0
     "@openzeppelin/test-helpers": ^0.5.15
     "@polkadot/ui-keyring": ^2.9.4
-    "@subql/contract-sdk": ^0.10.2-8
+    "@subql/contract-sdk": 0.12.1-0
     "@typechain/ethers-v5": 9.0.0
     "@typechain/hardhat": ^6.0.0
     "@types/chai": ^4.3.0
