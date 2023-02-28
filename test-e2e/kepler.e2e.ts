@@ -174,6 +174,8 @@ async function planManagerTest() {
 
     //consumer acept the plan
     console.log('consumer accept a plan ...');
+    tx = await sdk.sqToken.connect(root_wallet).transfer(consumer_wallet.address, etherParse('10'));
+    await tx.wait();
     tx = await sdk.sqToken.connect(consumer_wallet).increaseAllowance(sdk.planManager.address, etherParse('10'));
     await tx.wait();
     tx = await sdk.planManager.connect(consumer_wallet).acceptPlan(planId, DEPLOYMENT_ID);
@@ -224,6 +226,8 @@ async function purchaseOfferTest() {
     //consumer create the purchaseOffer
     const offerId = await sdk.purchaseOfferMarket.numOffers();
     console.log('consumer create a purchaseOffer ...');
+    tx = await sdk.sqToken.connect(root_wallet).transfer(consumer_wallet.address, etherParse('20'));
+    await tx.wait();
     tx = await sdk.sqToken
         .connect(consumer_wallet)
         .increaseAllowance(sdk.purchaseOfferMarket.address, etherParse('20'));
@@ -291,6 +295,8 @@ async function updateEra() {
 }
 
 async function stakingTest() {
+    tx = await sdk.sqToken.connect(root_wallet).transfer(consumer_wallet.address, etherParse('10'));
+    await tx.wait();
     tx = await sdk.sqToken.connect(consumer_wallet).increaseAllowance(sdk.staking.address, etherParse('10'));
     await tx.wait();
     let delegation = await sdk.staking.delegation(CONSUMER_ADDR, INDEXER_ADDR);
@@ -442,7 +448,7 @@ async function main() {
             break;
         case '--testnet':
             deployment = testnetDeployment;
-            provider = new providers.StaticJsonRpcProvider(testnetConfig.network.endpoint);
+            provider = new providers.StaticJsonRpcProvider(testnetConfig.network.endpoint, testnetConfig.network.providerConfig);
             break;
     }
 
@@ -456,9 +462,9 @@ async function main() {
     indexer_wallet = new Wallet(INDEXER_PK, provider);
     consumer_wallet = new Wallet(CONSUMER_PK, provider);
 
-    // await rootSetup();
-    // await queryProjectSetup();
-    // await planTemplateSetup();
+    await rootSetup();
+    await queryProjectSetup();
+    await planTemplateSetup();
     await indexerSetup();
     await clearEndedAgreements(INDEXER_ADDR);
     await planManagerTest();
