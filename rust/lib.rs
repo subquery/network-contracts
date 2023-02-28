@@ -6,11 +6,41 @@ const MAINNET_ADDRESS: &str = include_str!("../publish/mainnet.json");
 const KEPLER_ADDRESS: &str = include_str!("../publish/kepler.json");
 const TESTNET_ADDRESS: &str = include_str!("../publish/testnet.json");
 
+/// Default network that all services use now.
+pub const CURRENT_NETWORK: Network = Network::Testnet;
+
+/// Network types
 #[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
 pub enum Network {
     Mainnet,
     Kepler,
     Testnet,
+}
+
+/// Network native currency config
+pub struct NetworkCurrency {
+    /// Currency name
+    pub name: String,
+    /// Currency symbol
+    pub symbol: String,
+    /// Currency decimals
+    pub decimals: i32,
+}
+
+/// Network config informato, use EIP-3085
+pub struct NetworkConfig {
+    /// Chain id
+    pub chain_id: i32,
+    /// Chain name
+    pub chain_name: String,
+    /// List of endpoints
+    pub rpc_urls: Vec<String>,
+    /// list of block explorer urls
+    pub block_explorer_urls: Vec<String>,
+    /// List of chain icon urls
+    pub icon_urls: Vec<String>,
+    /// Native currency config
+    pub native_currency: NetworkCurrency,
 }
 
 impl Network {
@@ -22,12 +52,83 @@ impl Network {
         }
     }
 
+    /// Get the network from lower-case string
     pub fn from_str(s: &str) -> Self {
         match s {
             "mainnet" => Network::Mainnet,
             "kepler" => Network::Kepler,
             "testnet" => Network::Testnet,
             _ => Network::Testnet,
+        }
+    }
+
+    /// Get the network config
+    pub fn config(&self) -> NetworkConfig {
+        match self {
+            Network::Mainnet => {
+                NetworkConfig {
+                    chain_id: 137,
+                    chain_name: "Polygon".to_owned(),
+                    rpc_urls: vec![
+                        "https://polygon.api.onfinality.io/rpc?apikey=e7acc294-c859-48ed-a742-5aadf0a084b9".to_owned(),
+                        "https://polygon-rpc.com/".to_owned()
+                    ],
+                    icon_urls: vec![
+                        "https://icons.llamao.fi/icons/chains/rsz_polygon.jpg".to_owned()
+                    ],
+                    block_explorer_urls: vec![
+                        "https://polygonscan.com/".to_owned()
+                    ],
+                    native_currency: NetworkCurrency {
+                        name: "Matic Token".to_owned(),
+                        symbol: "MATIC".to_owned(),
+                        decimals: 18
+                    }
+                }
+            }
+            Network::Kepler => {
+                NetworkConfig {
+                    chain_id: 137,
+                    chain_name: "Polygon".to_owned(),
+                    rpc_urls: vec![
+                        "https://polygon.api.onfinality.io/rpc?apikey=e7acc294-c859-48ed-a742-5aadf0a084b9".to_owned(),
+                        "https://polygon-rpc.com/".to_owned()
+                    ],
+                    icon_urls: vec![
+                        "https://icons.llamao.fi/icons/chains/rsz_polygon.jpg".to_owned()
+                    ],
+                    block_explorer_urls: vec![
+                        "https://polygonscan.com/".to_owned()
+                    ],
+                    native_currency: NetworkCurrency {
+                        name: "Matic Token".to_owned(),
+                        symbol: "MATIC".to_owned(),
+                        decimals: 18
+                    }
+                }
+            }
+            Network::Testnet => {
+                NetworkConfig {
+                    chain_id: 80001,
+                    chain_name: "Mumbai".to_owned(),
+                    rpc_urls: vec![
+                        "https://polygon-mumbai.api.onfinality.io/rpc?apikey=6b43efc3-a13c-4250-9203-e097fb9f239".to_owned(),
+                        "https://rpc.ankr.com/polygon_mumbai".to_owned(),
+                        "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78".to_owned()
+                    ],
+                    icon_urls: vec![
+                        "https://icons.llamao.fi/icons/chains/rsz_polygon.jpg".to_owned()
+                    ],
+                    block_explorer_urls: vec![
+                        "https://mumbai.polygonscan.com/".to_owned()
+                    ],
+                    native_currency: NetworkCurrency {
+                        name: "Matic Token".to_owned(),
+                        symbol: "MATIC".to_owned(),
+                        decimals: 18
+                    }
+                }
+            }
         }
     }
 }
