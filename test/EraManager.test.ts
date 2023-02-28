@@ -42,7 +42,7 @@ describe('Era Manager Contract', () => {
             // start new era
             await eraManager.startNewEra();
             // try to start new era again
-            await expect(eraManager.startNewEra()).to.be.revertedWith('Current era is still active');
+            await expect(eraManager.startNewEra()).to.be.revertedWith('E002');
         });
     });
 
@@ -103,7 +103,7 @@ describe('Era Manager Contract', () => {
             expect(await eraManager.timestampToEraNumber(timestamp)).to.equal(2);
             timestamp -= 100;
             await expect(eraManager.timestampToEraNumber(timestamp)).to.be.revertedWith(
-                'only further timestamp available'
+                'E003'
             );
         });
     });

@@ -1,16 +1,21 @@
 export default {
     network: {
         name: 'testnet',
-        endpoint: {
-            eth: 'https://acala-mandala-adapter.api.onfinality.io/public',
-            substrate: 'wss://acala-mandala.api.onfinality.io/public-ws',
+        platform: 'moonbeam',
+        endpoint: 'https://moonbeam-alpha.api.onfinality.io/public',
+        providerConfig: {
+            chainId: 1287,
+            name: 'Moonbase-alpha',
         },
-        platform: 'acala',
     },
     contracts: {
         InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
-        Staking: [1000], // LockPeriod
-        EraManager: [60 * 60 * 24], // 1 day
+        Staking: [3600], // LockPeriod
+        ServiceAgreementRegistry: [1e6], //threshold
+        EraManager: [3600], // EraPeriod
         PurchaseOfferMarket: [1e5, '0x0000000000000000000000000000000000000000'],
+        IndexerRegistry: ['1000000000000000000000'],
+        ConsumerHost: [1], // Fee Percentage, default is 1%
+        DisputeManager: ['1000000000000000000000'], // minimumDeposit
     },
 };

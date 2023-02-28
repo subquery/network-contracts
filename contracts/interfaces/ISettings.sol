@@ -9,17 +9,22 @@ interface ISettings {
         address _queryRegistry,
         address _eraManager,
         address _planManager,
-        address _serviceAgreementRegistry
+        address _serviceAgreementRegistry,
+        address _disputeManager,
+        address _stateChannel
     ) external;
 
     function setTokenAddresses(
         address _sqToken,
         address _staking,
+        address _stakingManager,
         address _rewardsDistributer,
         address _rewardsPool,
+        address _rewardsStaking,
         address _rewardsHelper,
         address _inflationController,
-        address _vesting
+        address _vesting,
+        address _permissionedExchange
     ) external;
 
     function setSQToken(address _sqToken) external;
@@ -29,6 +34,10 @@ interface ISettings {
     function setStaking(address _staking) external;
 
     function getStaking() external view returns (address);
+
+    function setStakingManager(address _stakingManager) external;
+
+    function getStakingManager() external view returns (address);
 
     function setIndexerRegistry(address _indexerRegistry) external;
 
@@ -58,6 +67,10 @@ interface ISettings {
 
     function getRewardsPool() external view returns (address);
 
+    function setRewardsStaking(address _rewardsStaking) external;
+
+    function getRewardsStaking() external view returns (address);
+
     function setRewardsHelper(address _rewardsHelper) external;
 
     function getRewardsHelper() external view returns (address);
@@ -69,4 +82,16 @@ interface ISettings {
     function setVesting(address _vesting) external;
 
     function getVesting() external view returns (address);
+
+    function setPermissionedExchange(address _permissionedExchange) external;
+
+    function getPermissionedExchange() external view returns (address);
+
+    function setDisputeManager(address _disputeManager) external;
+
+    function getDisputeManager() external view returns (address);
+
+    function setStateChannel(address _stateChannel) external;
+
+    function getStateChannel() external view returns (address);
 }

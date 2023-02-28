@@ -8,6 +8,7 @@ import 'hardhat-gas-reporter';
 import 'solidity-coverage';
 import 'tsconfig-paths/register';
 import 'hardhat-contract-sizer';
+import 'solidity-docgen';
 require('solidity-coverage');
 
 dotenv.config();
@@ -68,6 +69,12 @@ const config: HardhatUserConfig = {
     },
     mocha: {
         timeout: 100000000,
+    },
+    docgen: {
+        outputDir: 'docs/contracts',
+        pages: 'files',
+        exclude: ['interfaces', 'utils'],
+        templates: 'docs/themes/markdown',
     },
 };
 

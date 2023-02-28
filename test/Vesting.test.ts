@@ -81,7 +81,7 @@ describe('Vesting Contract', () => {
 
         it('initial unlock percent over 100 should fail', async () => {
             await expect(vestingContract.addVestingPlan(lockPeriod, vestingPeriod, 101)).to.be.revertedWith(
-                'initial unlock percent should be equal or less than 100'
+                'V001'
             );
         });
     });
@@ -117,32 +117,32 @@ describe('Vesting Contract', () => {
             // empty address
             const emptyAddress = '0x0000000000000000000000000000000000000000';
             await expect(vestingContract.allocateVesting(emptyAddress, 0, units(1000))).to.be.revertedWith(
-                'empty address is not allowed'
+                'V002'
             );
             // duplicate account
             await vestingContract.allocateVesting(wallet1.address, 0, units(1000));
             await expect(vestingContract.allocateVesting(wallet1.address, 0, units(1000))).to.be.revertedWith(
-                'vesting is already set on the account'
+                'V003'
             );
             // zero amount
             await expect(vestingContract.allocateVesting(wallet2.address, 0, units(0))).to.be.revertedWith(
-                'zero amount vesting is not allowed'
+                'V004'
             );
             // invalid plan id
             await expect(vestingContract.allocateVesting(wallet2.address, 2, units(1000))).to.be.revertedWith(
-                'invalid plan id'
+                'PM012'
             );
         });
 
         it('batch allocate vesting with incorrect config should fail', async () => {
             // empty addresses
             await expect(vestingContract.batchAllocateVesting(1, [], [units(1000)])).to.be.revertedWith(
-                'number of addresses should be at least one'
+                'V005'
             );
             // addresses are not match with allocations
             await expect(
                 vestingContract.batchAllocateVesting(1, [wallet3.address, wallet4.address], [units(1000)])
-            ).to.be.revertedWith('number of addresses should be same as number of allocations');
+            ).to.be.revertedWith('V006');
         });
     });
 
@@ -162,7 +162,7 @@ describe('Vesting Contract', () => {
         });
 
         it('deposit with zero amount should fail', async () => {
-            await expect(vestingContract.depositByAdmin(0)).to.be.revertedWith('should deposit positive amount');
+            await expect(vestingContract.depositByAdmin(0)).to.be.revertedWith('V007');
         });
     });
 
@@ -179,7 +179,7 @@ describe('Vesting Contract', () => {
         it('set incorrect vesting date should fail', async () => {
             const latestBlock = await mockProvider.getBlock('latest');
             await expect(vestingContract.startVesting(latestBlock.timestamp)).to.be.revertedWith(
-                'vesting start date must in the future'
+                'V009'
             );
         });
 
@@ -187,7 +187,7 @@ describe('Vesting Contract', () => {
             expect(await token.balanceOf(vestingContract.address)).to.equal(units(0));
             const latestBlock = await mockProvider.getBlock('latest');
             await expect(vestingContract.startVesting(latestBlock.timestamp + 1000)).to.be.revertedWith(
-                'balance not enough for allocation'
+                'V010'
             );
         });
 
@@ -264,7 +264,7 @@ describe('Vesting Contract', () => {
 
         it('claim on non-vesting account should fail', async () => {
             await expect(vestingContract.connect(wallet3).claim()).to.be.revertedWith(
-                'vesting is not set on the account'
+                'V011'
             );
         });
     });

@@ -1,8 +1,8 @@
 import {ContractFactory, Contract, Overrides} from 'ethers';
 import sha256 from 'sha256';
+import {Wallet} from '@ethersproject/wallet';
 import CONTRACTS from '../src/contracts';
 import {ContractDeployment, DeploymentConfig} from '../src/types';
-import {Wallet} from '@ethersproject/wallet';
 
 import {
     ProxyAdmin,
@@ -14,6 +14,8 @@ import {
     QueryRegistry__factory,
     InflationController,
     Staking,
+    StakingManager,
+    StakingManager__factory,
     Settings__factory,
     QueryRegistry,
     PlanManager__factory,
@@ -34,6 +36,8 @@ import {
     RewardsDistributer__factory,
     RewardsPool,
     RewardsPool__factory,
+    RewardsStaking,
+    RewardsStaking__factory,
     RewardsHelper,
     RewardsHelper__factory,
     StateChannel,
@@ -44,6 +48,10 @@ import {
     PermissionedExchange__factory,
     Vesting,
     Vesting__factory,
+    ConsumerHost,
+    ConsumerHost__factory,
+    DisputeManager,
+    DisputeManager__factory,
 } from '../src';
 
 interface FactoryContstructor {
@@ -51,13 +59,14 @@ interface FactoryContstructor {
     readonly abi: any;
 }
 
-type Contracts = {
+export type Contracts = {
     proxyAdmin: ProxyAdmin;
     settings: Settings;
     inflationController: InflationController;
     token: SQToken;
     vtoken: VSQToken;
     staking: Staking;
+    stakingManager: StakingManager;
     eraManager: EraManager;
     indexerRegistry: IndexerRegistry;
     queryRegistry: QueryRegistry;
@@ -66,11 +75,14 @@ type Contracts = {
     serviceAgreementRegistry: ServiceAgreementRegistry;
     rewardsDistributer: RewardsDistributer;
     rewardsPool: RewardsPool;
+    rewardsStaking: RewardsStaking;
     rewardsHelper: RewardsHelper;
     stateChannel: StateChannel;
     airdropper: Airdropper;
     permissionedExchange: PermissionedExchange;
     vesting: Vesting;
+    consumerHost: ConsumerHost;
+    disputeManager: DisputeManager;
 };
 
 const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: string}, FactoryContstructor]>> = {
@@ -80,14 +92,18 @@ const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: s
     QueryRegistry: [CONTRACTS.QueryRegistry, QueryRegistry__factory],
     RewardsDistributer: [CONTRACTS.RewardsDistributer, RewardsDistributer__factory],
     RewardsPool: [CONTRACTS.RewardsPool, RewardsPool__factory],
+    RewardsStaking: [CONTRACTS.RewardsStaking, RewardsStaking__factory],
     RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
     ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
+    StakingManager: [CONTRACTS.StakingManager, StakingManager__factory],
     EraManager: [CONTRACTS.EraManager, EraManager__factory],
     PurchaseOfferMarket: [CONTRACTS.PurchaseOfferMarket, PurchaseOfferMarket__factory],
     StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
 
     PermissionedExchange: [CONTRACTS.PermissionedExchange, PermissionedExchange__factory],
+    ConsumerHost: [CONTRACTS.ConsumerHost, ConsumerHost__factory],
+    DisputeManager: [CONTRACTS.DisputeManager, DisputeManager__factory],
 };
 
 export const deployProxy = async <C extends Contract>(
@@ -221,6 +237,23 @@ export async function deployContracts(
     await initStaking.wait();
     updateDeployment(deployment, 'Staking', staking.address, SInnerAddr, staking.deployTransaction.hash);
 
+    // deploy StakingManager contract
+    const [stakingManager, SMInnerAddr] = await deployProxy<StakingManager>(
+        proxyAdmin,
+        StakingManager__factory,
+        wallet,
+        overrides
+    );
+    const stakingManagerInit = await stakingManager.initialize(deployment.Settings.address, overrides);
+    await stakingManagerInit.wait();
+    updateDeployment(
+        deployment,
+        'StakingManager',
+        stakingManager.address,
+        SMInnerAddr,
+        stakingManager.deployTransaction.hash
+    );
+
     // deploy Era manager
     const [eraManager, EMInnerAddr] = await deployProxy<EraManager>(proxyAdmin, EraManager__factory, wallet, overrides);
     const eraManagerInit = await eraManager.initialize(
@@ -238,7 +271,11 @@ export async function deployContracts(
         wallet,
         overrides
     );
-    const initIndexer = await indexerRegistry.initialize(deployment.Settings.address, overrides);
+    const initIndexer = await indexerRegistry.initialize(
+        deployment.Settings.address,
+        ...(config['IndexerRegistry'] as [string]),
+        overrides
+    );
     await initIndexer.wait();
     updateDeployment(
         deployment,
@@ -301,10 +338,11 @@ export async function deployContracts(
         wallet,
         overrides
     );
-    const initSARegistry = await serviceAgreementRegistry.initialize(deployment.Settings.address, [
-        planManager.address,
-        purchaseOfferMarket.address,
-    ]);
+    const initSARegistry = await serviceAgreementRegistry.initialize(
+        deployment.Settings.address,
+        ...(config['ServiceAgreementRegistry'] as [number]),
+        [planManager.address, purchaseOfferMarket.address]
+    );
     await initSARegistry.wait();
     updateDeployment(
         deployment,
@@ -339,6 +377,22 @@ export async function deployContracts(
     const initRewardsPool = await rewardsPool.initialize(deployment.Settings.address, overrides);
     await initRewardsPool.wait();
     updateDeployment(deployment, 'RewardsPool', rewardsPool.address, RPInnerAddr, rewardsPool.deployTransaction.hash);
+
+    const [rewardsStaking, RSInnerAddr] = await deployProxy<RewardsStaking>(
+        proxyAdmin,
+        RewardsStaking__factory,
+        wallet,
+        overrides
+    );
+    const initRewardsStaking = await rewardsStaking.initialize(deployment.Settings.address, overrides);
+    await initRewardsStaking.wait();
+    updateDeployment(
+        deployment,
+        'RewardsStaking',
+        rewardsStaking.address,
+        RSInnerAddr,
+        rewardsStaking.deployTransaction.hash
+    );
 
     const [rewardsHelper, RHInnerAddr] = await deployProxy<RewardsHelper>(
         proxyAdmin,
@@ -378,7 +432,11 @@ export async function deployContracts(
         wallet,
         overrides
     );
-    const initPermissionedExchange = await permissionedExchange.initialize(deployment.Settings.address, overrides);
+    const initPermissionedExchange = await permissionedExchange.initialize(
+        deployment.Settings.address,
+        [rewardsDistributer.address],
+        overrides
+    );
     await initPermissionedExchange.wait();
     updateDeployment(
         deployment,
@@ -388,15 +446,60 @@ export async function deployContracts(
         permissionedExchange.deployTransaction.hash
     );
 
+    const [consumerHost, CHInnerAddr] = await deployProxy<ConsumerHost>(
+        proxyAdmin,
+        ConsumerHost__factory,
+        wallet,
+        overrides
+    );
+    const initConsumerHost = await consumerHost.initialize(
+        settings.address,
+        sqtToken.address,
+        stateChannel.address,
+        ...(config['ConsumerHost'] as [number]),
+        overrides
+    );
+    await initConsumerHost.wait();
+    updateDeployment(
+        deployment,
+        'ConsumerHost',
+        consumerHost.address,
+        CHInnerAddr,
+        consumerHost.deployTransaction.hash
+    );
+
+    const [disputeManager, DMInnerAddr] = await deployProxy<DisputeManager>(
+        proxyAdmin,
+        DisputeManager__factory,
+        wallet,
+        overrides
+    );
+    const initDisputeManager = await disputeManager.initialize(
+        ...(config['DisputeManager'] as [string]),
+        deployment.Settings.address,
+        overrides
+    );
+    await initDisputeManager.wait();
+    updateDeployment(
+        deployment,
+        'DisputeManager',
+        disputeManager.address,
+        DMInnerAddr,
+        disputeManager.deployTransaction.hash
+    );
+
     // Register addresses on settings contract
     const txToken = await settings.setTokenAddresses(
         deployment.SQToken.address,
         deployment.Staking.address,
+        deployment.StakingManager.address,
         deployment.RewardsDistributer.address,
         deployment.RewardsPool.address,
+        deployment.RewardsStaking.address,
         deployment.RewardsHelper.address,
         deployment.InflationController.address,
         deployment.Vesting.address,
+        deployment.PermissionedExchange.address,
         overrides as any
     );
 
@@ -408,6 +511,8 @@ export async function deployContracts(
         deployment.EraManager.address,
         deployment.PlanManager.address,
         deployment.ServiceAgreementRegistry.address,
+        deployment.DisputeManager.address,
+        deployment.StateChannel.address,
         overrides as any
     );
 
@@ -421,6 +526,7 @@ export async function deployContracts(
             token: sqtToken,
             vtoken: vsqtToken,
             staking,
+            stakingManager,
             eraManager,
             indexerRegistry,
             queryRegistry,
@@ -429,12 +535,15 @@ export async function deployContracts(
             serviceAgreementRegistry,
             rewardsDistributer,
             rewardsPool,
+            rewardsStaking,
             rewardsHelper,
             proxyAdmin,
             stateChannel,
             airdropper,
             permissionedExchange,
             vesting,
+            consumerHost,
+            disputeManager,
         },
     ];
 }

@@ -1,0 +1,26 @@
+{{#if natspec.dev}}
+{{{natspec.dev}}}
+{{/if}}
+
+{{h}} {{name}}
+
+{{{natspec.notice}}}
+
+{{#if signature}}
+```solidity
+{{{signature}}}
+```
+{{/if}}
+
+{{#if natspec.params}}
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+{{#each params}}
+| {{name}} | {{type}} | {{{joinLines natspec}}} |
+{{/each}}
+{{/if}}
+
+{{#if natspec.returns}}
+Return: {{#each returns}} {{type}} -> {{{joinLines natspec}}} {{/each}}
+{{/if}}
+

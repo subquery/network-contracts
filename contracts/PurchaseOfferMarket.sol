@@ -13,26 +13,27 @@ import './interfaces/ISettings.sol';
 import './interfaces/IPurchaseOfferMarket.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IPlanManager.sol';
+import './interfaces/IEraManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
 
+
 /**
  * @title Purchase Offer Market Contract
- * @dev
- * ## Overview
+ * @notice ### Overview
  * The Purchase Offer Market Contract tracks all purchase offers for Indexers and Consumers.
  * It allows Consumers to create/cancel purchase offers, and Indexers to accept the purchase offer to make
  * the service agreements. It is the place Consumer publish a purchase offer for a specific deployment.
  * And also the place indexers can search and take these purchase offers.
  *
- * ## Terminology
+ * ### Terminology
  * Purchase Offer: A Purchase Offer is created by the Consumer, any Indexer can accept it to make the
  * service agreement.
  *
- * ## Detail
+ * ### Detail
  * We design the date structure for Purchase Offer, It stores purchase offer related information.
  * A Purchase Offer can accepted by multiple Indexers. Consumer transfer Token to this contract as long as
- *the purchase offer is created. And when Indexer accept the offer, the corresponding part of the money will
+ * the purchase offer is created. And when Indexer accept the offer, the corresponding part of the money will
  * transfer to serviceAgrementRegistry contract first and wait rewardDistributer contract take and distribute.
  * After Indexer accept the offer we use the planTemplate that stored in Purchase Offer structure to generate
  * the service agreement.
@@ -41,10 +42,8 @@ import './utils/MathUtil.sol';
  * we will charge the penalty fee.
  */
 contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOfferMarket, Constants {
-    // -- Data --
-
     /**
-     * @dev Purchase Offer information.
+     * @notice Purchase Offer information.
      */
     struct PurchaseOffer {
         //amount of SQT for each indexer, total deposit = deposit * limit
@@ -67,27 +66,24 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         uint16 numAcceptedContracts;
     }
 
-    // -- Storage --
-
+    /// @dev ### STATES
+    /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
-    //offerId => Offer
+    /// @notice offerId => Offer
     mapping(uint256 => PurchaseOffer) public offers;
-    //number of all offers
+    /// @notice number of all offers
     uint256 public numOffers;
-    //penalty rate of consumer cancel the unexpired offer
+    /// @notice penalty rate of consumer cancel the unexpired offer
     uint256 public penaltyRate;
-    //if penalty destination address is 0x00, then burn the penalty
+    /// @notice if penalty destination address is 0x00, then burn the penalty
     address public penaltyDestination;
-    //offerId => indexer => accepted
+    /// @notice offerId => indexer => accepted
     mapping(uint256 => mapping(address => bool)) public acceptedOffer;
-    //offerId => Indexer => MmrRoot
+    /// @notice offerId => Indexer => MmrRoot
     mapping(uint256 => mapping(address => bytes32)) public offerMmrRoot;
 
-    // -- Events --
-
-    /**
-     * @dev Emitted when Consumer create a purchase offer
-     */
+    /// @dev ### EVENTS
+    /// @notice Emitted when Consumer create a purchase offer
     event PurchaseOfferCreated(
         address consumer,
         uint256 offerId,
@@ -98,22 +94,23 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         uint256 minimumAcceptHeight,
         uint256 expireDate
     );
-    /**
-     * @dev Emitted when Consumer cancel a purchase offer
-     */
+    /// @notice Emitted when Consumer cancel a purchase offer
     event PurchaseOfferCancelled(address indexed creator, uint256 offerId, uint256 penalty);
-    /**
-     * @dev Emitted when Indexer accept an offer
-     */
+    /// @notice Emitted when Indexer accept an offer
     event OfferAccepted(address indexed indexer, uint256 offerId, uint256 agreementId);
 
+    /// @dev MODIFIER
+    /// @notice require caller is indexer
     modifier onlyIndexer() {
-        require(IIndexerRegistry(settings.getIndexerRegistry()).isIndexer(msg.sender), 'caller is not an indexer');
+        require(IIndexerRegistry(settings.getIndexerRegistry()).isIndexer(msg.sender), 'G002');
         _;
     }
 
     /**
-     * @dev Initialize this contract.
+     * @notice Initialize this contract to set penaltyRate and penaltyDestination.
+     * @param _settings ISettings contract
+     * @param _penaltyRate penaltyRate that consumer cancel unexpired purchase offer
+     * @param _penaltyDestination penaltyDestination that consumer cancel unexpired purchase offer
      */
     function initialize(
         ISettings _settings,
@@ -121,7 +118,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         address _penaltyDestination
     ) external initializer {
         __Ownable_init();
-        require(_penaltyRate < PER_MILL, 'Invalid penalty rate');
+        require(_penaltyRate < PER_MILL, 'PO001');
 
         settings = _settings;
         penaltyRate = _penaltyRate;
@@ -129,24 +126,30 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     }
 
     /**
-     * @dev allow owner the set the Penalty Rate for cancel unexpired offer.
+     * @notice allow admin the set the Penalty Rate for cancel unexpired offer.
+     * @param _penaltyRate penalty rate to set
      */
     function setPenaltyRate(uint256 _penaltyRate) external onlyOwner {
-        require(_penaltyRate < PER_MILL, 'Invalid penalty rate');
+        require(_penaltyRate < PER_MILL, 'PO001');
         penaltyRate = _penaltyRate;
     }
 
     /**
-     * @dev allow owner to set the Penalty Destination address.
-     * All Penalty will transfer to this address, if penalty destination address is 0x00,
-     * then burn the penalty
+     * @notice allow admin to set the Penalty Destination address. All Penalty will transfer to this address, if penalty destination address is 0x00, then burn the penalty.
+     * @param _penaltyDestination penalty destination to set
      */
     function setPenaltyDestination(address _penaltyDestination) external onlyOwner {
         penaltyDestination = _penaltyDestination;
     }
 
     /**
-     * @dev Allow Consumer to create a Purchase Offer.
+     * @notice Allow admin to create a Purchase Offer.
+     * @param _deploymentId deployment id
+     * @param _planTemplateId plan template id
+     * @param _deposit purchase offer value to deposit
+     * @param _limit limit indexer to accept the purchase offer
+     * @param _minimumAcceptHeight minimum block height to accept the purchase offer
+     * @param _expireDate expire date of the purchase offer in unix timestamp
      */
     function createPurchaseOffer(
         bytes32 _deploymentId,
@@ -156,12 +159,13 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         uint256 _minimumAcceptHeight,
         uint256 _expireDate
     ) external {
-        require(_expireDate > block.timestamp, 'invalid expiration');
-        require(_deposit > 0, 'should deposit positive amount');
-        require(_limit > 0, 'should limit positive amount');
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
+        require(_expireDate > block.timestamp, 'PO002');
+        require(_deposit > 0, 'PO003');
+        require(_limit > 0, 'PO004');
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
-        (, , , , bool active) = planManager.getPlanTemplate(_planTemplateId);
-        require(active, 'PlanTemplate inactive');
+        PlanTemplate memory template = planManager.getPlanTemplate(_planTemplateId);
+        require(template.active, 'PO005');
 
         offers[numOffers] = PurchaseOffer(
             _deposit,
@@ -178,7 +182,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         // send SQToken from msg.sender to the contract (this) - deposit * limit
         require(
             IERC20(settings.getSQToken()).transferFrom(msg.sender, address(this), _deposit * _limit),
-            'transfer fail'
+            'G013'
         );
 
         emit PurchaseOfferCreated(
@@ -196,16 +200,14 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     }
 
     /**
-     * @dev Allow Consumer to cancel their Purchase Offer.
-     * Consumer transfer all tokens to this contract when they create the offer.
-     * We will charge a Penalty to cancel unexpired Offer.
-     * And the Penalty will transfer to a configured address.
-     * If the address not configured, then we burn the Penalty.
+     * @notice Allow Consumer to cancel their Purchase Offer. Consumer transfer all tokens to this contract when they create the offer. We will charge a Penalty to cancel unexpired Offer. And the Penalty will transfer to a configured address. If the address not configured, then we burn the Penalty.
+     * @param _offerId purchase offer id to cancel
      */
     function cancelPurchaseOffer(uint256 _offerId) external {
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         PurchaseOffer memory offer = offers[_offerId];
-        require(msg.sender == offer.consumer, 'only offerer can cancel the offer');
-        require(offers[_offerId].active, 'invalid offerId');
+        require(msg.sender == offer.consumer, 'PO006');
+        require(offers[_offerId].active, 'PO007');
 
         //- deposit * limit
         uint256 unfulfilledValue = offer.deposit * (offer.limit - offer.numAcceptedContracts);
@@ -221,7 +223,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         }
 
         // send remaining SQToken from the contract to consumer (this)
-        require(IERC20(settings.getSQToken()).transfer(msg.sender, unfulfilledValue), 'transfer fail');
+        require(IERC20(settings.getSQToken()).transfer(msg.sender, unfulfilledValue), 'G013');
 
         delete offers[_offerId];
 
@@ -229,20 +231,23 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     }
 
     /**
-     * @dev Allow Indexer to accept the offer and make the service agreement.
+     * @notice Allow Indexer to accept the offer and make the service agreement.
      * The corresponding part of the money will transfer to serviceAgrementRegistry contract
      * and wait rewardDistributer contract take and distribute as long as Indexer accept the offer.
      * When Indexer accept the offer we need to ensure Indexer's deployment reaches the minimumAcceptHeight,
      * So we ask indexers to pass the latest mmr value when accepting the purchase offer,
      * and save this mmr value when agreement create.
+     * @param _offerId purchase offer id to accept
+     * @param _mmrRoot mmrRoot to accept the purchase offer
      */
     function acceptPurchaseOffer(uint256 _offerId, bytes32 _mmrRoot) external onlyIndexer {
-        require(offers[_offerId].active, 'invalid offerId');
-        require(!isExpired(_offerId), 'offer expired');
-        require(!acceptedOffer[_offerId][msg.sender], 'offer accepted already');
+        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
+        require(offers[_offerId].active, 'PO007');
+        require(!isExpired(_offerId), 'PO008');
+        require(!acceptedOffer[_offerId][msg.sender], 'PO009');
         require(
             offers[_offerId].limit > offers[_offerId].numAcceptedContracts,
-            'number of contracts already reached limit'
+            'PO010'
         );
 
         // increate number of accepted contracts
@@ -253,7 +258,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         offerMmrRoot[_offerId][msg.sender] = _mmrRoot;
 
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
-        (uint256 period, , , , ) = planManager.getPlanTemplate(offer.planTemplateId);
+        PlanTemplate memory template = planManager.getPlanTemplate(offer.planTemplateId);
         // create closed service agreement contract
         ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
             offer.consumer,
@@ -261,7 +266,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
             offer.deploymentId,
             offer.deposit,
             block.timestamp,
-            period,
+            template.period,
             0,
             offer.planTemplateId
         );
@@ -269,7 +274,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         // deposit SQToken into the service agreement registry contract
         require(
             IERC20(settings.getSQToken()).transfer(settings.getServiceAgreementRegistry(), offer.deposit),
-            'transfer fail'
+            'G013'
         );
         // register the agreement to service agreement registry contract
         IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
@@ -281,6 +286,11 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         emit OfferAccepted(msg.sender, _offerId, agreementId);
     }
 
+    /**
+     * @notice Return the purchase offer is expired
+     * @param _offerId purchase offer id
+     * @return bool the result of is the purchase offer expired
+     */
     function isExpired(uint256 _offerId) public view returns (bool) {
         return offers[_offerId].expireDate < block.timestamp;
     }

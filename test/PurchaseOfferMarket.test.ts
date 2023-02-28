@@ -83,7 +83,7 @@ describe('Purchase Offer Market Contract', () => {
                         minimumAcceptHeight,
                         0
                     )
-                ).to.be.revertedWith('invalid expiration');
+                ).to.be.revertedWith('PO002');
                 // zero deposit
                 await expect(
                     purchaseOfferMarket.createPurchaseOffer(
@@ -94,7 +94,7 @@ describe('Purchase Offer Market Contract', () => {
                         minimumAcceptHeight,
                         futureDate
                     )
-                ).to.be.revertedWith('should deposit positive amount');
+                ).to.be.revertedWith('PO003');
                 // zero limit
                 await expect(
                     purchaseOfferMarket.createPurchaseOffer(
@@ -105,7 +105,7 @@ describe('Purchase Offer Market Contract', () => {
                         minimumAcceptHeight,
                         futureDate
                     )
-                ).to.be.revertedWith('should limit positive amount');
+                ).to.be.revertedWith('PO004');
             });
         });
 
@@ -152,7 +152,7 @@ describe('Purchase Offer Market Contract', () => {
                     'Ownable: caller is not the owner'
                 );
                 await expect(purchaseOfferMarket.connect(wallet_0).setPenaltyRate(1000001)).to.be.revertedWith(
-                    'Invalid penalty rate'
+                    'PO001'
                 );
                 await purchaseOfferMarket.connect(wallet_0).setPenaltyRate(200);
                 expect(await purchaseOfferMarket.penaltyRate()).to.equal(200);
@@ -168,7 +168,7 @@ describe('Purchase Offer Market Contract', () => {
 
             it('cancel offer with invalid caller should fail', async () => {
                 await expect(purchaseOfferMarket.connect(wallet_1).cancelPurchaseOffer(0)).to.be.revertedWith(
-                    'only offerer can cancel the offer'
+                    'PO006'
                 );
             });
         });
@@ -178,9 +178,9 @@ describe('Purchase Offer Market Contract', () => {
                 // create second offer
                 await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
                 // register indexers
-                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '10');
+                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '2000');
                 await indexerRegistry.connect(wallet_0).setControllerAccount(wallet_1.address);
-                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '10');
+                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '2000');
                 await indexerRegistry.connect(wallet_1).setControllerAccount(wallet_0.address);
                 // create query project
                 await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
@@ -209,21 +209,21 @@ describe('Purchase Offer Market Contract', () => {
             it('accept offer with invalid params and caller should fail', async () => {
                 // invalid caller
                 await expect(purchaseOfferMarket.connect(wallet_2).acceptPurchaseOffer(0, mmrRoot)).to.be.revertedWith(
-                    'caller is not an indexer'
+                    'G002'
                 );
                 // invalid offerId
-                await expect(purchaseOfferMarket.acceptPurchaseOffer(2, mmrRoot)).to.be.revertedWith('invalid offerId');
+                await expect(purchaseOfferMarket.acceptPurchaseOffer(2, mmrRoot)).to.be.revertedWith('PO007');
                 // offer already accepted
                 await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
                 await expect(purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot)).to.be.revertedWith(
-                    'offer accepted already'
+                    'PO009'
                 );
                 // offer cancelled
                 await purchaseOfferMarket.cancelPurchaseOffer(1);
-                await expect(purchaseOfferMarket.acceptPurchaseOffer(1, mmrRoot)).to.be.revertedWith('invalid offerId');
+                await expect(purchaseOfferMarket.acceptPurchaseOffer(1, mmrRoot)).to.be.revertedWith('PO007');
                 // contracts reacheed limit
                 await expect(purchaseOfferMarket.connect(wallet_1).acceptPurchaseOffer(0, mmrRoot)).to.be.revertedWith(
-                    'number of contracts already reached limit'
+                    'PO010'
                 );
             });
         });

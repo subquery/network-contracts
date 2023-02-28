@@ -15,87 +15,123 @@ import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IRewardsPool.sol';
 
-// The channel status.
-// When channel is Open, it can checkpoint/challenge/claim/fund.
-// When channle is Challenging, it can respond/claim.
-// When channel is Finalized. it is over.
-enum ChannelStatus {
-    Finalized,
-    Open,
-    Challenge
-}
-
-// The state of channel.
-struct ChannelState {
-    ChannelStatus status;
-    address indexer;
-    address consumer;
-    uint256 total;
-    uint256 spent;
-    uint256 expirationAt;
-    uint256 challengeAt;
-    bytes32 deploymentId;
-}
-
-// The state for checkpoint Query.
-struct QueryState {
-    uint256 channelId;
-    uint256 spent;
-    bool isFinal;
-    bytes indexerSign;
-    bytes consumerSign;
-}
-
-// The contact for Pay-as-you-go service for Indexer and Consumer.
+/**
+ * @title State Channel Contract
+ * @notice ### Overview
+ * The contact for Pay-as-you-go service for Indexer and Consumer.
+ * The consumer is not only a account, but also a contract
+ */
 contract StateChannel is Initializable, OwnableUpgradeable {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
 
-    // Settings info.
+    /**
+    * @notice The channel status.
+    * When channel is Open, it can checkpoint/terminate/claim/fund.
+    * When channle is Challenging, it can respond/claim.
+    * When channel is Finalized. it is over.
+    */
+    enum ChannelStatus {
+        Finalized,
+        Open,
+        Terminating
+    }
+
+    /// @notice The state of channel
+    struct ChannelState {
+        ChannelStatus status;
+        address indexer;
+        address consumer;
+        uint256 total;
+        uint256 spent;
+        uint256 expiredAt;
+        uint256 terminatedAt;
+        bytes32 deploymentId;
+        bool terminateByIndexer;
+    }
+
+    /// @notice The state for checkpoint Query
+    struct QueryState {
+        uint256 channelId;
+        uint256 spent;
+        bool isFinal;
+        bytes indexerSign;
+        bytes consumerSign;
+    }
+
+    /// @dev ### STATES
+    /// @notice Settings info
     ISettings public settings;
-
-    // The expiration of the challenge.
-    // Default is 24 * 60 * 60 = 86400s.
-    uint256 public challengeExpiration;
-
-    event ChannelOpen(uint256 indexed channelId, address indexer, address consumer, uint256 total, uint256 expiration, bytes32 deploymentId);
-    event ChannelExtend(uint256 indexed channelId, uint256 expiration);
-    event ChannelFund(uint256 indexed channelId, uint256 total);
-    event ChannelCheckpoint(uint256 indexed channelId, uint256 spent);
-    event ChannelChallenge(uint256 indexed channelId, uint256 spent, uint256 expiration);
-    event ChannelRespond(uint256 indexed channelId, uint256 spent);
-    event ChannelFinalize(uint256 indexed channelId);
-
-    // The states of the channels.
+    /// @notice The expiration of the terminate. Default is 24 * 60 * 60 = 86400s
+    uint256 public terminateExpiration;
+    /// @notice The states of the channels
     mapping(uint256 => ChannelState) public channels;
 
-    // Initial.
+    /// @dev ### EVENTS
+    /// @notice Emitted when open a channel for Pay-as-you-go service
+    event ChannelOpen(uint256 indexed channelId, address indexer, address consumer, uint256 total, uint256 price, uint256 expiredAt, bytes32 deploymentId, bytes callback);
+    /// @notice Emitted when extend the channel
+    event ChannelExtend(uint256 indexed channelId, uint256 expiredAt);
+    /// @notice Emitted when deposit more amount to the channel
+    event ChannelFund(uint256 indexed channelId, uint256 total);
+    /// @notice Emitted when indexer send a checkpoint to claim the part-amount
+    event ChannelCheckpoint(uint256 indexed channelId, uint256 spent);
+    /// @notice Emitted when consumer start a terminate on channel to finalize in advance
+    event ChannelTerminate(uint256 indexed channelId, uint256 spent, uint256 terminatedAt, bool terminateByIndexer);
+    /// @notice Emitted when finalize the channel
+    event ChannelFinalize(uint256 indexed channelId, uint256 total, uint256 remain);
+    /// @notice Emitted when Settle the channel with new state
+    event ChannelLabor(bytes32 deploymentId, address indexer, uint256 amount);
+
+    /**
+     * @dev ### FUNCTIONS
+     * @notice Initialize the contract, setup the terminateExpiration
+     * @param _settings settings contract address
+     */
     function initialize(ISettings _settings) external initializer {
         __Ownable_init();
 
-        challengeExpiration = 86400;
+        terminateExpiration = 86400;
         settings = _settings;
     }
 
-    // Update the expiration of the challenge.
-    function setChallengeExpiration(uint256 expiration) public onlyOwner {
-        challengeExpiration = expiration;
+    /**
+     * @notice Update the expiration of the terminate
+     * @param expiration terminate expiration time in seconds
+     */
+    function setTerminateExpiration(uint256 expiration) public onlyOwner {
+        terminateExpiration = expiration;
     }
 
-    // Return the channel info.
+    /**
+     * @notice Get the channel info
+     * @param channelId channel id
+     * @return ChannelState channel info
+     */
     function channel(uint256 channelId) public view returns (ChannelState memory) {
         return channels[channelId];
     }
 
-    // Indexer and Consumer open a channel for Pay-as-you-go service.
-    // It will lock the amount of consumer and start a new channel.
-    // Need consumer approve amount first.
-    // If consumer is contract, use callback to call paid.
+    /**
+     * @notice Indexer and Consumer open a channel for Pay-as-you-go service.
+     * It will lock the amount of consumer and start a new channel.
+     * Need consumer approve amount first. If consumer is contract, use callback to call paid
+     * @param channelId channel id
+     * @param indexer indexer address
+     * @param consumer consumer address
+     * @param amount SQT amount deposit in channel
+     * @param expiration channel expiration time in seconds
+     * @param deploymentId deployment id
+     * @param callback callback info for contract, if consumer not a contract, set null: "0x"
+     * @param indexerSign indexer's signature
+     * @param consumerSign consumer's signature
+     */
     function open(
         uint256 channelId,
         address indexer,
         address consumer,
         uint256 amount,
+        uint256 price,
         uint256 expiration,
         bytes32 deploymentId,
         bytes memory callback,
@@ -103,44 +139,54 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         bytes memory consumerSign
     ) public {
         // check channel exist
-        require(channels[channelId].status == ChannelStatus.Finalized, 'ChannelId already existed');
+        require(channels[channelId].status == ChannelStatus.Finalized, 'SC001');
 
         // check indexer registered
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
-        require(indexerRegistry.isIndexer(indexer), 'indexer is not registered');
-        address controller = indexerRegistry.indexerToController(indexer);
+        require(indexerRegistry.isIndexer(indexer), 'G002');
+        address controller = indexerRegistry.getController(indexer);
 
         // check sign
         bytes32 payload = keccak256(
-            abi.encode(channelId, indexer, consumer, amount, expiration, deploymentId, callback)
+            abi.encode(channelId, indexer, consumer, amount, price, expiration, deploymentId, callback)
         );
         if (_isContract(consumer)) {
-            require(consumer.supportsInterface(type(IConsumer).interfaceId), 'Contract is not IConsumer');
+            require(consumer.supportsInterface(type(IConsumer).interfaceId), 'G018');
             IConsumer cConsumer = IConsumer(consumer);
-            _checkSign(payload, indexerSign, consumerSign, indexer, controller, cConsumer.signer());
-            // transfer the balance to contract
-            IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
+            require(cConsumer.checkSign(channelId, payload, consumerSign), 'C006');
             cConsumer.paid(channelId, amount, callback);
         } else {
-            _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
-            // transfer the balance to contract
-            IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
+            _checkSign(payload, consumerSign, consumer, address(0));
         }
 
-        // initial the channel
-        channels[channelId].status = ChannelStatus.Open;
-        channels[channelId].indexer = indexer;
-        channels[channelId].consumer = consumer;
-        channels[channelId].expirationAt = block.timestamp + expiration;
-        channels[channelId].total = amount;
-        channels[channelId].spent = 0;
-        channels[channelId].challengeAt = 0;
-        channels[channelId].deploymentId = deploymentId;
+        _checkSign(payload, indexerSign, indexer, controller);
 
-        emit ChannelOpen(channelId, indexer, consumer, amount, block.timestamp + expiration, deploymentId);
+        // transfer the balance to contract
+        IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
+
+        // initial the channel
+        ChannelState storage state = channels[channelId];
+        state.status = ChannelStatus.Open;
+        state.indexer = indexer;
+        state.consumer = consumer;
+        state.expiredAt = block.timestamp + expiration;
+        state.total = amount;
+        state.spent = 0;
+        state.terminatedAt = 0;
+        state.deploymentId = deploymentId;
+        state.terminateByIndexer = false;
+
+        emit ChannelOpen(channelId, indexer, consumer, amount, price, block.timestamp + expiration, deploymentId, callback);
     }
 
-    // Extend the channel expirationAt.
+    /**
+     * @notice Extend the channel expiredAt
+     * @param channelId channel id
+     * @param preExpirationAt previous ExpirationAt timestamp
+     * @param expiration Extend tiem in seconds
+     * @param indexerSign indexer's signature
+     * @param consumerSign consumer's signature
+     */
     function extend(
         uint256 channelId,
         uint256 preExpirationAt,
@@ -150,36 +196,49 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     ) public {
         address indexer = channels[channelId].indexer;
         address consumer = channels[channelId].consumer;
-        address controller = IIndexerRegistry(settings.getIndexerRegistry()).indexerToController(indexer);
-        require(channels[channelId].expirationAt == preExpirationAt, 'Request is expired');
+        address controller = IIndexerRegistry(settings.getIndexerRegistry()).getController(indexer);
+        require(channels[channelId].expiredAt == preExpirationAt, 'SC002');
 
         // check sign
         bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, preExpirationAt, expiration));
-        _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
+        if (_isContract(consumer)) {
+            require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'C006');
+        } else {
+            _checkSign(payload, consumerSign, consumer, address(0));
+        }
+        _checkSign(payload, indexerSign, indexer, controller);
 
-        channels[channelId].expirationAt = preExpirationAt + expiration;
-        emit ChannelExtend(channelId, channels[channelId].expirationAt);
+        channels[channelId].expiredAt = preExpirationAt + expiration;
+        emit ChannelExtend(channelId, channels[channelId].expiredAt);
     }
 
-    // Deposit more amount to this channel. need consumer approve amount first.
-    function fund(
-        uint256 channelId,
-        uint256 amount,
-        bytes memory sign
-    ) public {
+    /**
+     * @notice Deposit more amount to this channel. need consumer approve amount first
+     * @param channelId channel id
+     * @param amount SQT amount to deposit
+     * @param callback callback info for contract
+     * @param sign the signature of the consumer
+     */
+    function fund(uint256 channelId, uint256 amount, bytes memory callback, bytes memory sign) public {
         require(
-            channels[channelId].status == ChannelStatus.Open && channels[channelId].expirationAt > block.timestamp,
-            'Channel lost efficacy'
+            channels[channelId].status == ChannelStatus.Open && channels[channelId].expiredAt > block.timestamp,
+            'SC003'
         );
 
         address indexer = channels[channelId].indexer;
         address consumer = channels[channelId].consumer;
+        bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, amount, callback));
 
         // check sign
-        bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, amount));
-        bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
-        address s_consumer = ECDSA.recover(hash, sign);
-        require(s_consumer == consumer, 'Consumer signature invalid');
+        if (_isContract(consumer)) {
+            IConsumer cConsumer = IConsumer(consumer);
+            require(cConsumer.checkSign(channelId, payload, sign), 'C006');
+            cConsumer.paid(channelId, amount, callback);
+        } else {
+            bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
+            address sConsumer = ECDSA.recover(hash, sign);
+            require(sConsumer == consumer, 'C006');
+        }
 
         // transfer the balance to contract
         IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
@@ -187,17 +246,21 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         emit ChannelFund(channelId, channels[channelId].total);
     }
 
-    // Indexer can send a checkpoint to claim the part-amount.
-    // This amount will send to RewardDistributer for staking.
+    /**
+     * @notice Indexer can send a checkpoint to claim the part-amount.
+     * This amount will send to RewardDistributer for staking
+     * @param query the state of the channel
+     */
     function checkpoint(QueryState calldata query) public {
         // check channel status
-        require(channels[query.channelId].status == ChannelStatus.Open, 'Channel must be actived');
+        require(channels[query.channelId].status == ChannelStatus.Open, 'SC004');
 
         // check spent
-        require(query.spent > channels[query.channelId].spent, 'Query state must bigger than channel state');
+        require(query.spent > channels[query.channelId].spent, 'SC005');
 
         // check sign
         bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));
+
         _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
 
         // update channel state
@@ -206,63 +269,99 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         emit ChannelCheckpoint(query.channelId, query.spent);
     }
 
-    // When consumer what to finalize in advance, can start a challenge.
-    // If challenge success, consumer will claim the rest of the locked
-    // amount. Indexer can respond to this challenge within the time limit.
-    function challenge(QueryState calldata query) public {
-        // check spent
-        require(query.spent > channels[query.channelId].spent, 'Query state must bigger than channel state');
+    /**
+     * @notice When indexer/consumer what to finalize in advance, can start a terminate.
+     * If terminate success, consumer will claim the rest of the locked amount.
+     * Indexer can respond to this terminate within the time limit
+     * @param query the state of the channel
+     */
+    function terminate(QueryState calldata query) public {
+        ChannelState storage state = channels[query.channelId];
+
+        // check sender
+        bool isIndexer = msg.sender == state.indexer;
+        bool isConsumer = msg.sender == state.consumer;
+        if (_isContract(state.consumer)) {
+            isConsumer = IConsumer(state.consumer).checkSender(query.channelId, msg.sender);
+        }
+        require(isIndexer || isConsumer, 'G008');
+
+        // check state
+        bool allowState = state.expiredAt > block.timestamp && query.spent >= state.spent && query.spent < state.total;
+        require(allowState, 'SC005');
 
         // check sign
-        bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));
-        _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
+        if (query.spent > 0) {
+            bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));
+            _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
+        } else {
+            require(!query.isFinal, 'SC006');
+        }
 
         // update channel state.
         _settlement(query);
 
-        // set state to challenge
-        channels[query.channelId].status = ChannelStatus.Challenge;
-        uint256 expiration = block.timestamp + challengeExpiration;
-        channels[query.channelId].challengeAt = expiration;
+        // set state to terminate
+        state.status = ChannelStatus.Terminating;
+        uint256 expiration = block.timestamp + terminateExpiration;
+        state.terminatedAt = expiration;
+        state.terminateByIndexer = isIndexer;
 
-        emit ChannelChallenge(query.channelId, query.spent, expiration);
+        emit ChannelTerminate(query.channelId, query.spent, expiration, isIndexer);
     }
 
-    // Indexer respond the challenge by send the service proof after
-    // the challenge.
+    /**
+     * @notice Indexer respond the terminate by send the service proof after the terminate
+     * @param query the state of the channel
+     */
     function respond(QueryState calldata query) public {
+        ChannelState storage state = channels[query.channelId];
+
+        // check state and sender
+        require(state.status == ChannelStatus.Terminating, 'SC007');
+        if (state.terminateByIndexer) {
+            bool isConsumer = msg.sender == state.consumer;
+            if (_isContract(state.consumer)) {
+                isConsumer = IConsumer(state.consumer).checkSender(query.channelId, msg.sender);
+            }
+            require(isConsumer, 'G008');
+        } else {
+            require(msg.sender == state.indexer, 'G008');
+        }
+
         // check count
-        require(query.spent > channels[query.channelId].spent, 'Query state must bigger than channel state');
+        require(query.spent >= state.spent, 'SC005');
 
         // check sign
         bytes32 payload = keccak256(abi.encode(query.channelId, query.spent, query.isFinal));
         _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
 
-        // reset the channel status
-        channels[query.channelId].status = ChannelStatus.Open;
-
         // update channel state
         _settlement(query);
 
-        emit ChannelRespond(query.channelId, query.spent);
+        // finalize the channel status
+        _finalize(query.channelId);
     }
 
-    // When challenge success (Overdue did not respond) or expiration,
-    // consumer can claim the amount.
+    /**
+     * @notice When terminate success (Overdue did not respond) or expiration, consumer can claim the amount
+     * @param channelId channel id
+     */
     function claim(uint256 channelId) public {
-        // check if challenge success
-        bool isClaimable1 = channels[channelId].status == ChannelStatus.Challenge &&
-            channels[channelId].challengeAt < block.timestamp;
+        // check if terminate success
+        bool isClaimable1 = channels[channelId].status == ChannelStatus.Terminating &&
+            channels[channelId].terminatedAt < block.timestamp;
 
         // check if channel expiration
         bool isClaimable2 = isClaimable1 ||
-            (channels[channelId].status == ChannelStatus.Open && channels[channelId].expirationAt < block.timestamp);
+            (channels[channelId].status == ChannelStatus.Open && channels[channelId].expiredAt < block.timestamp);
 
-        require(isClaimable2, 'Channel not expired');
+        require(isClaimable2, 'SC008');
         _finalize(channelId);
     }
 
-    // Check the signature of the hash with channel info.
+    /// @dev PRIVATE FUNCTIONS
+    /// @notice Check the signature of the hash with channel info
     function _checkStateSign(
         uint256 channelId,
         bytes32 payload,
@@ -270,34 +369,29 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         bytes memory consumerSign
     ) private view {
         address indexer = channels[channelId].indexer;
-        address controller = IIndexerRegistry(settings.getIndexerRegistry()).indexerToController(indexer);
+        address controller = IIndexerRegistry(settings.getIndexerRegistry()).getController(indexer);
         address consumer = channels[channelId].consumer;
         if (_isContract(consumer)) {
-            address signer = IConsumer(consumer).signer();
-            _checkSign(payload, indexerSign, consumerSign, indexer, controller, signer);
+            require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'C006');
         } else {
-            _checkSign(payload, indexerSign, consumerSign, indexer, controller, consumer);
+            _checkSign(payload, consumerSign, consumer, address(0));
         }
+        _checkSign(payload, indexerSign, indexer, controller);
     }
 
-    // Check the signature of the hash with given addresses.
+    /// @notice Check the signature of the hash with given addresses
     function _checkSign(
         bytes32 payload,
         bytes memory indexerSign,
-        bytes memory consumerSign,
         address channelIndexer,
-        address channelController,
-        address channelConsumer
+        address channelController
     ) private pure {
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
         address signIndexer = ECDSA.recover(hash, indexerSign);
-        require(signIndexer == channelIndexer || signIndexer == channelController, 'Indexer signature invalid');
-
-        address signConsumer = ECDSA.recover(hash, consumerSign);
-        require(signConsumer == channelConsumer, 'Consumer signature invalid');
+        require(signIndexer == channelIndexer || signIndexer == channelController, 'SC009');
     }
 
-    // Settlement the new state.
+    /// @notice Settlement the new state
     function _settlement(QueryState calldata query) private {
         // update channel state
         uint256 amount = query.spent - channels[query.channelId].spent;
@@ -309,46 +403,50 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             channels[query.channelId].spent = channels[query.channelId].total;
         }
 
-        // check is finish
-        bool isFinish1 = query.isFinal;
-        bool isFinish2 = isFinish1 || amount == 0;
-        bool isFinish3 = isFinish2 || block.timestamp > channels[query.channelId].expirationAt;
-
-        // check expirationAt
-        if (isFinish3) {
-            _finalize(query.channelId);
-        }
-
-        // reward distributer
+        // reward pool
         if (amount > 0) {
             address indexer = channels[query.channelId].indexer;
+            bytes32 deploymentId = channels[query.channelId].deploymentId;
             address rewardPoolAddress = settings.getRewardsPool();
             IERC20(settings.getSQToken()).approve(rewardPoolAddress, amount);
             IRewardsPool rewardsPool = IRewardsPool(rewardPoolAddress);
-            rewardsPool.labor(channels[query.channelId].deploymentId, indexer, amount);
+            rewardsPool.labor(deploymentId, indexer, amount);
+            emit ChannelLabor(deploymentId, indexer, amount);
+        }
+
+        // check is finish
+        bool isFinish1 = query.isFinal;
+        bool isFinish2 = isFinish1 || amount == 0;
+        bool isFinish3 = isFinish2 || block.timestamp > channels[query.channelId].expiredAt;
+
+        // finalise channel if meet the requirements
+        if (isFinish3) {
+            _finalize(query.channelId);
         }
     }
 
-    // Finalize the channel.
+    /// @notice Finalize the channel
     function _finalize(uint256 channelId) private {
         // claim the rest of amount to balance
         address consumer = channels[channelId].consumer;
-        uint256 remain = channels[channelId].total - channels[channelId].spent;
+        uint256 total = channels[channelId].total;
+        uint256 remain = total - channels[channelId].spent;
 
         if (remain > 0) {
             IERC20(settings.getSQToken()).safeTransfer(consumer, remain);
-            if (_isContract(consumer)) {
-                IConsumer(consumer).claimed(channelId, remain);
-            }
         }
 
-        // set the channel to Finalized status
-        channels[channelId].status = ChannelStatus.Finalized;
-        channels[channelId].spent = channels[channelId].total;
+        if (_isContract(consumer)) {
+            IConsumer(consumer).claimed(channelId, remain);
+        }
 
-        emit ChannelFinalize(channelId);
+        // delete the channel
+        delete channels[channelId];
+
+        emit ChannelFinalize(channelId, total, remain);
     }
 
+    /// @notice Determine the input address is contract or not
     function _isContract(address _addr) private view returns (bool) {
         uint32 size;
         assembly {

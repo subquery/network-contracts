@@ -80,7 +80,7 @@ describe('Inflation Controller Contract', () => {
 
         it('set inflation rate with invalid params should fail', async () => {
             await expect(inflationController.setInflationRate(1000001)).to.be.revertedWith(
-                'InflationRate value is out of range'
+                'IC001'
             );
         });
     });
@@ -93,7 +93,7 @@ describe('Inflation Controller Contract', () => {
 
         it('mintInflatedTokens only be called by eraManager', async () => {
             await expect(inflationController.mintInflatedTokens()).to.be.revertedWith(
-                'Can only be called by eraManager'
+                'G012'
             );
         });
 
@@ -122,6 +122,22 @@ describe('Inflation Controller Contract', () => {
             for (let i = 0; i < 52; i++) {
                 await checkInflation();
             }
+        });
+    });
+
+    describe('Mint SQT Tokens', () => {
+        it('mint SQT tokens should work', async () => {
+            const oldSupply = await token.totalSupply();
+            const oldBalance = await token.balanceOf(inflationDestination);
+            await inflationController.mintSQT(inflationDestination, 1000);
+            expect(await token.totalSupply()).to.equal(oldSupply.add(1000));
+            expect(await token.balanceOf(inflationDestination)).to.equal(oldBalance.add(1000));
+        });
+
+        it('mintSQT only be called by owner', async () => {
+            await expect(inflationController.connect(wallet_2).mintSQT(inflationDestination, 1000)).to.be.revertedWith(
+                'Ownable: caller is not the owner'
+            );
         });
     });
 });

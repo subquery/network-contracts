@@ -13,7 +13,22 @@ cache/
 publish/local.json
 publish/contracts
 src/typechain
-artifacts
 
 /coverage
 coverage.json
+
+artifacts
+
+Flattened.sol
+
+/target
+**/*.rs.bk
+Cargo.lock
+pids
+run
+docs/.vuepress/dist/
+docs/contracts/
+
+crytic-export/
+corpus/
+package-lock.json

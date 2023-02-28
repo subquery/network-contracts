@@ -9,17 +9,15 @@ on:
     inputs:
       endpoint:
         description: 'endpoint used to deploy contracts'
-        default: https://acala-mandala.api.onfinality.io/public
+        default: https://moonbeam-alpha.api.onfinality.io/public
         required: true
       network:
         type: choice
         description: 'network used to publish contracts'
         default: testnet
         required: true
-        options: 
-        - testnet
-        - kelper
-        - mainnet
+        options:
+          - testnet
 
 jobs:
   Upgrade-Contracts:
@@ -44,9 +42,9 @@ jobs:
       - name: Bump & Build
         run: npm version prerelease --no-git-tag-version && yarn build
 
-      # Deploy contracts to moonbeam alpha
+      # Deploy contracts
       - name: Upgrade Changed Contracts
-        run: yarn upgrade:${{ github.event.inputs.network }} && scripts/copy_deployment_json.sh # Uses SEED env var
+        run: yarn upgrade --${{ github.event.inputs.network }} && scripts/copy_deployment_json.sh # Uses SEED env var
         env:
           ENDPOINT: ${{ github.event.inputs.endpoint }}
           DEPLOY_PRINT: true
@@ -63,7 +61,7 @@ jobs:
       - name: Commit changes
         uses: EndBug/add-and-commit@v5
         with:
-          add: publish/testnet.json package.json
+          add: publish/*.json package.json
           message: '[SKIP CI] Deploy to testnet and Prerelease'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

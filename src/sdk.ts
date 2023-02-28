@@ -8,6 +8,8 @@ import {
     Settings__factory,
     Staking,
     Staking__factory,
+    StakingManager,
+    StakingManager__factory,
     IndexerRegistry,
     IndexerRegistry__factory,
     InflationController,
@@ -24,6 +26,8 @@ import {
     RewardsDistributer__factory,
     RewardsPool,
     RewardsPool__factory,
+    RewardsStaking,
+    RewardsStaking__factory,
     RewardsHelper,
     RewardsHelper__factory,
     PurchaseOfferMarket,
@@ -34,6 +38,8 @@ import {
     Airdropper__factory,
     PermissionedExchange,
     PermissionedExchange__factory,
+    ConsumerHost,
+    ConsumerHost__factory,
 } from './typechain';
 
 export class ContractSDK {
@@ -48,6 +54,7 @@ export class ContractSDK {
     private _settings?: Settings;
     private _sqToken?: SQToken;
     private _staking?: Staking;
+    private _stakingManager?: StakingManager;
     private _indexerRegistry?: IndexerRegistry;
     private _queryRegistry?: QueryRegistry;
     private _inflationController?: InflationController;
@@ -56,11 +63,13 @@ export class ContractSDK {
     private _planManager?: PlanManager;
     private _rewardsDistributor?: RewardsDistributer;
     private _rewardsPool?: RewardsPool;
+    private _rewardsStaking?: RewardsStaking;
     private _rewardsHelper?: RewardsHelper;
     private _purchaseOfferMarket?: PurchaseOfferMarket;
     private _stateChannel?: StateChannel;
     private _airdropper?: Airdropper;
     private _permissionedExchange?: PermissionedExchange;
+    private _consumerHost?: ConsumerHost;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options?: SdkOptions) {
         this._contractDeployments =
@@ -87,6 +96,13 @@ export class ContractSDK {
             throw new Error(`_staking address not found`);
         }
         return this._staking;
+    }
+
+    get stakingManager(): StakingManager {
+        if (!this._stakingManager) {
+            throw new Error(`_stakingManager address not found`);
+        }
+        return this._stakingManager;
     }
 
     get indexerRegistry(): IndexerRegistry {
@@ -145,6 +161,13 @@ export class ContractSDK {
         return this._rewardsPool;
     }
 
+    get rewardsStaking(): RewardsStaking {
+        if (!this._rewardsStaking) {
+            throw new Error(`_rewardsStaking address not found`);
+        }
+        return this._rewardsStaking;
+    }
+
     get rewardsHelper(): RewardsHelper {
         if (!this._rewardsHelper) {
             throw new Error(`_rewardsHelper address not found`);
@@ -184,6 +207,13 @@ export class ContractSDK {
         return this._permissionedExchange;
     }
 
+    get consumerHost(): ConsumerHost {
+        if (!this._consumerHost) {
+            throw new Error(`_consumerHost address not found`);
+        }
+        return this._consumerHost;
+    }
+
     public async initContract<C extends Contract>(
         factory: {connect: (address: string, signerOrProvider: AbstractProvider | Signer) => C},
         address?: string
@@ -199,6 +229,7 @@ export class ContractSDK {
             settings,
             sqToken,
             staking,
+            stakingManager,
             indexerRegistry,
             queryRegistry,
             inflationController,
@@ -207,15 +238,18 @@ export class ContractSDK {
             planManager,
             rewardsDistributor,
             rewardsPool,
+            rewardsStaking,
             rewardsHelper,
             purchaseOfferMarket,
             stateChannel,
             airdropper,
             permissionedExchange,
+            consumerHost,
         ] = await Promise.all([
             this.initContract(Settings__factory, this._contractDeployments.Settings?.address),
             this.initContract(SQToken__factory, this._contractDeployments.SQToken?.address),
             this.initContract(Staking__factory, this._contractDeployments.Staking?.address),
+            this.initContract(StakingManager__factory, this._contractDeployments.StakingManager?.address),
             this.initContract(IndexerRegistry__factory, this._contractDeployments.IndexerRegistry?.address),
             this.initContract(QueryRegistry__factory, this._contractDeployments.QueryRegistry?.address),
             this.initContract(InflationController__factory, this._contractDeployments.InflationController.address),
@@ -227,15 +261,18 @@ export class ContractSDK {
             this.initContract(PlanManager__factory, this._contractDeployments.PlanManager.address),
             this.initContract(RewardsDistributer__factory, this._contractDeployments.RewardsDistributer.address),
             this.initContract(RewardsPool__factory, this._contractDeployments.RewardsPool.address),
+            this.initContract(RewardsStaking__factory, this._contractDeployments.RewardsStaking.address),
             this.initContract(RewardsHelper__factory, this._contractDeployments.RewardsHelper.address),
             this.initContract(PurchaseOfferMarket__factory, this._contractDeployments.PurchaseOfferMarket.address),
             this.initContract(StateChannel__factory, this._contractDeployments.StateChannel.address),
             this.initContract(Airdropper__factory, this._contractDeployments.Airdropper.address),
             this.initContract(PermissionedExchange__factory, this._contractDeployments.PermissionedExchange.address),
+            this.initContract(ConsumerHost__factory, this._contractDeployments.ConsumerHost.address),
         ]);
         this._settings = settings;
         this._sqToken = sqToken;
         this._staking = staking;
+        this._stakingManager = stakingManager;
         this._indexerRegistry = indexerRegistry;
         this._inflationController = inflationController;
         this._queryRegistry = queryRegistry;
@@ -244,10 +281,12 @@ export class ContractSDK {
         this._planManager = planManager;
         this._rewardsDistributor = rewardsDistributor;
         this._rewardsPool = rewardsPool;
+        this._rewardsStaking = rewardsStaking;
         this._rewardsHelper = rewardsHelper;
         this._purchaseOfferMarket = purchaseOfferMarket;
         this._stateChannel = stateChannel;
         this._airdropper = airdropper;
         this._permissionedExchange = permissionedExchange;
+        this._consumerHost = consumerHost;
     }
 }

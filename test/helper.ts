@@ -1,28 +1,36 @@
-import {QueryRegistry} from './../src/typechain/QueryRegistry';
-import {ServiceAgreementRegistry} from './../src/typechain/ServiceAgreementRegistry';
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import {ServiceAgreementRegistry} from './../src/typechain/ServiceAgreementRegistry';
+import {ethers} from 'ethers';
+
 import {MockProvider} from 'ethereum-waffle';
-import {BigNumber, Contract, Wallet, utils} from 'ethers';
+import {BaseContract, BigNumber, Wallet, ContractTransaction, utils, Contract} from 'ethers';
 import {IndexerRegistry, EraManager, PlanManager} from '../src';
-import {METADATA_HASH, VERSION} from './constants';
+import {METADATA_HASH} from './constants';
 const {constants, time} = require('@openzeppelin/test-helpers');
 import web3 from 'web3';
+import {StaticJsonRpcProvider} from '@ethersproject/providers';
 
 export {constants, time};
+
+export type Provider = MockProvider | StaticJsonRpcProvider;
+
+export function createProvider(url: string, chain: number): StaticJsonRpcProvider {
+    return new ethers.providers.StaticJsonRpcProvider(url, chain);
+}
 
 export async function timeTravel(provider: MockProvider, seconds: number) {
     await provider.send('evm_increaseTime', [seconds]);
     await provider.send('evm_mine', []);
 }
 
-export async function lastestBlock(provider: MockProvider) {
+export async function lastestBlock(provider: MockProvider | StaticJsonRpcProvider) {
     const blockBefore = await provider.send('eth_getBlockByNumber', ['latest', false]);
     return blockBefore;
 }
 
-export async function lastestTime(provider: MockProvider) {
+export async function lastestTime(provider: MockProvider | StaticJsonRpcProvider) {
     const block = await lastestBlock(provider);
     return BigNumber.from(block.timestamp).toNumber();
 }
@@ -103,10 +111,18 @@ export async function acceptPlan(
 ) {
     await planManager.createPlanTemplate(time.duration.days(period).toString(), 1000, 100, METADATA_HASH);
     await planManager.connect(indexer).createPlan(value, 0, DEPLOYMENT_ID);
-
-    await planManager.connect(consumer).acceptPlan(indexer.address, DEPLOYMENT_ID, 1);
+    await planManager.connect(consumer).acceptPlan((await planManager.nextPlanId()).toNumber() - 1, DEPLOYMENT_ID);
 }
 
 export function etherParse(etherNum: string) {
     return BigNumber.from(web3.utils.toWei(etherNum, 'ether'));
+}
+
+type Event = utils.Result;
+export async function eventFrom(tx: ContractTransaction, contract: BaseContract, event: string): Promise<Event> {
+    const receipt = await tx.wait();
+    const evt = receipt.events.find((log) => log.topics[0] === utils.id(event));
+
+    const eventName = event.split('(')[0];
+    return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data);
 }

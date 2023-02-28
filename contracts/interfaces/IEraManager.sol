@@ -13,4 +13,6 @@ interface IEraManager {
     function safeUpdateAndGetEra() external returns (uint256);
 
     function timestampToEraNumber(uint256 timestamp) external view returns (uint256);
+
+    function maintenance() external returns (bool);
 }

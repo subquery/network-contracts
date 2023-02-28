@@ -1,6 +1,6 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.15;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -34,7 +34,7 @@ contract Vesting is Ownable {
     );
 
     constructor(address _token) Ownable() {
-        require(_token != address(0x0), "invalid token address");
+        require(_token != address(0x0), "G009");
         token = _token;
     }
 
@@ -45,7 +45,7 @@ contract Vesting is Ownable {
     ) public onlyOwner {
         require(
             _initialUnlockPercent <= 100,
-            "initial unlock percent should be equal or less than 100"
+            "V001"
         );
         plans.push(
             VestingPlan(_lockPeriod, _vestingPeriod, _initialUnlockPercent)
@@ -65,13 +65,13 @@ contract Vesting is Ownable {
         uint256 _planId,
         uint256 _allocation
     ) public onlyOwner {
-        require(addr != address(0x0), "empty address is not allowed");
+        require(addr != address(0x0), "V002");
         require(
             allocations[addr] == 0,
-            "vesting is already set on the account"
+            "V003"
         );
-        require(_allocation > 0, "zero amount vesting is not allowed");
-        require(_planId < plans.length, "invalid plan id");
+        require(_allocation > 0, "V004");
+        require(_planId < plans.length, "PM012");
 
         userPlanId[addr] = _planId;
         allocations[addr] = _allocation;
@@ -83,10 +83,10 @@ contract Vesting is Ownable {
         address[] memory addrs,
         uint256[] memory _allocations
     ) external onlyOwner {
-        require(addrs.length > 0, "number of addresses should be at least one");
+        require(addrs.length > 0, "V005");
         require(
             addrs.length == _allocations.length,
-            "number of addresses should be same as number of allocations"
+            "V006"
         );
 
         for (uint256 i = 0; i < addrs.length; i++) {
@@ -95,10 +95,10 @@ contract Vesting is Ownable {
     }
 
     function depositByAdmin(uint256 amount) external onlyOwner {
-        require(amount > 0, "should deposit positive amount");
+        require(amount > 0, "V007");
         require(
             IERC20(token).transferFrom(msg.sender, address(this), amount),
-            "Vesting: transfer failure"
+            "V008"
         );
     }
 
@@ -106,20 +106,20 @@ contract Vesting is Ownable {
         uint256 amount = IERC20(token).balanceOf(address(this));
         require(
             IERC20(token).transfer(msg.sender, amount),
-            "Vesting: transfer failure"
+            "V008"
         );
     }
 
     function startVesting(uint256 _vestingStartDate) external onlyOwner {
         require(
             block.timestamp < _vestingStartDate,
-            "vesting start date must in the future"
+            "V009"
         );
 
         vestingStartDate = _vestingStartDate;
 
         uint256 amount = IERC20(token).balanceOf(address(this));
-        require(amount == totalAllocation, "balance not enough for allocation");
+        require(amount == totalAllocation, "V010");
 
         transferOwnership(address(this));
     }
@@ -127,7 +127,7 @@ contract Vesting is Ownable {
     function claim() external {
         require(
             allocations[msg.sender] != 0,
-            "vesting is not set on the account"
+            "V011"
         );
 
         uint256 claimAmount = claimableAmount(msg.sender);
@@ -136,7 +136,7 @@ contract Vesting is Ownable {
 
         require(
             IERC20(token).transfer(msg.sender, claimAmount),
-            "Vesting: transfer failure"
+            "V008"
         );
     }
 

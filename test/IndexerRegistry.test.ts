@@ -5,7 +5,7 @@ import {expect} from 'chai';
 import {ethers} from 'hardhat';
 import {deployContracts} from './setup';
 import {METADATA_HASH, METADATA_1_HASH, VERSION, DEPLOYMENT_ID} from './constants';
-import {IndexerRegistry, SQToken, QueryRegistry, Staking, RewardsDistributer} from '../src';
+import {IndexerRegistry, SQToken, QueryRegistry, Staking, RewardsStaking, StakingManager} from '../src';
 import {etherParse, registerIndexer} from './helper';
 
 const {constants} = require('@openzeppelin/test-helpers');
@@ -15,13 +15,13 @@ describe('IndexerRegistry Contract', () => {
 
     let token: SQToken;
     let staking: Staking;
+    let stakingManager: StakingManager;
     let queryRegistry: QueryRegistry;
     let indexerRegistry: IndexerRegistry;
-    let rewardsDistributer: RewardsDistributer;
+    let rewardsStaking: RewardsStaking;
 
     const checkControllerIsEmpty = async () => {
-        expect(await indexerRegistry.indexerToController(wallet_0.address)).to.equal(constants.ZERO_ADDRESS);
-        expect(await indexerRegistry.controllerToIndexer(wallet_2.address)).to.equal(constants.ZERO_ADDRESS);
+        expect(await indexerRegistry.getController(wallet_0.address)).to.equal(constants.ZERO_ADDRESS);
     };
 
     beforeEach(async () => {
@@ -29,34 +29,37 @@ describe('IndexerRegistry Contract', () => {
         const deployment = await deployContracts(wallet_0, wallet_1);
         token = deployment.token;
         staking = deployment.staking;
+        stakingManager = deployment.stakingManager;
         queryRegistry = deployment.queryRegistry;
         indexerRegistry = deployment.indexerRegistry;
-        rewardsDistributer = deployment.rewardsDistributer;
-        await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '10');
+        rewardsStaking = deployment.rewardsStaking;
+        await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '2000');
     });
 
     describe('Indexer Registry', () => {
         it('register indexer should work', async () => {
-            await expect(registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '10'))
+            await expect(registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '2000'))
                 .to.be.emit(indexerRegistry, 'RegisterIndexer')
-                .withArgs(wallet_1.address, etherParse('5'), METADATA_HASH);
+                .withArgs(wallet_1.address, etherParse('1000'), METADATA_HASH)
+                .to.be.emit(indexerRegistry, 'SetCommissionRate')
+                .withArgs(wallet_1.address, 0);
 
             // check state changes
             expect(await indexerRegistry.isIndexer(wallet_1.address)).to.equal(true);
-            expect(await indexerRegistry.metadataByIndexer(wallet_1.address)).to.equal(METADATA_HASH);
-            expect(await staking.getAfterDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
-                etherParse('5')
+            expect(await indexerRegistry.metadata(wallet_1.address)).to.equal(METADATA_HASH);
+            expect(await stakingManager.getAfterDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
+                etherParse('1000')
             );
-            expect(await staking.getCommissionRate(wallet_1.address)).to.equal(0);
-            expect(await rewardsDistributer.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
-                etherParse('5')
+            expect(await indexerRegistry.getCommissionRate(wallet_1.address)).to.equal(0);
+            expect(await rewardsStaking.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
+                etherParse('1000')
             );
-            expect(await rewardsDistributer.commissionRates(wallet_1.address)).to.equal(0);
+            expect(await rewardsStaking.getCommissionRate(wallet_1.address)).to.equal(0);
         });
 
         it('registered indexer reregister should fail', async () => {
-            await expect(indexerRegistry.registerIndexer(etherParse('5'), METADATA_HASH, 0)).to.be.revertedWith(
-                'Already registered'
+            await expect(indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0)).to.be.revertedWith(
+                'IR001'
             );
         });
 
@@ -65,14 +68,19 @@ describe('IndexerRegistry Contract', () => {
                 .to.be.emit(indexerRegistry, 'UpdateMetadata')
                 .withArgs(wallet_0.address, METADATA_1_HASH);
 
-            expect(await indexerRegistry.metadataByIndexer(wallet_0.address)).to.equal(METADATA_1_HASH);
+            expect(await indexerRegistry.metadata(wallet_0.address)).to.equal(METADATA_1_HASH);
         });
 
         it('update metadata with invalid caller should fail', async () => {
             // caller is not an indexer
-            await expect(indexerRegistry.connect(wallet_1).updateMetadata(METADATA_1_HASH)).to.be.revertedWith(
-                'Not an indexer'
-            );
+            await expect(indexerRegistry.connect(wallet_1).updateMetadata(METADATA_1_HASH)).to.be.revertedWith('G002');
+        });
+
+        it('indexer setCommissionRate should work', async () => {
+            await expect(indexerRegistry.setCommissionRate(10))
+                .to.be.emit(indexerRegistry, 'SetCommissionRate')
+                .withArgs(wallet_0.address, 10);
+            expect((await indexerRegistry.commissionRates(wallet_0.address)).valueAfter).to.equal(10);
         });
     });
 
@@ -84,10 +92,7 @@ describe('IndexerRegistry Contract', () => {
                 .withArgs(wallet_0.address, wallet_1.address);
 
             // check state changes
-            expect(await indexerRegistry.indexerToController(wallet_0.address)).to.equal(wallet_1.address);
-            expect(await indexerRegistry.controllerToIndexer(wallet_1.address)).to.equal(wallet_0.address);
-            expect(await indexerRegistry.isController(wallet_1.address)).to.equal(true);
-            expect(await indexerRegistry.controllerToIndexer(wallet_2.address)).to.equal(constants.ZERO_ADDRESS);
+            expect(await indexerRegistry.getController(wallet_0.address)).to.equal(wallet_1.address);
         });
 
         it('update controller account should work', async () => {
@@ -96,24 +101,13 @@ describe('IndexerRegistry Contract', () => {
             // update wallet_2 as controller
             await indexerRegistry.setControllerAccount(wallet_2.address);
             // check state changes
-            expect(await indexerRegistry.indexerToController(wallet_0.address)).to.equal(wallet_2.address);
-            expect(await indexerRegistry.controllerToIndexer(wallet_2.address)).to.equal(wallet_0.address);
+            expect(await indexerRegistry.getController(wallet_0.address)).to.equal(wallet_2.address);
         });
 
         it('set controller account with invalid caller should fail', async () => {
             // caller is not an indexer
             await expect(indexerRegistry.connect(wallet_1).setControllerAccount(wallet_0.address)).to.be.revertedWith(
-                'Only indexer can set controller account'
-            );
-        });
-
-        it('set controller with used account should fail', async () => {
-            // wallet_0 add wallet_2 as controller
-            await indexerRegistry.setControllerAccount(wallet_2.address);
-            await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '10');
-            // wallet_1 try to add wallet_2 as controller should fail
-            await expect(indexerRegistry.connect(wallet_1).setControllerAccount(wallet_2.address)).to.be.revertedWith(
-                'Controller account is used by an indexer already'
+                'G002'
             );
         });
 
@@ -129,9 +123,7 @@ describe('IndexerRegistry Contract', () => {
 
         it('remove controller account with invalid caller should fail', async () => {
             // caller is not an indexer
-            await expect(indexerRegistry.connect(wallet_1).removeControllerAccount()).to.be.revertedWith(
-                'Only indexer can remove controller account'
-            );
+            await expect(indexerRegistry.connect(wallet_1).removeControllerAccount()).to.be.revertedWith('G002');
         });
     });
 
@@ -145,19 +137,17 @@ describe('IndexerRegistry Contract', () => {
             // check updates
             await checkControllerIsEmpty();
             expect(await indexerRegistry.isIndexer(wallet_0.address)).to.equal(false);
-            expect(await indexerRegistry.metadataByIndexer(wallet_0.address)).to.equal(constants.ZERO_BYTES32);
+            expect(await indexerRegistry.metadata(wallet_0.address)).to.equal(constants.ZERO_BYTES32);
         });
 
         it('deregister with invalid status should fail', async () => {
             // unregisted account
-            await expect(indexerRegistry.connect(wallet_1).unregisterIndexer()).to.be.revertedWith('Not registered');
+            await expect(indexerRegistry.connect(wallet_1).unregisterIndexer()).to.be.revertedWith('G002');
 
             // with running projects
             await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
             await queryRegistry.startIndexing(DEPLOYMENT_ID);
-            await expect(indexerRegistry.unregisterIndexer()).to.be.revertedWith(
-                'Can not unregister from the network due to running indexing projects'
-            );
+            await expect(indexerRegistry.unregisterIndexer()).to.be.revertedWith('IR004');
         });
     });
 });
