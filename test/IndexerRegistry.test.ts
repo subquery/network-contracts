@@ -46,7 +46,7 @@ describe('IndexerRegistry Contract', () => {
 
             // check state changes
             expect(await indexerRegistry.isIndexer(wallet_1.address)).to.equal(true);
-            expect(await indexerRegistry.indexers(wallet_1.address)).to.equal(METADATA_HASH);
+            expect(await indexerRegistry.metadata(wallet_1.address)).to.equal(METADATA_HASH);
             expect(await stakingManager.getAfterDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
                 etherParse('1000')
             );
@@ -68,7 +68,7 @@ describe('IndexerRegistry Contract', () => {
                 .to.be.emit(indexerRegistry, 'UpdateMetadata')
                 .withArgs(wallet_0.address, METADATA_1_HASH);
 
-            expect(await indexerRegistry.indexers(wallet_0.address)).to.equal(METADATA_1_HASH);
+            expect(await indexerRegistry.metadata(wallet_0.address)).to.equal(METADATA_1_HASH);
         });
 
         it('update metadata with invalid caller should fail', async () => {
@@ -137,12 +137,12 @@ describe('IndexerRegistry Contract', () => {
             // check updates
             await checkControllerIsEmpty();
             expect(await indexerRegistry.isIndexer(wallet_0.address)).to.equal(false);
-            expect(await indexerRegistry.indexers(wallet_0.address)).to.equal(constants.ZERO_BYTES32);
+            expect(await indexerRegistry.metadata(wallet_0.address)).to.equal(constants.ZERO_BYTES32);
         });
 
         it('deregister with invalid status should fail', async () => {
             // unregisted account
-            await expect(indexerRegistry.connect(wallet_1).unregisterIndexer()).to.be.revertedWith('IR003');
+            await expect(indexerRegistry.connect(wallet_1).unregisterIndexer()).to.be.revertedWith('G002');
 
             // with running projects
             await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);

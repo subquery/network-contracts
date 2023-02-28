@@ -143,7 +143,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         // check indexer registered
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
-        require(indexerRegistry.isIndexer(indexer), 'IR003');
+        require(indexerRegistry.isIndexer(indexer), 'G002');
         address controller = indexerRegistry.getController(indexer);
 
         // check sign

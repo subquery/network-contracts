@@ -53,7 +53,6 @@
     "E003": "only further timestamp available",
     "IR001": "Already registered",
     "IR002": "Not meet the minimum staking amount",
-    "IR003": "Not registered",
     "IR004": "Can not unregister from the network due to running indexing projects",
     "IR005": "Invalid indexer metadata",
     "IR006": "Invalid commission rate",
