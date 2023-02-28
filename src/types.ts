@@ -1,19 +1,23 @@
 import type CONTRACTS from './contracts';
 
-export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'local';
+export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'moonbase' | 'local';
 
 export type DeploymentConfig = {
-    network: {
-        name: SubqueryNetwork;
-        platform: string;
-        endpoint?: string;
-        providerConfig: {
-            chainId: number;
-            name: string;
-        };
-    };
+    network: network;
     contracts: {[contract: string]: any[]};
 };
+
+export type network = {
+    chainId: string,
+    chainName: string,
+    rpcUrls: string[],
+    iconUrls: string[],
+    nativeCurrency: {
+        name: string,
+        symbol: string,
+        decimals: number
+    }
+}
 
 export type ContractDeploymentDetail = {
     innerAddress?: string;

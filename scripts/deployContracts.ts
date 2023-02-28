@@ -550,7 +550,6 @@ export async function deployContracts(
 export async function upgradeContracts(
     wallet: Wallet,
     deployment: ContractDeployment,
-    config: DeploymentConfig['contracts'],
     overrides: Overrides | {} = {}
 ): Promise<ContractDeployment> {
     if (process.env.DEBUG) {

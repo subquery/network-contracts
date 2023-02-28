@@ -1,47 +1,79 @@
-export var networks = {
-    mainnet: {
-        name: 'mainnet',
-        platform: 'polygon',
-        endpoint: 'https://1rpc.io/matic',
-        providerConfig: {
-            chainId: 137,
-            name: 'polygon',
+export const networks = {
+    currentNetwork: "testnet",
+    mainnet:{
+        chainId: "0x89",
+        chainName: "Polygon",
+        rpcUrls: [
+            "https://polygon.api.onfinality.io/rpc?apikey=e7acc294-c859-48ed-a742-5aadf0a084b9",
+            "https://polygon-rpc.com/"
+        ],
+        iconUrls: [
+          "https://icons.llamao.fi/icons/chains/rsz_polygon.jpg"
+        ],
+        nativeCurrency: {
+          name: "Matic Token",
+          symbol: "MATIC",
+          decimals: 18
         }
     },
     kepler: {
-        name: 'kepler',
-        platform: 'polygon',
-        endpoint: 'https://1rpc.io/matic',
-        providerConfig: {
-            chainId: 137,
-            name: 'polygon',
+        chainId: "0x89",
+        chainName: "Polygon",
+        rpcUrls: [
+            "https://polygon.api.onfinality.io/rpc?apikey=e7acc294-c859-48ed-a742-5aadf0a084b9",
+            "https://polygon-rpc.com"
+        ],
+        iconUrls: [
+          "https://icons.llamao.fi/icons/chains/rsz_polygon.jpg"
+        ],
+        nativeCurrency: {
+          name: "Matic Token",
+          symbol: "MATIC",
+          decimals: 18
         }
     },
     testnet: {
-        name: 'testnet',
-        platform: 'polygon',
-        endpoint: 'https://rpc.ankr.com/polygon_mumbai',
-        providerConfig: {
-            chainId: 80001,
-            name: 'Mumbai',
+        chainId: "0x13881",
+        chainName: "Mumbai",
+        rpcUrls: [
+            "https://rpc.ankr.com/polygon_mumbai",
+            "https://polygon-mumbai.api.onfinality.io/rpc?apikey=6b43efc3-a13c-4250-9203-e097fb9f239",
+            "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78"
+        ],
+        iconUrls: [
+          "https://icons.llamao.fi/icons/chains/rsz_polygon.jpg"
+        ],
+        nativeCurrency: {
+          name: "Matic Token",
+          symbol: "MATIC",
+          decimals: 18
         }
     },
     local: {
-        name: 'local',
-        platform: 'hardhat',
-        endpoint: 'http://127.0.0.1:8545',
-        providerConfig: {
-            chainId: 31337,
-            name: 'Hardhat',
-        },
+        chainId: "0x7A69",
+        chainName: "Hardhat",
+        rpcUrls: [
+            "http://127.0.0.1:8545"
+        ],
+        iconUrls: [],
+        nativeCurrency: {
+          name: "",
+          symbol: "",
+          decimals: 18
+        }
     },
     moonbase: {
-        name: 'moonbase',
-        platform: 'moonbeam',
-        endpoint: 'https://moonbeam-alpha.api.onfinality.io/public',
-        providerConfig: {
-            chainId: 1287,
-            name: 'Moonbase-alpha',
+        chainId: "0x507",
+        chainName: "Moonbase-alpha",
+        rpcUrls: [
+            "https://moonbeam-alpha.api.onfinality.io/public",
+            "https://rpc.api.moonbase.moonbeam.network"	
+        ],
+        iconUrls: [],
+        nativeCurrency: {
+          name: "DEV",
+          symbol: "DEV",
+          decimals: 18
         }
     }
 }
