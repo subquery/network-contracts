@@ -69,16 +69,22 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
+
     /// @notice offerId => Offer
     mapping(uint256 => PurchaseOffer) public offers;
+
     /// @notice number of all offers
     uint256 public numOffers;
+
     /// @notice penalty rate of consumer cancel the unexpired offer
     uint256 public penaltyRate;
+
     /// @notice if penalty destination address is 0x00, then burn the penalty
     address public penaltyDestination;
+
     /// @notice offerId => indexer => accepted
     mapping(uint256 => mapping(address => bool)) public acceptedOffer;
+
     /// @notice offerId => Indexer => MmrRoot
     mapping(uint256 => mapping(address => bytes32)) public offerMmrRoot;
 
@@ -94,8 +100,10 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         uint256 minimumAcceptHeight,
         uint256 expireDate
     );
+
     /// @notice Emitted when Consumer cancel a purchase offer
     event PurchaseOfferCancelled(address indexed creator, uint256 offerId, uint256 penalty);
+
     /// @notice Emitted when Indexer accept an offer
     event OfferAccepted(address indexed indexer, uint256 offerId, uint256 agreementId);
 

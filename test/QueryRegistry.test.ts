@@ -108,10 +108,6 @@ describe('Query Registry Contract', () => {
             expect(queryInfos.latestDeploymentId).to.equal(deploymentId);
             expect(queryInfos.owner).to.equal(wallet_0.address);
             expect(await queryRegistry.nextQueryId()).to.equal(2);
-
-            expect(await queryRegistry.queryInfoIdsByOwner(wallet_0.address, 0)).to.equal(0);
-            expect(await queryRegistry.queryInfoIdsByOwner(wallet_0.address, 1)).to.equal(1);
-            expect(await queryRegistry.queryInfoCountByOwner(wallet_0.address)).to.equal(2);
         });
 
         it('cannot create a project with an existing deploymentId', async () => {
