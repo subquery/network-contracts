@@ -27,15 +27,17 @@ async function getAirdropTimeConfig(provider) {
 }
 
 export async function setupNetwork(sdk: SetupSdk, provider: Provider, config?: typeof networkConfig) {
-    const {setupConfig, exchange, dictionaries} = config ?? networkConfig;
-    const {airdrops, amounts, rounds, planTemplates} = setupConfig;
+    const {setupConfig, dictionaries} = config ?? networkConfig;
+    const {airdrops, amounts, planTemplates} = setupConfig;
     await sdk.sqToken.increaseAllowance(sdk.airdropper.address, '10000000');
 
     // Create Airdrop round with period --- 10 days
     console.info('Create and send airdrop');
     const {startTime, endTime} = await getAirdropTimeConfig(provider);
     const tx = await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
-    tx.wait(2);
+    const receipt = await tx.wait(2);
+    const roundId =  receipt.events[0].args.roundId;
+    const rounds = new Array(airdrops.length).fill(roundId);
     await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
 
     console.info('Setup plan templates');
@@ -51,11 +53,15 @@ export async function setupNetwork(sdk: SetupSdk, provider: Provider, config?: t
     // Add dictionary projects to query registry contract
     for (const dictionary of dictionaries) {
         const {metadataCid, versionCid, deploymentId} = dictionary;
-        await sdk.queryRegistry.createQueryProject(
-            cidToBytes32(metadataCid),
-            cidToBytes32(versionCid),
-            cidToBytes32(deploymentId)
-        );
+        try{
+            const tx = await sdk.queryRegistry.createQueryProject(
+                cidToBytes32(metadataCid),
+                cidToBytes32(versionCid),
+                cidToBytes32(deploymentId)
+            );
+        }catch(error){
+            console.log(error);
+        }
     }
 }
 

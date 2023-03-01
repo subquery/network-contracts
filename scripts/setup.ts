@@ -27,22 +27,27 @@ async function setupCommon({rpcUrls, chainId, chainName}: DeploymentConfig["netw
 
 const setup = async (argv: string) => {
     let config = { contracts: null, network: null };
+    let name;
     switch (argv) {
         case '--mainnet':
             config.contracts = contractsConfig.mainnet;
             config.network = networks.mainnet;
+            name = "mainnet";
             break;
         case '--kepler':
             config.contracts = contractsConfig.kepler;
             config.network = networks.kepler;
+            name = "kepler";
             break;
         case '--testnet':
             config.contracts = contractsConfig.testnet;
             config.network = networks.testnet;
+            name = "testnet";
             break;
         default:
             config.contracts = contractsConfig.local;
             config.network = networks.local;
+            name = "local";
     }
 
     if (process.env.ENDPOINT) {
@@ -52,7 +57,7 @@ const setup = async (argv: string) => {
 
     if (['Polygon', 'Mumbai', 'Hardaht', 'Moonbase-alpha'].includes(config.network.chainName)) {
         const {wallet, provider, overrides} =  await setupCommon(config.network);
-        return {config, wallet, provider, overrides}
+        return {name, config, wallet, provider, overrides}
     } else {
         throw new Error(`Network ${config.network.chainName} not supported`);
     }
