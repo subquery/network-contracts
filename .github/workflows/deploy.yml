@@ -9,7 +9,7 @@ on:
     inputs:
       endpoint:
         description: 'endpoint used to deploy contracts'
-        default: https://moonbeam-alpha.api.onfinality.io/public
+        default: https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78
         required: true
       network:
         type: choice
@@ -68,5 +68,3 @@ jobs:
           message: '[SKIP CI] Deploy to testnet and Prerelease'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Generate Seed data
-        run: yarn seed:testnet
