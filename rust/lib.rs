@@ -155,7 +155,7 @@ macro_rules! contract {
             }
 
             pub fn $func_name<M: Middleware>(
-                client: impl Into<Arc<M>>,
+                client: Arc<M>,
                 network: Network,
             ) -> Result<Contract<M>, ()> {
                 let (abi, contract) = [< $func_name _parse >](network)?;
