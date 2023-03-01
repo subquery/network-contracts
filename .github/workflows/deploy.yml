@@ -68,5 +68,3 @@ jobs:
           message: '[SKIP CI] Deploy to testnet and Prerelease'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Generate Seed data
-        run: yarn seed:testnet

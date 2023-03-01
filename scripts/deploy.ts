@@ -1,3 +1,4 @@
+import { StaticJsonRpcProvider } from '@ethersproject/providers';
 import {writeFileSync} from 'fs';
 
 import setup from './setup';
@@ -10,10 +11,6 @@ const main = async () => {
     const filePath = `${__dirname}/../publish/${config.network.name}.json`;
     writeFileSync(filePath, JSON.stringify(deployment, null, 4));
     console.log('Exported the deployment result to ', filePath);
-
-    if ((provider as EvmRpcProvider).api) {
-        await (provider as EvmRpcProvider).api.disconnect();
-    }
 };
 
 main();

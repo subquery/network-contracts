@@ -26,8 +26,7 @@ async function setupCommon({rpcUrls, chainId, chainName}: DeploymentConfig["netw
 }
 
 const setup = async (argv: string) => {
-    let config;
-
+    let config = { contracts: null, network: null };
     switch (argv) {
         case '--mainnet':
             config.contracts = contractsConfig.mainnet;
