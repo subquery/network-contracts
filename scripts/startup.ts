@@ -35,7 +35,7 @@ export async function setupNetwork(sdk: SetupSdk, provider: Provider, config?: t
     console.info('Create and send airdrop');
     const {startTime, endTime} = await getAirdropTimeConfig(provider);
     const tx = await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
-    const receipt = await tx.wait(1);
+    const receipt = await tx.wait();
     const roundId = receipt.events[0].args.roundId;
     const rounds = new Array(airdrops.length).fill(roundId);
     await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
