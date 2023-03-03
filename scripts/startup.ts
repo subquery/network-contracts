@@ -35,8 +35,8 @@ export async function setupNetwork(sdk: SetupSdk, provider: Provider, config?: t
     console.info('Create and send airdrop');
     const {startTime, endTime} = await getAirdropTimeConfig(provider);
     const tx = await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
-    const receipt = await tx.wait(2);
-    const roundId =  receipt.events[0].args.roundId;
+    const receipt = await tx.wait();
+    const roundId = receipt.events[0].args.roundId;
     const rounds = new Array(airdrops.length).fill(roundId);
     await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
 
@@ -53,13 +53,13 @@ export async function setupNetwork(sdk: SetupSdk, provider: Provider, config?: t
     // Add dictionary projects to query registry contract
     for (const dictionary of dictionaries) {
         const {metadataCid, versionCid, deploymentId} = dictionary;
-        try{
+        try {
             const tx = await sdk.queryRegistry.createQueryProject(
                 cidToBytes32(metadataCid),
                 cidToBytes32(versionCid),
                 cidToBytes32(deploymentId)
             );
-        }catch(error){
+        } catch (error) {
             console.log(error);
         }
     }
