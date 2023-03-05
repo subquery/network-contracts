@@ -56,7 +56,7 @@ jobs:
         name: Publish
         with:
           token: ${{ secrets.NPM_TOKEN }}
-          tag: dev
+          tag: latest
           access: public
           package: build/build/package.json
 
