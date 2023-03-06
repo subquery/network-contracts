@@ -17,7 +17,6 @@ const usdcAddress = '0xE097d6B3100777DC31B34dC2c58fB524C2e76921';
 
 let root_wallet, indexer_wallet, consumer_wallet;
 let sdk: ContractSDK;
-let tx;
 
 async function sendTx(transaction: () => Promise<ContractTransaction>) {
     const tx = await transaction();
@@ -138,7 +137,8 @@ async function indexerSetup() {
 
 async function clearEndedAgreements(indexer) {
     //start clear ended agreements
-    const receipt = await sendTx(() => sdk.serviceAgreementRegistry.clearAllEndedAgreements(indexer));
+    const tx = await sdk.serviceAgreementRegistry.clearAllEndedAgreements(indexer);
+    const receipt = await tx.wait();
     const events = receipt.events;
     console.log(`clear agreements... `);
     events.forEach((event) => {
