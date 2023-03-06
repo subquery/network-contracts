@@ -47,8 +47,8 @@ export async function setupNetwork(sdk: SetupSdk, provider: Provider, config?: t
 
     console.info('Add airdrop controller account');
     for(let i = 0; i < controllers.length; i++){
-        await sendTx(sdk.airdropper.addController(controllers[i]));
-        console.log(`${controllers[i]}: ${await sendTx(() => sdk.airdropper.controllers(controllers[i]))}`)
+        await sendTx(() => sdk.airdropper.addController(controllers[i]));
+        console.log(`${controllers[i]}: ${await sdk.airdropper.controllers(controllers[i])}`)
     }
 
     // Create Airdrop round with period --- 10 days
