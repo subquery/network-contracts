@@ -32,12 +32,26 @@ describe('Airdropper Contract', () => {
         it('init settleDestination should be 0x00', async () => {
             expect(await airdropper.settleDestination()).to.equal(ZERO_ADDRESS);
         });
+        it('owner account set to be controller', async () => {
+            expect(await airdropper.controllers(wallet_0.address)).to.equal(true);
+        });
     });
 
     describe('config contract', () => {
         it('set settleDestination should work', async () => {
             await airdropper.setSettleDestination(wallet_3.address);
             expect(await airdropper.settleDestination()).to.equal(wallet_3.address);
+        });
+        it('add controller account should work', async () => {
+            expect(await airdropper.controllers(wallet_1.address)).to.equal(false);
+            await airdropper.addController(wallet_1.address);
+            expect(await airdropper.controllers(wallet_1.address)).to.equal(true);
+        });
+        it('remove controller account should work', async () => {
+            await airdropper.addController(wallet_1.address);
+            expect(await airdropper.controllers(wallet_1.address)).to.equal(true);
+            await airdropper.removeController(wallet_1.address);
+            expect(await airdropper.controllers(wallet_1.address)).to.equal(false);
         });
     });
 
@@ -79,6 +93,13 @@ describe('Airdropper Contract', () => {
                 )
             ).to.be.revertedWith('A001');
         });
+        it('create round with invaild caller should fail', async () => {
+            const startTime = (await lastestTime(mockProvider)) + 3600;
+            const endTime = await futureTimestamp(mockProvider, 60 * 60 * 24 * 3);
+            await expect(
+                airdropper.connect(wallet_1).createRound(sqtAddress, startTime, endTime)
+            ).to.be.revertedWith('A010');
+        });
     });
 
     describe('airdrop test', () => {
@@ -99,8 +120,7 @@ describe('Airdropper Contract', () => {
             await token.increaseAllowance(airdropper.address, etherParse('100'));
         });
         it('batch airdrop should work', async () => {
-            await expect(airdropper.connect(wallet_0)
-                .batchAirdrop(
+            await expect(airdropper.batchAirdrop(
                     [wallet_1.address, wallet_2.address], 
                     [1, 1], 
                     [etherParse('10'), etherParse('20')])
@@ -112,6 +132,15 @@ describe('Airdropper Contract', () => {
             expect(await airdropper.airdropRecord(wallet_2.address, 1)).to.be.eq(etherParse('20'));
             expect(await (await airdropper.roundRecord(1)).unclaimedAmount).to.be.eq(etherParse('30'));
             expect(await token.balanceOf(airdropper.address)).to.be.eq(etherParse('30'));
+        });
+        it('batch airdrop with invaild caller should fail', async () => {
+            await expect(airdropper.connect(wallet_1)
+                .batchAirdrop(
+                    [wallet_1.address, wallet_2.address], 
+                    [1, 1], 
+                    [etherParse('10'), etherParse('20')])
+                )
+            .to.be.revertedWith('A010');
         });
         it('duplicate airdrop should fail', async () => {
             await airdropper.batchAirdrop([wallet_1.address], [1], [etherParse('10')]);

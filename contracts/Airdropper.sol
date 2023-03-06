@@ -22,6 +22,7 @@ contract Airdropper is Ownable {
     mapping(uint256 => Round) public roundRecord;
     uint256 public nextRoundId;
     address public settleDestination;
+    mapping(address => bool) public controllers;
 
     event RoundCreated(uint256 indexed roundId, address tokenAddress, uint256 roundStartTime, uint256 roundDeadline);
 
@@ -31,15 +32,32 @@ contract Airdropper is Ownable {
 
     event RoundSettled(uint256 indexed roundId, address settleDestination, uint256 unclaimAmount);
 
+    modifier onlyController() {
+        require(controllers[msg.sender], 'A010');
+        _;
+    }
+
+    constructor() public {
+      controllers[msg.sender] = true;
+    }
+
     function setSettleDestination(address _settleDestination) external onlyOwner {
         settleDestination = _settleDestination;
+    }
+
+    function addController(address controller) external onlyOwner {
+        controllers[controller] = true;
+    }
+
+    function removeController(address controller) external onlyOwner {
+        controllers[controller] = false;
     }
 
     function createRound(
         address _tokenAddr,
         uint256 _roundStratTime,
         uint256 _roundDeadline
-    ) external onlyOwner returns (uint256) {
+    ) external onlyController returns (uint256) {
         require(_roundStratTime > block.timestamp && _roundDeadline > _roundStratTime, 'A001');
         require(_tokenAddr != address(0), 'G009');
         roundRecord[nextRoundId] = Round(_tokenAddr, _roundStratTime, _roundDeadline, 0);
@@ -67,7 +85,7 @@ contract Airdropper is Ownable {
         address[] calldata _addr,
         uint256[] calldata _roundId,
         uint256[] calldata _amount
-    ) external onlyOwner {
+    ) external onlyController {
         require(_addr.length == _roundId.length && _addr.length == _amount.length, 'G010');
         for (uint256 i = 0; i < _addr.length; i++) {
             _airdrop(_addr[i], _roundId[i], _amount[i]);
