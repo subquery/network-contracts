@@ -48,8 +48,7 @@ async function rootSetup() {
     console.log('eraPeriod is: ' + eraPeriod.toNumber());
     if (eraPeriod.toNumber() != 3600) {
         console.log('set eraPeriod to 3600 ...');
-        tx = await sdk.eraManager.updateEraPeriod(3600);
-        await tx.wait();
+        await sendTx(() => sdk.eraManager.updateEraPeriod(3600));
         eraPeriod = await sdk.eraManager.eraPeriod();
         console.log('eraPeriod is: ' + eraPeriod.toNumber());
     }
@@ -60,8 +59,7 @@ async function rootSetup() {
     console.log('lockPeriod is: ' + lockPeriod.toNumber());
     if (lockPeriod.toNumber() != 3600) {
         console.log('set lockPeriod to 3600 ...');
-        tx = await sdk.staking.setLockPeriod(3600);
-        await tx.wait();
+        await sendTx(() => sdk.staking.setLockPeriod(3600));
         lockPeriod = await sdk.staking.lockPeriod();
         console.log('lockPeriod is: ' + lockPeriod.toNumber());
     }
@@ -71,17 +69,14 @@ async function queryProjectSetup() {
     const next = await sdk.queryRegistry.nextQueryId();
     if (next.toNumber() == 0) {
         console.log('start create query project 0 ...');
-        tx = await sdk.queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
-        await tx.wait();
+        await sendTx(() => sdk.queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID));
     }
 
     const info = await sdk.queryRegistry.queryInfos(0);
     if (info.latestDeploymentId != DEPLOYMENT_ID) {
         console.log('start update query project 0 ...');
-        tx = await sdk.queryRegistry.updateDeployment(0, DEPLOYMENT_ID, VERSION);
-        await tx.wait();
-        tx = await sdk.queryRegistry.updateQueryProjectMetadata(0, METADATA_HASH);
-        await tx.wait();
+        await sendTx(() => sdk.queryRegistry.updateDeployment(0, DEPLOYMENT_ID, VERSION));
+        await sendTx(() => sdk.queryRegistry.updateQueryProjectMetadata(0, METADATA_HASH));
     }
 
     console.log('QueryProject 0: ');
@@ -94,14 +89,12 @@ async function planTemplateSetup() {
     const next = await sdk.planManager.nextPlanId();
     if (next.toNumber() == 0) {
         console.log('start create planTemplate 0 ...');
-        tx = await sdk.planManager.createPlanTemplate(10800, 10000, 10000, METADATA_HASH);
-        await tx.wait();
+        await sendTx(() => sdk.planManager.createPlanTemplate(10800, 10000, 10000, METADATA_HASH));
     }
     const info = await sdk.planManager.getPlanTemplate(0);
     if (info.metadata != METADATA_HASH) {
         console.log('start update PlanTemplate metadata ...');
-        tx = await sdk.planManager.updatePlanTemplateMetadata(0, METADATA_HASH);
-        await tx.wait();
+        await sendTx(() => sdk.planManager.updatePlanTemplateMetadata(0, METADATA_HASH));
     }
 
     console.log('PlanTemplate 0: ');
@@ -121,12 +114,9 @@ async function indexerSetup() {
         console.log(INDEXER_ADDR + ' is not an Indexer');
         console.log('start registerIndexer');
 
-        tx = await sdk.sqToken.connect(root_wallet).transfer(indexer_wallet.address, etherParse('1000'));
-        await tx.wait();
-        tx = await sdk.sqToken.connect(indexer_wallet).increaseAllowance(sdk.staking.address, etherParse('1000'));
-        await tx.wait();
-        tx = await sdk.indexerRegistry.connect(indexer_wallet).registerIndexer(etherParse('1000'), METADATA_HASH, 0);
-        await tx.wait();
+        await sendTx(() => sdk.sqToken.connect(root_wallet).transfer(indexer_wallet.address, etherParse('1000')));
+        await sendTx(() => sdk.sqToken.connect(indexer_wallet).increaseAllowance(sdk.staking.address, etherParse('1000')));
+        await sendTx(() => sdk.indexerRegistry.connect(indexer_wallet).registerIndexer(etherParse('1000'), METADATA_HASH, 0));
         console.log('Indexer registered with: ');
     }
     //console.log('METADATA_HASH: ' + (await sdk.indexerRegistry.metadata(INDEXER_ADDR)));
@@ -138,11 +128,9 @@ async function indexerSetup() {
     if (indexingStatus != 2) {
         if (indexingStatus == 0) {
             console.log('strat indexing ...');
-            tx = await sdk.queryRegistry.connect(indexer_wallet).startIndexing(DEPLOYMENT_ID);
-            await tx.wait();
+            await sendTx(() => sdk.queryRegistry.connect(indexer_wallet).startIndexing(DEPLOYMENT_ID));
         }
-        tx = await sdk.queryRegistry.connect(indexer_wallet).updateIndexingStatusToReady(DEPLOYMENT_ID);
-        await tx.wait();
+        await sendTx(() => sdk.queryRegistry.connect(indexer_wallet).updateIndexingStatusToReady(DEPLOYMENT_ID));
     }
     indexingStatus = (await sdk.queryRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR)).status;
     console.log(`Indexing status: ${indexingStatus}`);
@@ -150,8 +138,7 @@ async function indexerSetup() {
 
 async function clearEndedAgreements(indexer) {
     //start clear ended agreements
-    tx = await sdk.serviceAgreementRegistry.clearAllEndedAgreements(indexer);
-    const receipt = await tx.wait(2);
+    const receipt = await sendTx(() => sdk.serviceAgreementRegistry.clearAllEndedAgreements(indexer));
     const events = receipt.events;
     console.log(`clear agreements... `);
     events.forEach((event) => {
@@ -164,8 +151,7 @@ async function clearEndedAgreements(indexer) {
 async function planManagerTest() {
     //indexer create the plan
     console.log('indexer create a plan ...');
-    tx = await sdk.planManager.connect(indexer_wallet).createPlan(etherParse('10'), 0, DEPLOYMENT_ID);
-    await tx.wait();
+    await sendTx(() => sdk.planManager.connect(indexer_wallet).createPlan(etherParse('10'), 0, DEPLOYMENT_ID));
     const planId = (await sdk.planManager.nextPlanId()).sub(1);
     let plan = await sdk.planManager.getPlan(planId);
     console.log(`plan created with index ${planId.toString()}: `);
@@ -176,12 +162,9 @@ async function planManagerTest() {
 
     //consumer acept the plan
     console.log('consumer accept a plan ...');
-    tx = await sdk.sqToken.connect(root_wallet).transfer(consumer_wallet.address, etherParse('10000'));
-    await tx.wait();
-    tx = await sdk.sqToken.connect(consumer_wallet).increaseAllowance(sdk.planManager.address, etherParse('10'));
-    await tx.wait();
-    tx = await sdk.planManager.connect(consumer_wallet).acceptPlan(planId, DEPLOYMENT_ID);
-    await tx.wait();
+    await sendTx(() => sdk.sqToken.connect(root_wallet).transfer(consumer_wallet.address, etherParse('10000')));
+    await sendTx(() => sdk.sqToken.connect(consumer_wallet).increaseAllowance(sdk.planManager.address, etherParse('10')));
+    await sendTx(() => sdk.planManager.connect(consumer_wallet).acceptPlan(planId, DEPLOYMENT_ID));
     let agreementId = (await sdk.serviceAgreementRegistry.nextServiceAgreementId()).toNumber() - 1;
     let agreement = await sdk.serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
     console.log(`created agreemnt: ${agreementId}`);
@@ -196,10 +179,7 @@ async function planManagerTest() {
 
     //consumer renew the agreement
     console.log('consumer start renew the agreement ...');
-    tx = await sdk.sqToken
-        .connect(consumer_wallet)
-        .increaseAllowance(sdk.serviceAgreementRegistry.address, etherParse('10'));
-    await tx.wait();
+    await sendTx(() => sdk.sqToken.connect(consumer_wallet).increaseAllowance(sdk.serviceAgreementRegistry.address, etherParse('10')));
     agreementId = (await sdk.serviceAgreementRegistry.nextServiceAgreementId()).toNumber() - 1;
     agreement = await sdk.serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
     console.log(`renewed agreemnt: ${agreementId}`);
@@ -214,8 +194,7 @@ async function planManagerTest() {
 
     //indexer remove the plan
     console.log('indexer start remove the plan ...');
-    tx = await sdk.planManager.connect(indexer_wallet).removePlan(planId);
-    await tx.wait();
+    await sendTx(() => sdk.planManager.connect(indexer_wallet).removePlan(planId));
     plan = await sdk.planManager.getPlan(planId);
     if (!plan.active) {
         console.log(`plan ${planId} has been successfully removed`);
@@ -228,16 +207,9 @@ async function purchaseOfferTest() {
     //consumer create the purchaseOffer
     const offerId = await sdk.purchaseOfferMarket.numOffers();
     console.log('consumer create a purchaseOffer ...');
-    tx = await sdk.sqToken.connect(root_wallet).transfer(consumer_wallet.address, etherParse('20'));
-    await tx.wait();
-    tx = await sdk.sqToken
-        .connect(consumer_wallet)
-        .increaseAllowance(sdk.purchaseOfferMarket.address, etherParse('20'));
-    await tx.wait();
-    tx = await sdk.purchaseOfferMarket
-        .connect(consumer_wallet)
-        .createPurchaseOffer(DEPLOYMENT_ID, 0, etherParse('10'), 2, 0, await futureTimestamp());
-    await tx.wait();
+    await sendTx(() => sdk.sqToken.connect(root_wallet).transfer(consumer_wallet.address, etherParse('20')));
+    await sendTx(() => sdk.sqToken.connect(consumer_wallet).increaseAllowance(sdk.purchaseOfferMarket.address, etherParse('20')));
+    await sendTx(async () => sdk.purchaseOfferMarket.connect(consumer_wallet).createPurchaseOffer(DEPLOYMENT_ID, 0, etherParse('10'), 2, 0, await futureTimestamp()));
     let offer = await sdk.purchaseOfferMarket.offers(offerId);
     console.log('created purchaseOffer: ');
     console.log('deposit: ' + offer.deposit);
@@ -251,8 +223,7 @@ async function purchaseOfferTest() {
 
     //indexer accept the purchaseOffer
     console.log('indexer start accept the offer ...');
-    tx = await sdk.purchaseOfferMarket.connect(indexer_wallet).acceptPurchaseOffer(offerId, mmrRoot);
-    await tx.wait();
+    await sendTx(() => sdk.purchaseOfferMarket.connect(indexer_wallet).acceptPurchaseOffer(offerId, mmrRoot));
     const agreementId = (await sdk.serviceAgreementRegistry.nextServiceAgreementId()).toNumber() - 1;
     const agreement = await sdk.serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
     console.log(`created agreemnt: ${agreementId}`);
@@ -267,8 +238,7 @@ async function purchaseOfferTest() {
 
     //consumer cancel the PurchaseOffer
     console.log('consumer start cancel the offer ...');
-    tx = await sdk.purchaseOfferMarket.connect(consumer_wallet).cancelPurchaseOffer(offerId);
-    await tx.wait();
+    await sendTx(() => sdk.purchaseOfferMarket.connect(consumer_wallet).cancelPurchaseOffer(offerId));
     offer = await sdk.purchaseOfferMarket.offers(offerId);
     if (offer.active) {
         console.log(`purchaseOffer ${offerId} cancel failed`);
@@ -284,8 +254,7 @@ async function updateEra() {
         let period = (await sdk.eraManager.eraPeriod()).toNumber();
         let now = await futureTimestamp(0);
         if (startTime + period < now) {
-            tx = await sdk.eraManager.safeUpdateAndGetEra();
-            await tx.wait();
+            await sendTx(() => sdk.eraManager.safeUpdateAndGetEra());
             let currentEra = await sdk.eraManager.eraNumber();
             console.log(`update to era: ${currentEra}`);
         } else {
@@ -396,20 +365,20 @@ async function airdropTest() {
 async function permissionedExchangedtest() {
     let orderId = await sdk.permissionedExchange.nextOrderId();
     console.log(`strat create exchange order ${orderId}`);
-    tx = await sdk.sqToken.increaseAllowance(sdk.permissionedExchange.address, etherParse('100'));
-    await tx.wait();
+    await sendTx(() => sdk.sqToken.increaseAllowance(sdk.permissionedExchange.address, etherParse('100')));
     const usdcContract = new ethers.Contract(usdcAddress, Token.abi, Provider);
 
     await usdcContract.connect(root_wallet).increaseAllowance(sdk.permissionedExchange.address, 1000000);
-    tx = await sdk.permissionedExchange.createPairOrders(
-        usdcAddress,
-        sdk.sqToken.address,
-        1000000,
-        etherParse('5'),
-        await futureTimestamp(60 * 60 * 24),
-        1000000
+    await sendTx(async () =>
+        sdk.permissionedExchange.createPairOrders(
+            usdcAddress,
+            sdk.sqToken.address,
+            1000000,
+            etherParse('5'),
+            await futureTimestamp(60 * 60 * 24),
+            1000000
+        )
     );
-    await tx.wait();
     let order = await sdk.permissionedExchange.orders(orderId);
     console.log(`order ${orderId} created with: `);
     console.log(`tokenGive: ${order.tokenGive}`);
@@ -428,8 +397,7 @@ async function permissionedExchangedtest() {
         console.log(`root is the exchange controller`);
     } else {
         console.log(`start set controller for root wallet ... `);
-        tx = await sdk.permissionedExchange.setController(root_wallet.address, true);
-        await tx.wait();
+        await sendTx(() => sdk.permissionedExchange.setController(root_wallet.address, true));
         isController = await sdk.permissionedExchange.exchangeController(root_wallet.address);
         if (isController) {
             console.log(`set successed `);
@@ -441,14 +409,12 @@ async function permissionedExchangedtest() {
     let quota = await sdk.permissionedExchange.tradeQuota(sdk.sqToken.address, root_wallet.address);
     console.log(`sqt trade quota for root is ${quota}`);
     console.log(`strat addQuota to root wallet ...`);
-    tx = await sdk.permissionedExchange.addQuota(sdk.sqToken.address, root_wallet.address, etherParse('2.5'));
-    await tx.wait();
+    await sendTx(() => sdk.permissionedExchange.addQuota(sdk.sqToken.address, root_wallet.address, etherParse('2.5')));
     quota = await sdk.permissionedExchange.tradeQuota(sdk.sqToken.address, root_wallet.address);
     console.log(`sqt trade quota for root is ${quota}`);
 
     console.log(`strat trade on offer ${orderId} ...`);
-    tx = await sdk.permissionedExchange.trade(orderId, etherParse('2.5'));
-    await tx.wait();
+    await sendTx(() => sdk.permissionedExchange.trade(orderId, etherParse('2.5')));
     order = await sdk.permissionedExchange.orders(orderId);
     console.log(`amountGiveLeft for offer ${orderId} : ${order.tokenGiveBalance}`);
 }
