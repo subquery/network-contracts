@@ -37,6 +37,7 @@
     "A007": "Airdropper: insufficient assets",
     "A008": "invaild round to settle",
     "A009": "none token left",
+    "A010": "sender only airdrop controller",
     "C001": "Invalid feePercentage",
     "C002": "Insufficient balance",
     "C003": "None signers",
