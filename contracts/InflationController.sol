@@ -21,15 +21,20 @@ import './utils/MathUtil.sol';
  */
 contract InflationController is Initializable, OwnableUpgradeable, Constants {
     using MathUtil for uint256;
+
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
+
     /// @notice The one year inflation rate for SQT token
     uint256 public inflationRate;
+
     /// @notice The address to recevie the inflation SQT token
     address public inflationDestination;
+
     /// @notice Last inflation timestamp
     uint256 public lastInflationTimestamp;
+
     /// @notice Seconds for the Julian year
     uint256 private constant YEAR_SECONDS = (3600 * 24 * 36525) / 100;
 

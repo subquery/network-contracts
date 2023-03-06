@@ -1,4 +1,4 @@
-import {ethers, Wallet} from 'ethers';
+import {ContractReceipt, ContractTransaction, ethers, Wallet} from 'ethers';
 import {StaticJsonRpcProvider} from '@ethersproject/providers';
 
 import setup from './setup';
@@ -19,6 +19,13 @@ export type SetupSdk = {
     permissionedExchange: PermissionedExchange;
 };
 
+async function sendTx(transaction: () => Promise<ContractTransaction>): Promise<ContractReceipt> {
+    const tx = await transaction();
+    const receipt = await tx.wait();
+
+    return receipt;
+}
+
 async function getAirdropTimeConfig(provider) {
     const startTime = (await lastestTime(provider)) + 600;
     const endTime = startTime + 864000;
@@ -34,32 +41,31 @@ export async function setupNetwork(sdk: SetupSdk, provider: Provider, config?: t
     // Create Airdrop round with period --- 10 days
     console.info('Create and send airdrop');
     const {startTime, endTime} = await getAirdropTimeConfig(provider);
-    const tx = await sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime);
-    const receipt = await tx.wait(2);
-    const roundId =  receipt.events[0].args.roundId;
+    const receipt = await sendTx(() => sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime));
+    const roundId = receipt.events[0].args.roundId;
     const rounds = new Array(airdrops.length).fill(roundId);
-    await sdk.airdropper.batchAirdrop(airdrops, rounds, amounts);
+    await  sendTx(() => sdk.airdropper.batchAirdrop(airdrops, rounds, amounts));
 
     console.info('Setup plan templates');
     for (const template of planTemplates) {
         const {period, dailyReqCap, rateLimit} = template;
-        await sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, METADATA_HASH);
+        await sendTx(() => sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, METADATA_HASH));
     }
 
     console.info('Setup dictionary projects');
     const creator = await sdk.sqToken.owner();
-    await sdk.queryRegistry.addCreator(creator);
+    await sendTx(() => sdk.queryRegistry.addCreator(creator));
 
     // Add dictionary projects to query registry contract
     for (const dictionary of dictionaries) {
         const {metadataCid, versionCid, deploymentId} = dictionary;
-        try{
-            const tx = await sdk.queryRegistry.createQueryProject(
+        try {
+            await sendTx(() => sdk.queryRegistry.createQueryProject(
                 cidToBytes32(metadataCid),
                 cidToBytes32(versionCid),
                 cidToBytes32(deploymentId)
-            );
-        }catch(error){
+            ));
+        } catch (error) {
             console.log(error);
         }
     }
@@ -73,14 +79,14 @@ async function setupPermissionExchange(sdk: SetupSdk, provider: StaticJsonRpcPro
 
     await usdcContract.connect(wallet).increaseAllowance(sdk.permissionedExchange.address, tokenGiveBalance);
 
-    await sdk.permissionedExchange.createPairOrders(
+    await sendTx(() => sdk.permissionedExchange.createPairOrders(
         usdcAddress,
         sdk.sqToken.address,
         amountGive,
         amountGet,
         expireDate,
         tokenGiveBalance
-    );
+    ));
 }
 
 const main = async () => {

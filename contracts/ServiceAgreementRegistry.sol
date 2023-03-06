@@ -31,31 +31,41 @@ import './utils/MathUtil.sol';
 contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IServiceAgreementRegistry, Constants {
     using MathUtil for uint256;
 
-    // -- Storage --
-
+    /// @dev ### STATES
+    /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
-    //the id for next ServiceAgreement
+
+    /// @notice the id for next ServiceAgreement
     uint256 public nextServiceAgreementId;
-    //ServiceAgreementId => AgreementInfo
-    mapping(uint256 => ClosedServiceAgreementInfo) closedServiceAgreements;
-    //serviceAgreement address: Indexer address => index number => serviceAgreement address
-    mapping(address => mapping(uint256 => uint256)) public closedServiceAgreementIds;
-    //number of service agreements: Indexer address =>  number of service agreements
-    mapping(address => uint256) public indexerCsaLength;
-    //number of service agreements: Indexer address => DeploymentId => number of service agreements
-    mapping(address => mapping(bytes32 => uint256)) public indexerDeploymentCsaLength;
-    //address can establishServiceAgreement, for now only PurchaceOfferMarket and PlanManager addresses
-    mapping(address => bool) public establisherWhitelist;
-    //calculated sum daily reward: Indexer address => sumDailyReward
-    mapping(address => uint256) public sumDailyReward;
-    //users authorised by consumer that can request access token from indexer, for closed agreements only.
-    //consumer address => user address => bool
-    //We are using the statu `consumerAuthAllows` offchain.
-    mapping(address => mapping(address => bool)) public consumerAuthAllows;
-    //Multipler used to calculate Indexer reward limit
+
+    /// @notice Multipler used to calculate Indexer reward limit
     uint256 public threshold;
-    //second in a day
+
+    /// @notice second in a day
     uint256 private constant SECONDS_IN_DAY = 86400;
+
+    /// @notice ServiceAgreementId => AgreementInfo
+    mapping(uint256 => ClosedServiceAgreementInfo) private closedServiceAgreements;
+
+    /// @notice serviceAgreement address: Indexer address => index number => serviceAgreement address
+    mapping(address => mapping(uint256 => uint256)) public closedServiceAgreementIds;
+
+    /// @notice number of service agreements: Indexer address =>  number of service agreements
+    mapping(address => uint256) public indexerCsaLength;
+
+    /// @notice number of service agreements: Indexer address => DeploymentId => number of service agreements
+    mapping(address => mapping(bytes32 => uint256)) public indexerDeploymentCsaLength;
+
+    /// @notice address can establishServiceAgreement, for now only PurchaceOfferMarket and PlanManager addresses
+    mapping(address => bool) public establisherWhitelist;
+
+    /// @notice calculated sum daily reward: Indexer address => sumDailyReward
+    mapping(address => uint256) public sumDailyReward;
+
+    /// @notice users authorised by consumer that can request access token from indexer, for closed agreements only.
+    /// consumer address => user address => bool
+    /// We are using the statu `consumerAuthAllows` offchain.
+    mapping(address => mapping(address => bool)) public consumerAuthAllows;
 
     // -- Events --
 

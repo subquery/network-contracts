@@ -21,28 +21,6 @@ import './interfaces/IServiceAgreementRegistry.sol';
  * their indexing status from this contarct.
  */
 contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
-    /// @dev ### STATES
-    /// @notice ISettings contract which stores SubQuery network contracts address
-    ISettings public settings;
-    /// @notice creator address -> query project ids
-    mapping(address => uint256[]) public queryInfoIdsByOwner;
-    /// @notice query project ids -> QueryInfo
-    mapping(uint256 => QueryInfo) public queryInfos;
-    /// @notice account address -> is creator
-    mapping(address => bool) public creatorWhitelist;
-    /// @notice next query project id
-    uint256 public nextQueryId;
-    /// @notice Threshold to calculate is indexer offline
-    uint256 private offlineCalcThreshold;
-    /// @notice is the contract run in creator restrict mode. If in creator restrict mode, only permissioned account allowed to create and update query project
-    bool public creatorRestricted;
-    /// @notice deployment id -> indexer -> IndexingStatus
-    mapping(bytes32 => mapping(address => IndexingStatus)) public deploymentStatusByIndexer;
-    /// @notice indexer -> deployment numbers
-    mapping(address => uint256) public numberOfIndexingDeployments;
-    /// @notice is the id a deployment
-    mapping(bytes32 => bool) private deploymentIds;
-
     /// @notice query project information
     struct QueryInfo {
         uint256 queryId;
@@ -60,39 +38,64 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         IndexingServiceStatus status;
     }
 
+    /// @dev ### STATES
+    /// @notice ISettings contract which stores SubQuery network contracts address
+    ISettings public settings;
+
+    /// @notice next query project id
+    uint256 public nextQueryId;
+
+    /// @notice is the contract run in creator restrict mode. If in creator restrict mode, only permissioned account allowed to create and update query project
+    bool public creatorRestricted;
+
+    /// @notice Threshold to calculate is indexer offline
+    uint256 private offlineCalcThreshold;
+
+    /// @notice query project ids -> QueryInfo
+    mapping(uint256 => QueryInfo) public queryInfos;
+
+    /// @notice account address -> is creator
+    mapping(address => bool) public creatorWhitelist;
+
+    /// @notice deployment id -> indexer -> IndexingStatus
+    mapping(bytes32 => mapping(address => IndexingStatus)) public deploymentStatusByIndexer;
+
+    /// @notice indexer -> deployment numbers
+    mapping(address => uint256) public numberOfIndexingDeployments;
+
+    /// @notice is the id a deployment
+    mapping(bytes32 => bool) private deploymentIds;
+
     /// @dev EVENTS
     /// @notice Emitted when query project created.
-    event CreateQuery(
-        uint256 indexed queryId,
-        address indexed creator,
-        bytes32 metadata,
-        bytes32 deploymentId,
-        bytes32 version
-    );
+    event CreateQuery(uint256 indexed queryId, address indexed creator, bytes32 metadata, bytes32 deploymentId, bytes32 version);
+
     /// @notice Emitted when the metadata of the query project updated.
     event UpdateQueryMetadata(address indexed owner, uint256 indexed queryId, bytes32 metadata);
+
     /// @notice Emitted when the latestDeploymentId of the query project updated.
     event UpdateQueryDeployment(address indexed owner, uint256 indexed queryId, bytes32 deploymentId, bytes32 version);
+
     /// @notice Emitted when indexers start indexing.
     event StartIndexing(address indexed indexer, bytes32 indexed deploymentId);
+
     /// @notice Emitted when indexers report their indexing Status
-    event UpdateDeploymentStatus(
-        address indexed indexer,
-        bytes32 indexed deploymentId,
-        uint256 blockheight,
-        bytes32 mmrRoot,
-        uint256 timestamp
-    );
+    event UpdateDeploymentStatus(address indexed indexer, bytes32 indexed deploymentId, uint256 blockheight, bytes32 mmrRoot, uint256 timestamp);
+
     /// @notice Emitted when indexers update their indexing Status to ready
     event UpdateIndexingStatusToReady(address indexed indexer, bytes32 indexed deploymentId);
+
     /// @notice Emitted when indexers stop indexing
     event StopIndexing(address indexed indexer, bytes32 indexed deploymentId);
 
+    /// @dev MODIFIER
+    /// @notice only indexer can call
     modifier onlyIndexer() {
         require(IIndexerRegistry(settings.getIndexerRegistry()).isIndexer(msg.sender), 'G002');
         _;
     }
 
+    /// @notice only creator can call if it is creatorRestricted
     modifier onlyCreator() {
         if (creatorRestricted) {
             require(creatorWhitelist[msg.sender], 'QR001');
@@ -147,10 +150,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
      * @notice check if the IndexingStatus available to update ststus
      */
     function canModifyStatus(IndexingStatus memory currentStatus, uint256 _timestamp) private view {
-        require(
-            currentStatus.status != IndexingServiceStatus.NOTINDEXING,
-            'QR002'
-        );
+        require(currentStatus.status != IndexingServiceStatus.NOTINDEXING, 'QR002');
         require(currentStatus.timestamp < _timestamp, 'QR003');
         require(_timestamp <= block.timestamp, 'QR004');
     }
@@ -158,26 +158,20 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
      * @notice check if the IndexingStatus available to update BlockHeight
      */
     function canModifyBlockHeight(IndexingStatus memory currentStatus, uint256 blockheight) private pure {
-        require(
-            blockheight >= currentStatus.blockHeight,
-            'QR005'
-        );
+        require(blockheight >= currentStatus.blockHeight, 'QR005');
     }
 
     /**
      * @notice create a QueryProject, if in the restrict mode, only creator allowed to call this function
      */
-    function createQueryProject(
-        bytes32 metadata,
-        bytes32 version,
-        bytes32 deploymentId
-    ) external onlyCreator {
-        uint256 queryId = nextQueryId;
+    function createQueryProject(bytes32 metadata, bytes32 version, bytes32 deploymentId) external onlyCreator {
         require(!deploymentIds[deploymentId], 'QR006');
+
+        uint256 queryId = nextQueryId;
         queryInfos[queryId] = QueryInfo(queryId, msg.sender, version, deploymentId, metadata);
-        queryInfoIdsByOwner[msg.sender].push(queryId);
         nextQueryId++;
         deploymentIds[deploymentId] = true;
+
         emit CreateQuery(queryId, msg.sender, metadata, deploymentId, version);
     }
 
@@ -187,24 +181,24 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     function updateQueryProjectMetadata(uint256 queryId, bytes32 metadata) external onlyCreator {
         address queryOwner = queryInfos[queryId].owner;
         require(queryOwner == msg.sender, 'QR007');
+
         queryInfos[queryId].metadata = metadata;
+
         emit UpdateQueryMetadata(queryOwner, queryId, metadata);
     }
 
     /**
      * @notice update the deployment of a QueryProject, if in the restrict mode, only creator allowed call this function
      */
-    function updateDeployment(
-        uint256 queryId,
-        bytes32 deploymentId,
-        bytes32 version
-    ) external onlyCreator {
+    function updateDeployment(uint256 queryId, bytes32 deploymentId, bytes32 version) external onlyCreator {
         address queryOwner = queryInfos[queryId].owner;
         require(queryOwner == msg.sender, 'QR008');
         require(!deploymentIds[deploymentId], 'QR006');
+
         queryInfos[queryId].latestDeploymentId = deploymentId;
         queryInfos[queryId].latestVersion = version;
         deploymentIds[deploymentId] = true;
+
         emit UpdateQueryDeployment(queryOwner, queryId, deploymentId, version);
     }
 
@@ -215,6 +209,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender].status;
         require(currentStatus == IndexingServiceStatus.NOTINDEXING, 'QR009');
         require(deploymentIds[deploymentId], 'QR006');
+
         deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingStatus(
             deploymentId,
             0,
@@ -222,6 +217,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
             IndexingServiceStatus.INDEXING
         );
         numberOfIndexingDeployments[msg.sender]++;
+
         emit StartIndexing(msg.sender, deploymentId);
     }
 
@@ -237,29 +233,24 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
 
         currentStatus.status = IndexingServiceStatus.READY;
         currentStatus.timestamp = timestamp;
+
         emit UpdateIndexingStatusToReady(indexer, deploymentId);
     }
 
     /**
      * @notice Indexer report its indexing status with a specific deploymentId
      */
-    function reportIndexingStatus(
-        address indexer,
-        bytes32 deploymentId,
-        uint256 _blockheight,
-        bytes32 _mmrRoot,
-        uint256 _timestamp
-    ) external {
+    function reportIndexingStatus(address indexer, bytes32 deploymentId, uint256 blockheight, bytes32 mmrRoot, uint256 timestamp) external {
         require(indexer == msg.sender || IIndexerRegistry(settings.getIndexerRegistry()).getController(indexer) == msg.sender, 'IR007');
 
         IndexingStatus storage currentStatus = deploymentStatusByIndexer[deploymentId][indexer];
-        canModifyStatus(currentStatus, _timestamp);
-        canModifyBlockHeight(currentStatus, _blockheight);
+        canModifyStatus(currentStatus, timestamp);
+        canModifyBlockHeight(currentStatus, blockheight);
 
-        currentStatus.timestamp = _timestamp;
-        currentStatus.blockHeight = _blockheight;
+        currentStatus.timestamp = timestamp;
+        currentStatus.blockHeight = blockheight;
 
-        emit UpdateDeploymentStatus(indexer, deploymentId, _blockheight, _mmrRoot, _timestamp);
+        emit UpdateDeploymentStatus(indexer, deploymentId, blockheight, mmrRoot, timestamp);
     }
 
     /**
@@ -269,7 +260,6 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
         IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender].status;
 
         require(currentStatus != IndexingServiceStatus.NOTINDEXING, 'QR010');
-
         require(
             !IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).hasOngoingClosedServiceAgreement(
                 msg.sender,
@@ -284,17 +274,12 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
     }
 
     /**
-     * @notice the number of query projects create by the account
-     */
-    function queryInfoCountByOwner(address user) external view returns (uint256) {
-        return queryInfoIdsByOwner[user].length;
-    }
-    /**
      * @notice is the indexer available to indexing with a specific deploymentId
      */
     function isIndexingAvailable(bytes32 deploymentId, address indexer) external view returns (bool) {
         return deploymentStatusByIndexer[deploymentId][indexer].status == IndexingServiceStatus.READY;
     }
+
     /**
      * @notice is the indexer offline on a specific deploymentId
      */
