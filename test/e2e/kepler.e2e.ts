@@ -1,5 +1,5 @@
 import { ContractSDK } from '@subql/contract-sdk';
-import {Wallet, utils, BigNumber, ContractTransaction, ethers} from 'ethers';
+import {Wallet, utils, BigNumber, ContractTransaction, ethers, ContractReceipt} from 'ethers';
 import web3 from 'web3';
 import setup from '../../scripts/setup';
 import assert from 'assert';
@@ -18,11 +18,12 @@ const usdcAddress = '0xE097d6B3100777DC31B34dC2c58fB524C2e76921';
 let root_wallet, indexer_wallet, consumer_wallet;
 let sdk: ContractSDK;
 
-async function sendTx(transaction: () => Promise<ContractTransaction>) {
+async function sendTx(transaction: () => Promise<ContractTransaction>): Promise<ContractReceipt> {
     const tx = await transaction();
-    await tx.wait();
-}
+    const receipt = await tx.wait();
 
+    return receipt;
+}
 function etherParse(etherNum) {
     return BigNumber.from(web3.utils.toWei(etherNum, 'ether'));
 }
@@ -41,6 +42,7 @@ async function indexerCollectRewards() {
 }
 
 async function rootSetup() {
+    console.log('\n====Setup network=====\n');
     //set eraPeriod: 1h
     console.log('eraPeriod check');
     let eraPeriod = await sdk.eraManager.eraPeriod();
@@ -65,6 +67,7 @@ async function rootSetup() {
 }
 
 async function queryProjectSetup() {
+    console.log('\n====Setup query project =====\n');
     const next = await sdk.queryRegistry.nextQueryId();
     if (next.toNumber() == 0) {
         console.log('start create query project 0 ...');
@@ -85,6 +88,7 @@ async function queryProjectSetup() {
 }
 
 async function planTemplateSetup() {
+    console.log('\n====Create plan templates=====\n');
     const next = await sdk.planManager.nextPlanId();
     if (next.toNumber() == 0) {
         console.log('start create planTemplate 0 ...');
@@ -104,6 +108,7 @@ async function planTemplateSetup() {
 }
 
 async function indexerSetup() {
+    console.log('\n====Setup indexer=====\n');
     //Indexer registration
     console.log('check indexer status');
     const isIndexer = await sdk.indexerRegistry.isIndexer(INDEXER_ADDR);
@@ -118,7 +123,7 @@ async function indexerSetup() {
         await sendTx(() => sdk.indexerRegistry.connect(indexer_wallet).registerIndexer(etherParse('1000'), METADATA_HASH, 0));
         console.log('Indexer registered with: ');
     }
-    //console.log('METADATA_HASH: ' + (await sdk.indexerRegistry.metadata(INDEXER_ADDR)));
+
     console.log('commissionRates: ' + (await sdk.indexerRegistry.getCommissionRate(INDEXER_ADDR)));
     console.log('TotalStakingAmount: ' + (await sdk.stakingManager.getTotalStakingAmount(INDEXER_ADDR)));
 
@@ -136,11 +141,10 @@ async function indexerSetup() {
 }
 
 async function clearEndedAgreements(indexer) {
+    console.log('\n====Clear end agreements=====\n');
     //start clear ended agreements
-    const tx = await sdk.serviceAgreementRegistry.clearAllEndedAgreements(indexer);
-    const receipt = await tx.wait();
+    const receipt = await sendTx(() => sdk.serviceAgreementRegistry.clearAllEndedAgreements(indexer));
     const events = receipt.events;
-    console.log(`clear agreements... `);
     events.forEach((event) => {
         if(event.args){
             console.log(event.args);
@@ -149,6 +153,7 @@ async function clearEndedAgreements(indexer) {
 }
 
 async function planManagerTest() {
+    console.log('\n====Plan mananger=====\n');
     //indexer create the plan
     console.log('indexer create a plan ...');
     await sendTx(() => sdk.planManager.connect(indexer_wallet).createPlan(etherParse('10'), 0, DEPLOYMENT_ID));
@@ -204,7 +209,8 @@ async function planManagerTest() {
 }
 
 async function purchaseOfferTest() {
-    //consumer create the purchaseOffer
+    console.log('\n====Purchase offer=====\n');
+    // consumer create the purchaseOffer
     const offerId = await sdk.purchaseOfferMarket.numOffers();
     console.log('consumer create a purchaseOffer ...');
     await sendTx(() => sdk.sqToken.connect(root_wallet).transfer(consumer_wallet.address, etherParse('20')));
@@ -248,7 +254,7 @@ async function purchaseOfferTest() {
 }
 
 async function updateEra() {
-    console.log('start update era ...');
+    console.log('\n====Update Era=====\n');
     while (true) {
         let startTime = (await sdk.eraManager.eraStartTime()).toNumber();
         let period = (await sdk.eraManager.eraPeriod()).toNumber();
@@ -287,7 +293,7 @@ async function stakingTest() {
 }
 
 async function distributeAndClaimRewards() {
-    console.log('\n====Distribute and Claim Rewards=====\n');
+    console.log('\n====Distribute and claim rewards=====\n');
     while (true) {
         try {
             const currentEra = await sdk.eraManager.eraNumber();
@@ -329,11 +335,11 @@ async function airdropTest() {
     console.log('\n====Airdrop=====\n');
 
     const airdrops = [
-        '0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4', // Michael test account
-        '0x592C6A31df20DD24a7d33f5fe526730358337189', // Ian test account
-        '0x9184cFF04fD32123db66329Ab50Bf176ece2e211', // Louise test account
-        '0xFf60C1Efa7f0F10594229D8A68c312d7020E3478', // Louise test account
-        '0xBDB9D4dC13c5E3E59B7fd69230c7F44f7170Ce02', // Brittany test account
+        '0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4', 
+        '0x592C6A31df20DD24a7d33f5fe526730358337189',
+        '0x9184cFF04fD32123db66329Ab50Bf176ece2e211',
+        '0xFf60C1Efa7f0F10594229D8A68c312d7020E3478',
+        '0xBDB9D4dC13c5E3E59B7fd69230c7F44f7170Ce02',
         '0x0421700EE1890d461353A54eAA481488f440A68f',
     ];
 
@@ -363,6 +369,7 @@ async function airdropTest() {
 }
 
 async function permissionedExchangedtest() {
+    console.log('\n====Setup exchange=====\n');
     let orderId = await sdk.permissionedExchange.nextOrderId();
     console.log(`strat create exchange order ${orderId}`);
     await sendTx(() => sdk.sqToken.increaseAllowance(sdk.permissionedExchange.address, etherParse('100')));
@@ -434,14 +441,14 @@ async function main() {
     INDEXER_ADDR = indexer_wallet.address;
     CONSUMER_ADDR = consumer_wallet.address;
 
-    // await rootSetup();
-    // await queryProjectSetup();
-    // await planTemplateSetup();
-    // await indexerSetup();
-    // await clearEndedAgreements(INDEXER_ADDR);
-    // await planManagerTest();
-    // await purchaseOfferTest();
-    // await updateEra();
+    await rootSetup();
+    await queryProjectSetup();
+    await planTemplateSetup();
+    await indexerSetup();
+    await clearEndedAgreements(INDEXER_ADDR);
+    await planManagerTest();
+    await purchaseOfferTest();
+    await updateEra();
     await stakingTest();
     await distributeAndClaimRewards();
     await airdropTest();
