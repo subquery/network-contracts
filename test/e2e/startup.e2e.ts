@@ -33,7 +33,7 @@ describe('startup script', () => {
         it('airdropper setups should work', async () => {
             expect(await sdk.airdropper.nextRoundId()).to.be.equal(1);
             expect((await sdk.airdropper.roundRecord(0)).tokenAddress).to.equal(sdk.sqToken.address);
-            expect((await sdk.airdropper.roundRecord(0)).unclaimedAmount).to.equal(2100);
+            expect((await sdk.airdropper.roundRecord(0)).unclaimedAmount).to.equal(5100);
 
             const {setupConfig} = config;
             const {airdrops, amounts} = setupConfig;

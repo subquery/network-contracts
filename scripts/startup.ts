@@ -11,13 +11,6 @@ import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
 
 import deployment from '../publish/testnet.json';
 
-const controllers = [
-    "0x4306908d323748Bd627aec4a91660Ad03DB4e29C",
-    "0xD6dFF314C7f87fC2705935350644262160F23905",
-    "0x0421700EE1890d461353A54eAA481488f440A68f",
-    "0x917289E62Bdc2c322412a39Ad977861b13c3b508",
-];
-
 export type SetupSdk = {
     sqToken: SQToken;
     airdropper: Airdropper;
@@ -46,10 +39,8 @@ export async function setupNetwork(sdk: SetupSdk, provider: Provider, config?: t
     await sdk.sqToken.increaseAllowance(sdk.airdropper.address, '10000000');
 
     console.info('Add airdrop controller account');
-    for(let i = 0; i < controllers.length; i++){
-        await sendTx(() => sdk.airdropper.addController(controllers[i]));
-        console.log(`${controllers[i]}: ${await sdk.airdropper.controllers(controllers[i])}`)
-    }
+    await sendTx(() => sdk.airdropper.addController("0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77"));
+    console.log(`0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77: ${await sdk.airdropper.controllers("0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77")}`)
 
     // Create Airdrop round with period --- 10 days
     console.info('Create and send airdrop');
