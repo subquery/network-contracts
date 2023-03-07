@@ -6,10 +6,12 @@
             "0x9184cFF04fD32123db66329Ab50Bf176ece2e211",
             "0xFf60C1Efa7f0F10594229D8A68c312d7020E3478",
             "0xBDB9D4dC13c5E3E59B7fd69230c7F44f7170Ce02",
-            "0x0421700EE1890d461353A54eAA481488f440A68f"
+            "0x0421700EE1890d461353A54eAA481488f440A68f",
+            "0x4306908d323748Bd627aec4a91660Ad03DB4e29C",
+            "0xD6dFF314C7f87fC2705935350644262160F23905",
+            "0x917289E62Bdc2c322412a39Ad977861b13c3b508"
         ],
-        "amounts": [100, 200, 300, 400, 500, 600],
-        "rounds": [0, 0, 0, 0, 0, 0],
+        "amounts": [100, 200, 300, 400, 500, 600, 900, 900, 1200],
         "planTemplates": [
             {"period": 129600, "dailyReqCap": 100000, "rateLimit": 6000},
             {"period": 86400, "dailyReqCap": 50000, "rateLimit": 3000},
