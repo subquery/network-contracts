@@ -61,6 +61,9 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
     }
 
     function indexerCatchup(address indexer) public {
+        StakingManager stakingManager = StakingManager(settings.getStakingManager());
+        stakingManager.widthdraw(indexer);
+
         RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getRewardsDistributer());
         RewardsStaking rewardsStaking = RewardsStaking(settings.getRewardsStaking());
         uint256 currentEra = IEraManager(settings.getEraManager()).eraNumber();

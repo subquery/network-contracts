@@ -125,24 +125,25 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @dev Withdraw max 10 mature unbond requests from an indexer.
+     * @dev Withdraw max 21 mature unbond requests from an indexer.
      * Each withdraw need to exceed lockPeriod.
      */
-    function widthdraw() external {
+    function widthdraw(address indexer) external {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
+        require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(indexer), 'G006');
+
         Staking staking = Staking(settings.getStaking());
-        require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(msg.sender), 'G006');
-        uint256 withdrawingLength = staking.unbondingLength(msg.sender) - staking.withdrawnLength(msg.sender);
+        uint256 withdrawingLength = staking.unbondingLength(indexer) - staking.withdrawnLength(indexer);
         require(withdrawingLength > 0, 'S009');
 
-        uint256 latestWithdrawnLength = staking.withdrawnLength(msg.sender);
+        uint256 latestWithdrawnLength = staking.withdrawnLength(indexer);
         for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
-            (,,uint256 startTime) = staking.unbondingAmount(msg.sender, i);
+            (,,uint256 startTime) = staking.unbondingAmount(indexer, i);
             if (block.timestamp - startTime < staking.lockPeriod()) {
                 break;
             }
 
-            staking.withdrawARequest(msg.sender, i);
+            staking.withdrawARequest(indexer, i);
         }
     }
 
