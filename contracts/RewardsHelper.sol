@@ -9,6 +9,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './RewardsDistributer.sol';
+import './StakingManager.sol';
 import './RewardsStaking.sol';
 import './utils/MathUtil.sol';
 

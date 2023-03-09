@@ -128,22 +128,22 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      * @dev Withdraw max 21 mature unbond requests from an indexer.
      * Each withdraw need to exceed lockPeriod.
      */
-    function widthdraw(address account) external {
+    function widthdraw(address source) external {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
-        require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(account), 'G006');
+        require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(source), 'G006');
 
         Staking staking = Staking(settings.getStaking());
-        uint256 withdrawingLength = staking.unbondingLength(account) - staking.withdrawnLength(account);
+        uint256 withdrawingLength = staking.unbondingLength(source) - staking.withdrawnLength(source);
         require(withdrawingLength > 0, 'S009');
 
-        uint256 latestWithdrawnLength = staking.withdrawnLength(account);
+        uint256 latestWithdrawnLength = staking.withdrawnLength(source);
         for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
-            (,,uint256 startTime) = staking.unbondingAmount(account, i);
+            (,,uint256 startTime) = staking.unbondingAmount(source, i);
             if (block.timestamp - startTime < staking.lockPeriod()) {
                 break;
             }
 
-            staking.withdrawARequest(account, i);
+            staking.withdrawARequest(source, i);
         }
     }
 

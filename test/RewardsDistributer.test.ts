@@ -21,7 +21,7 @@ import {
     Settings,
     InflationController,
 } from '../src';
-import {startNewEra, time, acceptPlan, etherParse, timeTravel, eventFrom} from './helper';
+import {startNewEra, time, acceptPlan, etherParse, timeTravel, eventFrom, eraTravel} from './helper';
 
 // FIXME: there are many values changed in the test, need to evalutate whether it is correct
 
@@ -176,6 +176,7 @@ describe('RewardsDistributer Contract', () => {
             );
             await acceptPlan(root, consumer, 30, etherParse('3'), DEPLOYMENT_ID, serviceAgreementRegistry, planManager);
         });
+
         it('rewards should be able to collect and distribute', async () => {
             //move to Era3
             await startNewEra(mockProvider, eraManager);
@@ -236,119 +237,6 @@ describe('RewardsDistributer Contract', () => {
             await rewardsDistributor.connect(indexer).claim(indexer.address);
             // TODO: further investiget why the balance changed ?
             expect(await (await token.balanceOf(indexer.address)).div(1e14)).to.be.eq(13499);
-        });
-
-        it('indexerCatchup with no pending change', async () => {
-            expect(await eraManager.eraNumber()).to.be.eq(2);
-            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
-            //move to Era8
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await rewardsHelper.indexerCatchup(indexer.address);
-            expect(await eraManager.eraNumber()).to.be.eq(8);
-            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(7);
-            expect(await rewardsStaking.getLastSettledEra(indexer.address)).to.be.eq(7);
-        });
-
-        it('indexerCatchup with middle pending changes', async () => {
-            expect(await eraManager.eraNumber()).to.be.eq(2);
-            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
-            //move to Era8
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await rewardsHelper.indexerCatchup(indexer.address);
-            await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
-            await stakingManager.connect(delegator2).delegate(indexer.address, etherParse('2'));
-            await indexerRegistry.connect(indexer).setCommissionRate(200);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await rewardsHelper.indexerCatchup(indexer.address);
-            expect(await eraManager.eraNumber()).to.be.eq(8);
-            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(7);
-            expect(await rewardsStaking.getLastSettledEra(indexer.address)).to.be.eq(7);
-            expect((await rewardsHelper.getPendingStakers(indexer.address)).length).to.be.eq(0);
-            expect(await rewardsStaking.getCommissionRate(indexer.address)).to.be.eq(200);
-        });
-
-        it('indexerCatchup with start pending changes', async () => {
-            expect(await eraManager.eraNumber()).to.be.eq(2);
-            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
-            await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
-            await stakingManager.connect(delegator2).delegate(indexer.address, etherParse('2'));
-            await indexerRegistry.connect(indexer).setCommissionRate(200);
-            //move to Era8
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await rewardsHelper.indexerCatchup(indexer.address);
-            expect(await eraManager.eraNumber()).to.be.eq(8);
-            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(7);
-            expect(await rewardsStaking.getLastSettledEra(indexer.address)).to.be.eq(7);
-            expect((await rewardsHelper.getPendingStakers(indexer.address)).length).to.be.eq(0);
-            expect(await rewardsStaking.getCommissionRate(indexer.address)).to.be.eq(200);
-        });
-
-        it('indexerCatchup with end pending changes', async () => {
-            expect(await eraManager.eraNumber()).to.be.eq(2);
-            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
-            //move to Era8
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await rewardsHelper.indexerCatchup(indexer.address);
-            await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
-            await stakingManager.connect(delegator2).delegate(indexer.address, etherParse('2'));
-            await indexerRegistry.connect(indexer).setCommissionRate(200);
-            await startNewEra(mockProvider, eraManager);
-            await rewardsHelper.indexerCatchup(indexer.address);
-            expect(await eraManager.eraNumber()).to.be.eq(8);
-            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(7);
-            expect(await rewardsStaking.getLastSettledEra(indexer.address)).to.be.eq(7);
-            expect((await rewardsHelper.getPendingStakers(indexer.address)).length).to.be.eq(0);
-            expect(await rewardsStaking.getCommissionRate(indexer.address)).to.be.eq(100000);
-        });
-
-        it('indexerCatchup with unregistered indexer', async () => {
-            expect(await eraManager.eraNumber()).to.be.eq(2);
-            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
-            await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
-            await stakingManager.connect(delegator2).delegate(indexer.address, etherParse('2'));
-            await indexerRegistry.connect(indexer).setCommissionRate(200);
-            //move to Era13
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await serviceAgreementRegistry.clearAllEndedAgreements(indexer.address);
-            await queryRegistry.connect(indexer).stopIndexing(DEPLOYMENT_ID);
-            await rewardsHelper.indexerCatchup(indexer.address);
-            await indexerRegistry.connect(indexer).unregisterIndexer({gasLimit: '1000000'});
-            await startNewEra(mockProvider, eraManager);
-            await rewardsHelper.indexerCatchup(indexer.address);
-            expect(await eraManager.eraNumber()).to.be.eq(13);
-            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(12);
-            expect(await rewardsStaking.getLastSettledEra(indexer.address)).to.be.eq(12);
-            expect((await rewardsHelper.getPendingStakers(indexer.address)).length).to.be.eq(0);
-            expect(await rewardsStaking.getCommissionRate(indexer.address)).to.be.eq(200);
-            await stakingManager.connect(delegator).undelegate(indexer.address, etherParse('1'));
-            await stakingManager.connect(delegator2).undelegate(indexer.address, etherParse('2'));
         });
 
         it('claim 0 reward should fail', async () => {
@@ -469,10 +357,7 @@ describe('RewardsDistributer Contract', () => {
             //delegatior delegate 1000 SQT
             await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
 
-            //move to era4
-            await startNewEra(mockProvider, eraManager);
-            //move to era5
-            await startNewEra(mockProvider, eraManager);
+            await eraTravel(mockProvider, eraManager, 2);
             //distribute era3
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             //not apply the change happened in era3， distribute era4
@@ -523,9 +408,7 @@ describe('RewardsDistributer Contract', () => {
 
         it('not apply commission rate should fail', async () => {
             await indexerRegistry.connect(indexer).setCommissionRate(200);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
+            await eraTravel(mockProvider, eraManager, 3);
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             await expect(rewardsDistributor.collectAndDistributeRewards(indexer.address)).to.be.revertedWith(
@@ -538,9 +421,7 @@ describe('RewardsDistributer Contract', () => {
         it('stake and ICR change should be able to happen at same Era', async () => {
             await indexerRegistry.connect(indexer).setCommissionRate(200);
             await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
+            await eraTravel(mockProvider, eraManager, 3);
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             await expect(rewardsDistributor.collectAndDistributeRewards(indexer.address)).to.be.revertedWith(
                 'RD005'
@@ -554,6 +435,106 @@ describe('RewardsDistributer Contract', () => {
             expect(await rewardsStaking.getCommissionRate(indexer.address)).to.be.eq(200);
         });
     });
+
+    describe('Indexer catch up', () => {
+        it('indexerCatchup with no pending change', async () => {
+            expect(await eraManager.eraNumber()).to.be.eq(2);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
+            //move to Era8
+            await eraTravel(mockProvider, eraManager, 6);
+            await rewardsHelper.indexerCatchup(indexer.address);
+            expect(await eraManager.eraNumber()).to.be.eq(8);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(7);
+            expect(await rewardsStaking.getLastSettledEra(indexer.address)).to.be.eq(7);
+        });
+
+        it('indexerCatchup with middle pending changes', async () => {
+            expect(await eraManager.eraNumber()).to.be.eq(2);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
+            //move to Era8
+            await eraTravel(mockProvider, eraManager, 3);
+            await rewardsHelper.indexerCatchup(indexer.address);
+            await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
+            await stakingManager.connect(delegator2).delegate(indexer.address, etherParse('2'));
+            await indexerRegistry.connect(indexer).setCommissionRate(200);
+
+            await eraTravel(mockProvider, eraManager, 3);
+            await rewardsHelper.indexerCatchup(indexer.address);
+            expect(await eraManager.eraNumber()).to.be.eq(8);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(7);
+            expect(await rewardsStaking.getLastSettledEra(indexer.address)).to.be.eq(7);
+            expect((await rewardsHelper.getPendingStakers(indexer.address)).length).to.be.eq(0);
+            expect(await rewardsStaking.getCommissionRate(indexer.address)).to.be.eq(200);
+        });
+
+        it('indexerCatchup with start pending changes', async () => {
+            expect(await eraManager.eraNumber()).to.be.eq(2);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
+            await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
+            await stakingManager.connect(delegator2).delegate(indexer.address, etherParse('2'));
+            await indexerRegistry.connect(indexer).setCommissionRate(200);
+            //move to Era8
+            await eraTravel(mockProvider, eraManager, 6);
+            await rewardsHelper.indexerCatchup(indexer.address);
+            expect(await eraManager.eraNumber()).to.be.eq(8);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(7);
+            expect(await rewardsStaking.getLastSettledEra(indexer.address)).to.be.eq(7);
+            expect((await rewardsHelper.getPendingStakers(indexer.address)).length).to.be.eq(0);
+            expect(await rewardsStaking.getCommissionRate(indexer.address)).to.be.eq(200);
+        });
+
+        it('indexerCatchup with end pending changes', async () => {
+            expect(await eraManager.eraNumber()).to.be.eq(2);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
+            //move to Era8
+            await eraTravel(mockProvider, eraManager, 5);
+            await rewardsHelper.indexerCatchup(indexer.address);
+            await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
+            await stakingManager.connect(delegator2).delegate(indexer.address, etherParse('2'));
+            await indexerRegistry.connect(indexer).setCommissionRate(200);
+            await startNewEra(mockProvider, eraManager);
+            await rewardsHelper.indexerCatchup(indexer.address);
+            expect(await eraManager.eraNumber()).to.be.eq(8);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(7);
+            expect(await rewardsStaking.getLastSettledEra(indexer.address)).to.be.eq(7);
+            expect((await rewardsHelper.getPendingStakers(indexer.address)).length).to.be.eq(0);
+            expect(await rewardsStaking.getCommissionRate(indexer.address)).to.be.eq(100000);
+        });
+
+        it('indexerCatchup with unregistered indexer', async () => {
+            expect(await eraManager.eraNumber()).to.be.eq(2);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(1);
+            await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
+            await stakingManager.connect(delegator2).delegate(indexer.address, etherParse('2'));
+            await indexerRegistry.connect(indexer).setCommissionRate(200);
+            //move to Era13
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+            await startNewEra(mockProvider, eraManager);
+
+            await eraTravel(mockProvider, eraManager, 10);
+            await serviceAgreementRegistry.clearAllEndedAgreements(indexer.address);
+            await queryRegistry.connect(indexer).stopIndexing(DEPLOYMENT_ID);
+            await rewardsHelper.indexerCatchup(indexer.address);
+            await indexerRegistry.connect(indexer).unregisterIndexer({gasLimit: '1000000'});
+            await startNewEra(mockProvider, eraManager);
+            await rewardsHelper.indexerCatchup(indexer.address);
+            expect(await eraManager.eraNumber()).to.be.eq(13);
+            expect((await rewardsDistributor.getRewardInfo(indexer.address)).lastClaimEra).to.be.eq(12);
+            expect(await rewardsStaking.getLastSettledEra(indexer.address)).to.be.eq(12);
+            expect((await rewardsHelper.getPendingStakers(indexer.address)).length).to.be.eq(0);
+            expect(await rewardsStaking.getCommissionRate(indexer.address)).to.be.eq(200);
+            await stakingManager.connect(delegator).undelegate(indexer.address, etherParse('1'));
+            await stakingManager.connect(delegator2).undelegate(indexer.address, etherParse('2'));
+        });
+    })
 
     describe('Indexer reregister', () => {
         beforeEach(async () => {
@@ -598,8 +579,8 @@ describe('RewardsDistributer Contract', () => {
             await rewardsStaking.applyStakeChange(indexer.address, delegator.address);
             await checkValues(etherParse('2.697302697'), etherParse('9.002697302697'), 0, 0);
             // 5. indexer and delegator widthdraw, check values change
-            await stakingManager.widthdraw(indexer);
-            await stakingManager.widthdraw(delegator);
+            await stakingManager.widthdraw(indexer.address);
+            await stakingManager.widthdraw(delegator.address);
             await checkValues(etherParse('1001.997002697'), etherParse('10.001697302697'), 0, 0);
         });
 
@@ -634,7 +615,7 @@ describe('RewardsDistributer Contract', () => {
             ).to.be.revertedWith('RS001');
         });
 
-        it.only('indexer without delegators can reregister', async () => {
+        it('indexer without delegators can reregister', async () => {
             // 1. start new era -> indexer `collectAndDistributeRewards` -> `applyStakeChange`: era[n+1]
             await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
@@ -648,14 +629,14 @@ describe('RewardsDistributer Contract', () => {
             // 4. check totalStakingAmount equal 0, era reward equal 0
             await checkValues(etherParse('2.697302697'), etherParse('9.002697302697'), 0, 0);
             // 5. indexer register successfully
-            await stakingManager.widthdraw(indexer);
+            await stakingManager.widthdraw(indexer.address);
             await token.connect(indexer).increaseAllowance(staking.address, etherParse('1000'));
             await indexerRegistry
                 .connect(indexer)
                 .registerIndexer(etherParse('1000'), METADATA_HASH, 100, {gasLimit: '2000000'});
         });
 
-        it.only('reward distribution should work after indexer reregister immediately', async () => {
+        it('reward distribution should work after indexer reregister immediately', async () => {
             // 1. delegator undelegate all the tokens
             await stakingManager.connect(delegator).undelegate(indexer.address, etherParse('1'));
             // 2. start new era -> indexer `collectAndDistributeRewards` -> `applyStakeChange | delegator -> `applyStakeChange`
@@ -663,8 +644,8 @@ describe('RewardsDistributer Contract', () => {
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             await rewardsStaking.applyStakeChange(indexer.address, indexer.address);
             await rewardsStaking.applyStakeChange(indexer.address, delegator.address);
-            await stakingManager.widthdraw(indexer);
-            await stakingManager.widthdraw(delegator);
+            await stakingManager.widthdraw(indexer.address);
+            await stakingManager.widthdraw(delegator.address);
             // 3. indexer reregister -> add previous delegator and a new delegator
             await token.connect(indexer).increaseAllowance(staking.address, etherParse('1000'));
             await indexerRegistry
@@ -706,7 +687,7 @@ describe('RewardsDistributer Contract', () => {
             await checkValues(etherParse('4.996702697'), etherParse('9.001697302697'), etherParse('1002'), 0);
         });
 
-        it.only('reward distribution should work after indexer reregister few more ears later', async () => {
+        it('reward distribution should work after indexer reregister few more ears later', async () => {
             // 1. delegator undelegate all the tokens
             await stakingManager.connect(delegator).undelegate(indexer.address, etherParse('1'));
             // 2. start new era -> indexer `collectAndDistributeRewards` -> `applyStakeChange | delegator -> `applyStakeChange`
@@ -714,11 +695,10 @@ describe('RewardsDistributer Contract', () => {
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
             await rewardsStaking.applyStakeChange(indexer.address, indexer.address);
             await rewardsStaking.applyStakeChange(indexer.address, delegator.address);
-            await stakingManager.widthdraw(indexer);
-            await stakingManager.widthdraw(delegator);
+            await stakingManager.widthdraw(indexer.address);
+            await stakingManager.widthdraw(delegator.address);
             //after few more eras
-            await startNewEra(mockProvider, eraManager);
-            await startNewEra(mockProvider, eraManager);
+            await eraTravel(mockProvider, eraManager, 2);
             // 3. indexer reregister -> add previous delegator and a new delegator
             await token.connect(indexer).increaseAllowance(staking.address, etherParse('1000'));
             await indexerRegistry

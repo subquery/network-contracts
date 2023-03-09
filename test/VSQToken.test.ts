@@ -37,7 +37,7 @@ describe('VSQToken Contract', () => {
         await token.connect(delegator).increaseAllowance(staking.address, etherParse('15'));
     });
 
-    it.only('get balance of VSQT Token should work', async () => {
+    it('get balance of VSQT Token should work', async () => {
         await stakingManager.connect(delegator).delegate(indexer.address, etherParse('5'));
         await stakingManager.connect(delegator).delegate(indexer2.address, etherParse('5'));
         expect(await token.balanceOf(indexer.address)).to.equal(etherParse('1000'));
@@ -50,7 +50,7 @@ describe('VSQToken Contract', () => {
         await stakingManager.connect(delegator).undelegate(indexer.address, etherParse('2'));
         await startNewEra(mockProvider, eraManager);
         expect(await vtoken.balanceOf(delegator.address)).to.equal(etherParse('15'));
-        await stakingManager.widthdraw(delegator);
+        await stakingManager.widthdraw(delegator.address);
         expect(await token.balanceOf(delegator.address)).to.equal(etherParse('6.998'));
         expect(await vtoken.balanceOf(delegator.address)).to.equal(etherParse('14.998'));
     });

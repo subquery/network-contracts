@@ -90,6 +90,12 @@ export async function startNewEra(mockProvider: MockProvider, eraManager: EraMan
     return eraManager.eraNumber();
 }
 
+export async function eraTravel(mockProvider: MockProvider, eraManager: EraManager, eraCount: number) {
+    for (let i = 0; i < eraCount; i++) {
+        await startNewEra(mockProvider, eraManager);
+    }
+}
+
 export async function delay(sec: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, sec * 1000));
 }
