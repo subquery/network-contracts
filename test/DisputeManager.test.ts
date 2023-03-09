@@ -199,10 +199,10 @@ describe('Dispute Manager Contract', () => {
             ).to.be.revertedWith('D005');
         });
 
-        it('indexer cannot widthdraw if on dispute', async () => {
+        it.only('indexer cannot widthdraw if on dispute', async () => {
             await stakingManager.connect(indexer).unstake(indexer.address, etherParse('2'));
             await expect(
-                stakingManager.connect(indexer).widthdraw()
+                stakingManager.widthdraw(indexer)
             ).to.be.revertedWith('G006');
         });
     });

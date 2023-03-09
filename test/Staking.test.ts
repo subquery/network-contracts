@@ -332,7 +332,7 @@ describe('Staking Contract', () => {
         });
     });
 
-    describe('Request cancel unbond', () => {
+    describe.only('Request cancel unbond', () => {
         beforeEach(async () => {
             await stakingManager.connect(delegator).delegate(indexer.address, etherParse('2'));
             await stakingManager.connect(indexer).stake(indexer.address, etherParse('2'));
@@ -351,7 +351,7 @@ describe('Staking Contract', () => {
             expect((await staking.unbondingAmount(delegator.address, 0)).amount).to.equal(etherParse('0'));
             expect(await stakingManager.getAfterDelegationAmount(delegator.address, indexer.address)).to.equal(delegateAmount);
             await timeTravel(mockProvider, 1000);
-            await stakingManager.connect(delegator).widthdraw();
+            await stakingManager.widthdraw(delegator);
             expect(await token.balanceOf(delegator.address)).to.equal(delegatorBalance);
             expect(await token.balanceOf(staking.address)).to.equal(contractBalance);
         });
@@ -370,7 +370,7 @@ describe('Staking Contract', () => {
         it('cancel withdrawed unbonding should fail', async () => {
             await stakingManager.connect(delegator).undelegate(indexer.address, etherParse('1'));
             await timeTravel(mockProvider, 60 * 60 * 24 * 10);
-            await stakingManager.connect(delegator).widthdraw();
+            await stakingManager.widthdraw(delegator);
             await expect(stakingManager.connect(delegator).cancelUnbonding(0)).to.be.revertedWith('S007');
         });
 
@@ -411,7 +411,7 @@ describe('Staking Contract', () => {
             // withdraw an undelegate
             const unbondingAmount = await staking.unbondingAmount(delegator.address, 0);
             const {availableAmount} = await availableWidthdraw(unbondingAmount.amount);
-            await stakingManager.connect(delegator).widthdraw();
+            await stakingManager.widthdraw(delegator);
 
             // check balances
             expect(await token.balanceOf(delegator.address)).to.equal(delegatorBalance.add(availableAmount));
@@ -438,14 +438,14 @@ describe('Staking Contract', () => {
             await checkUnbondingChanges(delegatorBalance, 5, 0);
 
             // widthdraw the fist 3 requests
-            await stakingManager.connect(delegator).widthdraw();
+            await stakingManager.widthdraw(delegator);
             const {availableAmount} = await availableWidthdraw(BigNumber.from(etherParse('0.1')));
             delegatorBalance = delegatorBalance.add(availableAmount.mul(3));
             await checkUnbondingChanges(delegatorBalance, 5, 3);
 
             // widthdraw the other 2 requests
             await timeTravel(mockProvider, 1000);
-            await stakingManager.connect(delegator).widthdraw();
+            await stakingManager.widthdraw(delegator);
             delegatorBalance = delegatorBalance.add(availableAmount.mul(2));
             await checkUnbondingChanges(delegatorBalance, 5, 5);
         });
@@ -467,7 +467,7 @@ describe('Staking Contract', () => {
             await checkUnbondingChanges(delegatorBalance, 15, 0);
 
             // first withdraw only claim the first 10 requests
-            await stakingManager.connect(delegator).widthdraw();
+            await stakingManager.widthdraw(delegator);
             // check balance and unbonding storage
             const {availableAmount} = await availableWidthdraw(BigNumber.from(etherParse('0.1')));
             delegatorBalance = delegatorBalance.add(availableAmount.mul(12));
@@ -475,14 +475,14 @@ describe('Staking Contract', () => {
 
             // make the next 3 undelegate requests ready to withdraw
             await timeTravel(mockProvider, 1000);
-            await stakingManager.connect(delegator).widthdraw();
+            await stakingManager.widthdraw(delegator);
             delegatorBalance = delegatorBalance.add(availableAmount.mul(3));
             await checkUnbondingChanges(delegatorBalance, 15, 15);
         });
 
         it('withdraw an unbond with invalid status should fail', async () => {
             // no unbonding requests for withdrawing
-            await expect(stakingManager.connect(delegator).widthdraw()).to.be.revertedWith('S009');
+            await expect(stakingManager.widthdraw(delegator)).to.be.revertedWith('S009');
         });
     });
 

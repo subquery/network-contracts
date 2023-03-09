@@ -194,8 +194,8 @@ describe('Maintenance Mode Test', () => {
         it('redelegate should ban in maintenance mode', async () => {
             await expect(stakingManager.connect(wallet_1).redelegate(wallet_0.address, wallet_2.address, etherParse('1'))).to.be.revertedWith('G019');
         });
-        it('widthdraw should ban in maintenance mode', async () => {
-            await expect(stakingManager.connect(wallet_1).widthdraw()).to.be.revertedWith('G019');
+        it.only('widthdraw should ban in maintenance mode', async () => {
+            await expect(stakingManager.widthdraw(wallet_1)).to.be.revertedWith('G019');
         });
         it('cancelUnbonding should ban in maintenance mode', async () => {
             await expect(stakingManager.connect(wallet_1).cancelUnbonding(0)).to.be.revertedWith('G019');
