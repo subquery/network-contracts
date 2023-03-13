@@ -36,10 +36,10 @@ Kepler network contracts will be deployed on the `Polygon Mainnet`.
 Find the latest deployment file: `./publish/kepler.json`.
 Get configuration from js-sdk `networks['kepler']` or rust-sdk `Network::Kepler`.
 
-## Mainnet
-Mainnet contracts will be deployed on the `Polygon Mainnet`.
-Find the latest deployment file: `./publish/mainnet.json`.
-Get configuration from js-sdk `networks['mainnet']` or rust-sdk `Network::Mainnet`.
+<!-- ## Mainnet -->
+<!-- Mainnet contracts are deployed on the `Polygon Mainnet`. -->
+<!-- Find the latest deployment file: `./publish/mainnet.json`. -->
+<!-- Get configuration from js-sdk `networks['mainnet']` or rust-sdk `Network::Mainnet`. -->
 
 ## Commands
 
