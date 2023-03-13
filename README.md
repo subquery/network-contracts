@@ -1,4 +1,4 @@
-# SubQuery Contracts & sdk
+# SubQuery Contracts
 
 The Subquery is a indexing tool for querying blockchains data. Anyone can build indexing service with subquery, and provide the api to making blockchain data easily accessible.
 
@@ -6,39 +6,40 @@ The Subquery Network Smart Contracts are a set of Solidity contracts that are go
 
 The Subquery Network allows Delegators staking on Indxers to share their rewards, more delegation also help indxers are able to gain more rewards.
 
-## Local Development
+This repository includes contracts, js-sdk and rust-sdk.
 
-### config `.env` file
+## Local development
 
-We use dotenv to load env variable from `.env` file, need to choose the specific env for `hardhat` or `moonbeam` in `.env_template`, copy the config to `.env`.
+### Config
+We use dotenv to load env variable from `.env` file, copy `.env_template` to `.env`, and update the `ENDPOINT` and `SEED`.
 
-You can config `Custome RPC` network on MetaMask to connect with the local Moonbeam node.
-The specific fields for the config: `rpc_url=http://127.0.0.1:9933` and `chain_id=1281`
+### Build
+- `yarn install` install dependencies
+- `yarn build` build the contracts and js-sdk
 
-### build
-`yarn build`
+### Test
+- `yarn test`
 
-### test
-`yarn test`
-
-### deploy the contracts
-
+### Deploy
 Make sure the local node is running and the `.env` config correctly.
 Run `yarn deploy`, will see the addresses of contracts output in the console.
 Find the latest deployment file: `./publish/local.json`.
 
 ## Testnet
+Testnet contracts are deployed on the `Polygon Mumbai`.
+Find the latest deployment file: `./publish/testnet.json`.
+Get configuration from js-sdk `networks['testnet']` or rust-sdk `Network::Testnet`.
 
-### env
+## Kepler
+The Kepler network sits between a testnet and mainnet.
+Kepler network contracts will be deployed on the `Polygon Mainnet`.
+Find the latest deployment file: `./publish/kepler.json`.
+Get configuration from js-sdk `networks['kepler']` or rust-sdk `Network::Kepler`.
 
-**Moonbase**:
-```
-ENDPOINT: https://moonbeam-alpha.api.onfinality.io/public
-WS_ENDPOINT: wss://moonbeam-alpha.api.onfinality.io/public-ws
-Chan ID: 1287
-Explorer: https://moonbase.moonscan.io/
-```
-## kepler network
+## Mainnet
+Mainnet contracts will be deployed on the `Polygon Mainnet`.
+Find the latest deployment file: `./publish/mainnet.json`.
+Get configuration from js-sdk `networks['mainnet']` or rust-sdk `Network::Mainnet`.
 
 ## Commands
 
@@ -52,9 +53,12 @@ Explorer: https://moonbase.moonscan.io/
 
 `yarn build:types`
 
-#### sdk
+#### js-sdk
 
 `yarn build:ts`
+
+#### rust-sdk
+`cargo build` build with `debug` mode.
 
 ### deploy
 
@@ -74,9 +78,7 @@ To deploy to mainnet and testnet
 Note: After contract upgrade, should run below again.
 
 ```
-    yarn build:contract
-    yarn build:types
-    yarn build:ts
+    yarn build
     yarn test
     yarn mocha test/Staking.test.ts
     ...
@@ -99,3 +101,6 @@ Note: After contract upgrade, should run below again.
 
 ### code flatten
 `yarn hardhat flat contracts/PermissionedExchange.sol > Flattened.sol`
+
+### revert code
+You can find all revert code details at `./public/revertcode.json`
