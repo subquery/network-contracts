@@ -108,20 +108,34 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         staking.addDelegation(_source, to_indexer, _amount);
     }
 
-    function cancelUnbonding(uint256 unbondReqId) external {
+    function cancelUnbonding(UnbondType _type, uint256 unbondReqId) external {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         Staking staking = Staking(settings.getStaking());
-        require(unbondReqId >= staking.withdrawnLength(msg.sender), 'S007');
-        (address indexer, uint256 amount,) = staking.unbondingAmount(msg.sender, unbondReqId);
-        require(amount > 0, 'S007');
-        IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
-        require(indexerRegistry.isIndexer(indexer), 'S007');
+        Unbound storage unbound = staking.unbounds(msg.sender);
 
-        staking.removeUnbondingAmount(msg.sender, unbondReqId);
-        if (msg.sender != indexer) {
-            staking.checkDelegateLimitation(indexer, amount);
+        address tindexer;
+        address tamount;
+        if (_type != UnbondType.Commission) {
+            require(unbondReqId >= unbound.stakingNext, 'S007');
+            (address indexer, uint256 amount,) = unbound.staking[unbondReqId];
+            tindexer = indexer;
+            tamount = amount;
+        } else {
+            require(unbondReqId >= unbound.rewardsNext, 'S007');
+            (address indexer, uint256 amount,) = unbound.rewards[unbondReqId];
+            tindexer = indexer;
+            tamount = amount;
         }
-        staking.addDelegation(msg.sender, indexer, amount);
+
+        require(tamount > 0, 'S007');
+        IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
+        require(indexerRegistry.isIndexer(tindexer), 'S007');
+
+        staking.removeUnbondingAmount(msg.sender, _type, unbondReqId);
+        if (msg.sender != tindexer) {
+            staking.checkDelegateLimitation(tindexer, tamount);
+        }
+        staking.addDelegation(msg.sender, tindexer, tamount);
     }
 
     /**
@@ -130,19 +144,31 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      */
     function widthdraw() external {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
-        Staking staking = Staking(settings.getStaking());
         require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(msg.sender), 'G006');
-        uint256 withdrawingLength = staking.unbondingLength(msg.sender) - staking.withdrawnLength(msg.sender);
-        require(withdrawingLength > 0, 'S009');
 
-        uint256 latestWithdrawnLength = staking.withdrawnLength(msg.sender);
-        for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
-            (,,uint256 startTime) = staking.unbondingAmount(msg.sender, i);
+        Staking staking = Staking(settings.getStaking());
+        Unbound storage unbound = staking.unbounds[msg.sender];
+
+        uint256 rewardsWaiting = unbound.rewardsNext - unbound.rewardsStart;
+        uint256 stakingWaiting = unbound.stakingNext - unbound.stakingStart;
+        require(rewardsWaiting > 0 || stakingWaiting > 0, 'S009');
+
+        for (uint256 i = unbound.rewardsStart; i < unbound.rewardsNext; i++) {
+            (,,uint256 startTime) = unbound.rewards[i];
             if (block.timestamp - startTime < staking.lockPeriod()) {
                 break;
             }
 
-            staking.withdrawARequest(msg.sender, i);
+            staking.withdrawARequest(msg.sender, UnbondType.Commission, i);
+        }
+
+        for (uint256 i = unbound.stakingStart; i < unbound.stakingNext; i++) {
+            (,,uint256 startTime) = unbound.staking[i];
+            if (block.timestamp - startTime < staking.lockPeriod()) {
+                break;
+            }
+
+            staking.withdrawARequest(msg.sender, UnbondType.Undelegation, i);
         }
     }
 
@@ -150,7 +176,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         require(msg.sender == settings.getDisputeManager(), 'G005');
         Staking staking = Staking(settings.getStaking());
         require(_amount <= this.getSlashableAmount(_indexer), 'S010');
-        
+
         staking.slashIndexer(_indexer, _amount);
     }
 

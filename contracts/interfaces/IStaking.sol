@@ -23,6 +23,15 @@ struct UnbondAmount {
     uint256 startTime; // unbond start time
 }
 
+struct Unbound {
+    mapping(uint256 => UnbondAmount) rewards;
+    mapping(uint256 => UnbondAmount) staking;
+    uint256 rewardsStart;
+    uint256 rewardsNext;
+    uint256 stakingStart;
+    uint256 stakingNext;
+}
+
 enum UnbondType {
     Undelegation,
     Unstake,
