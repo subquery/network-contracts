@@ -14,25 +14,25 @@ struct StakingAmount {
 }
 
 /**
- * @dev Unbond amount information. One per request per Delegator.
+ * @dev Unbonding amount information. One per request per Delegator.
  * Delegator can withdraw the unbond amount after the lockPeriod.
  */
-struct UnbondAmount {
+struct UnbondingAmount {
     address indexer;   // the indexer before delegate.
     uint256 amount;    // pending unbonding amount
     uint256 startTime; // unbond start time
 }
 
-struct Unbound {
-    mapping(uint256 => UnbondAmount) rewards;
-    mapping(uint256 => UnbondAmount) staking;
+struct Unbonding {
+    mapping(uint256 => UnbondingAmount) rewards;
+    mapping(uint256 => UnbondingAmount) staking;
     uint256 rewardsStart;
     uint256 rewardsNext;
     uint256 stakingStart;
     uint256 stakingNext;
 }
 
-enum UnbondType {
+enum UnbondingType {
     Undelegation,
     Unstake,
     Commission

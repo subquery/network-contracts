@@ -80,11 +80,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     // Number of registered indexers.
     uint256 public indexerLength;
 
-    // Max length of unbounding rewards
-    uint256 public maxUnboundRewards;
+    // Max length of unbonding rewards
+    uint256 public maxUnbondingRewards;
 
-    // Max length of unbounding staking
-    uint256 public maxUnboundStaking;
+    // Max length of unbonding staking
+    uint256 public maxUnbondingStaking;
 
     // Staking address by indexer number.
     mapping(uint256 => address) public indexers;
@@ -95,8 +95,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     // Staking amount per indexer address.
     mapping(address => StakingAmount) public totalStakingAmount;
 
-    // Unbonding amount, address -> Unbond
-    mapping(address => Unbound) public unbounds;
+    // Unbonding amount, address -> Unbonding
+    mapping(address => Unbonding) public unbondings;
 
     // Active delegation from delegator to indexer, delegator->indexer->amount
     mapping(address => mapping(address => StakingAmount)) public delegation;
@@ -129,17 +129,17 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     /**
      * @dev Emitted when request unbond.
      */
-    event UnbondRequested(address indexed source, address indexed indexer, uint256 amount, UnbondType _type, uint256 index);
+    event UnbondingRequested(address indexed source, address indexed indexer, uint256 amount, UnbondingType _type, uint256 index);
 
     /**
      * @dev Emitted when request withdraw.
      */
-    event UnbondWithdrawn(address indexed source, uint256 amount, UnbondType _type, uint256 index);
+    event UnbondingWithdrawn(address indexed source, uint256 amount, UnbondingType _type, uint256 index);
 
     /**
      * @dev Emitted when delegtor cancel unbond request.
      */
-    event UnbondCancelled(address indexed source, UnbondType _type, uint256 index);
+    event UnbondingCancelled(address indexed source, UnbondingType _type, uint256 index);
 
     modifier onlyStakingManager() {
         require(msg.sender == settings.getStakingManager(), 'G007');
@@ -157,8 +157,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         indexerLeverageLimit = 10;
         unbondFeeRate = 1e3;
 
-        maxUnboundRewards = 5;
-        maxUnboundStaking = 15;
+        maxUnbondingRewards = 5;
+        maxUnbondingStaking = 15;
 
         lockPeriod = _lockPeriod;
         settings = _settings;
@@ -176,14 +176,14 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         indexerLeverageLimit = _indexerLeverageLimit;
     }
 
-    function setUnbondFeeRateBP(uint256 _unbondFeeRate) external onlyOwner {
+    function setUnbondingFeeRateBP(uint256 _unbondFeeRate) external onlyOwner {
         require(_unbondFeeRate < PER_MILL, 'S001');
         unbondFeeRate = _unbondFeeRate;
     }
 
-    function setMaxUnbound(uint256 rewards, uint256 staking) external onlyOwner {
-        maxUnboundRewards = rewards;
-        maxUnboundStaking = staking;
+    function setMaxUnbonding(uint256 rewards, uint256 staking) external onlyOwner {
+        maxUnbondingRewards = rewards;
+        maxUnbondingStaking = staking;
     }
 
     /**
@@ -224,28 +224,28 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         indexerLength--;
     }
 
-    function removeUnbondingAmount(address _source, UnbondType _type, uint256 _index) external onlyStakingManager {
-        Unbound storage unbound = unbounds[_source];
+    function removeUnbondingAmount(address _source, UnbondingType _type, uint256 _index) external onlyStakingManager {
+        Unbonding storage unbonding = unbondings[_source];
 
-        if (_type != UnbondType.Commission) {
-            delete unbound.staking[_index];
-            if (_index == unbound.stakingStart) {
-                unbound.stakingStart ++;
+        if (_type != UnbondingType.Commission) {
+            delete unbonding.staking[_index];
+            if (_index == unbonding.stakingStart) {
+                unbonding.stakingStart ++;
             }
-            if (_index == unbound.stakingNext - 1) {
-                unbound.stakingNext --;
+            if (_index == unbonding.stakingNext - 1) {
+                unbonding.stakingNext --;
             }
         } else {
-            delete unbound.rewards[_index];
-            if (_index == unbound.rewardsStart) {
-                unbound.rewardsStart ++;
+            delete unbonding.rewards[_index];
+            if (_index == unbonding.rewardsStart) {
+                unbonding.rewardsStart ++;
             }
-            if (_index == unbound.rewardsNext - 1) {
-                unbound.rewardsNext --;
+            if (_index == unbonding.rewardsNext - 1) {
+                unbonding.rewardsNext --;
             }
         }
 
-        emit UnbondCancelled(_source, _type, _index);
+        emit UnbondingCancelled(_source, _type, _index);
     }
 
     function addDelegation(
@@ -314,113 +314,108 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         rewardsStaking.onStakeChange(_indexer, _source);
     }
 
-    function startUnbond(
+    function startUnbonding(
         address _source,
         address _indexer,
         uint256 _amount,
-        UnbondType _type
+        UnbondingType _type
     ) external {
         require(msg.sender == settings.getStakingManager() || msg.sender == address(this), 'G008');
-        Unbound storage unbound = unbounds[_indexer];
+        Unbonding storage unbonding = unbondings[_indexer];
+
         uint256 _index;
-
-        if (_type != UnbondType.Commission) {
+        UnbondingAmount storage ua;
+        if (_type != UnbondingType.Commission) {
             this.removeDelegation(_source, _indexer, _amount);
-            require(unbound.stakingNext - unbound.stakingStart < maxUnboundStaking, 'S006');
+            require(unbonding.stakingNext - unbonding.stakingStart < maxUnbondingStaking, 'S006');
 
-            // Add new unbound staking amount
-            _index = unbound.stakingNext;
-            UnbondAmount storage ua = unbound.staking[_index];
-            ua.amount = _amount;
-            ua.startTime = block.timestamp;
-            ua.indexer = _indexer;
-            unbound.stakingNext ++;
+            // Add new unbonding staking amount
+            _index = unbonding.stakingNext;
+            ua = unbonding.staking[_index];
+            unbonding.stakingNext ++;
         } else {
-            _index = unbound.rewardsNext;
-            if (unbound.rewardsStart + maxUnboundRewards == unbound.rewardsNext) {
-                _index = unbound.rewardsNext --;
+            _index = unbonding.rewardsNext;
+            if (unbonding.rewardsStart + maxUnbondingRewards == unbonding.rewardsNext) {
+                // Append to last unbonding rewards amount
+                _index = unbonding.rewardsNext --;
             }
 
-            UnbondAmount storage ua = unbound.rewards[_index];
-            ua.amount = _amount;
-            ua.startTime = block.timestamp;
-            ua.indexer = _indexer;
-            unbound.rewardsNext ++;
+            ua = unbonding.rewards[_index];
+            unbonding.rewardsNext ++;
         }
 
-        emit UnbondRequested(_source, _indexer, _amount, _type, _index);
+        ua.amount += _amount;
+        ua.startTime = block.timestamp;
+        ua.indexer = _indexer;
+
+        emit UnbondingRequested(_source, ua.indexer, ua.amount, _type, _index);
     }
 
     /**
      * @dev Withdraw a single request.
      * burn the withdrawn fees and transfer the rest to delegator.
      */
-    function withdrawARequest(address _source, UnbondType _type, uint256 _index) external onlyStakingManager {
-        Unbound storage unbound = unbounds[_source];
+    function withdrawARequest(address _source, UnbondingType _type, uint256 _index) external onlyStakingManager {
+        Unbonding storage unbonding = unbondings[_source];
 
-        uint256 amount;
-        if (_type != UnbondType.Commission) {
-            uint256 samount = unbound.staking[_index];
-            unbound.stakingStart ++;
-            amount = samount;
+        UnbondingAmount storage ua;
+        if (_type != UnbondingType.Commission) {
+            ua = unbonding.staking[_index];
+            unbonding.stakingStart ++;
         } else {
-            uint256 ramount = unbound.rewards[_index];
-            unbound.rewardsStart ++;
-            amount = ramount;
+            ua = unbonding.rewards[_index];
+            unbonding.rewardsStart ++;
         }
 
-        if (amount > 0) {
+        if (ua.amount > 0) {
             // burn specific percentage
-            uint256 burnAmount = MathUtil.mulDiv(unbondFeeRate, amount, PER_MILL);
-            uint256 availableAmount = amount - burnAmount;
+            uint256 burnAmount = MathUtil.mulDiv(unbondFeeRate, ua.amount, PER_MILL);
+            uint256 availableAmount = ua.amount - burnAmount;
 
             address SQToken = settings.getSQToken();
             ISQToken(SQToken).burn(burnAmount);
             IERC20(SQToken).safeTransfer(_source, availableAmount);
 
-            lockedAmount[_source] -= amount;
+            lockedAmount[_source] -= ua.amount;
 
-            emit UnbondWithdrawn(_source, availableAmount, _type, _index);
+            emit UnbondingWithdrawn(_source, availableAmount, _type, _index);
         }
     }
 
     function slashIndexer(address _indexer, uint256 _amount) external onlyStakingManager {
         uint256 amount = _amount;
-        Unbound storage unbound = unbounds[_indexer];
+        Unbonding storage unbonding = unbondings[_indexer];
 
-        uint256 rewardsWaiting = unbound.rewardsNext - unbound.rewardsStart;
-        uint256 stakingWaiting = unbound.stakingNext - unbound.stakingStart;
-
-        for (uint256 i = unbound.rewardsStart; i < unbound.rewardsNext; i++) {
-            if (amount > unbound.rewards[i].amount) {
-                amount -= unbound.rewards[i].amount;
-                delete unbound.rewards[i];
-                unbound.rewardsStart ++;
-            } else if (amount == unbound.rewards[i].amount) {
+        for (uint256 i = unbonding.rewardsStart; i < unbonding.rewardsNext; i++) {
+            if (amount > unbonding.rewards[i].amount) {
+                amount -= unbonding.rewards[i].amount;
+                delete unbonding.rewards[i];
+                unbonding.rewardsStart ++;
+            } else if (amount == unbonding.rewards[i].amount) {
                 amount = 0;
-                delete unbound.rewards[i];
-                unbound.rewardsStart ++;
+                delete unbonding.rewards[i];
+                unbonding.rewardsStart ++;
                 break;
             } else {
                 amount = 0;
-                unbound.rewards[i].amount -= amount;
+                unbonding.rewards[i].amount -= amount;
                 break;
             }
         }
 
-        for (uint256 i = unbound.stakingStart; i < unbound.stakingNext; i++) {
-            if (amount > unbound.staking[i].amount) {
-                amount -= unbound.staking[i].amount;
-                delete unbound.staking[i];
-                unbound.stakingStart ++;
-            } else if (amount == unbound.staking[i].amount) {
+        for (uint256 i = unbonding.stakingStart; i < unbonding.stakingNext; i++) {
+            if (amount > unbonding.staking[i].amount) {
+                amount -= unbonding.staking[i].amount;
+                delete unbonding.staking[i];
+                unbonding.stakingStart ++;
+            } else if (amount == unbonding.staking[i].amount) {
                 amount = 0;
-                delete unbound.staking[i];
-                unbound.stakingStart ++;
+                delete unbonding.staking[i];
+                unbonding.stakingStart ++;
                 break;
             } else {
                 amount = 0;
-                unbound.staking[i].amount -= amount;
+                unbonding.staking[i].amount -= amount;
                 break;
             }
         }
@@ -438,12 +433,25 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     function unbondCommission(address _indexer, uint256 _amount) external {
         require(msg.sender == settings.getRewardsDistributer(), 'G003');
         lockedAmount[_indexer] += _amount;
-        this.startUnbond(_indexer, _indexer, _amount, UnbondType.Commission);
+        this.startUnbonding(_indexer, _indexer, _amount, UnbondingType.Commission);
     }
 
     // -- Views --
 
     function isEmptyDelegation(address _source, address _indexer) external view returns (bool) {
         return delegation[_source][_indexer].valueAt == 0 && delegation[_source][_indexer].valueAfter == 0;
+    }
+
+    function unbondingLength(address indexer) external view returns (uint256,uint256,uint256,uint256) {
+        Unbonding storage unbond = unbondings[indexer];
+        return (unbond.rewardsStart, unbond.rewardsNext, unbond.stakingStart, unbond.stakingNext);
+    }
+
+    function unbondingAmount(address indexer, UnbondingType _type, uint256 index) external view returns (UnbondingAmount memory) {
+        if (_type != UnbondingType.Commission) {
+            return unbondings[indexer].staking[index];
+        } else {
+            return unbondings[indexer].rewards[index];
+        }
     }
 }

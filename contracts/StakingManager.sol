@@ -7,6 +7,7 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 import './Staking.sol';
+import './interfaces/IStaking.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IEraManager.sol';
@@ -73,7 +74,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
             (,,uint256 totalStakingAmount) = staking.totalStakingAmount(_indexer);
             require(stakingAmountAfter * staking.indexerLeverageLimit() >= totalStakingAmount - _amount, 'S008');
         }
-        staking.startUnbond(_indexer, _indexer, _amount, UnbondType.Unstake);
+        staking.startUnbonding(_indexer, _indexer, _amount, UnbondingType.Unstake);
     }
 
     /**
@@ -84,7 +85,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         require(_indexer != msg.sender, 'G004');
         Staking staking = Staking(settings.getStaking());
         staking.reflectEraUpdate(msg.sender, _indexer);
-        staking.startUnbond(msg.sender, _indexer, _amount, UnbondType.Undelegation);
+        staking.startUnbonding(msg.sender, _indexer, _amount, UnbondingType.Undelegation);
     }
 
     /**
@@ -108,34 +109,27 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         staking.addDelegation(_source, to_indexer, _amount);
     }
 
-    function cancelUnbonding(UnbondType _type, uint256 unbondReqId) external {
+    function cancelUnbonding(UnbondingType _type, uint256 _index) external {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         Staking staking = Staking(settings.getStaking());
-        Unbound storage unbound = staking.unbounds(msg.sender);
 
-        address tindexer;
-        address tamount;
-        if (_type != UnbondType.Commission) {
-            require(unbondReqId >= unbound.stakingNext, 'S007');
-            (address indexer, uint256 amount,) = unbound.staking[unbondReqId];
-            tindexer = indexer;
-            tamount = amount;
+        (, uint256 rewardsNext, uint256 stakingNext,) = staking.unbondingLength(msg.sender);
+        UnbondingAmount memory ua = staking.unbondingAmount(msg.sender, _type, _index);
+        if (_type != UnbondingType.Commission) {
+            require(_index >= stakingNext, 'S007');
         } else {
-            require(unbondReqId >= unbound.rewardsNext, 'S007');
-            (address indexer, uint256 amount,) = unbound.rewards[unbondReqId];
-            tindexer = indexer;
-            tamount = amount;
+            require(_index >= rewardsNext, 'S007');
         }
 
-        require(tamount > 0, 'S007');
+        require(ua.amount > 0, 'S007');
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
-        require(indexerRegistry.isIndexer(tindexer), 'S007');
+        require(indexerRegistry.isIndexer(ua.indexer), 'S007');
 
-        staking.removeUnbondingAmount(msg.sender, _type, unbondReqId);
-        if (msg.sender != tindexer) {
-            staking.checkDelegateLimitation(tindexer, tamount);
+        staking.removeUnbondingAmount(msg.sender, _type, _index);
+        if (msg.sender != ua.indexer) {
+            staking.checkDelegateLimitation(ua.indexer, ua.amount);
         }
-        staking.addDelegation(msg.sender, tindexer, tamount);
+        staking.addDelegation(msg.sender, ua.indexer, ua.amount);
     }
 
     /**
@@ -147,28 +141,29 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         require(!IDisputeManager(settings.getDisputeManager()).isOnDispute(msg.sender), 'G006');
 
         Staking staking = Staking(settings.getStaking());
-        Unbound storage unbound = staking.unbounds[msg.sender];
 
-        uint256 rewardsWaiting = unbound.rewardsNext - unbound.rewardsStart;
-        uint256 stakingWaiting = unbound.stakingNext - unbound.stakingStart;
+        (uint256 rewardsStart, uint256 rewardsNext, uint256 stakingStart, uint256 stakingNext) = staking.unbondingLength(msg.sender);
+
+        uint256 rewardsWaiting = rewardsNext - rewardsStart;
+        uint256 stakingWaiting = stakingNext - stakingStart;
         require(rewardsWaiting > 0 || stakingWaiting > 0, 'S009');
 
-        for (uint256 i = unbound.rewardsStart; i < unbound.rewardsNext; i++) {
-            (,,uint256 startTime) = unbound.rewards[i];
-            if (block.timestamp - startTime < staking.lockPeriod()) {
+        for (uint256 i = rewardsStart; i < rewardsNext; i++) {
+            UnbondingAmount memory ua = staking.unbondingAmount(msg.sender, UnbondingType.Commission, i);
+            if (block.timestamp - ua.startTime < staking.lockPeriod()) {
                 break;
             }
 
-            staking.withdrawARequest(msg.sender, UnbondType.Commission, i);
+            staking.withdrawARequest(msg.sender, UnbondingType.Commission, i);
         }
 
-        for (uint256 i = unbound.stakingStart; i < unbound.stakingNext; i++) {
-            (,,uint256 startTime) = unbound.staking[i];
-            if (block.timestamp - startTime < staking.lockPeriod()) {
+        for (uint256 i = stakingStart; i < stakingNext; i++) {
+            UnbondingAmount memory ua = staking.unbondingAmount(msg.sender, UnbondingType.Undelegation, i);
+            if (block.timestamp - ua.startTime < staking.lockPeriod()) {
                 break;
             }
 
-            staking.withdrawARequest(msg.sender, UnbondType.Undelegation, i);
+            staking.withdrawARequest(msg.sender, UnbondingType.Undelegation, i);
         }
     }
 
@@ -196,31 +191,41 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         return amount;
     }
 
-    function getUnbondingAmounts(address _source) external view returns (UnbondAmount[] memory) {
+    function getUnbondingAmounts(address _source) external view returns (UnbondingAmount[] memory) {
         Staking staking = Staking(settings.getStaking());
-        uint256 withdrawingLength = staking.unbondingLength(_source) - staking.withdrawnLength(_source);
-        UnbondAmount[] memory unbondAmounts = new UnbondAmount[](withdrawingLength);
 
-        uint256 i;
-        uint256 latestWithdrawnLength = staking.withdrawnLength(_source);
-        for (uint256 j = latestWithdrawnLength; j < latestWithdrawnLength + withdrawingLength; j++) {
-            (address indexer, uint256 amount, uint256 startTime) = staking.unbondingAmount(_source, j);
-            unbondAmounts[i] = UnbondAmount(indexer, amount, startTime);
-            i++;
+        (uint256 rewardsStart, uint256 rewardsNext, uint256 stakingStart, uint256 stakingNext) = staking.unbondingLength(_source);
+        uint256 rewardsWaiting = rewardsNext - rewardsStart;
+        uint256 stakingWaiting = stakingNext - stakingStart;
+
+        UnbondingAmount[] memory unbondAmounts = new UnbondingAmount[](rewardsWaiting + stakingWaiting);
+
+        for (uint256 j = 0; j < rewardsWaiting; j++) {
+            unbondAmounts[j] = staking.unbondingAmount(_source, UnbondingType.Commission, j);
+        }
+
+        for (uint256 j = 0; j < stakingWaiting; j++) {
+            unbondAmounts[rewardsWaiting+j] = staking.unbondingAmount(_source, UnbondingType.Undelegation, j);
         }
 
         return unbondAmounts;
     }
 
-    function getSlashableAmount(address _indexer) external view returns (uint256) {
+    function getSlashableAmount(address _source) external view returns (uint256) {
         Staking staking = Staking(settings.getStaking());
-        (,,uint256 slashableAmount) = staking.delegation(_indexer, _indexer);
-        uint256 withdrawingLength = staking.unbondingLength(_indexer) - staking.withdrawnLength(_indexer);
-        uint256 latestWithdrawnLength = staking.withdrawnLength(_indexer);
-        for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
-            (,uint256 amount,) = staking.unbondingAmount(_indexer, i);
-            slashableAmount += amount;
+        (,,uint256 slashableAmount) = staking.delegation(_source, _source);
+        (uint256 rewardsStart, uint256 rewardsNext, uint256 stakingStart, uint256 stakingNext) = staking.unbondingLength(_source);
+
+        for (uint256 i = rewardsStart; i < rewardsNext; i++) {
+            UnbondingAmount memory ua = staking.unbondingAmount(_source, UnbondingType.Commission, i);
+            slashableAmount += ua.amount;
         }
+
+        for (uint256 i = stakingStart; i < stakingNext; i++) {
+            UnbondingAmount memory ua = staking.unbondingAmount(_source, UnbondingType.Undelegation, i);
+            slashableAmount += ua.amount;
+        }
+
         return slashableAmount;
     }
 }
