@@ -80,6 +80,9 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     // Number of registered indexers.
     uint256 public indexerLength;
 
+    // Max limit of unbonding requests
+    uint256 public maxUnbondingRequest;
+
     // Staking address by indexer number.
     mapping(uint256 => address) public indexers;
 
@@ -156,6 +159,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
 
         indexerLeverageLimit = 10;
         unbondFeeRate = 1e3;
+        maxUnbondingRequest = 20;
 
         lockPeriod = _lockPeriod;
         settings = _settings;
@@ -176,6 +180,10 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     function setUnbondFeeRateBP(uint256 _unbondFeeRate) external onlyOwner {
         require(_unbondFeeRate < PER_MILL, 'S001');
         unbondFeeRate = _unbondFeeRate;
+    }
+
+    function setMaxUnbondingRequest(uint256 maxNum) external onlyOwner {
+        maxUnbondingRequest = maxNum;
     }
 
     /**
@@ -318,14 +326,14 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         require(msg.sender == settings.getStakingManager() || msg.sender == address(this), 'G008');
         uint256 nextIndex = unbondingLength[_source];
         if (_type == UnbondType.Undelegation) {
-            require(nextIndex - withdrawnLength[_source] < 19, 'S006');
+            require(nextIndex - withdrawnLength[_source] < maxUnbondingRequest - 1, 'S006');
         }
 
         if (_type != UnbondType.Commission) {
             this.removeDelegation(_source, _indexer, _amount);
         }
 
-        if (nextIndex - withdrawnLength[_source] == 20) {
+        if (nextIndex - withdrawnLength[_source] == maxUnbondingRequest) {
             _type = UnbondType.Merge;
             nextIndex --;
         } else {
