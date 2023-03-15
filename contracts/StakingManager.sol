@@ -150,7 +150,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         require(msg.sender == settings.getDisputeManager(), 'G005');
         Staking staking = Staking(settings.getStaking());
         require(_amount <= this.getSlashableAmount(_indexer), 'S010');
-        
+
         staking.slashIndexer(_indexer, _amount);
     }
 

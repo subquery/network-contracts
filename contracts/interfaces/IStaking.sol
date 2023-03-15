@@ -26,7 +26,8 @@ struct UnbondAmount {
 enum UnbondType {
     Undelegation,
     Unstake,
-    Commission
+    Commission,
+    Merge,
 }
 
 interface IStaking {

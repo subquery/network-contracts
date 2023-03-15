@@ -218,8 +218,29 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
 
     function removeUnbondingAmount(address _source, uint256 _unbondReqId) external onlyStakingManager {
         UnbondAmount memory ua = unbondingAmount[_source][_unbondReqId];
-        emit UnbondCancelled(_source, ua.indexer, ua.amount, _unbondReqId);
         delete unbondingAmount[_source][_unbondReqId];
+
+        uint256 firstIndex = withdrawnLength[_source];
+        uint256 lastIndex = unbondingLength[_source] - 1;
+        if (_unbondReqId == firstIndex) {
+            for (uint256 i = firstIndex; i <= lastIndex; i++) {
+                if (unbondingAmount[_source][i].amount == 0) {
+                    withdrawnLength[_source] ++;
+                } else {
+                    break;
+                }
+            }
+        } else if (_unbondReqId == lastIndex) {
+            for (uint256 i = lastIndex; i >= firstIndex; i--) {
+                if (unbondingAmount[_source][i].amount == 0) {
+                    unbondingLength[_source] --;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        emit UnbondCancelled(_source, ua.indexer, ua.amount, _unbondReqId);
     }
 
     function addDelegation(
@@ -295,19 +316,28 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         UnbondType _type
     ) external {
         require(msg.sender == settings.getStakingManager() || msg.sender == address(this), 'G008');
-        require(unbondingLength[_source] - withdrawnLength[_source] <= 20, 'S006');
-        if(_type != UnbondType.Commission){
+        uint256 nextIndex = unbondingLength[_source];
+        if (_type == UnbondType.Undelegation) {
+            require(nextIndex - withdrawnLength[_source] < 19, 'S006');
+        }
+
+        if (_type != UnbondType.Commission) {
             this.removeDelegation(_source, _indexer, _amount);
         }
 
-        uint256 index = unbondingLength[_source];
-        UnbondAmount storage uamount = unbondingAmount[_source][index];
-        uamount.amount = _amount;
+        if (nextIndex - withdrawnLength[_source] == 20) {
+            _type = UnbondType.Merge;
+            nextIndex --;
+        } else {
+            unbondingLength[_source]++;
+        }
+
+        UnbondAmount storage uamount = unbondingAmount[_source][nextIndex];
+        uamount.amount += _amount;
         uamount.startTime = block.timestamp;
         uamount.indexer = _indexer;
-        unbondingLength[_source]++;
 
-        emit UnbondRequested(_source, _indexer, _amount, index, _type);
+        emit UnbondRequested(_source, _indexer, _amount, nextIndex, _type);
     }
 
     /**
@@ -315,6 +345,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * burn the withdrawn fees and transfer the rest to delegator.
      */
     function withdrawARequest(address _source, uint256 _index) external onlyStakingManager {
+        require(_index == withdrawnLength[_source], 'S009');
         withdrawnLength[_source]++;
 
         uint256 amount = unbondingAmount[_source][_index].amount;
@@ -335,24 +366,21 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
 
     function slashIndexer(address _indexer, uint256 _amount) external onlyStakingManager {
         uint256 amount = _amount;
-        uint256 withdrawingLength = unbondingLength[_indexer] - withdrawnLength[_indexer];
-        if (withdrawingLength > 0) {
-            uint256 latestWithdrawnLength = withdrawnLength[_indexer];
-            for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
-                if (amount > unbondingAmount[_indexer][i].amount) {
-                    amount -= unbondingAmount[_indexer][i].amount;
-                    delete unbondingAmount[_indexer][i];
-                    withdrawnLength[_indexer]++;
-                } else if (amount == unbondingAmount[_indexer][i].amount){
-                    delete unbondingAmount[_indexer][i];
-                    withdrawnLength[_indexer]++; 
-                    amount = 0;
-                    break;
-                } else {
-                    unbondingAmount[_indexer][i].amount -= amount;
-                    amount = 0;
-                    break;
-                }
+
+        for (uint256 i = withdrawnLength[_indexer]; i < unbondingLength[_indexer]; i++) {
+            if (amount > unbondingAmount[_indexer][i].amount) {
+                amount -= unbondingAmount[_indexer][i].amount;
+                delete unbondingAmount[_indexer][i];
+                withdrawnLength[_indexer]++;
+            } else if (amount == unbondingAmount[_indexer][i].amount){
+                delete unbondingAmount[_indexer][i];
+                withdrawnLength[_indexer]++;
+                amount = 0;
+                break;
+            } else {
+                unbondingAmount[_indexer][i].amount -= amount;
+                amount = 0;
+                break;
             }
         }
 
