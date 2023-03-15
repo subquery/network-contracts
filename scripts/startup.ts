@@ -23,7 +23,7 @@ async function getAirdropTimeConfig(provider) {
     return {startTime, endTime};
 }
 
-async function qrStartup(sdk) {
+export async function qrStartup(sdk) {
     console.info('Add QueryRegistry creator:');
     for (const creator of startupConfig.QRCreator) {
         const result = await sdk.queryRegistry.creatorWhitelist(creator); 
@@ -49,18 +49,18 @@ async function qrStartup(sdk) {
     }
 }
 
-async function pmStartup(sdk) {
+export async function pmStartup(sdk) {
     console.info("Create Plan Templates:");
     let templateId = await sdk.planManager.nextTemplateId(); 
     let templates = startupConfig.planTemplates;
     for (var i = templateId.toNumber(); i < templates.length; i++){
         const {period, dailyReqCap, rateLimit} = templates[i];
-        console.info(`Create plan template with: ${templates[i]}`);
+        console.info(`Create No. ${i} plan template`);
         await sendTx(() => sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, METADATA_HASH));
     }
 }
 
-async function airdropStartup(sdk) {
+export async function airdropStartup(sdk) {
     console.info("Add Airdrop Controllers:");
     for (const controller of startupConfig.AirdropController) {
         const result = await sdk.airdropper.controllers(controller); 
@@ -73,46 +73,57 @@ async function airdropStartup(sdk) {
     }
 }
 
-async function ownerTransfer(sdk) {
+export async function ownerTransfer(sdk) {
     console.info("Transfer Ownerships:");
     const contracts = [
-        sdk.airdropper, 
-        sdk.consumerHost, 
-        sdk.disputeManager, 
-        sdk.eraManager,
-        sdk.indexerRegistry,
-        sdk.inflationController,
-        sdk.permissionedExchange,
-        sdk.planManager,
-        sdk.proxyAdmin,
-        sdk.purchaseOfferMarket,
-        sdk.queryRegistry,
-        sdk.rewardsDistributer,
-        sdk.rewardsHelper,
-        sdk.rewardsPool,
-        sdk.rewardsStaking,
-        sdk.serviceAgreementRegistry,
-        sdk.settings,
-        sdk.sqToken,
-        sdk.staking,
-        sdk.stakingManager,
-        sdk.stateChannel,
-        sdk.vesting
+        [sdk.airdropper, "airdropper"], 
+        [sdk.consumerHost, "consumerHost"], 
+        [sdk.disputeManager, "disputeManager"], 
+        [sdk.eraManager, "eraManager"],
+        [sdk.indexerRegistry, "indexerRegistry"], 
+        [sdk.inflationController, "inflationController"],
+        [sdk.permissionedExchange, "permissionedExchange"],
+        [sdk.planManager, "planManager"],
+        [sdk.proxyAdmin, "proxyAdmin"],
+        [sdk.purchaseOfferMarket, "purchaseOfferMarket"],
+        [sdk.queryRegistry, "queryRegistry"],
+        [sdk.rewardsDistributor, "rewardsDistributor"],
+        [sdk.rewardsHelper, "rewardsHelper"],
+        [sdk.rewardsPool, "rewardsPool"],
+        [sdk.rewardsStaking, "rewardsStaking"],
+        [sdk.serviceAgreementRegistry, "serviceAgreementRegistry"],
+        [sdk.settings, "settings"],
+        [sdk.sqToken, "sqToken"],
+        [sdk.staking, "staking"],
+        [sdk.stakingManager, "stakingManager"],
+        [sdk.stateChannel, "stateChannel"],
+        [sdk.vesting, "vesting"]
     ];
     for (const contract of contracts) {
-        const owner = await contract.owner();
+        const owner = await contract[0].owner();
         if (owner != startupConfig.multiSign) {
-            console.info(`Transfer Ownership`);
-            await sendTx(() => contract.transferOwnership(startupConfig.multiSign));
+            console.info(`Transfer Ownership: ${contract[1]}`);
+            await sendTx(() => contract[0].transferOwnership(startupConfig.multiSign));
         } else {
-            console.info(`Transfer Complete`);
+            console.info(`${contract[1]} already transfered`);
         } 
     }
 
 }
 
+export async function balanceTransfer(sdk, wallet) {
+    const balance = await sdk.sqToken.balanceOf(wallet.address);
+    if (balance.gt(0)){
+        console.info(`Transfer ${balance.toString()} from ${wallet.address} to ${startupConfig.multiSign}`);
+        await sendTx(() => sdk.sqToken.transfer(startupConfig.multiSign, balance));
+    }else{
+        console.info(`Balance already transfered`)
+    }
+    
+}
+
 const main = async () => {
-    const {wallet, provider} = await setup(process.argv[2]);
+    const {wallet} = await setup(process.argv[2]);
     const sdk = await ContractSDK.create(wallet, {deploymentDetails: deployment});
 
     switch (process.argv[2]) {
@@ -123,13 +134,13 @@ const main = async () => {
             await pmStartup(sdk);
             await airdropStartup(sdk);
             await ownerTransfer(sdk);
-            const balance = await sdk.sqToken.balanceOf(wallet.address);
-            await sendTx(() => sdk.sqToken.transfer(startupConfig.multiSign, balance));
+            await balanceTransfer(sdk, wallet);
             break;
         case '--testnet':
             await qrStartup(sdk);
             await pmStartup(sdk);
-            await airdropStartup(sdk);
+            await airdropStartup(sdk);await ownerTransfer(sdk);
+            await balanceTransfer(sdk, wallet);
             break;
         default:
             await qrStartup(sdk);

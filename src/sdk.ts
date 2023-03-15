@@ -40,6 +40,12 @@ import {
     PermissionedExchange__factory,
     ConsumerHost,
     ConsumerHost__factory,
+    DisputeManager,
+    DisputeManager__factory,
+    ProxyAdmin,
+    ProxyAdmin__factory,
+    Vesting,
+    Vesting__factory
 } from './typechain';
 
 export class ContractSDK {
@@ -70,6 +76,9 @@ export class ContractSDK {
     private _airdropper?: Airdropper;
     private _permissionedExchange?: PermissionedExchange;
     private _consumerHost?: ConsumerHost;
+    private _disputeManager?: DisputeManager;
+    private _proxyAdmin?: ProxyAdmin;
+    private _vesting?: Vesting;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options?: SdkOptions) {
         this._contractDeployments =
@@ -214,6 +223,27 @@ export class ContractSDK {
         return this._consumerHost;
     }
 
+    get disputeManager(): DisputeManager {
+        if (!this._disputeManager) {
+            throw new Error(`_disputeManager address not found`);
+        }
+        return this._disputeManager;
+    }
+
+    get proxyAdmin(): ProxyAdmin {
+        if (!this._proxyAdmin) {
+            throw new Error('_proxyAdmin address not found');
+        }
+        return this._proxyAdmin;
+    }
+
+    get vesting(): Vesting {
+        if (!this._vesting) {
+            throw new Error('_vesting address not found');
+        }
+        return this._vesting;
+    }
+
     public async initContract<C extends Contract>(
         factory: {connect: (address: string, signerOrProvider: AbstractProvider | Signer) => C},
         address?: string
@@ -245,6 +275,9 @@ export class ContractSDK {
             airdropper,
             permissionedExchange,
             consumerHost,
+            disputeManager,
+            proxyAdmin,
+            vesting
         ] = await Promise.all([
             this.initContract(Settings__factory, this._contractDeployments.Settings?.address),
             this.initContract(SQToken__factory, this._contractDeployments.SQToken?.address),
@@ -268,6 +301,9 @@ export class ContractSDK {
             this.initContract(Airdropper__factory, this._contractDeployments.Airdropper.address),
             this.initContract(PermissionedExchange__factory, this._contractDeployments.PermissionedExchange.address),
             this.initContract(ConsumerHost__factory, this._contractDeployments.ConsumerHost.address),
+            this.initContract(DisputeManager__factory, this._contractDeployments.DisputeManager.address),
+            this.initContract(ProxyAdmin__factory, this._contractDeployments.ProxyAdmin.address),
+            this.initContract(Vesting__factory, this._contractDeployments.Vesting.address)
         ]);
         this._settings = settings;
         this._sqToken = sqToken;
@@ -288,5 +324,8 @@ export class ContractSDK {
         this._airdropper = airdropper;
         this._permissionedExchange = permissionedExchange;
         this._consumerHost = consumerHost;
+        this._disputeManager = disputeManager;
+        this._proxyAdmin = proxyAdmin;
+        this._vesting = vesting;
     }
 }
