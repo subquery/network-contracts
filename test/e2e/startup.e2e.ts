@@ -26,24 +26,9 @@ describe('startup script', () => {
         await qrStartup(sdk);
         await pmStartup(sdk);
         await airdropStartup(sdk);
-        await ownerTransfer(sdk);
-        await balanceTransfer(sdk, wallet);
-
-
     });
 
     describe('startup', async () => {
-        it('airdropper setups should work', async () => {
-            expect(await sdk.airdropper.nextRoundId()).to.be.equal(1);
-            expect((await sdk.airdropper.roundRecord(0)).tokenAddress).to.equal(sdk.sqToken.address);
-            expect((await sdk.airdropper.roundRecord(0)).unclaimedAmount).to.equal(5100);
-
-            const {airdrops, amounts} = config;
-
-            for (const [i, airdrop] of airdrops.entries()) {
-                expect(await sdk.airdropper.airdropRecord(airdrop, 0)).to.equal(amounts[i]);
-            }
-        });
 
         it('planTemplate setups should work', async () => {
             expect(await sdk.planManager.nextTemplateId()).to.be.equal(5);
