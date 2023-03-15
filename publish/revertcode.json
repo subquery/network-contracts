@@ -38,6 +38,7 @@
     "A008": "invaild round to settle",
     "A009": "none token left",
     "A010": "sender only airdrop controller",
+    "A011": "Invalid airdrop round",
     "C001": "Invalid feePercentage",
     "C002": "Insufficient balance",
     "C003": "None signers",

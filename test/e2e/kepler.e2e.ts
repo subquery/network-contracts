@@ -131,7 +131,7 @@ async function indexerSetup() {
     let indexingStatus = (await sdk.queryRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR)).status;
     if (indexingStatus != 2) {
         if (indexingStatus == 0) {
-            console.log('strat indexing ...');
+            console.log('start indexing ...');
             await sendTx(() => sdk.queryRegistry.connect(indexer_wallet).startIndexing(DEPLOYMENT_ID));
         }
         await sendTx(() => sdk.queryRegistry.connect(indexer_wallet).updateIndexingStatusToReady(DEPLOYMENT_ID));
@@ -371,7 +371,7 @@ async function airdropTest() {
 async function permissionedExchangedtest() {
     console.log('\n====Setup exchange=====\n');
     let orderId = await sdk.permissionedExchange.nextOrderId();
-    console.log(`strat create exchange order ${orderId}`);
+    console.log(`start create exchange order ${orderId}`);
     await sendTx(() => sdk.sqToken.increaseAllowance(sdk.permissionedExchange.address, etherParse('100')));
     const usdcContract = new ethers.Contract(usdcAddress, Token.abi, Provider);
 
@@ -415,12 +415,12 @@ async function permissionedExchangedtest() {
 
     let quota = await sdk.permissionedExchange.tradeQuota(sdk.sqToken.address, root_wallet.address);
     console.log(`sqt trade quota for root is ${quota}`);
-    console.log(`strat addQuota to root wallet ...`);
+    console.log(`start addQuota to root wallet ...`);
     await sendTx(() => sdk.permissionedExchange.addQuota(sdk.sqToken.address, root_wallet.address, etherParse('2.5')));
     quota = await sdk.permissionedExchange.tradeQuota(sdk.sqToken.address, root_wallet.address);
     console.log(`sqt trade quota for root is ${quota}`);
 
-    console.log(`strat trade on offer ${orderId} ...`);
+    console.log(`start trade on offer ${orderId} ...`);
     await sendTx(() => sdk.permissionedExchange.trade(orderId, etherParse('2.5')));
     order = await sdk.permissionedExchange.orders(orderId);
     console.log(`amountGiveLeft for offer ${orderId} : ${order.tokenGiveBalance}`);
