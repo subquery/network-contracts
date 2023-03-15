@@ -5,6 +5,7 @@ import setup from './setup';
 import startupConfig from './config/startup.json';
 import {METADATA_HASH} from '../test/constants';
 import {cidToBytes32, lastestTime} from '../test/helper';
+import {ContractSDK} from '../src';
 
 import deployment from '../publish/testnet.json';
 
@@ -126,6 +127,9 @@ const main = async () => {
             await sendTx(() => sdk.sqToken.transfer(startupConfig.multiSign, balance));
             break;
         case '--testnet':
+            await qrStartup(sdk);
+            await pmStartup(sdk);
+            await airdropStartup(sdk);
             break;
         default:
             await qrStartup(sdk);
