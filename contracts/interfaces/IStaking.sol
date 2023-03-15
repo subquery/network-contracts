@@ -27,7 +27,7 @@ enum UnbondType {
     Undelegation,
     Unstake,
     Commission,
-    Merge,
+    Merge
 }
 
 interface IStaking {
