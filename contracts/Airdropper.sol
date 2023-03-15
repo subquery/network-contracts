@@ -13,7 +13,7 @@ contract Airdropper is Ownable {
 
     struct Round {
         address tokenAddress; //airdrop token address
-        uint256 roundStartTime; //strat time for this round
+        uint256 roundStartTime; //start time for this round
         uint256 roundDeadline; //deadline for this round
         uint256 unclaimedAmount;
     }
@@ -25,6 +25,8 @@ contract Airdropper is Ownable {
     mapping(address => bool) public controllers;
 
     event RoundCreated(uint256 indexed roundId, address tokenAddress, uint256 roundStartTime, uint256 roundDeadline);
+    
+    event RoundUpdated(uint256 roundId, uint256 roundStartTime, uint256 roundDeadline);
 
     event AddAirdrop(address indexed addr, uint256 roundId, uint256 amount);
 
@@ -55,15 +57,30 @@ contract Airdropper is Ownable {
 
     function createRound(
         address _tokenAddr,
-        uint256 _roundStratTime,
+        uint256 _roundStartTime,
         uint256 _roundDeadline
     ) external onlyController returns (uint256) {
-        require(_roundStratTime > block.timestamp && _roundDeadline > _roundStratTime, 'A001');
+        require(_roundStartTime > block.timestamp && _roundDeadline > _roundStartTime, 'A001');
         require(_tokenAddr != address(0), 'G009');
-        roundRecord[nextRoundId] = Round(_tokenAddr, _roundStratTime, _roundDeadline, 0);
+        roundRecord[nextRoundId] = Round(_tokenAddr, _roundStartTime, _roundDeadline, 0);
         nextRoundId += 1;
-        emit RoundCreated(nextRoundId - 1, _tokenAddr, _roundStratTime, _roundDeadline);
+        emit RoundCreated(nextRoundId - 1, _tokenAddr, _roundStartTime, _roundDeadline);
         return nextRoundId - 1;
+    }
+
+    function updateRound(
+        uint256 _roundId,
+        uint256 _roundStartTime,
+        uint256 _roundDeadline
+    ) external onlyController {
+        Round memory round = roundRecord[_roundId];
+        require(round.roundStartTime > 0, 'A011');
+        require(_roundStartTime > round.roundStartTime && _roundDeadline > _roundStartTime, 'A001');
+
+        roundRecord[_roundId].roundStartTime = _roundStartTime;
+        roundRecord[_roundId].roundDeadline = _roundDeadline;
+
+        emit RoundUpdated(_roundId, _roundStartTime, _roundDeadline);
     }
 
     function _airdrop(

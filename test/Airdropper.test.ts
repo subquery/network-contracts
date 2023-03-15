@@ -56,10 +56,15 @@ describe('Airdropper Contract', () => {
     });
 
     describe('round test', () => {
-        it('create round should work', async () => {
-            const startTime = (await lastestTime(mockProvider)) + 3600;
-            const endTime = await futureTimestamp(mockProvider, 60 * 60 * 24 * 3);
+        let startTime: number;
+        let endTime: number;
 
+        beforeEach(async () => {
+            startTime = (await lastestTime(mockProvider)) + 3600;
+            endTime = await futureTimestamp(mockProvider, 60 * 60 * 24 * 3);
+        });
+
+        it('create round should work', async () => {
             await expect(airdropper.createRound(
                 sqtAddress,
                 startTime,
@@ -74,17 +79,10 @@ describe('Airdropper Contract', () => {
             expect(round.unclaimedAmount).to.equal(etherParse('0'));
             expect(await airdropper.nextRoundId()).to.equal(1);
         });
+
         it('create round with invaild parameter should fail', async () => {
-            await expect(
-                airdropper.createRound(
-                    ZERO_ADDRESS,
-                    (await lastestTime(mockProvider)) + 60 * 60,
-                    await futureTimestamp(mockProvider, 60 * 60 * 24 * 3)
-                )
-            ).to.be.revertedWith('G009');
-            await expect(
-                airdropper.createRound(sqtAddress, 100, await futureTimestamp(mockProvider, 60 * 60 * 24 * 3))
-            ).to.be.revertedWith('A001');
+            await expect(airdropper.createRound(ZERO_ADDRESS, startTime, endTime)).to.be.revertedWith('G009');
+            await expect(airdropper.createRound(sqtAddress, 100, endTime)).to.be.revertedWith('A001');
             await expect(
                 airdropper.createRound(
                     sqtAddress,
@@ -94,11 +92,30 @@ describe('Airdropper Contract', () => {
             ).to.be.revertedWith('A001');
         });
         it('create round with invaild caller should fail', async () => {
-            const startTime = (await lastestTime(mockProvider)) + 3600;
-            const endTime = await futureTimestamp(mockProvider, 60 * 60 * 24 * 3);
-            await expect(
-                airdropper.connect(wallet_1).createRound(sqtAddress, startTime, endTime)
-            ).to.be.revertedWith('A010');
+            await expect(airdropper.connect(wallet_1).createRound(sqtAddress, startTime, endTime)).to.be.revertedWith('A010');
+        });
+        it('update round should work', async () => {
+            await airdropper.createRound(sqtAddress, startTime, endTime);
+            const [updatedStartTime, updatedEndTime] = [startTime + 1000, endTime - 1000];
+            await expect(airdropper.updateRound(0, updatedStartTime, updatedEndTime))
+                .to.be.emit(airdropper, 'RoundUpdated')
+                .withArgs(0, updatedStartTime, updatedEndTime);
+
+            const round = await airdropper.roundRecord(0);
+            expect(round.roundStartTime).to.be.eq(updatedStartTime);
+            expect(round.roundDeadline).to.be.eq(updatedEndTime);
+        });
+        it('update round with invaild caller should fail', async () => {
+            await expect(airdropper.connect(wallet_1).updateRound(0, startTime, endTime)).to.be.revertedWith('A010');
+        });
+        it('update round with invalid param should fail', async () => {
+            await airdropper.createRound(sqtAddress, startTime, endTime);
+            // invalid round id;
+            await expect(airdropper.updateRound(1, startTime, endTime)).to.be.revertedWith('A011');
+            // invalid start time
+            await expect(airdropper.updateRound(0, startTime - 1000, endTime)).to.be.revertedWith('A001');
+            // invalid end time
+            await expect(airdropper.updateRound(0, startTime + 1000, startTime)).to.be.revertedWith('A001');
         });
     });
 
