@@ -116,6 +116,9 @@ describe('Airdropper Contract', () => {
             await expect(airdropper.updateRound(0, startTime - 1000, endTime)).to.be.revertedWith('A001');
             // invalid end time
             await expect(airdropper.updateRound(0, startTime + 1000, startTime)).to.be.revertedWith('A001');
+            await timeTravel(mockProvider, 60 * 60 * 24 * 3);
+            // round expired
+            await expect(airdropper.updateRound(0, startTime + 1000, endTime + 1000)).to.be.revertedWith('A011');
         });
     });
 

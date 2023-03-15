@@ -74,7 +74,7 @@ contract Airdropper is Ownable {
         uint256 _roundDeadline
     ) external onlyController {
         Round memory round = roundRecord[_roundId];
-        require(round.roundStartTime > 0, 'A011');
+        require(round.roundStartTime > 0 && round.roundDeadline > block.timestamp, 'A011');
         require(_roundStartTime > round.roundStartTime && _roundDeadline > _roundStartTime, 'A001');
 
         roundRecord[_roundId].roundStartTime = _roundStartTime;
