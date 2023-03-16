@@ -81,7 +81,7 @@ async function setupPermissionExchange(sdk: SetupSdk, provider: StaticJsonRpcPro
     const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = networkConfig.exchange;
     const usdcContract = new ethers.Contract(usdcAddress, Token.abi, provider);
 
-    await usdcContract.connect(wallet).increaseAllowance(sdk.permissionedExchange.address, tokenGiveBalance);
+    await sendTx(() => usdcContract.connect(wallet).increaseAllowance(sdk.permissionedExchange.address, tokenGiveBalance));
 
     await sendTx(() => sdk.permissionedExchange.createPairOrders(
         usdcAddress,
@@ -97,7 +97,7 @@ const main = async () => {
     const {wallet, provider} = await setup(process.argv[2]);
     const sdk = await ContractSDK.create(wallet, {deploymentDetails: deployment});
 
-    await setupNetwork(sdk, provider);
+    // await setupNetwork(sdk, provider);
     await setupPermissionExchange(sdk, provider as StaticJsonRpcProvider, wallet);
 };
 
