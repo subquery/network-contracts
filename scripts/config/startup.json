@@ -23,7 +23,7 @@
         "amountGive": "1000000",
         "amountGet": "5000000000000000000",
         "expireDate": 1683147171,
-        "tokenGiveBalance": "100000000"
+        "tokenGiveBalance": "50000000"
     },
     "QRCreator": [
         "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",

@@ -10,7 +10,6 @@ import {ContractSDK} from '../src';
 import deployment from '../publish/testnet.json';
 import { parseEther } from 'ethers/lib/utils';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
-import { send } from 'process';
 
 async function sendTx(transaction: () => Promise<ContractTransaction>): Promise<ContractReceipt> {
     const tx = await transaction();
