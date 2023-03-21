@@ -10,6 +10,7 @@ import {ContractSDK} from '../src';
 import deployment from '../publish/testnet.json';
 import { parseEther } from 'ethers/lib/utils';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
+import { send } from 'process';
 
 async function sendTx(transaction: () => Promise<ContractTransaction>): Promise<ContractReceipt> {
     const tx = await transaction();
@@ -78,13 +79,16 @@ export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider)
     const {startTime, endTime} = await getAirdropTimeConfig(provider);
     const receipt = await sendTx(() => sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime));
     const roundId = receipt.events[0].args.roundId;
+    console.info(`Round ${roundId} created`);
 
     const airdropAccounts = startupConfig.airdrops;
     const rounds = new Array(airdropAccounts.length).fill(roundId);
     const amounts = startupConfig.amounts.map((a) => parseEther(a.toString()));
 
     console.info("Batch send Airdrop");
-    await  sendTx(() => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts));
+    const totalAmount = eval(startupConfig.amounts.join("+"));
+    await sendTx(() => sdk.sqToken.increaseAllowance(sdk.airdropper.address, parseEther(totalAmount.toString())));
+    await sendTx(() => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts));
 }
 
 export async function ownerTransfer(sdk: ContractSDK) {
