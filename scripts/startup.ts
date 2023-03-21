@@ -126,27 +126,29 @@ const main = async () => {
     const {wallet} = await setup(process.argv[2]);
     const sdk = await ContractSDK.create(wallet, {deploymentDetails: deployment});
 
-    switch (process.argv[2]) {
+    const networkType = process.argv[2];
+    switch (networkType) {
         case '--mainnet':
+            await createProjects(sdk);
+            await createPlanTemplates(sdk);
+            await balanceTransfer(sdk, wallet);
+            await ownerTransfer(sdk);
             break;
         case '--kepler':
             await createProjects(sdk);
             await createPlanTemplates(sdk);
-            await airdropStartup(sdk);
-            await ownerTransfer(sdk);
             await balanceTransfer(sdk, wallet);
+            await ownerTransfer(sdk);
             break;
         case '--testnet':
             await createProjects(sdk);
             await createPlanTemplates(sdk);
             await airdropStartup(sdk);
-            await ownerTransfer(sdk);
             await balanceTransfer(sdk, wallet);
+            await ownerTransfer(sdk);
             break;
         default:
-            await createProjects(sdk);
-            await createPlanTemplates(sdk);
-            await airdropStartup(sdk);
+            throw new Error(`Please provide correct network ${networkType}`)
     }
 };
 
