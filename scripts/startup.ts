@@ -1,4 +1,4 @@
-import {ContractReceipt, ContractTransaction} from 'ethers';
+import {BaseContract, ContractReceipt, ContractTransaction, Wallet} from 'ethers';
 
 import setup from './setup';
 
@@ -8,6 +8,8 @@ import {cidToBytes32, lastestTime} from '../test/helper';
 import {ContractSDK} from '../src';
 
 import deployment from '../publish/testnet.json';
+import { parseEther } from 'ethers/lib/utils';
+import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
 async function sendTx(transaction: () => Promise<ContractTransaction>): Promise<ContractReceipt> {
     const tx = await transaction();
@@ -23,7 +25,7 @@ async function getAirdropTimeConfig(provider) {
     return {startTime, endTime};
 }
 
-export async function createProjects(sdk) {
+export async function createProjects(sdk: ContractSDK) {
     console.info('Add QueryRegistry creator:');
     for (const creator of startupConfig.QRCreator) {
         const result = await sdk.queryRegistry.creatorWhitelist(creator); 
@@ -49,7 +51,7 @@ export async function createProjects(sdk) {
     }
 }
 
-export async function createPlanTemplates(sdk) {
+export async function createPlanTemplates(sdk: ContractSDK) {
     console.info("Create Plan Templates:");
     let templateId = await sdk.planManager.nextTemplateId(); 
     let templates = startupConfig.planTemplates;
@@ -60,7 +62,7 @@ export async function createPlanTemplates(sdk) {
     }
 }
 
-export async function airdropStartup(sdk) {
+export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider) {
     console.info("Add Airdrop Controllers:");
     for (const controller of startupConfig.AirdropController) {
         const result = await sdk.airdropper.controllers(controller); 
@@ -71,47 +73,60 @@ export async function airdropStartup(sdk) {
             console.info(`${controller} is already controller`);
         } 
     }
+
+    console.info("Create Airdrop round:");
+    const {startTime, endTime} = await getAirdropTimeConfig(provider);
+    const receipt = await sendTx(() => sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime));
+    const roundId = receipt.events[0].args.roundId;
+
+    const airdropAccounts = startupConfig.airdrops;
+    const rounds = new Array(airdropAccounts.length).fill(roundId);
+    const amounts = startupConfig.amounts.map((a) => parseEther(a.toString()));
+
+    console.info("Batch send Airdrop");
+    await  sendTx(() => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts));
 }
 
-export async function ownerTransfer(sdk) {
+export async function ownerTransfer(sdk: ContractSDK) {
     console.info("Transfer Ownerships:");
     const contracts = [
-        [sdk.airdropper, "airdropper"], 
-        [sdk.consumerHost, "consumerHost"], 
-        [sdk.disputeManager, "disputeManager"], 
-        [sdk.eraManager, "eraManager"],
-        [sdk.indexerRegistry, "indexerRegistry"], 
-        [sdk.inflationController, "inflationController"],
-        [sdk.permissionedExchange, "permissionedExchange"],
-        [sdk.planManager, "planManager"],
-        [sdk.proxyAdmin, "proxyAdmin"],
-        [sdk.purchaseOfferMarket, "purchaseOfferMarket"],
-        [sdk.queryRegistry, "queryRegistry"],
-        [sdk.rewardsDistributor, "rewardsDistributor"],
-        [sdk.rewardsHelper, "rewardsHelper"],
-        [sdk.rewardsPool, "rewardsPool"],
-        [sdk.rewardsStaking, "rewardsStaking"],
-        [sdk.serviceAgreementRegistry, "serviceAgreementRegistry"],
-        [sdk.settings, "settings"],
-        [sdk.sqToken, "sqToken"],
-        [sdk.staking, "staking"],
-        [sdk.stakingManager, "stakingManager"],
-        [sdk.stateChannel, "stateChannel"],
-        [sdk.vesting, "vesting"]
+        sdk.airdropper,
+        sdk.consumerHost, 
+        sdk.disputeManager,
+        sdk.eraManager,
+        sdk.indexerRegistry, 
+        sdk.inflationController,
+        sdk.permissionedExchange,
+        sdk.planManager,
+        sdk.proxyAdmin, 
+        sdk.purchaseOfferMarket,
+        sdk.queryRegistry,
+        sdk.rewardsDistributor,
+        sdk.rewardsHelper,
+        sdk.rewardsPool,
+        sdk.rewardsStaking,
+        sdk.serviceAgreementRegistry,
+        sdk.settings,
+        sdk.sqToken,
+        sdk.staking,
+        sdk.stakingManager,
+        sdk.stateChannel,
+        sdk.vesting,
     ];
+    
     for (const contract of contracts) {
-        const owner = await contract[0].owner();
+        const owner = await contract.owner();
         if (owner != startupConfig.multiSign) {
-            console.info(`Transfer Ownership: ${contract[1]}`);
-            await sendTx(() => contract[0].transferOwnership(startupConfig.multiSign));
+            console.info(`Transfer Ownership: ${contract.contractName}`);
+            await sendTx(() => contract.transferOwnership(startupConfig.multiSign));
         } else {
-            console.info(`${contract[1]} already transfered`);
+            console.info(`${contract.contractName} already transfered`);
         } 
     }
 
 }
 
-export async function balanceTransfer(sdk, wallet) {
+export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
     const balance = await sdk.sqToken.balanceOf(wallet.address);
     if (balance.gt(0)){
         console.info(`Transfer ${balance.toString()} from ${wallet.address} to ${startupConfig.multiSign}`);
@@ -123,7 +138,7 @@ export async function balanceTransfer(sdk, wallet) {
 }
 
 const main = async () => {
-    const {wallet} = await setup(process.argv[2]);
+    const {wallet, provider} = await setup(process.argv[2]);
     const sdk = await ContractSDK.create(wallet, {deploymentDetails: deployment});
 
     const networkType = process.argv[2];
@@ -143,7 +158,7 @@ const main = async () => {
         case '--testnet':
             await createProjects(sdk);
             await createPlanTemplates(sdk);
-            await airdropStartup(sdk);
+            await airdrop(sdk, provider);
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
