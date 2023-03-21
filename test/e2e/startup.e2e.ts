@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import {ethers, waffle} from 'hardhat';
 
 import {deployContracts} from '../setup';
-import {qrStartup, pmStartup, airdropStartup, ownerTransfer, balanceTransfer} from '../../scripts/startup';
+import {createPlanTemplates, createProjects, airdrop, ownerTransfer, balanceTransfer} from '../../scripts/startup';
 import {cidToBytes32} from '../helper';
 import config from 'scripts/config/startup.json';
 
@@ -23,9 +23,9 @@ describe('startup script', () => {
             permissionedExchange: deployment.permissionedExchange,
         };
 
-        await qrStartup(sdk);
-        await pmStartup(sdk);
-        await airdropStartup(sdk);
+        await createPlanTemplates(sdk);
+        await createProjects(sdk);
+        await airdrop(sdk, wallet);
     });
 
     describe('startup', async () => {
