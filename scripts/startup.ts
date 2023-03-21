@@ -23,7 +23,7 @@ async function getAirdropTimeConfig(provider) {
     return {startTime, endTime};
 }
 
-export async function qrStartup(sdk) {
+export async function createProjects(sdk) {
     console.info('Add QueryRegistry creator:');
     for (const creator of startupConfig.QRCreator) {
         const result = await sdk.queryRegistry.creatorWhitelist(creator); 
@@ -49,7 +49,7 @@ export async function qrStartup(sdk) {
     }
 }
 
-export async function pmStartup(sdk) {
+export async function createPlanTemplates(sdk) {
     console.info("Create Plan Templates:");
     let templateId = await sdk.planManager.nextTemplateId(); 
     let templates = startupConfig.planTemplates;
@@ -130,21 +130,22 @@ const main = async () => {
         case '--mainnet':
             break;
         case '--kepler':
-            await qrStartup(sdk);
-            await pmStartup(sdk);
+            await createProjects(sdk);
+            await createPlanTemplates(sdk);
             await airdropStartup(sdk);
             await ownerTransfer(sdk);
             await balanceTransfer(sdk, wallet);
             break;
         case '--testnet':
-            await qrStartup(sdk);
-            await pmStartup(sdk);
-            await airdropStartup(sdk);await ownerTransfer(sdk);
+            await createProjects(sdk);
+            await createPlanTemplates(sdk);
+            await airdropStartup(sdk);
+            await ownerTransfer(sdk);
             await balanceTransfer(sdk, wallet);
             break;
         default:
-            await qrStartup(sdk);
-            await pmStartup(sdk);
+            await createProjects(sdk);
+            await createPlanTemplates(sdk);
             await airdropStartup(sdk);
     }
 };
