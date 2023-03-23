@@ -30,9 +30,6 @@ async function getAirdropTimeConfig(provider) {
 }
 
 export async function createProjects(sdk: ContractSDK) {
-    if(startupConfig == null){
-        startupConfig = startupTestnetConfig;
-    }
     console.info('Add QueryRegistry creator:');
     for (const creator of startupConfig.QRCreator) {
         const result = await sdk.queryRegistry.creatorWhitelist(creator); 
@@ -59,9 +56,6 @@ export async function createProjects(sdk: ContractSDK) {
 }
 
 export async function createPlanTemplates(sdk: ContractSDK) {
-    if(startupConfig == null){
-        startupConfig = startupTestnetConfig;
-    }
     console.info("Create Plan Templates:");
     let templateId = await sdk.planManager.nextTemplateId(); 
     let templates = startupConfig.planTemplates;
@@ -73,9 +67,6 @@ export async function createPlanTemplates(sdk: ContractSDK) {
 }
 
 export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider) {
-    if(startupConfig == null){
-        startupConfig = startupTestnetConfig;
-    }
     console.info("Add Airdrop Controllers:");
     for (const controller of startupConfig.AirdropController) {
         const result = await sdk.airdropper.controllers(controller); 
@@ -104,9 +95,6 @@ export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider)
 }
 
 async function setupPermissionExchange(sdk: ContractSDK, provider: StaticJsonRpcProvider, wallet: Wallet) {
-    if(startupConfig == null){
-        startupConfig = startupTestnetConfig;
-    }
     console.info('Setup exchange pair orders');
 
     const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = startupConfig.exchange;
@@ -125,9 +113,6 @@ async function setupPermissionExchange(sdk: ContractSDK, provider: StaticJsonRpc
 }
 
 export async function ownerTransfer(sdk: ContractSDK) {
-    if(startupConfig == null){
-        startupConfig = startupTestnetConfig;
-    }
     console.info("Transfer Ownerships:");
     const contracts = [
         sdk.airdropper,
@@ -167,9 +152,6 @@ export async function ownerTransfer(sdk: ContractSDK) {
 }
 
 export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
-    if(startupConfig == null){
-        startupConfig = startupTestnetConfig;
-    }
     const balance = await sdk.sqToken.balanceOf(wallet.address);
     if (balance.gt(0)){
         console.info(`Transfer ${balance.toString()} from ${wallet.address} to ${startupConfig.multiSign}`);
