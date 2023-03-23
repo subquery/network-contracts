@@ -1,20 +1,24 @@
-import {BaseContract, ContractReceipt, ContractTransaction, Wallet} from 'ethers';
+import {ethers, ContractReceipt, ContractTransaction, Wallet} from 'ethers';
 
 import setup from './setup';
 
-import startupConfig from './config/startup.json';
+import startupKeplerConfig from './config/startup.kepler.json';
+import startupMainnetConfig from './config/startup.mainnet.json';
+import startupTestnetConfig from './config/startup.testnet.json';
 import {METADATA_HASH} from '../test/constants';
 import {cidToBytes32, lastestTime} from '../test/helper';
 import {ContractSDK} from '../src';
+import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
 
 import deployment from '../publish/testnet.json';
 import { parseEther } from 'ethers/lib/utils';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
+let startupConfig;
+
 async function sendTx(transaction: () => Promise<ContractTransaction>): Promise<ContractReceipt> {
     const tx = await transaction();
-    const receipt = await tx.wait();
-
+    const receipt = await tx.wait(1);
     return receipt;
 }
 
@@ -26,6 +30,9 @@ async function getAirdropTimeConfig(provider) {
 }
 
 export async function createProjects(sdk: ContractSDK) {
+    if(startupConfig == null){
+        startupConfig = startupTestnetConfig;
+    }
     console.info('Add QueryRegistry creator:');
     for (const creator of startupConfig.QRCreator) {
         const result = await sdk.queryRegistry.creatorWhitelist(creator); 
@@ -52,6 +59,9 @@ export async function createProjects(sdk: ContractSDK) {
 }
 
 export async function createPlanTemplates(sdk: ContractSDK) {
+    if(startupConfig == null){
+        startupConfig = startupTestnetConfig;
+    }
     console.info("Create Plan Templates:");
     let templateId = await sdk.planManager.nextTemplateId(); 
     let templates = startupConfig.planTemplates;
@@ -63,6 +73,9 @@ export async function createPlanTemplates(sdk: ContractSDK) {
 }
 
 export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider) {
+    if(startupConfig == null){
+        startupConfig = startupTestnetConfig;
+    }
     console.info("Add Airdrop Controllers:");
     for (const controller of startupConfig.AirdropController) {
         const result = await sdk.airdropper.controllers(controller); 
@@ -90,7 +103,31 @@ export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider)
     await sendTx(() => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts));
 }
 
+async function setupPermissionExchange(sdk: ContractSDK, provider: StaticJsonRpcProvider, wallet: Wallet) {
+    if(startupConfig == null){
+        startupConfig = startupTestnetConfig;
+    }
+    console.info('Setup exchange pair orders');
+
+    const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = startupConfig.exchange;
+    const usdcContract = new ethers.Contract(usdcAddress, Token.abi, provider);
+
+    await usdcContract.connect(wallet).increaseAllowance(sdk.permissionedExchange.address, tokenGiveBalance);
+
+    await sdk.permissionedExchange.createPairOrders(
+        usdcAddress,
+        sdk.sqToken.address,
+        amountGive,
+        amountGet,
+        expireDate,
+        tokenGiveBalance
+    );
+}
+
 export async function ownerTransfer(sdk: ContractSDK) {
+    if(startupConfig == null){
+        startupConfig = startupTestnetConfig;
+    }
     console.info("Transfer Ownerships:");
     const contracts = [
         sdk.airdropper,
@@ -130,6 +167,9 @@ export async function ownerTransfer(sdk: ContractSDK) {
 }
 
 export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
+    if(startupConfig == null){
+        startupConfig = startupTestnetConfig;
+    }
     const balance = await sdk.sqToken.balanceOf(wallet.address);
     if (balance.gt(0)){
         console.info(`Transfer ${balance.toString()} from ${wallet.address} to ${startupConfig.multiSign}`);
@@ -147,21 +187,25 @@ const main = async () => {
     const networkType = process.argv[2];
     switch (networkType) {
         case '--mainnet':
+            startupConfig = startupMainnetConfig;
             await createProjects(sdk);
             await createPlanTemplates(sdk);
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
         case '--kepler':
+            startupConfig = startupKeplerConfig;
             await createProjects(sdk);
             await createPlanTemplates(sdk);
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
         case '--testnet':
+            startupConfig = startupTestnetConfig;
             await createProjects(sdk);
             await createPlanTemplates(sdk);
             await airdrop(sdk, provider);
+            await setupPermissionExchange(sdk, provider, wallet);
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
