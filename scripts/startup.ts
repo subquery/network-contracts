@@ -1,20 +1,24 @@
-import {BaseContract, ContractReceipt, ContractTransaction, Wallet} from 'ethers';
+import {ethers, ContractReceipt, ContractTransaction, Wallet} from 'ethers';
 
 import setup from './setup';
 
-import startupConfig from './config/startup.json';
+import startupKeplerConfig from './config/startup.kepler.json';
+import startupMainnetConfig from './config/startup.mainnet.json';
+import startupTestnetConfig from './config/startup.testnet.json';
 import {METADATA_HASH} from '../test/constants';
 import {cidToBytes32, lastestTime} from '../test/helper';
 import {ContractSDK} from '../src';
+import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
 
 import deployment from '../publish/testnet.json';
 import { parseEther } from 'ethers/lib/utils';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
+let startupConfig;
+
 async function sendTx(transaction: () => Promise<ContractTransaction>): Promise<ContractReceipt> {
     const tx = await transaction();
-    const receipt = await tx.wait();
-
+    const receipt = await tx.wait(1);
     return receipt;
 }
 
@@ -90,6 +94,24 @@ export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider)
     await sendTx(() => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts));
 }
 
+async function setupPermissionExchange(sdk: ContractSDK, provider: StaticJsonRpcProvider, wallet: Wallet) {
+    console.info('Setup exchange pair orders');
+
+    const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = startupConfig.exchange;
+    const usdcContract = new ethers.Contract(usdcAddress, Token.abi, provider);
+
+    await usdcContract.connect(wallet).increaseAllowance(sdk.permissionedExchange.address, tokenGiveBalance);
+
+    await sdk.permissionedExchange.createPairOrders(
+        usdcAddress,
+        sdk.sqToken.address,
+        amountGive,
+        amountGet,
+        expireDate,
+        tokenGiveBalance
+    );
+}
+
 export async function ownerTransfer(sdk: ContractSDK) {
     console.info("Transfer Ownerships:");
     const contracts = [
@@ -147,21 +169,25 @@ const main = async () => {
     const networkType = process.argv[2];
     switch (networkType) {
         case '--mainnet':
+            startupConfig = startupMainnetConfig;
             await createProjects(sdk);
             await createPlanTemplates(sdk);
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
         case '--kepler':
+            startupConfig = startupKeplerConfig;
             await createProjects(sdk);
             await createPlanTemplates(sdk);
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
         case '--testnet':
+            startupConfig = startupTestnetConfig;
             await createProjects(sdk);
             await createPlanTemplates(sdk);
             await airdrop(sdk, provider);
+            await setupPermissionExchange(sdk, provider, wallet);
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;

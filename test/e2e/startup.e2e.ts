@@ -4,7 +4,7 @@ import {ethers, waffle} from 'hardhat';
 import {deployContracts} from '../setup';
 import {createPlanTemplates, createProjects, airdrop, ownerTransfer, balanceTransfer} from '../../scripts/startup';
 import {cidToBytes32} from '../helper';
-import config from 'scripts/config/startup.json';
+import config from 'scripts/config/startup.testnet.json';
 
 describe('startup script', () => {
     let sdk;
