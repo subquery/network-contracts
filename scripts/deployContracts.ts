@@ -177,11 +177,13 @@ export async function deployContracts(
     }
     const proxyAdmin = await new ProxyAdmin__factory(wallet).deploy(overrides);
     await proxyAdmin.deployTransaction.wait();
+    console.log(`Deploy proxyAdmin: ${proxyAdmin.deployTransaction.hash}`);
     updateDeployment(deployment, 'ProxyAdmin', proxyAdmin.address, '', proxyAdmin.deployTransaction.hash);
 
     // deploy settings contract
     const settings = await new Settings__factory(wallet).deploy(overrides);
     await settings.deployTransaction.wait();
+    console.log(`Deploy settings: ${settings.deployTransaction.hash}`);
     updateDeployment(deployment, 'Settings', settings.address, '', settings.deployTransaction.hash);
 
     // deploy InflationController contract
@@ -191,6 +193,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy inflationController: ${inflationController.deployTransaction.hash}`);
     const inflationInit = await inflationController.initialize(
         deployment.Settings.address,
         ...(config['InflationController'] as [number, string]),
@@ -208,10 +211,12 @@ export async function deployContracts(
     // deploy SQToken contract
     const sqtToken = await new SQToken__factory(wallet).deploy(deployment.InflationController.address, overrides);
     await sqtToken.deployTransaction.wait();
+    console.log(`Deploy sqtToken: ${sqtToken.deployTransaction.hash}`);
     updateDeployment(deployment, 'SQToken', sqtToken.address, '', sqtToken.deployTransaction.hash);
 
     // deploy VSQToken contract
     const vsqtToken = await new VSQToken__factory(wallet).deploy(overrides);
+    console.log(`Deploy vsqtToken: ${vsqtToken.deployTransaction.hash}`);
     const initVsqtToken = await vsqtToken.initialize(deployment.Settings.address, overrides);
     await initVsqtToken.wait();
     updateDeployment(deployment, 'VSQToken', vsqtToken.address, '', vsqtToken.deployTransaction.hash);
@@ -219,15 +224,18 @@ export async function deployContracts(
     //deploy Airdropper contract
     const airdropper = await new Airdropper__factory(wallet).deploy(overrides);
     await airdropper.deployTransaction.wait();
+    console.log(`Deploy airdropper: ${airdropper.deployTransaction.hash}`);
     updateDeployment(deployment, 'Airdropper', airdropper.address, '', airdropper.deployTransaction.hash);
 
     //deploy vesting contract
     const vesting = await new Vesting__factory(wallet).deploy(deployment.SQToken.address, overrides);
     await vesting.deployTransaction.wait();
+    console.log(`Deploy vesting: ${vesting.deployTransaction.hash}`);
     updateDeployment(deployment, 'Vesting', vesting.address, '', vesting.deployTransaction.hash);
 
     // deploy Staking contract
     const [staking, SInnerAddr] = await deployProxy<Staking>(proxyAdmin, Staking__factory, wallet, overrides);
+    console.log(`Deploy staking: ${staking.deployTransaction.hash}`);
     const initStaking = await staking.initialize(
         ...(config['Staking'] as [number]),
         deployment.Settings.address,
@@ -243,6 +251,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy stakingManager: ${stakingManager.deployTransaction.hash}`);
     const stakingManagerInit = await stakingManager.initialize(deployment.Settings.address, overrides);
     await stakingManagerInit.wait();
     updateDeployment(
@@ -255,6 +264,7 @@ export async function deployContracts(
 
     // deploy Era manager
     const [eraManager, EMInnerAddr] = await deployProxy<EraManager>(proxyAdmin, EraManager__factory, wallet, overrides);
+    console.log(`Deploy eraManager: ${eraManager.deployTransaction.hash}`);
     const eraManagerInit = await eraManager.initialize(
         deployment.Settings.address,
         ...(config['EraManager'] as [number]),
@@ -270,6 +280,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy indexerRegistry: ${indexerRegistry.deployTransaction.hash}`);
     const initIndexer = await indexerRegistry.initialize(
         deployment.Settings.address,
         ...(config['IndexerRegistry'] as [string]),
@@ -291,6 +302,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy queryRegistry: ${queryRegistry.deployTransaction.hash}`);
     const initQuery = await queryRegistry.initialize(deployment.Settings.address, overrides);
     await initQuery.wait();
     updateDeployment(
@@ -307,6 +319,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy planManager: ${planManager.deployTransaction.hash}`);
     const initPlanManager = await planManager.initialize(deployment.Settings.address, overrides);
     await initPlanManager.wait();
     updateDeployment(deployment, 'PlanManager', planManager.address, PMInnerAddr, planManager.deployTransaction.hash);
@@ -317,6 +330,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy purchaseOfferMarket: ${purchaseOfferMarket.deployTransaction.hash}`);
     const purchaseOfferMarketInit = await purchaseOfferMarket.initialize(
         deployment.Settings.address,
         ...(config['PurchaseOfferMarket'] as [number, string]),
@@ -337,6 +351,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy serviceAgreementRegistry: ${serviceAgreementRegistry.deployTransaction.hash}`);
     const initSARegistry = await serviceAgreementRegistry.initialize(
         deployment.Settings.address,
         ...(config['ServiceAgreementRegistry'] as [number]),
@@ -357,6 +372,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy rewardsDistributer: ${rewardsDistributer.deployTransaction.hash}`);
     const initRewardsDistributer = await rewardsDistributer.initialize(deployment.Settings.address, overrides);
     await initRewardsDistributer.wait();
     updateDeployment(
@@ -373,6 +389,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy rewardsPool: ${rewardsPool.deployTransaction.hash}`);
     const initRewardsPool = await rewardsPool.initialize(deployment.Settings.address, overrides);
     await initRewardsPool.wait();
     updateDeployment(deployment, 'RewardsPool', rewardsPool.address, RPInnerAddr, rewardsPool.deployTransaction.hash);
@@ -383,6 +400,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy rewardsStaking: ${rewardsStaking.deployTransaction.hash}`);
     const initRewardsStaking = await rewardsStaking.initialize(deployment.Settings.address, overrides);
     await initRewardsStaking.wait();
     updateDeployment(
@@ -399,6 +417,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy rewardsHelper: ${rewardsHelper.deployTransaction.hash}`);
     const initRewardsHelper = await rewardsHelper.initialize(deployment.Settings.address, overrides);
     await initRewardsHelper.wait();
     updateDeployment(
@@ -415,6 +434,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy stateChannel: ${stateChannel.deployTransaction.hash}`);
     const initStateChannel = await stateChannel.initialize(deployment.Settings.address, overrides);
     await initStateChannel.wait();
     updateDeployment(
@@ -431,6 +451,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy permissionedExchange: ${permissionedExchange.deployTransaction.hash}`);
     const initPermissionedExchange = await permissionedExchange.initialize(
         deployment.Settings.address,
         [rewardsDistributer.address],
@@ -451,6 +472,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy consumerHost: ${consumerHost.deployTransaction.hash}`);
     const initConsumerHost = await consumerHost.initialize(
         settings.address,
         sqtToken.address,
@@ -473,6 +495,7 @@ export async function deployContracts(
         wallet,
         overrides
     );
+    console.log(`Deploy disputeManager: ${disputeManager.deployTransaction.hash}`);
     const initDisputeManager = await disputeManager.initialize(
         ...(config['DisputeManager'] as [string]),
         deployment.Settings.address,

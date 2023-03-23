@@ -1,25 +1,23 @@
 {
-    "setupConfig": {
-        "airdrops": [
-            "0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4",
-            "0x592C6A31df20DD24a7d33f5fe526730358337189",
-            "0x9184cFF04fD32123db66329Ab50Bf176ece2e211",
-            "0xFf60C1Efa7f0F10594229D8A68c312d7020E3478",
-            "0xBDB9D4dC13c5E3E59B7fd69230c7F44f7170Ce02",
-            "0x0421700EE1890d461353A54eAA481488f440A68f",
-            "0x4306908d323748Bd627aec4a91660Ad03DB4e29C",
-            "0xD6dFF314C7f87fC2705935350644262160F23905",
-            "0x917289E62Bdc2c322412a39Ad977861b13c3b508"
-        ],
-        "amounts": [100, 200, 300, 400, 500, 600, 900, 900, 1200],
-        "planTemplates": [
-            {"period": 129600, "dailyReqCap": 100000, "rateLimit": 6000},
-            {"period": 86400, "dailyReqCap": 50000, "rateLimit": 3000},
-            {"period": 43200, "dailyReqCap": 10000, "rateLimit": 1200},
-            {"period": 21600, "dailyReqCap": 2000, "rateLimit": 600},
-            {"period": 7200, "dailyReqCap": 100, "rateLimit": 300}
-        ]
-    },
+    "airdrops": [
+        "0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4",
+        "0x592C6A31df20DD24a7d33f5fe526730358337189",
+        "0x9184cFF04fD32123db66329Ab50Bf176ece2e211",
+        "0xFf60C1Efa7f0F10594229D8A68c312d7020E3478",
+        "0xBDB9D4dC13c5E3E59B7fd69230c7F44f7170Ce02",
+        "0x0421700EE1890d461353A54eAA481488f440A68f",
+        "0x4306908d323748Bd627aec4a91660Ad03DB4e29C",
+        "0xD6dFF314C7f87fC2705935350644262160F23905",
+        "0x917289E62Bdc2c322412a39Ad977861b13c3b508"
+    ],
+    "amounts": [100, 200, 300, 400, 500, 600, 900, 900, 1200],
+    "planTemplates": [
+        {"period": 129600, "dailyReqCap": 100000, "rateLimit": 6000},
+        {"period": 86400, "dailyReqCap": 50000, "rateLimit": 3000},
+        {"period": 43200, "dailyReqCap": 10000, "rateLimit": 1200},
+        {"period": 21600, "dailyReqCap": 2000, "rateLimit": 600},
+        {"period": 7200, "dailyReqCap": 100, "rateLimit": 300}
+    ],
     "exchange": {
         "usdcAddress": "0xE097d6B3100777DC31B34dC2c58fB524C2e76921",
         "amountGive": "1000000",
@@ -27,8 +25,16 @@
         "expireDate": 1683147171,
         "tokenGiveBalance": "50000000"
     },
-    "indexer": "0xCef192586b70e3Fc2FAD76Dd1D77983a30d38D04",
-    "dictionaries": [ 
+    "QRCreator": [
+        "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",
+        "0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe"
+    ],
+    "AirdropController": [
+        "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",
+        "0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe"
+    ],
+    "multiSign": "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",
+    "projects": [ 
         {
             "name": "Polkadot Dictionary",
             "deploymentId": "QmSjjRjfjXXEfSUTheNwvWcBaH54pWoToTHPDsJRby955X",
