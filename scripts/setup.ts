@@ -21,7 +21,7 @@ async function setupCommon({rpcUrls, chainId, chainName}: DeploymentConfig["netw
     return {
         wallet,
         provider,
-        overrides: {},
+        overrides: {gasPrice: await provider.getGasPrice()},
     };
 }
 
