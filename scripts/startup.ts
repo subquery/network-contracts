@@ -18,7 +18,7 @@ let startupConfig;
 
 async function sendTx(transaction: () => Promise<ContractTransaction>): Promise<ContractReceipt> {
     const tx = await transaction();
-    const receipt = await tx.wait(1);
+    const receipt = await tx.wait(20);
     return receipt;
 }
 
