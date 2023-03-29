@@ -11,6 +11,7 @@ import 'hardhat-contract-sizer';
 import 'solidity-docgen';
 require('solidity-coverage');
 
+
 dotenv.config();
 
 if (!process.env.NODE_ENV) {
@@ -47,17 +48,166 @@ task('flat', 'Flattens and prints contracts and their dependencies (Resolves lic
         console.log(flattened);
     });
 
+task('publish', "verify and publish contracts on etherscan")
+.addParam("deployment", "Deployment file path")
+.setAction(async (taskArgs, hre) => {
+    const deployment = require(taskArgs.deployment);
+
+    try{
+        //InflationController
+        await hre.run("verify:verify", {
+            address: deployment.InflationController.innerAddress,
+            constructorArguments: [],
+        });
+
+        //SQToken
+        await hre.run("verify:verify", {
+            address: deployment.SQToken.address,
+            constructorArguments: [deployment.InflationController.address],
+        });
+
+        //VSQToken
+        await hre.run("verify:verify", {
+            address: deployment.VSQToken.address,
+            constructorArguments: [],
+        });
+
+        //Airdropper
+        await hre.run("verify:verify", {
+            address: deployment.Airdropper.address,
+            constructorArguments: [],
+        });
+
+        //Vesting
+        await hre.run("verify:verify", {
+            address: deployment.Vesting.address,
+            constructorArguments: [deployment.SQToken.address],
+        });
+
+        //Staking
+        await hre.run("verify:verify", {
+            address: deployment.Staking.innerAddress,
+            constructorArguments: [],
+        });
+
+        //StakingManager
+        await hre.run("verify:verify", {
+            address: deployment.StakingManager.innerAddress,
+            constructorArguments: [],
+        });
+
+        //EraManager
+        await hre.run("verify:verify", {
+            address: deployment.EraManager.innerAddress,
+            constructorArguments: [],
+        });
+
+        //IndexerRegistry
+        await hre.run("verify:verify", {
+            address: deployment.IndexerRegistry.innerAddress,
+            constructorArguments: [],
+        });
+
+        //QueryRegistry
+        await hre.run("verify:verify", {
+            address: deployment.QueryRegistry.innerAddress,
+            constructorArguments: [],
+        });
+
+        //PlanManager
+        await hre.run("verify:verify", {
+            address: deployment.PlanManager.innerAddress,
+            constructorArguments: [],
+        });
+
+        //PurchaseOfferMarket
+        await hre.run("verify:verify", {
+            address: deployment.PurchaseOfferMarket.innerAddress,
+            constructorArguments: [],
+        });
+
+        //ServiceAgreementRegistry
+        await hre.run("verify:verify", {
+            address: deployment.ServiceAgreementRegistry.innerAddress,
+            constructorArguments: [],
+        });
+
+        //RewardsDistributer
+        await hre.run("verify:verify", {
+            address: deployment.RewardsDistributer.innerAddress,
+            constructorArguments: [],
+        });
+
+        //RewardsPool
+        await hre.run("verify:verify", {
+            address: deployment.RewardsPool.innerAddress,
+            constructorArguments: [],
+        });
+
+        //RewardsStaking
+        await hre.run("verify:verify", {
+            address: deployment.RewardsStaking.innerAddress,
+            constructorArguments: [],
+        });
+
+        //RewardsHelper
+        await hre.run("verify:verify", {
+            address: deployment.RewardsHelper.innerAddress,
+            constructorArguments: [],
+        });
+        
+        //StateChannel
+        await hre.run("verify:verify", {
+            address: deployment.StateChannel.innerAddress,
+            constructorArguments: [],
+        });
+
+        //PermissionedExchange
+        await hre.run("verify:verify", {
+            address: deployment.PermissionedExchange.innerAddress,
+            constructorArguments: [],
+        });
+
+        //ConsumerHost
+        await hre.run("verify:verify", {
+            address: deployment.ConsumerHost.innerAddress,
+            constructorArguments: [],
+        });
+
+        //DisputeManager
+        await hre.run("verify:verify", {
+            address: deployment.DisputeManager.innerAddress,
+            constructorArguments: [],
+        });
+
+    }catch(err){
+        console.log(err);
+    }
+});
+
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
 const config: HardhatUserConfig = {
     solidity: '0.8.15',
+    networks: {
+        hardhat: {},
+        testnet: {
+            url: "https://rpc.ankr.com/polygon_mumbai",
+        },
+        kepler: {
+            url: "https://polygon-rpc.com",
+        },
+        mainnet: {
+            url: "https://polygon-rpc.com",
+        }
+    },
     gasReporter: {
         currency: 'USD',
         gasPrice: 21,
     },
     etherscan: {
-        apiKey: process.env.ETHERSCAN_API_KEY,
+        apiKey: "671F18CUDF22UHGTHEJK1KHNSESWRPQUGX",
     },
     typechain: {
         outDir: 'src/typechain',
