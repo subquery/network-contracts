@@ -31,7 +31,7 @@ const main = async () => {
         //InflationController
         // TODO: following this example to update all the logs,
         let logger = getLogger('InflationController');
-        logger.info(colorText(`InflationController Contract: ${sdk.inflationController.address}`, TextColor.BLUE));
+        logger.info(colorText(`Verifying inflationController Contract: ${sdk.inflationController.address}`, TextColor.YELLOW));
         // TODO: user explicity name for the params in config  
         const [rate, destination] = config.contracts['InflationController'];
         const inflationRate = await sdk.inflationController.inflationRate();
@@ -41,6 +41,7 @@ const main = async () => {
         const inflationDestination = await sdk.inflationController.inflationDestination();
         logger.info(`InflationDestination to be equal ${destination}`);
         expect(inflationDestination.toUpperCase()).to.equal(configs[1].toUpperCase());
+        logger.info(colorText('InflationController Contract verified', TextColor.YELLOW));
 
         //Staking
         logger = getLogger('Staking');
