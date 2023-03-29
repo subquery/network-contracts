@@ -1,15 +1,16 @@
-import {ethers, ContractReceipt, ContractTransaction, Wallet, BigNumber} from 'ethers';
+import {BigNumber} from 'ethers';
 import setup from './setup';
 import {ContractSDK} from '../src';
 import testnetDeployment from '../publish/testnet.json';
 import keplerDeployment from '../publish/kepler.json';
 import mainnetDeployment from '../publish/mainnet.json';
 import {expect} from 'chai';
+import { colorText, getLogger, TextColor } from './logger';
 
 const main = async () => {
-    let sdk;
+    let sdk: ContractSDK;
     let configs;
-    const {wallet, provider, config} = await setup(process.argv[2]);
+    const {wallet, config} = await setup(process.argv[2]);
 
     const networkType = process.argv[2];
     switch (networkType) {
@@ -25,19 +26,25 @@ const main = async () => {
         default:
             throw new Error(`Please provide correct network ${networkType}`)
     }
+
     try {
         //InflationController
-        console.log("InflationController Contract: ");
-        configs = config.contracts['InflationController'];
+        // TODO: following this example to update all the logs,
+        let logger = getLogger('InflationController');
+        logger.info(colorText(`InflationController Contract: ${sdk.inflationController.address}`, TextColor.BLUE));
+        // TODO: user explicity name for the params in config  
+        const [rate, destination] = config.contracts['InflationController'];
         const inflationRate = await sdk.inflationController.inflationRate();
-        console.log(`InflationController inflationRate to be equal ${configs[0]}...`);
-        expect(inflationRate).to.eql(BigNumber.from(configs[0]));
+        logger.info(`InflationRate to be equal ${rate}`);
+        expect(inflationRate).to.eql(BigNumber.from(rate));
+
         const inflationDestination = await sdk.inflationController.inflationDestination();
-        console.log(`InflationController inflationDestination to be equal ${configs[1]}...`);
+        logger.info(`InflationDestination to be equal ${destination}`);
         expect(inflationDestination.toUpperCase()).to.equal(configs[1].toUpperCase());
 
         //Staking
-        console.log("Staking Contract: ");
+        logger = getLogger('Staking');
+        logger.info(`Staking Contract: ${sdk.staking.address}`);
         configs = config.contracts['Staking'];
         const lockPeriod = await sdk.staking.lockPeriod();
         console.log(`Staking lockPeriod to be equal ${configs[0]}...`);
