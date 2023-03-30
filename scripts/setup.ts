@@ -55,10 +55,16 @@ const setup = async (argv: string) => {
         config.network.rpcUrls = [process.env.ENDPOINT];
     }
 
-    if (['Polygon', 'Mumbai', 'Hardaht', 'Moonbase-alpha'].includes(config.network.chainName)) {
+    if (['Mumbai', 'Hardaht', 'Moonbase-alpha'].includes(config.network.chainName)) {
         const {wallet, provider, overrides} =  await setupCommon(config.network);
-        return {name, config, wallet, provider, overrides}
-    } else {
+        const confirms = 1;
+        return {name, config, wallet, provider, overrides, confirms}
+    } else if(['Polygon'].includes(config.network.chainName)){
+        const {wallet, provider, overrides} =  await setupCommon(config.network);
+        const confirms = 20
+        return {name, config, wallet, provider, overrides, confirms}
+    }
+    else {
         throw new Error(`Network ${config.network.chainName} not supported`);
     }
 };
