@@ -14,11 +14,12 @@ import deployment from '../publish/testnet.json';
 import { parseEther } from 'ethers/lib/utils';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
-let startupConfig;
+let startupConfig : any = startupTestnetConfig;
+let confirms = 0;
 
 async function sendTx(transaction: () => Promise<ContractTransaction>): Promise<ContractReceipt> {
     const tx = await transaction();
-    const receipt = await tx.wait(20);
+    const receipt = await tx.wait(confirms);
     return receipt;
 }
 
@@ -170,12 +171,14 @@ const main = async () => {
     switch (networkType) {
         case '--mainnet':
             startupConfig = startupMainnetConfig;
+            confirms = 20;
             await createProjects(sdk);
             await createPlanTemplates(sdk);
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
         case '--kepler':
+            confirms = 20;
             startupConfig = startupKeplerConfig;
             await createProjects(sdk);
             await createPlanTemplates(sdk);
@@ -183,6 +186,7 @@ const main = async () => {
             await ownerTransfer(sdk);
             break;
         case '--testnet':
+            confirms = 1;
             startupConfig = startupTestnetConfig;
             await createProjects(sdk);
             await createPlanTemplates(sdk);
