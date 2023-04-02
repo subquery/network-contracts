@@ -1,4 +1,4 @@
-import {ContractFactory, Contract, Overrides} from 'ethers';
+import {ContractFactory, Contract} from 'ethers';
 import sha256 from 'sha256';
 import {Wallet} from '@ethersproject/wallet';
 import CONTRACTS from '../src/contracts';
@@ -111,11 +111,11 @@ export const deployProxy = async <C extends Contract>(
     proxyAdmin: ProxyAdmin,
     ContractFactory: FactoryContstructor,
     wallet: Wallet,
-    overrides: any
+    confirms: number
 ): Promise<[C, string]> => {
     const contractFactory = new ContractFactory(wallet);
-    let contractLogic = await contractFactory.deploy(overrides);
-    await contractLogic.deployTransaction.wait(1);
+    let contractLogic = await contractFactory.deploy(await getOverrides(wallet));
+    await contractLogic.deployTransaction.wait(confirms);
 
     const adminUpgradabilityProxyFactory = new AdminUpgradeabilityProxy__factory(wallet);
 
@@ -123,9 +123,9 @@ export const deployProxy = async <C extends Contract>(
         contractLogic.address,
         proxyAdmin.address,
         [],
-        overrides
+        await getOverrides(wallet)
     );
-    await contractProxy.deployTransaction.wait(1);
+    await contractProxy.deployTransaction.wait(confirms);
 
     const proxy = contractFactory.attach(contractProxy.address) as C;
     (proxy as any).deployTransaction = contractLogic.deployTransaction;
@@ -137,14 +137,14 @@ export const upgradeContract = async (
     proxyAddress: string,
     ContractFactory: FactoryContstructor,
     wallet: Wallet,
-    overrides: any
+    confirms: number
 ): Promise<[string, string]> => {
     const contractFactory = new ContractFactory(wallet);
-    let contractLogic = await contractFactory.deploy(overrides);
-    await contractLogic.deployTransaction.wait(1);
+    let contractLogic = await contractFactory.deploy(await getOverrides(wallet));
+    await contractLogic.deployTransaction.wait(confirms);
 
     const tx = await proxyAdmin.upgrade(proxyAddress, contractLogic.address);
-    await tx.wait(1);
+    await tx.wait(confirms);
 
     return [contractLogic.address, contractLogic.deployTransaction.hash];
 };
@@ -167,25 +167,35 @@ function updateDeployment(
     };
 }
 
+async function getOverrides(wallet: Wallet) {
+    const price = await wallet.provider.getGasPrice();
+    const gasPrice = price.add(10000000000);
+    return { gasPrice };
+}
+
 export async function deployContracts(
     wallet: Wallet,
     config: DeploymentConfig['contracts'],
-    overrides: Overrides | {} = {}
+    confirms: number | 0 = 0
 ): Promise<[Partial<ContractDeployment>, Contracts]> {
     let logger = getLogger('deployContracts');
     const deployment: Partial<ContractDeployment> = {};
     if (process.env.DEBUG) {
         logger.info(colorText(`deploy start, from wallet ${wallet.address}`, TextColor.YELLOW));
     }
-    const proxyAdmin = await new ProxyAdmin__factory(wallet).deploy(overrides);
-    await proxyAdmin.deployTransaction.wait(1);
-    console.log(`Deploy proxyAdmin: ${proxyAdmin.deployTransaction.hash}`);
+    const proxyAdmin = await new ProxyAdmin__factory(wallet).deploy(await getOverrides(wallet));
+    await proxyAdmin.deployTransaction.wait(confirms);
+    if (process.env.DEBUG) {
+        console.log(`Deploy proxyAdmin: ${proxyAdmin.deployTransaction.hash}`);
+    }
     updateDeployment(deployment, 'ProxyAdmin', proxyAdmin.address, '', proxyAdmin.deployTransaction.hash);
 
     // deploy settings contract
-    const settings = await new Settings__factory(wallet).deploy(overrides);
-    await settings.deployTransaction.wait(1);
-    console.log(`Deploy settings: ${settings.deployTransaction.hash}`);
+    const settings = await new Settings__factory(wallet).deploy(await getOverrides(wallet));
+    await settings.deployTransaction.wait(confirms);
+    if (process.env.DEBUG) {
+        console.log(`Deploy settings: ${settings.deployTransaction.hash}`);
+    }
     updateDeployment(deployment, 'Settings', settings.address, '', settings.deployTransaction.hash);
 
     // deploy InflationController contract
@@ -193,15 +203,17 @@ export async function deployContracts(
         proxyAdmin,
         InflationController__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy inflationController: ${inflationController.deployTransaction.hash}`);
+    if (process.env.DEBUG) {
+        console.log(`Deploy inflationController: ${inflationController.deployTransaction.hash}`);
+    }
     const inflationInit = await inflationController.initialize(
         deployment.Settings.address,
         ...(config['InflationController'] as [number, string]),
-        overrides
+        await getOverrides(wallet)
     );
-    await inflationInit.wait(1);
+    await inflationInit.wait(confirms);
     updateDeployment(
         deployment,
         'InflationController',
@@ -211,39 +223,49 @@ export async function deployContracts(
     );
 
     // deploy SQToken contract
-    const sqtToken = await new SQToken__factory(wallet).deploy(deployment.InflationController.address, overrides);
-    await sqtToken.deployTransaction.wait(1);
-    console.log(`Deploy sqtToken: ${sqtToken.deployTransaction.hash}`);
+    const sqtToken = await new SQToken__factory(wallet).deploy(deployment.InflationController.address, await getOverrides(wallet));
+    await sqtToken.deployTransaction.wait(confirms);
+    if (process.env.DEBUG) {
+        console.log(`Deploy sqtToken: ${sqtToken.deployTransaction.hash}`);
+    }
     updateDeployment(deployment, 'SQToken', sqtToken.address, '', sqtToken.deployTransaction.hash);
 
     // deploy VSQToken contract
-    const vsqtToken = await new VSQToken__factory(wallet).deploy(overrides);
-    console.log(`Deploy vsqtToken: ${vsqtToken.deployTransaction.hash}`);
-    const initVsqtToken = await vsqtToken.initialize(deployment.Settings.address, overrides);
-    await initVsqtToken.wait(1);
+    const vsqtToken = await new VSQToken__factory(wallet).deploy(await getOverrides(wallet));
+    if (process.env.DEBUG) {
+        console.log(`Deploy vsqtToken: ${vsqtToken.deployTransaction.hash}`);
+    }
+    const initVsqtToken = await vsqtToken.initialize(deployment.Settings.address, await getOverrides(wallet));
+    await initVsqtToken.wait(confirms);
     updateDeployment(deployment, 'VSQToken', vsqtToken.address, '', vsqtToken.deployTransaction.hash);
 
     //deploy Airdropper contract
-    const airdropper = await new Airdropper__factory(wallet).deploy(overrides);
-    await airdropper.deployTransaction.wait(1);
-    console.log(`Deploy airdropper: ${airdropper.deployTransaction.hash}`);
+    const airdropper = await new Airdropper__factory(wallet).deploy(await getOverrides(wallet));
+    await airdropper.deployTransaction.wait(confirms);
+    if (process.env.DEBUG) {
+        console.log(`Deploy airdropper: ${airdropper.deployTransaction.hash}`);
+    }
     updateDeployment(deployment, 'Airdropper', airdropper.address, '', airdropper.deployTransaction.hash);
 
     //deploy vesting contract
-    const vesting = await new Vesting__factory(wallet).deploy(deployment.SQToken.address, overrides);
-    await vesting.deployTransaction.wait(1);
-    console.log(`Deploy vesting: ${vesting.deployTransaction.hash}`);
+    const vesting = await new Vesting__factory(wallet).deploy(deployment.SQToken.address, await getOverrides(wallet));
+    await vesting.deployTransaction.wait(confirms);
+    if (process.env.DEBUG) {
+        console.log(`Deploy vesting: ${vesting.deployTransaction.hash}`);
+    }
     updateDeployment(deployment, 'Vesting', vesting.address, '', vesting.deployTransaction.hash);
 
     // deploy Staking contract
-    const [staking, SInnerAddr] = await deployProxy<Staking>(proxyAdmin, Staking__factory, wallet, overrides);
-    console.log(`Deploy staking: ${staking.deployTransaction.hash}`);
+    const [staking, SInnerAddr] = await deployProxy<Staking>(proxyAdmin, Staking__factory, wallet, confirms);
+    if (process.env.DEBUG) {
+        console.log(`Deploy staking: ${staking.deployTransaction.hash}`);
+    }
     const initStaking = await staking.initialize(
         ...(config['Staking'] as [number]),
         deployment.Settings.address,
-        overrides
+        await getOverrides(wallet)
     );
-    await initStaking.wait(1);
+    await initStaking.wait(confirms);
     updateDeployment(deployment, 'Staking', staking.address, SInnerAddr, staking.deployTransaction.hash);
 
     // deploy StakingManager contract
@@ -251,11 +273,13 @@ export async function deployContracts(
         proxyAdmin,
         StakingManager__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy stakingManager: ${stakingManager.deployTransaction.hash}`);
-    const stakingManagerInit = await stakingManager.initialize(deployment.Settings.address, overrides);
-    await stakingManagerInit.wait(1);
+    if (process.env.DEBUG) {
+        console.log(`Deploy stakingManager: ${stakingManager.deployTransaction.hash}`);
+    }
+    const stakingManagerInit = await stakingManager.initialize(deployment.Settings.address, await getOverrides(wallet));
+    await stakingManagerInit.wait(confirms);
     updateDeployment(
         deployment,
         'StakingManager',
@@ -265,14 +289,16 @@ export async function deployContracts(
     );
 
     // deploy Era manager
-    const [eraManager, EMInnerAddr] = await deployProxy<EraManager>(proxyAdmin, EraManager__factory, wallet, overrides);
-    console.log(`Deploy eraManager: ${eraManager.deployTransaction.hash}`);
+    const [eraManager, EMInnerAddr] = await deployProxy<EraManager>(proxyAdmin, EraManager__factory, wallet, confirms);
+    if (process.env.DEBUG) {
+        console.log(`Deploy eraManager: ${eraManager.deployTransaction.hash}`);
+    }
     const eraManagerInit = await eraManager.initialize(
         deployment.Settings.address,
         ...(config['EraManager'] as [number]),
-        overrides
+        await getOverrides(wallet)
     );
-    await eraManagerInit.wait(1);
+    await eraManagerInit.wait(confirms);
     updateDeployment(deployment, 'EraManager', eraManager.address, EMInnerAddr, eraManager.deployTransaction.hash);
 
     // deploy IndexerRegistry contract
@@ -280,15 +306,17 @@ export async function deployContracts(
         proxyAdmin,
         IndexerRegistry__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy indexerRegistry: ${indexerRegistry.deployTransaction.hash}`);
+    if (process.env.DEBUG) {
+        console.log(`Deploy indexerRegistry: ${indexerRegistry.deployTransaction.hash}`);
+    }
     const initIndexer = await indexerRegistry.initialize(
         deployment.Settings.address,
         ...(config['IndexerRegistry'] as [string]),
-        overrides
+        await getOverrides(wallet)
     );
-    await initIndexer.wait(1);
+    await initIndexer.wait(confirms);
     updateDeployment(
         deployment,
         'IndexerRegistry',
@@ -302,11 +330,13 @@ export async function deployContracts(
         proxyAdmin,
         QueryRegistry__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy queryRegistry: ${queryRegistry.deployTransaction.hash}`);
-    const initQuery = await queryRegistry.initialize(deployment.Settings.address, overrides);
-    await initQuery.wait(1);
+    if (process.env.DEBUG) {
+        console.log(`Deploy queryRegistry: ${queryRegistry.deployTransaction.hash}`);
+    }
+    const initQuery = await queryRegistry.initialize(deployment.Settings.address, await getOverrides(wallet));
+    await initQuery.wait(confirms);
     updateDeployment(
         deployment,
         'QueryRegistry',
@@ -319,26 +349,30 @@ export async function deployContracts(
         proxyAdmin,
         PlanManager__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy planManager: ${planManager.deployTransaction.hash}`);
-    const initPlanManager = await planManager.initialize(deployment.Settings.address, overrides);
-    await initPlanManager.wait(1);
+    if (process.env.DEBUG) {
+        console.log(`Deploy planManager: ${planManager.deployTransaction.hash}`);
+    }
+    const initPlanManager = await planManager.initialize(deployment.Settings.address, await getOverrides(wallet));
+    await initPlanManager.wait(confirms);
     updateDeployment(deployment, 'PlanManager', planManager.address, PMInnerAddr, planManager.deployTransaction.hash);
 
     const [purchaseOfferMarket, POMInnerAddr] = await deployProxy<PurchaseOfferMarket>(
         proxyAdmin,
         PurchaseOfferMarket__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy purchaseOfferMarket: ${purchaseOfferMarket.deployTransaction.hash}`);
+    if (process.env.DEBUG) {
+        console.log(`Deploy purchaseOfferMarket: ${purchaseOfferMarket.deployTransaction.hash}`);
+    }
     const purchaseOfferMarketInit = await purchaseOfferMarket.initialize(
         deployment.Settings.address,
         ...(config['PurchaseOfferMarket'] as [number, string]),
-        overrides
+        await getOverrides(wallet)
     );
-    await purchaseOfferMarketInit.wait(1);
+    await purchaseOfferMarketInit.wait(confirms);
     updateDeployment(
         deployment,
         'PurchaseOfferMarket',
@@ -351,15 +385,17 @@ export async function deployContracts(
         proxyAdmin,
         ServiceAgreementRegistry__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy serviceAgreementRegistry: ${serviceAgreementRegistry.deployTransaction.hash}`);
+    if (process.env.DEBUG) {
+        console.log(`Deploy serviceAgreementRegistry: ${serviceAgreementRegistry.deployTransaction.hash}`);
+    }
     const initSARegistry = await serviceAgreementRegistry.initialize(
         deployment.Settings.address,
         ...(config['ServiceAgreementRegistry'] as [number]),
         [planManager.address, purchaseOfferMarket.address]
     );
-    await initSARegistry.wait(1);
+    await initSARegistry.wait(confirms);
     updateDeployment(
         deployment,
         'ServiceAgreementRegistry',
@@ -372,11 +408,13 @@ export async function deployContracts(
         proxyAdmin,
         RewardsDistributer__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy rewardsDistributer: ${rewardsDistributer.deployTransaction.hash}`);
-    const initRewardsDistributer = await rewardsDistributer.initialize(deployment.Settings.address, overrides);
-    await initRewardsDistributer.wait(1);
+    if (process.env.DEBUG) {
+        console.log(`Deploy rewardsDistributer: ${rewardsDistributer.deployTransaction.hash}`);
+    }
+    const initRewardsDistributer = await rewardsDistributer.initialize(deployment.Settings.address, await getOverrides(wallet));
+    await initRewardsDistributer.wait(confirms);
     updateDeployment(
         deployment,
         'RewardsDistributer',
@@ -389,22 +427,26 @@ export async function deployContracts(
         proxyAdmin,
         RewardsPool__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy rewardsPool: ${rewardsPool.deployTransaction.hash}`);
-    const initRewardsPool = await rewardsPool.initialize(deployment.Settings.address, overrides);
-    await initRewardsPool.wait(1);
+    if (process.env.DEBUG) {
+        console.log(`Deploy rewardsPool: ${rewardsPool.deployTransaction.hash}`);
+    }
+    const initRewardsPool = await rewardsPool.initialize(deployment.Settings.address, await getOverrides(wallet));
+    await initRewardsPool.wait(confirms);
     updateDeployment(deployment, 'RewardsPool', rewardsPool.address, RPInnerAddr, rewardsPool.deployTransaction.hash);
 
     const [rewardsStaking, RSInnerAddr] = await deployProxy<RewardsStaking>(
         proxyAdmin,
         RewardsStaking__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy rewardsStaking: ${rewardsStaking.deployTransaction.hash}`);
-    const initRewardsStaking = await rewardsStaking.initialize(deployment.Settings.address, overrides);
-    await initRewardsStaking.wait(1);
+    if (process.env.DEBUG) {
+        console.log(`Deploy rewardsStaking: ${rewardsStaking.deployTransaction.hash}`);
+    }
+    const initRewardsStaking = await rewardsStaking.initialize(deployment.Settings.address, await getOverrides(wallet));
+    await initRewardsStaking.wait(confirms);
     updateDeployment(
         deployment,
         'RewardsStaking',
@@ -417,11 +459,13 @@ export async function deployContracts(
         proxyAdmin,
         RewardsHelper__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy rewardsHelper: ${rewardsHelper.deployTransaction.hash}`);
-    const initRewardsHelper = await rewardsHelper.initialize(deployment.Settings.address, overrides);
-    await initRewardsHelper.wait(1);
+    if (process.env.DEBUG) {
+        console.log(`Deploy rewardsHelper: ${rewardsHelper.deployTransaction.hash}`);
+    }
+    const initRewardsHelper = await rewardsHelper.initialize(deployment.Settings.address, await getOverrides(wallet));
+    await initRewardsHelper.wait(confirms);
     updateDeployment(
         deployment,
         'RewardsHelper',
@@ -434,11 +478,13 @@ export async function deployContracts(
         proxyAdmin,
         StateChannel__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy stateChannel: ${stateChannel.deployTransaction.hash}`);
-    const initStateChannel = await stateChannel.initialize(deployment.Settings.address, overrides);
-    await initStateChannel.wait(1);
+    if (process.env.DEBUG) {
+        console.log(`Deploy stateChannel: ${stateChannel.deployTransaction.hash}`);
+    }
+    const initStateChannel = await stateChannel.initialize(deployment.Settings.address, await getOverrides(wallet));
+    await initStateChannel.wait(confirms);
     updateDeployment(
         deployment,
         'StateChannel',
@@ -451,15 +497,17 @@ export async function deployContracts(
         proxyAdmin,
         PermissionedExchange__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy permissionedExchange: ${permissionedExchange.deployTransaction.hash}`);
+    if (process.env.DEBUG) {
+        console.log(`Deploy permissionedExchange: ${permissionedExchange.deployTransaction.hash}`);
+    }
     const initPermissionedExchange = await permissionedExchange.initialize(
         deployment.Settings.address,
         [rewardsDistributer.address],
-        overrides
+        await getOverrides(wallet)
     );
-    await initPermissionedExchange.wait(1);
+    await initPermissionedExchange.wait(confirms);
     updateDeployment(
         deployment,
         'PermissionedExchange',
@@ -472,17 +520,19 @@ export async function deployContracts(
         proxyAdmin,
         ConsumerHost__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy consumerHost: ${consumerHost.deployTransaction.hash}`);
+    if (process.env.DEBUG) {
+        console.log(`Deploy consumerHost: ${consumerHost.deployTransaction.hash}`);
+    }
     const initConsumerHost = await consumerHost.initialize(
         settings.address,
         sqtToken.address,
         stateChannel.address,
         ...(config['ConsumerHost'] as [number]),
-        overrides
+        await getOverrides(wallet)
     );
-    await initConsumerHost.wait(1);
+    await initConsumerHost.wait(confirms);
     updateDeployment(
         deployment,
         'ConsumerHost',
@@ -495,15 +545,17 @@ export async function deployContracts(
         proxyAdmin,
         DisputeManager__factory,
         wallet,
-        overrides
+        confirms
     );
-    console.log(`Deploy disputeManager: ${disputeManager.deployTransaction.hash}`);
+    if (process.env.DEBUG) {
+        console.log(`Deploy disputeManager: ${disputeManager.deployTransaction.hash}`);
+    }
     const initDisputeManager = await disputeManager.initialize(
         ...(config['DisputeManager'] as [string]),
         deployment.Settings.address,
-        overrides
+        await getOverrides(wallet)
     );
-    await initDisputeManager.wait(1);
+    await initDisputeManager.wait(confirms);
     updateDeployment(
         deployment,
         'DisputeManager',
@@ -524,10 +576,10 @@ export async function deployContracts(
         deployment.InflationController.address,
         deployment.Vesting.address,
         deployment.PermissionedExchange.address,
-        overrides as any
+        await getOverrides(wallet)
     );
 
-    await txToken.wait(1);
+    await txToken.wait(confirms);
 
     const txProject = await settings.setProjectAddresses(
         deployment.IndexerRegistry.address,
@@ -537,10 +589,10 @@ export async function deployContracts(
         deployment.ServiceAgreementRegistry.address,
         deployment.DisputeManager.address,
         deployment.StateChannel.address,
-        overrides as any
+        await getOverrides(wallet)
     );
 
-    await txProject.wait(1);
+    await txProject.wait(confirms);
 
     return [
         deployment,
@@ -575,7 +627,7 @@ export async function deployContracts(
 export async function upgradeContracts(
     wallet: Wallet,
     deployment: ContractDeployment,
-    overrides: Overrides | {} = {}
+    confirms: number
 ): Promise<ContractDeployment> {
     if (process.env.DEBUG) {
         console.log(`deploy start, from wallet ${wallet.address}`);
@@ -598,7 +650,7 @@ export async function upgradeContracts(
         console.log(`Upgrading ${contract}`);
         const [_, factory] = UPGRADEBAL_CONTRACTS[contract];
         const {address} = deployment[contract];
-        const [innerAddr, deployTx] = await upgradeContract(proxyAdmin, address, factory, wallet, overrides);
+        const [innerAddr, deployTx] = await upgradeContract(proxyAdmin, address, factory, wallet, confirms);
         updateDeployment(deployment, contract, address, innerAddr, deployTx);
     }
     return deployment;
