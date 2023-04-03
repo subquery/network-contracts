@@ -1,10 +1,11 @@
 use ethers::{abi::Abi, contract::Contract, providers::Middleware, types::Address};
-use serde_json::Value;
-use std::sync::Arc;
+use serde_json::{Result as JsonResult, Value};
+use std::{sync::Arc};
 
 const MAINNET_ADDRESS: &str = include_str!("../publish/mainnet.json");
 const KEPLER_ADDRESS: &str = include_str!("../publish/kepler.json");
 const TESTNET_ADDRESS: &str = include_str!("../publish/testnet.json");
+const REVERT_CODES: &str = include_str!("../publish/revertcode.json");
 
 /// Default network that all services use now.
 pub const CURRENT_NETWORK: Network = Network::Testnet;
@@ -163,6 +164,12 @@ macro_rules! contract {
             }
         }
     };
+}
+
+pub fn revert_codes(code: &str) -> JsonResult<String> {
+    let json: Value = serde_json::from_str(&REVERT_CODES)?;
+    let message = json[code].as_str().unwrap();
+    return Ok(message.to_string());
 }
 
 contract!(

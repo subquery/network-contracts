@@ -23,34 +23,10 @@
             "metadataCid": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE"
         },
         {
-            "name": "Avalanche Dictionary",
-            "deploymentId": "QmaMetzawjqpAcNTv6nzF88yFHVCpLE4h5goxvayLn9Yxj",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "QmZTh1vfdFrRfVBDYyttDen7GZFhRC5NWGzCHA4YWyqXCr"
-        },
-        {
             "name": "Moonbeam Dictionary",
             "deploymentId": "QmXhc36szFrKYVBJkmiXDFM2PDsFADzfb2QF6UBYGsNfH3",
             "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "metadataCid": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj"
-        },
-        {
-            "name": "Moonriver Dictionary",
-            "deploymentId": "QmQnhLMgV3SrXbunjgHjnfdw32BAHQS3nNhLWKpNjtFTSZ", 
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "Qmdvn23qiTYNEBaJ5BwzaDBESXvzG3mrPtWuK9zajkXvLn"
-        },
-        {
-            "name": "Juno Dictionary",
-            "deploymentId": "QmPP9XLoquWhUc8fyrTBfaaPzz4VR65nsVvzYBcPX1DoUz",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "QmZ9RitNZKhcguQnaswzkWvPZqSDgxE5munMqAfjbKgZbd"
-        },
-        {
-            "name": "Acala Dictionary",
-            "deploymentId": "QmYH4KFV9yeLnbWwswoqLBLH6Z69ae2Snbyrs218cpPs1K",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "QmZPBEJu4q89T2UwxrDw1TkQ8UASAS7JyE4xuy1HMvw1NR"
         },
         {
             "name": "Kusama Dictionary",
