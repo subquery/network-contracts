@@ -3,6 +3,7 @@ import sha256 from 'sha256';
 import {Wallet} from '@ethersproject/wallet';
 import CONTRACTS from '../src/contracts';
 import {ContractDeployment, DeploymentConfig} from '../src/types';
+import { colorText, getLogger, TextColor } from './logger';
 
 import {
     ProxyAdmin,
@@ -177,9 +178,10 @@ export async function deployContracts(
     config: DeploymentConfig['contracts'],
     confirms: number | 0 = 0
 ): Promise<[Partial<ContractDeployment>, Contracts]> {
+    let logger = getLogger('deployContracts');
     const deployment: Partial<ContractDeployment> = {};
     if (process.env.DEBUG) {
-        console.log(`deploy start, from wallet ${wallet.address}`);
+        logger.info(colorText(`deploy start, from wallet ${wallet.address}`, TextColor.YELLOW));
     }
     const proxyAdmin = await new ProxyAdmin__factory(wallet).deploy(await getOverrides(wallet));
     await proxyAdmin.deployTransaction.wait(confirms);
