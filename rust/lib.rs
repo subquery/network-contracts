@@ -1,6 +1,6 @@
 use ethers::{abi::Abi, contract::Contract, providers::Middleware, types::Address};
-use serde_json::{Result as JsonResult, Value};
-use std::{sync::Arc};
+use serde_json::Value;
+use std::sync::Arc;
 
 const MAINNET_ADDRESS: &str = include_str!("../publish/mainnet.json");
 const KEPLER_ADDRESS: &str = include_str!("../publish/kepler.json");
