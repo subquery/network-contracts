@@ -165,7 +165,6 @@ macro_rules! contract {
     };
 }
 
-
 contract!(
     settings,
     "Settings",
