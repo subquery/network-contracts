@@ -18,7 +18,7 @@
     "projects": [ 
         {
             "name": "Polkadot Dictionary",
-            "deploymentId": "QmSjjRjfjXXEfSUTheNwvWcBaH54pWoToTHPDsJRby955X",
+            "deploymentId": "QmVUpDjYQJkSFB2vNsJbkdZ6JUw51v23S3jx7QuU9igr9v",
             "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "metadataCid": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE"
         },
@@ -30,7 +30,7 @@
         },
         {
             "name": "Moonbeam Dictionary",
-            "deploymentId": "QmPHi8Y6bnLdidDjsd2sjgBdyEbwBu5s5QxN4n78zYpxJq",
+            "deploymentId": "QmXhc36szFrKYVBJkmiXDFM2PDsFADzfb2QF6UBYGsNfH3",
             "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "metadataCid": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj"
         },
@@ -54,7 +54,7 @@
         },
         {
             "name": "Kusama Dictionary",
-            "deploymentId": "QmPemHcmAJ6BRyV13FN91miLCHNtqXLLacsqYjSaTmbFmr",
+            "deploymentId": "QmZJ9whrhrMvn2HU8supcbGxCyCymdpzqWDgpaNuXCYXnk",
             "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "metadataCid": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX"
       }
