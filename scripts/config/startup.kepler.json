@@ -1,20 +1,11 @@
 {
     "planTemplates": [
-        {"period": 129600, "dailyReqCap": 100000, "rateLimit": 6000},
-        {"period": 86400, "dailyReqCap": 50000, "rateLimit": 3000},
-        {"period": 43200, "dailyReqCap": 10000, "rateLimit": 1200},
-        {"period": 21600, "dailyReqCap": 2000, "rateLimit": 600},
-        {"period": 7200, "dailyReqCap": 100, "rateLimit": 300}
     ],
     "QRCreator": [
-        "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",
-        "0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe"
     ],
     "AirdropController": [
-        "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",
-        "0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe"
     ],
-    "multiSign": "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",
+    "multiSign": "",
     "projects": [ 
         {
             "name": "Polkadot Dictionary",
