@@ -120,7 +120,7 @@ async function getOverrides(): Promise<Overrides> {
     return { gasPrice };
 }
 
-async function deployWithLog<T>(
+async function deployContract<T>(
     name: string, 
     deployFn: (overrides: Overrides) => Promise<BaseContract>,
     initFn?: (overrides: Overrides) => Promise<ContractTransaction>
@@ -199,19 +199,19 @@ export async function deployContracts(
     provider = wallet.provider;
     confirms = _confirms;
 
-    const proxyAdmin = await deployWithLog<ProxyAdmin>('ProxyAdmin', async (overrides) => {
+    const proxyAdmin = await deployContract<ProxyAdmin>('ProxyAdmin', async (overrides) => {
         const proxyAdmin = await new ProxyAdmin__factory(wallet).deploy(overrides);
         updateDeployment(deployment, 'ProxyAdmin', proxyAdmin, '');
         return proxyAdmin;
     });
 
-    const settings =  await deployWithLog<Settings>('Settings', async (overrides) => {
+    const settings =  await deployContract<Settings>('Settings', async (overrides) => {
         const settings = await new Settings__factory(wallet).deploy(overrides);
         updateDeployment(deployment, 'Settings', settings, '');
         return settings;
     });
 
-    const inflationController = await deployWithLog<InflationController>(
+    const inflationController = await deployContract<InflationController>(
         'InflationController', 
         async () => {
             const [inflationController, ICInnerAddr] = await deployProxy<InflationController>(
@@ -234,7 +234,7 @@ export async function deployContracts(
 
     // deploy SQToken contract
     const [totalSupply] = config['SQToken'];
-    const sqtToken = await deployWithLog<SQToken>('SQToken', async (overrides) => {
+    const sqtToken = await deployContract<SQToken>('SQToken', async (overrides) => {
         const sqtToken = await new SQToken__factory(wallet).deploy(
             deployment.InflationController.address, 
             totalSupply, 
@@ -245,7 +245,7 @@ export async function deployContracts(
     });
 
     // deploy VSQToken contract
-    const vsqtToken = await deployWithLog<VSQToken>(
+    const vsqtToken = await deployContract<VSQToken>(
         'VSQToken',
         async (overrides) => {
             const vsqtToken = await new VSQToken__factory(wallet).deploy(overrides);
@@ -255,7 +255,7 @@ export async function deployContracts(
     );
 
     //deploy Airdropper contract
-    const airdropper = await deployWithLog<Airdropper>('Airdropper', async (overrides) => {
+    const airdropper = await deployContract<Airdropper>('Airdropper', async (overrides) => {
         const [settleDestination] = config['Airdropper'];
         const airdropper = await new Airdropper__factory(wallet).deploy(settleDestination, overrides);
         updateDeployment(deployment, 'Airdropper', airdropper, '');
@@ -263,14 +263,14 @@ export async function deployContracts(
     });
 
     //deploy vesting contract
-    const vesting = await deployWithLog<Vesting>('Vesting', async (overrides) => {
+    const vesting = await deployContract<Vesting>('Vesting', async (overrides) => {
         const vesting = await new Vesting__factory(wallet).deploy(deployment.SQToken.address, overrides);
         updateDeployment(deployment, 'Vesting', vesting, '');   
         return vesting;
     });
 
     // deploy Staking contract
-    const staking = await deployWithLog<Staking>(
+    const staking = await deployContract<Staking>(
         'Staking', 
         async () => {
             const [staking, SInnerAddr] = await deployProxy<Staking>(proxyAdmin, Staking__factory, wallet, confirms);
@@ -282,7 +282,7 @@ export async function deployContracts(
         });
 
     // deploy StakingManager contract
-    const stakingManager = await deployWithLog<StakingManager>(
+    const stakingManager = await deployContract<StakingManager>(
         'StakingManager', 
         async () => {
             const [stakingManager, SMInnerAddr] = await deployProxy<StakingManager>(
@@ -296,7 +296,7 @@ export async function deployContracts(
         }, async (overrides) => stakingManager.initialize(deployment.Settings.address, overrides));
 
     // deploy Era manager
-    const eraManager = await deployWithLog<EraManager>(
+    const eraManager = await deployContract<EraManager>(
         'EraManager', 
         async () => {
             const [eraManager, EMInnerAddr] = await deployProxy<EraManager>(proxyAdmin, EraManager__factory, wallet, confirms);
@@ -308,7 +308,7 @@ export async function deployContracts(
         });
 
     // deploy IndexerRegistry contract
-    const indexerRegistry = await deployWithLog<IndexerRegistry>(
+    const indexerRegistry = await deployContract<IndexerRegistry>(
         'IndexerRegistry', 
         async () => {
             const [indexerRegistry, IRInnerAddr] = await deployProxy<IndexerRegistry>(
@@ -325,7 +325,7 @@ export async function deployContracts(
         });
 
     // deploy QueryRegistry contract
-    const queryRegistry = await deployWithLog<QueryRegistry>(
+    const queryRegistry = await deployContract<QueryRegistry>(
         'QueryRegistry', 
         async () => {
             const [queryRegistry, QRInnerAddr] = await deployProxy<QueryRegistry>(
@@ -339,7 +339,7 @@ export async function deployContracts(
         }, async (overrides) => queryRegistry.initialize(deployment.Settings.address, overrides));
 
     // deploy PlanManager contract
-    const planManager = await deployWithLog<PlanManager>(
+    const planManager = await deployContract<PlanManager>(
         'PlanManager', 
         async () => {
             const [planManager, PMInnerAddr] = await deployProxy<PlanManager>(
@@ -354,7 +354,7 @@ export async function deployContracts(
 
     
     // deploy PurchaseOfferMarket contract
-    const purchaseOfferMarket = await deployWithLog<PurchaseOfferMarket>(
+    const purchaseOfferMarket = await deployContract<PurchaseOfferMarket>(
         'PurchaseOfferMarket', 
         async () => {
             const [purchaseOfferMarket, POMInnerAddr] = await deployProxy<PurchaseOfferMarket>(
@@ -375,7 +375,7 @@ export async function deployContracts(
             );
         });
 
-    const serviceAgreementRegistry = await deployWithLog<ServiceAgreementRegistry>(
+    const serviceAgreementRegistry = await deployContract<ServiceAgreementRegistry>(
         'ServiceAgreementRegistry', 
         async () => {
             const [serviceAgreementRegistry, SARInnerAddr] = await deployProxy<ServiceAgreementRegistry>(
@@ -397,7 +397,7 @@ export async function deployContracts(
         });
 
     // deploy RewardsDistributer contract
-    const rewardsDistributer = await deployWithLog<RewardsDistributer>(
+    const rewardsDistributer = await deployContract<RewardsDistributer>(
         'RewardsDistributer', 
         async () => {
             const [rewardsDistributer, RDInnerAddr] = await deployProxy<RewardsDistributer>(
@@ -411,7 +411,7 @@ export async function deployContracts(
         }, async (overrides) => rewardsDistributer.initialize(deployment.Settings.address, overrides));
 
     // deploy RewardsPool contract
-    const rewardsPool = await deployWithLog<RewardsPool>(
+    const rewardsPool = await deployContract<RewardsPool>(
         'RewardsPool', 
         async () => {
             const [rewardsPool, RPInnerAddr] = await deployProxy<RewardsPool>(
@@ -425,7 +425,7 @@ export async function deployContracts(
         }, async (overrides) => rewardsPool.initialize(deployment.Settings.address, overrides));
 
     // deploy RewardsStaking contract
-    const rewardsStaking = await deployWithLog<RewardsStaking>(
+    const rewardsStaking = await deployContract<RewardsStaking>(
         'RewardsStaking', 
         async () => {
             const [rewardsStaking, RSInnerAddr] = await deployProxy<RewardsStaking>(
@@ -439,7 +439,7 @@ export async function deployContracts(
         }, async (overrides) => rewardsStaking.initialize(deployment.Settings.address, overrides));
 
     // deploy RewardsHelper contract
-    const rewardsHelper = await deployWithLog<RewardsHelper>(
+    const rewardsHelper = await deployContract<RewardsHelper>(
         'RewardsHelper',
         async () => {
             const [rewardsHelper, RHInnerAddr] = await deployProxy<RewardsHelper>(
@@ -453,7 +453,7 @@ export async function deployContracts(
         }, async (overrides) => rewardsHelper.initialize(deployment.Settings.address, overrides));
 
     // deploy stateChannel contract
-    const stateChannel = await deployWithLog<StateChannel>(
+    const stateChannel = await deployContract<StateChannel>(
         'StateChannel',
         async () => {
             const [stateChannel, SCInnerAddr] = await deployProxy<StateChannel>(
@@ -467,7 +467,7 @@ export async function deployContracts(
         }, async (overrides) => stateChannel.initialize(deployment.Settings.address, overrides));
 
     // deploy PermissionedExchange contract
-    const permissionedExchange = await deployWithLog<PermissionedExchange>(
+    const permissionedExchange = await deployContract<PermissionedExchange>(
         'PermissionedExchange',
         async () => {
             const [permissionedExchange, PEInnerAddr] = await deployProxy<PermissionedExchange>(
@@ -485,7 +485,7 @@ export async function deployContracts(
             ));
     
     // deploy ConsumerHost contract
-    const consumerHost = await deployWithLog<ConsumerHost>(
+    const consumerHost = await deployContract<ConsumerHost>(
         'ConsumerHost',
         async () => {
             const [consumerHost, CHInnerAddr] = await deployProxy<ConsumerHost>(
@@ -507,7 +507,7 @@ export async function deployContracts(
             );
         });
     
-    const disputeManager = await deployWithLog<DisputeManager>(
+    const disputeManager = await deployContract<DisputeManager>(
         'DisputeManager',
         async () => {
             const [disputeManager, DMInnerAddr] = await deployProxy<DisputeManager>(
