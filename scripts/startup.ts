@@ -67,7 +67,11 @@ export async function createPlanTemplates(sdk: ContractSDK) {
     }
 }
 
-export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider) {
+export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider, destinationOnly = true) {
+    console.log("Set airdrop settle destination:");
+    await sendTx(() => sdk.airdropper.setSettleDestination(startupConfig.AirdropDestination));
+    if (destinationOnly) return;
+
     console.info("Add Airdrop Controllers:");
     for (const controller of startupConfig.AirdropController) {
         const result = await sdk.airdropper.controllers(controller); 
@@ -180,6 +184,7 @@ const main = async () => {
         case '--kepler':
             confirms = 20;
             startupConfig = startupKeplerConfig;
+            await airdrop(sdk, provider);
             await createProjects(sdk);
             await createPlanTemplates(sdk);
             await balanceTransfer(sdk, wallet);
@@ -190,7 +195,7 @@ const main = async () => {
             startupConfig = startupTestnetConfig;
             await createProjects(sdk);
             await createPlanTemplates(sdk);
-            await airdrop(sdk, provider);
+            await airdrop(sdk, provider, false);
             await setupPermissionExchange(sdk, provider, wallet);
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
