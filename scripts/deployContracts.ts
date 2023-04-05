@@ -1,5 +1,6 @@
 import { BaseContract, ContractTransaction, Overrides } from 'ethers';
 import {ContractFactory, Contract} from 'ethers';
+import Pino from 'pino';
 import sha256 from 'sha256';
 import {Wallet} from '@ethersproject/wallet';
 import CONTRACTS from '../src/contracts';
@@ -56,6 +57,7 @@ import {
     DisputeManager__factory,
 } from '../src';
 import { Provider } from '@ethersproject/providers';
+import { SubqueryNetwork } from '@subql/contract-sdk';
 
 interface FactoryContstructor {
     new (wallet: Wallet): ContractFactory;
@@ -110,8 +112,9 @@ const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: s
 };
 
 let provider: Provider;
-let confirms = 5;
-let logger = getLogger('deployContracts');
+let network: SubqueryNetwork;
+let logger: Pino.Logger;
+let confirms: number;
 
 async function getOverrides(): Promise<Overrides> {
     const price = await provider.getGasPrice();
@@ -125,21 +128,23 @@ async function deployContract<T extends BaseContract>(
     deployFn: (overrides: Overrides) => Promise<T>,
     initFn?: (contract: T, overrides: Overrides) => Promise<ContractTransaction>
 ): Promise<T> {
-    logger = getLogger(name);
-    logger.info('🤞 Deploying contract');
-    
+    if (network !== 'local') logger = getLogger(name);
+
+    logger?.info('🤞 Deploying contract');
     let overrides = await getOverrides();
     const contract = await deployFn(overrides);
+    logger?.info(`🔎 Tx hash: ${contract.deployTransaction.hash}`);
     await contract.deployTransaction.wait(confirms);
-    
-    logger.info(`🚀 Contract address: ${contract.address}`);
+    logger?.info(`🚀 Contract address: ${contract.address}`);
+
     if (!initFn) return contract;
       
-    logger.info('🤞 Init contract');
+    logger?.info('🤞 Init contract');
     overrides = await getOverrides();
     const tx = await initFn(contract, overrides);
+    logger?.info(`🔎 Tx hash: ${tx.hash}`);
     await tx.wait(confirms);
-    logger.info(`🚀 Contract initialized`);
+    logger?.info(`🚀 Contract initialized`);
 
     return contract;
 }
@@ -192,12 +197,14 @@ function updateDeployment(
 export async function deployContracts(
     wallet: Wallet,
     config: DeploymentConfig['contracts'],
-    _confirms: number | 0 = 0
+    options?: { network: SubqueryNetwork, confirms: number },
 ): Promise<[Partial<ContractDeployment>, Contracts]> {
-    logger.info(colorText(`Deploy with wallet ${wallet.address}`, TextColor.YELLOW));
-    const deployment: Partial<ContractDeployment> = {};
     provider = wallet.provider;
-    confirms = _confirms;
+    confirms = options?.confirms ?? 1;
+    network = options?.network ?? 'local';
+
+    if (network !== 'local') getLogger('Wallet').info(colorText(`Deploy with wallet ${wallet.address}`, TextColor.YELLOW));
+    const deployment: Partial<ContractDeployment> = {};
 
     const proxyAdmin = await deployContract<ProxyAdmin>('ProxyAdmin', async (overrides) => {
         const proxyAdmin = await new ProxyAdmin__factory(wallet).deploy(overrides);
@@ -610,7 +617,7 @@ export async function upgradeContracts(
     deployment: ContractDeployment,
     confirms: number
 ): Promise<ContractDeployment> {
-    logger = getLogger('UpgradeContracts');
+    const logger = getLogger('Upgrade Contract');
     logger.info(`Upgrade contrqact with wallet ${wallet.address}`);
     
     provider = wallet.provider;

@@ -4,7 +4,7 @@ import moduleAlias from 'module-alias';
 import assert from 'assert';
 
 import contractsConfig from './config/contracts.config';
-import {networks, DeploymentConfig} from '../src'
+import {networks, DeploymentConfig, SubqueryNetwork} from '../src'
 
 dotenv.config();
 // nodejs doesn't understand rootDirs in tsconfig, use moduleAlias to workaround
@@ -27,7 +27,7 @@ async function setupCommon({rpcUrls, chainId, chainName}: DeploymentConfig["netw
 
 const setup = async (argv: string) => {
     let config = { contracts: null, network: null };
-    let name;
+    let name: SubqueryNetwork;
     switch (argv) {
         case '--mainnet':
             config.contracts = contractsConfig.mainnet;
