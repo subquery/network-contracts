@@ -4,6 +4,7 @@
 import {Wallet} from '@ethersproject/wallet';
 import moduleAlias from 'module-alias';
 import {ZERO_ADDRESS} from './constants';
+import {etherParse} from 'test/helper'
 
 moduleAlias.addAlias('./publish', '../publish');
 moduleAlias.addAlias('./artifacts', '../artifacts');
@@ -14,14 +15,16 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
     const [_, contracts] = await deploy(
         wallet,
         {
-            InflationController: [1000, wallet1.address],
-            Staking: [1000],
-            EraManager: [60 * 60 * 24],
-            PurchaseOfferMarket: [1e5, ZERO_ADDRESS],
+            InflationController: [1000, wallet1.address], // inflationRate, inflationDestination
+            SQToken: [etherParse("10000000000")], // initial supply 10 billion
+            Staking: [1000], // LockPeriod
+            Airdropper: [ZERO_ADDRESS], // settle destination
+            EraManager: [60 * 60 * 24], 
             ServiceAgreementRegistry: [0], //threshold
-            IndexerRegistry: ['1000000000000000000000'],
+            PurchaseOfferMarket: [1e5, ZERO_ADDRESS],
+            IndexerRegistry: [etherParse("1000")],
             ConsumerHost: [1], // Fee Percentage, default is 1%
-            DisputeManager: ['1000000000000000000000'], // minimumDeposit
+            DisputeManager: [etherParse("1000")], // minimumDeposit
         }
     );
 
