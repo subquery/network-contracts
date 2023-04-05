@@ -14,7 +14,7 @@ export default {
         DisputeManager: [etherParse("10000")], // minimumDeposit
     },
     kepler: {
-        InflationController: [1000, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // inflationRate, inflationDestination
+        InflationController: [0, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // inflationRate, inflationDestination
         SQToken: [etherParse("25000000")], // initial supply 25M
         Staking: [1209600, 0], // lockPeriod, unbondFeeRate
         Airdropper: ['0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // settle destination
