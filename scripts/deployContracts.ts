@@ -118,8 +118,7 @@ let confirms: number;
 
 async function getOverrides(): Promise<Overrides> {
     const price = await provider.getGasPrice();
-    // TODO: confirm whether need to increase gas price
-    const gasPrice = price.add(10000000000);
+    const gasPrice = price.add(10000000000); // add extra 10 gwei
     return { gasPrice };
 }
 
