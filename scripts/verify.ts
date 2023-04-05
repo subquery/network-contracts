@@ -15,7 +15,7 @@ import { cidToBytes32 } from '../test/helper';
 
 let logger: Pino.Logger;
 
-async function checkInitialisation(sdk: ContractSDK, config) {
+async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
     try {
         //InflationController
         logger = getLogger('InflationController');
@@ -55,6 +55,11 @@ async function checkInitialisation(sdk: ContractSDK, config) {
         const settleDestination = await sdk.airdropper.settleDestination();
         logger.info(`settleDestination to be equal ${sDestination}`);
         expect(settleDestination.toUpperCase()).to.equal(sDestination.toUpperCase());
+        logger.info(`${caller} is not controller`)
+        expect(await sdk.airdropper.controllers(caller)).to.be.false;
+        const multiSig = destination;
+        logger.info(`${multiSig} is controller`)
+        expect(await sdk.airdropper.controllers(multiSig)).to.be.true;
         logger.info('🎉 Airdrop Contract verified\n');
 
         //EraManager
@@ -96,6 +101,14 @@ async function checkInitialisation(sdk: ContractSDK, config) {
         expect(minimumStakingAmount).to.eql(BigNumber.from(msa));
         logger.info('🎉 IndexerRegistry Contract verified\n');
 
+        //QueryRegistry
+        logger = getLogger('QueryRegistry');
+        logger.info(`🧮 Verifying QueryRegistry Contract: ${sdk.queryRegistry.address}`);
+        logger.info(`${caller} is not project creator`)
+        expect(await sdk.queryRegistry.creatorWhitelist(caller)).to.be.false;
+        logger.info(`${multiSig} is project creator`)
+        expect(await sdk.queryRegistry.creatorWhitelist(multiSig)).to.be.true;
+
         //ConsumerHost
         logger = getLogger('ConsumerHost');
         logger.info(`🧮 Verifying ConsumerHost Contract: ${sdk.consumerHost.address}`);
@@ -118,20 +131,21 @@ async function checkInitialisation(sdk: ContractSDK, config) {
     }
 }
 
-async function checkConfiguration(sdk: ContractSDK, config) {
+async function checkConfiguration(sdk: ContractSDK, config, caller: string) {
     try {
-        //planTemplates
-        // let logger = getLogger('planTemplates');
-        // logger.info(colorText(`🧮 Verifying planTemplates`, TextColor.GREEN));
-        // let planTemplates = config.planTemplates;
-        // for(let i = 0; i < planTemplates.length; i++) {
-        //     let planTemplate = planTemplates[i];
-        //     let pm = await sdk.planManager.getPlanTemplate(i);
-        //     expect(BigNumber.from(planTemplate.period)).to.eql(pm.period);
-        //     expect(BigNumber.from(planTemplate.dailyReqCap)).to.eql(pm.dailyReqCap);
-        //     expect(BigNumber.from(planTemplate.rateLimit)).to.eql(pm.rateLimit);
-        //     logger.info(colorText(`planTemplate ${i} verified\n`, TextColor.GREEN));
-        // }
+        // planTemplates
+        let logger = getLogger('planTemplates');
+        logger.info(`🧮 Verifying planTemplates`));
+        let planTemplates = config.planTemplates;
+        for(let i = 0; i < planTemplates.length; i++) {
+            let planTemplate = planTemplates[i];
+            let pm = await sdk.planManager.getPlanTemplate(i);
+            expect(BigNumber.from(planTemplate.period)).to.eql(pm.period);
+            expect(BigNumber.from(planTemplate.dailyReqCap)).to.eql(pm.dailyReqCap);
+            expect(BigNumber.from(planTemplate.rateLimit)).to.eql(pm.rateLimit);
+            logger.info(`🎉 planTemplate ${i} verified\n`);
+        }
+
         //projects
         logger = getLogger('projects');
         logger.info(`🧮 Verifying projects`);
@@ -211,6 +225,7 @@ const main = async () => {
     let sdk: ContractSDK;
     let startupConfig: any = startupTestnetConfig;
     const {wallet, config} = await setup(process.argv[2]);
+    const caller = wallet.address;
 
     const networkType = process.argv[2];
     switch (networkType) {
@@ -233,10 +248,10 @@ const main = async () => {
     const verifyType = process.argv[3]; 
     switch (verifyType) {
         case '--initialisation':
-            await checkInitialisation(sdk, config);
+            await checkInitialisation(sdk, config, caller);
             break;
         case '--configuration':
-            await checkConfiguration(sdk, startupConfig);
+            await checkConfiguration(sdk, startupConfig, caller);
             break;
         case '--ownership':
             await checkOwnership(sdk, startupConfig.multiSign);
