@@ -528,8 +528,8 @@ export async function deployContracts(
         }, (name, contract, overrides) => {
             const [minDeposit] = config[name];
             return contract.initialize(
-                minDeposit,
                 settingsAddress,
+                minDeposit,
                 overrides
             );
         });
