@@ -120,28 +120,28 @@ async function getOverrides(): Promise<Overrides> {
     return { gasPrice };
 }
 
-async function deployContract<T>(
+async function deployContract<T extends BaseContract>(
     name: string, 
-    deployFn: (overrides: Overrides) => Promise<BaseContract>,
-    initFn?: (overrides: Overrides) => Promise<ContractTransaction>
+    deployFn: (overrides: Overrides) => Promise<T>,
+    initFn?: (contract: T, overrides: Overrides) => Promise<ContractTransaction>
 ): Promise<T> {
     logger = getLogger(name);
-    logger.info('🤞 Deploying contract ...')
+    logger.info('🤞 Deploying contract');
     
     let overrides = await getOverrides();
     const contract = await deployFn(overrides);
     await contract.deployTransaction.wait(confirms);
     
     logger.info(`🚀 Contract address: ${contract.address}`);
-    if (!initFn) return contract as T;
+    if (!initFn) return contract;
       
-    logger.info('🤞 Init contract ...');
+    logger.info('🤞 Init contract');
     overrides = await getOverrides();
-    const tx = await initFn(overrides);
+    const tx = await initFn(contract, overrides);
     await tx.wait(confirms);
     logger.info(`🚀 Contract initialized`);
 
-    return contract as T;
+    return contract;
 }
 
 export const deployProxy = async <C extends Contract>(
@@ -222,9 +222,9 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'InflationController', inflationController, ICInnerAddr);
             return inflationController;
-        }, async (overrides) => {
+        }, (contract, overrides) => {
             const [rate, destination] = config['InflationController'];
-            return inflationController.initialize(
+            return contract.initialize(
                 deployment.Settings.address,
                 rate,
                 destination,
@@ -251,7 +251,7 @@ export async function deployContracts(
             const vsqtToken = await new VSQToken__factory(wallet).deploy(overrides);
             updateDeployment(deployment, 'VSQToken', vsqtToken, '');
             return vsqtToken;
-        }, async (overrides) => await vsqtToken.initialize(deployment.Settings.address, overrides)
+        }, (contract, overrides) => contract.initialize(deployment.Settings.address, overrides)
     );
 
     //deploy Airdropper contract
@@ -276,9 +276,9 @@ export async function deployContracts(
             const [staking, SInnerAddr] = await deployProxy<Staking>(proxyAdmin, Staking__factory, wallet, confirms);
             updateDeployment(deployment, 'Staking', staking, SInnerAddr);
             return staking;
-        }, async (overrides) => {
+        }, (contract, overrides) => {
             const [lockPeriod] = config['Staking'];
-            return staking.initialize(lockPeriod, deployment.Settings.address, overrides);
+            return contract.initialize(lockPeriod, deployment.Settings.address, overrides);
         });
 
     // deploy StakingManager contract
@@ -293,7 +293,7 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'StakingManager', stakingManager, SMInnerAddr);
             return stakingManager;
-        }, async (overrides) => stakingManager.initialize(deployment.Settings.address, overrides));
+        }, (contract, overrides) => contract.initialize(deployment.Settings.address, overrides));
 
     // deploy Era manager
     const eraManager = await deployContract<EraManager>(
@@ -302,9 +302,9 @@ export async function deployContracts(
             const [eraManager, EMInnerAddr] = await deployProxy<EraManager>(proxyAdmin, EraManager__factory, wallet, confirms);
             updateDeployment(deployment, 'EraManager', eraManager, EMInnerAddr);
             return eraManager;
-        }, async (overrides) => {
+        }, (contract, overrides) => {
             const [eraPeriod] = config['EraManager'];
-            return eraManager.initialize(deployment.Settings.address, eraPeriod, overrides);
+            return contract.initialize(deployment.Settings.address, eraPeriod, overrides);
         });
 
     // deploy IndexerRegistry contract
@@ -319,9 +319,9 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'IndexerRegistry', indexerRegistry, IRInnerAddr);
             return indexerRegistry;
-        }, async (overrides) => {
+        }, (contract, overrides) => {
             const [minStaking] = config['IndexerRegistry'];
-            return indexerRegistry.initialize(deployment.Settings.address, minStaking, overrides);
+            return contract.initialize(deployment.Settings.address, minStaking, overrides);
         });
 
     // deploy QueryRegistry contract
@@ -336,7 +336,7 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'QueryRegistry', queryRegistry, QRInnerAddr);
             return queryRegistry;
-        }, async (overrides) => queryRegistry.initialize(deployment.Settings.address, overrides));
+        }, (contract, overrides) => contract.initialize(deployment.Settings.address, overrides));
 
     // deploy PlanManager contract
     const planManager = await deployContract<PlanManager>(
@@ -350,7 +350,7 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'PlanManager', planManager, PMInnerAddr);
             return planManager;
-        }, async (overrides) => planManager.initialize(deployment.Settings.address, overrides));
+        }, (contract, overrides) => contract.initialize(deployment.Settings.address, overrides));
 
     
     // deploy PurchaseOfferMarket contract
@@ -365,9 +365,9 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'PurchaseOfferMarket', purchaseOfferMarket, POMInnerAddr);
             return purchaseOfferMarket;
-        }, async (overrides) => {
+        }, (contract, overrides) => {
             const [penalty, destination] = config['PurchaseOfferMarket'];
-            return purchaseOfferMarket.initialize(
+            return contract.initialize(
                 deployment.Settings.address,
                 penalty,
                 destination,
@@ -386,9 +386,9 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'ServiceAgreementRegistry', serviceAgreementRegistry, SARInnerAddr);
             return serviceAgreementRegistry;
-        }, async (overrides) => {
+        }, (contract, overrides) => {
             const [threshold] = config['ServiceAgreementRegistry'];
-            return serviceAgreementRegistry.initialize(
+            return contract.initialize(
                 deployment.Settings.address,
                 threshold,
                 [planManager.address, purchaseOfferMarket.address],
@@ -408,7 +408,7 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'RewardsDistributer', rewardsDistributer, RDInnerAddr);
             return rewardsDistributer;
-        }, async (overrides) => rewardsDistributer.initialize(deployment.Settings.address, overrides));
+        }, (contract, overrides) => contract.initialize(deployment.Settings.address, overrides));
 
     // deploy RewardsPool contract
     const rewardsPool = await deployContract<RewardsPool>(
@@ -422,7 +422,7 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'RewardsPool', rewardsPool, RPInnerAddr);
             return rewardsPool;
-        }, async (overrides) => rewardsPool.initialize(deployment.Settings.address, overrides));
+        }, (contract, overrides) => contract.initialize(deployment.Settings.address, overrides));
 
     // deploy RewardsStaking contract
     const rewardsStaking = await deployContract<RewardsStaking>(
@@ -436,7 +436,7 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'RewardsStaking', rewardsStaking, RSInnerAddr);
             return rewardsStaking;
-        }, async (overrides) => rewardsStaking.initialize(deployment.Settings.address, overrides));
+        }, (contract, overrides) => contract.initialize(deployment.Settings.address, overrides));
 
     // deploy RewardsHelper contract
     const rewardsHelper = await deployContract<RewardsHelper>(
@@ -450,7 +450,7 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'RewardsHelper', rewardsHelper, RHInnerAddr);
             return rewardsHelper;
-        }, async (overrides) => rewardsHelper.initialize(deployment.Settings.address, overrides));
+        }, (contract, overrides) => contract.initialize(deployment.Settings.address, overrides));
 
     // deploy stateChannel contract
     const stateChannel = await deployContract<StateChannel>(
@@ -464,7 +464,7 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'StateChannel', stateChannel, SCInnerAddr);
             return stateChannel;
-        }, async (overrides) => stateChannel.initialize(deployment.Settings.address, overrides));
+        }, (contract, overrides) => contract.initialize(deployment.Settings.address, overrides));
 
     // deploy PermissionedExchange contract
     const permissionedExchange = await deployContract<PermissionedExchange>(
@@ -478,7 +478,7 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'PermissionedExchange', permissionedExchange, PEInnerAddr);
             return permissionedExchange;
-        }, async (overrides) => permissionedExchange.initialize(
+        }, (contract, overrides) => contract.initialize(
                 deployment.Settings.address,
                 [rewardsDistributer.address],
                 overrides
@@ -496,9 +496,9 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'ConsumerHost', consumerHost, CHInnerAddr);
             return consumerHost;
-        }, async (overrides) => {
+        }, (contract, overrides) => {
             const [rate] = config['ConsumerHost'];
-            return consumerHost.initialize(
+            return contract.initialize(
                 settings.address,
                 sqtToken.address,
                 stateChannel.address,
@@ -518,9 +518,9 @@ export async function deployContracts(
             );
             updateDeployment(deployment, 'DisputeManager', disputeManager, DMInnerAddr);
             return disputeManager;
-        }, async (overrides) => {
+        }, (contract, overrides) => {
             const [minDeposit] = config['DisputeManager'];
-            return disputeManager.initialize(
+            return contract.initialize(
                 minDeposit,
                 deployment.Settings.address,
                 overrides
