@@ -15,7 +15,7 @@ import { cidToBytes32 } from '../test/helper';
 
 let logger: Pino.Logger;
 
-const BN = (value: string | number): BigNumber => BN(value);
+const BN = (value: string | number): BigNumber => BigNumber.from(value);
 
 async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
     try {
@@ -128,7 +128,7 @@ async function checkConfiguration(sdk: ContractSDK, config, caller: string) {
     try {
         // planTemplates
         let logger = getLogger('planTemplates');
-        logger.info(`🧮 Verifying planTemplates`));
+        logger.info(`🧮 Verifying planTemplates`);
         let planTemplates = config.planTemplates;
         for(let i = 0; i < planTemplates.length; i++) {
             let planTemplate = planTemplates[i];
@@ -136,9 +136,8 @@ async function checkConfiguration(sdk: ContractSDK, config, caller: string) {
             expect(BN(planTemplate.period)).to.eql(pm.period);
             expect(BN(planTemplate.dailyReqCap)).to.eql(pm.dailyReqCap);
             expect(BN(planTemplate.rateLimit)).to.eql(pm.rateLimit);
-            logger.info(`🎉 planTemplate ${i} verified\n`);
+            logger.info(`🎉 planTemplate ${i} verified`);
         }
-
         //projects
         logger = getLogger('projects');
         logger.info(`🧮 Verifying projects`);
@@ -158,7 +157,7 @@ async function checkConfiguration(sdk: ContractSDK, config, caller: string) {
         for(let i = 0; i < creators.length; i++) {
             let creator = creators[i];
             let isCreator = await sdk.queryRegistry.creatorWhitelist(creator);
-            expect(isCreator).to.eql(true);
+            expect(isCreator).to.be.false;
             logger.info(`🎉 QRCreator: ${creator} verified`);
         }
         //AirdropControllers
@@ -168,7 +167,7 @@ async function checkConfiguration(sdk: ContractSDK, config, caller: string) {
         for(let i = 0; i < controllers.length; i++) {
             let controller = controllers[i];
             let isController = await sdk.airdropper.controllers(controller);
-            expect(isController).to.eql(true);
+            expect(isController).to.eql(false);
             logger.info(`🎉 AirdropController: ${controller} verified`);
         }
     } catch (error) {

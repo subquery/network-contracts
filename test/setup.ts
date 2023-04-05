@@ -17,7 +17,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
         {
             InflationController: [1000, wallet1.address], // inflationRate, inflationDestination
             SQToken: [etherParse("10000000000")], // initial supply 10 billion
-            Staking: [1000], // LockPeriod
+            Staking: [1000, 1e3], // LockPeriod
             Airdropper: [ZERO_ADDRESS], // settle destination
             EraManager: [60 * 60 * 24], 
             ServiceAgreementRegistry: [0], //threshold
