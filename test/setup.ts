@@ -4,7 +4,7 @@
 import {Wallet} from '@ethersproject/wallet';
 import moduleAlias from 'module-alias';
 import {ZERO_ADDRESS} from './constants';
-import {etherParse} from 'test/helper'
+import {etherParse} from './helper'
 
 moduleAlias.addAlias('./publish', '../publish');
 moduleAlias.addAlias('./artifacts', '../artifacts');
