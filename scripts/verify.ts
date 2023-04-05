@@ -15,19 +15,19 @@ import { cidToBytes32 } from '../test/helper';
 
 let logger: Pino.Logger;
 
+const BN = (value: string | number): BigNumber => BN(value);
+
 async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
     try {
         //InflationController
         logger = getLogger('InflationController');
         logger.info(`🧮 Verifying inflationController Contract: ${sdk.inflationController.address}`);
         const [rate, destination] = config.contracts['InflationController'];
-        const inflationRate = await sdk.inflationController.inflationRate();
         logger.info(`InflationRate to be equal ${rate}`);
-        expect(inflationRate).to.eql(BigNumber.from(rate));
+        expect(await sdk.inflationController.inflationRate()).to.eql(BN(rate));
 
-        const inflationDestination = await sdk.inflationController.inflationDestination();
         logger.info(`InflationDestination to be equal ${destination}`);
-        expect(inflationDestination.toUpperCase()).to.equal(destination.toUpperCase());
+        expect((await sdk.inflationController.inflationDestination()).toUpperCase()).to.equal(destination.toUpperCase());
         logger.info('🎉 InflationController Contract verified\n');
 
         // SQToken
@@ -42,19 +42,19 @@ async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
         //Staking
         logger = getLogger('Staking');
         logger.info(`🧮 Verifying Staking Contract: ${sdk.staking.address}`);
-        const [lPeriod] = config.contracts['Staking'];
-        const lockPeriod = await sdk.staking.lockPeriod();
-        logger.info(`lockPeriod to be equal ${lPeriod}`);
-        expect(lockPeriod).to.eql(BigNumber.from(lPeriod));
+        const [lockPeriod, unbondFeeRate] = config.contracts['Staking'];
+        logger.info(`lockPeriod to be equal ${lockPeriod}`);
+        expect(await sdk.staking.lockPeriod()).to.eql(BN(lockPeriod));
+        logger.info(`unbondFeeRate to be equal ${unbondFeeRate}`);
+        expect(await sdk.staking.unbondFeeRate()).to.eql(BN(unbondFeeRate));
         logger.info('🎉 Staking Contract verified\n');
 
         // Airdrop
         logger = getLogger('Airdrop');
         logger.info(`🧮 Verifying Airdrop Contract: ${sdk.airdropper.address}`);
-        const [sDestination] = config.contracts['Airdropper'];
-        const settleDestination = await sdk.airdropper.settleDestination();
-        logger.info(`settleDestination to be equal ${sDestination}`);
-        expect(settleDestination.toUpperCase()).to.equal(sDestination.toUpperCase());
+        const [settleDestination] = config.contracts['Airdropper'];
+        logger.info(`settleDestination to be equal ${settleDestination}`);
+        expect((await sdk.airdropper.settleDestination()).toUpperCase()).to.equal(settleDestination.toUpperCase());
         logger.info(`${caller} is not controller`)
         expect(await sdk.airdropper.controllers(caller)).to.be.false;
         const multiSig = destination;
@@ -65,40 +65,35 @@ async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
         //EraManager
         logger = getLogger('EraManager');
         logger.info(`🧮 Verifying EraManager Contract: ${sdk.eraManager.address}`);
-        const [ePeriod] = config.contracts['EraManager'];
-        const eraPeriod = await sdk.eraManager.eraPeriod();
-        logger.info(`eraPeriod to be equal ${ePeriod}`);
-        expect(eraPeriod).to.eql(BigNumber.from(ePeriod));
+        const [eraPeriod] = config.contracts['EraManager'];
+        logger.info(`eraPeriod to be equal ${eraPeriod}`);
+        expect(await sdk.eraManager.eraPeriod()).to.eql(BN(eraPeriod));
         logger.info('🎉 EraManager Contract verified\n');
 
         //ServiceAgreementRegistry
         logger = getLogger('ServiceAgreementRegistry');
         logger.info(`🧮 Verifying ServiceAgreementRegistry Contract: ${sdk.serviceAgreementRegistry.address}`);
-        const [Threshold] = config.contracts['ServiceAgreementRegistry'];
-        const threshold = await sdk.serviceAgreementRegistry.threshold();
-        logger.info(`threshold to be equal ${Threshold}`);
-        expect(threshold).to.eql(BigNumber.from(Threshold));
+        const [threshold] = config.contracts['ServiceAgreementRegistry'];
+        logger.info(`threshold to be equal ${threshold}`);
+        expect(await sdk.serviceAgreementRegistry.threshold()).to.eql(BN(threshold));
         logger.info('🎉 ServiceAgreementRegistry Contract verified\n');
 
         //PurchaseOfferMarket
         logger = getLogger('PurchaseOfferMarket');
         logger.info(`🧮 Verifying PurchaseOfferMarket Contract: ${sdk.purchaseOfferMarket.address}`);
-        const [pRate, pDestination] = config.contracts['PurchaseOfferMarket'];
-        const penaltyRate = await sdk.purchaseOfferMarket.penaltyRate();
-        logger.info(`penaltyRate to be equal ${pRate}`);
-        expect(penaltyRate).to.eql(BigNumber.from(pRate));
-        const penaltyDestination = await sdk.purchaseOfferMarket.penaltyDestination();
+        const [penaltyRate, pDestination] = config.contracts['PurchaseOfferMarket'];
+        logger.info(`penaltyRate to be equal ${penaltyRate}`);
+        expect(await sdk.purchaseOfferMarket.penaltyRate()).to.eql(BN(penaltyRate));
         logger.info(`penaltyDestination to be equal ${pDestination}`);
-        expect(penaltyDestination.toUpperCase()).to.equal(pDestination.toUpperCase());
+        expect((await sdk.purchaseOfferMarket.penaltyDestination()).toUpperCase()).to.equal(pDestination.toUpperCase());
         logger.info('🎉 PurchaseOfferMarket Contract verified\n');
 
         //IndexerRegistry
         logger = getLogger('IndexerRegistry');
         logger.info(`🧮 Verifying IndexerRegistry Contract: ${sdk.indexerRegistry.address}`);
-        const [msa] = config.contracts['IndexerRegistry'];
-        const minimumStakingAmount = await sdk.indexerRegistry.minimumStakingAmount();
-        logger.info(`minimumStakingAmount to be equal ${msa}`);
-        expect(minimumStakingAmount).to.eql(BigNumber.from(msa));
+        const [minimumStakingAmount] = config.contracts['IndexerRegistry'];
+        logger.info(`minimumStakingAmount to be equal ${minimumStakingAmount}`);
+        expect(await sdk.indexerRegistry.minimumStakingAmount()).to.eql(BN(minimumStakingAmount));
         logger.info('🎉 IndexerRegistry Contract verified\n');
 
         //QueryRegistry
@@ -112,19 +107,17 @@ async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
         //ConsumerHost
         logger = getLogger('ConsumerHost');
         logger.info(`🧮 Verifying ConsumerHost Contract: ${sdk.consumerHost.address}`);
-        const [fee] = config.contracts['ConsumerHost'];
-        const feePercentage = await sdk.consumerHost.feePercentage();
-        logger.info(`feePercentage to be equal ${fee}`);
-        expect(feePercentage).to.eql(BigNumber.from(fee));
+        const [feePercentage] = config.contracts['ConsumerHost'];
+        logger.info(`feePercentage to be equal ${feePercentage}`);
+        expect(await sdk.consumerHost.feePercentage()).to.eql(BN(feePercentage));
         logger.info('🎉 ConsumerHost Contract verified\n');
 
         //DisputeManager
         logger = getLogger('DisputeManager');
         logger.info(`🧮 Verifying DisputeManager Contract: ${sdk.disputeManager.address}`);
         const [minDeposit] = config.contracts['DisputeManager'];
-        const minimumDeposit = await sdk.disputeManager.minimumDeposit();
         logger.info(`DisputeManager minimumDeposit to be equal ${minDeposit}`);
-        expect(minimumDeposit).to.eql(BigNumber.from(minDeposit));
+        expect(await sdk.disputeManager.minimumDeposit()).to.eql(BN(minDeposit));
         logger.info('🎉 DisputeManager Contract verified\n');
     } catch(err){
         logger.info(`Failed to verify contract: ${err}`);
@@ -140,9 +133,9 @@ async function checkConfiguration(sdk: ContractSDK, config, caller: string) {
         for(let i = 0; i < planTemplates.length; i++) {
             let planTemplate = planTemplates[i];
             let pm = await sdk.planManager.getPlanTemplate(i);
-            expect(BigNumber.from(planTemplate.period)).to.eql(pm.period);
-            expect(BigNumber.from(planTemplate.dailyReqCap)).to.eql(pm.dailyReqCap);
-            expect(BigNumber.from(planTemplate.rateLimit)).to.eql(pm.rateLimit);
+            expect(BN(planTemplate.period)).to.eql(pm.period);
+            expect(BN(planTemplate.dailyReqCap)).to.eql(pm.dailyReqCap);
+            expect(BN(planTemplate.rateLimit)).to.eql(pm.rateLimit);
             logger.info(`🎉 planTemplate ${i} verified\n`);
         }
 
