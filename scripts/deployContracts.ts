@@ -223,7 +223,8 @@ export async function deployContracts(
     );
 
     // deploy SQToken contract
-    const sqtToken = await new SQToken__factory(wallet).deploy(deployment.InflationController.address, await getOverrides(wallet));
+    const totalSupply = config['SQTToken'][0];
+    const sqtToken = await new SQToken__factory(wallet).deploy(deployment.InflationController.address, totalSupply, await getOverrides(wallet));
     await sqtToken.deployTransaction.wait(confirms);
     if (process.env.DEBUG) {
         console.log(`Deploy sqtToken: ${sqtToken.deployTransaction.hash}`);

@@ -10,7 +10,7 @@ import startupTestnetConfig from './config/startup.testnet.json';
 import {expect} from 'chai';
 import { colorText, getLogger, TextColor } from './logger';
 
-async function checkInitialisation(sdk, config) {
+async function checkInitialisation(sdk: ContractSDK, config) {
     try {
         //InflationController
         let logger = getLogger('InflationController');
@@ -24,6 +24,15 @@ async function checkInitialisation(sdk, config) {
         logger.info(`InflationDestination to be equal ${destination}`);
         expect(inflationDestination.toUpperCase()).to.equal(destination.toUpperCase());
         logger.info(colorText('InflationController Contract verified', TextColor.YELLOW));
+
+        // SQToken
+        logger = getLogger('SQToken');
+        logger.info(colorText(`Verifying SQToken Contract: ${sdk.sqToken.address}`, TextColor.YELLOW));
+        const [totalSupply] = config.contracts['SQToken'];
+        const amount = await sdk.sqToken.totalSupply();
+        logger.info(`Initial supply to be equal ${amount.toString()}`);
+        expect(totalSupply).to.eql(amount.toString());
+        logger.info(colorText('SQToken Contract verified', TextColor.YELLOW));
 
         //Staking
         logger = getLogger('Staking');
