@@ -154,7 +154,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
     for (const contract of contracts) {
         const owner = await contract.owner();
         if (owner != startupConfig.multiSign) {
-            logger.info(`Transfer Ownership: ${contract.contractName}`);
+            logger.info(`Transfer Ownership: ${contract.address}`);
             await sendTx(() => contract.transferOwnership(startupConfig.multiSign));
         } else {
             console.info(`${contract.contractName} ownership has already transfered`);
@@ -173,7 +173,6 @@ export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
     }else{
         logger.info(`Balance already transfered`)
     }
-    
 }
 
 const main = async () => {
@@ -211,6 +210,9 @@ const main = async () => {
         default:
             throw new Error(`Please provide correct network ${networkType}`)
     }
+
+    logger = getLogger('Contract Setup');
+    logger.info('🎉Contract setup completed!🎉')
 };
 
 main();
