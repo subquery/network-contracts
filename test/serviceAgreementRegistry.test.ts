@@ -20,8 +20,6 @@ import {
     RewardsStaking,
     RewardsHelper,
 } from '../src';
-import {utils} from 'ethers';
-const {constants} = require('@openzeppelin/test-helpers');
 
 describe('Service Agreement Registry Contract', () => {
     const mockProvider = waffle.provider;

@@ -39,8 +39,9 @@ contract Airdropper is Ownable {
         _;
     }
 
-    constructor() public {
+    constructor(address _settleDestination) public {
       controllers[msg.sender] = true;
+      settleDestination = _settleDestination;
     }
 
     function setSettleDestination(address _settleDestination) external onlyOwner {
