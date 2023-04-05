@@ -1,4 +1,5 @@
 import {ethers, ContractReceipt, ContractTransaction, Wallet} from 'ethers';
+import Pino from 'pino';
 
 import setup from './setup';
 
@@ -13,13 +14,17 @@ import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
 import deployment from '../publish/testnet.json';
 import { parseEther } from 'ethers/lib/utils';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
+import { getLogger } from './logger';
 
 let startupConfig : any = startupTestnetConfig;
+let logger: Pino.Logger;
 let confirms = 0;
 
 async function sendTx(transaction: () => Promise<ContractTransaction>): Promise<ContractReceipt> {
     const tx = await transaction();
+    logger?.info(`🤞 Sending transaction: ${tx.hash}`);
     const receipt = await tx.wait(confirms);
+    logger?.info('🚀 Transaction successful!');
     return receipt;
 }
 
@@ -31,90 +36,96 @@ async function getAirdropTimeConfig(provider) {
 }
 
 export async function createProjects(sdk: ContractSDK) {
-    console.info('Add QueryRegistry creator:');
+    logger = getLogger('Projects');
     for (const creator of startupConfig.QRCreator) {
         const result = await sdk.queryRegistry.creatorWhitelist(creator); 
         if (!result) {
-            console.info(`Add ${creator}`);
+            logger.info(`Add project creator: ${creator}`);
             await sendTx(() => sdk.queryRegistry.addCreator(creator));
         } else {
-            console.info(`${creator} is already creator`);
+            logger.info(`${creator} has already exist`);
         } 
     }
     
-    console.info('Create Query Projects:');
-    let queryId = await sdk.queryRegistry.nextQueryId(); 
-    let projects = startupConfig.projects;
+    logger.info('Create Query Projects');
+    const queryId = await sdk.queryRegistry.nextQueryId(); 
+    const projects = startupConfig.projects;
     for (var i = queryId.toNumber(); i < projects.length; i++){
         const {name, metadataCid, versionCid, deploymentId} = projects[i];
-        console.info(`Create query project: ${name}`);
+        logger.info(`Create query project: ${name}`);
         await sendTx(() => sdk.queryRegistry.createQueryProject(
             cidToBytes32(metadataCid),
             cidToBytes32(versionCid),
             cidToBytes32(deploymentId)
         ));
     }
+    console.log('\n');
 }
 
 export async function createPlanTemplates(sdk: ContractSDK) {
-    console.info("Create Plan Templates:");
-    let templateId = await sdk.planManager.nextTemplateId(); 
-    let templates = startupConfig.planTemplates;
+    logger = getLogger('Plan Templates');
+    const templateId = await sdk.planManager.nextTemplateId(); 
+    const templates = startupConfig.planTemplates;
     for (var i = templateId.toNumber(); i < templates.length; i++){
         const {period, dailyReqCap, rateLimit} = templates[i];
-        console.info(`Create No. ${i} plan template`);
+        logger.info(`Create No. ${i} plan template: ${period} | ${dailyReqCap} | ${rateLimit}`);
         await sendTx(() => sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, METADATA_HASH));
     }
+
+    console.log('\n');
 }
 
 export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider) {
-    console.info("Add Airdrop Controllers:");
+    logger = getLogger('Airdrop');
     for (const controller of startupConfig.AirdropController) {
         const result = await sdk.airdropper.controllers(controller); 
         if (!result) {
-            console.info(`Add ${controller}`);
+            logger.info(`Add airdrop controller: ${controller}`);
             await sendTx(() => sdk.airdropper.addController(controller));
         } else {
-            console.info(`${controller} is already controller`);
+            logger.info(`${controller} has already exist`);
         } 
     }
 
-    console.info("Create Airdrop round:");
+    logger.info("Create Airdrop round");
     const {startTime, endTime} = await getAirdropTimeConfig(provider);
     const receipt = await sendTx(() => sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime));
     const roundId = receipt.events[0].args.roundId;
-    console.info(`Round ${roundId} created`);
+    logger.info(`Round ${roundId} created: ${startTime} | ${endTime}`);
 
     const airdropAccounts = startupConfig.airdrops;
     const rounds = new Array(airdropAccounts.length).fill(roundId);
     const amounts = startupConfig.amounts.map((a) => parseEther(a.toString()));
 
-    console.info("Batch send Airdrop");
+    logger.info("Batch send Airdrop");
     const totalAmount = eval(startupConfig.amounts.join("+"));
     await sendTx(() => sdk.sqToken.increaseAllowance(sdk.airdropper.address, parseEther(totalAmount.toString())));
     await sendTx(() => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts));
+
+    console.log('\n');
 }
 
 async function setupPermissionExchange(sdk: ContractSDK, provider: StaticJsonRpcProvider, wallet: Wallet) {
-    console.info('Setup exchange pair orders');
-
+    logger = getLogger('Permission Exchange');
+    logger.info("Setup exchange order");
     const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = startupConfig.exchange;
     const usdcContract = new ethers.Contract(usdcAddress, Token.abi, provider);
-
     await usdcContract.connect(wallet).increaseAllowance(sdk.permissionedExchange.address, tokenGiveBalance);
 
-    await sdk.permissionedExchange.createPairOrders(
+    await sendTx(() => sdk.permissionedExchange.createPairOrders(
         usdcAddress,
         sdk.sqToken.address,
         amountGive,
         amountGet,
         expireDate,
         tokenGiveBalance
-    );
+    ));
+
+    console.log('\n');
 }
 
 export async function ownerTransfer(sdk: ContractSDK) {
-    console.info("Transfer Ownerships:");
+    logger = getLogger('Owner Transfer');
     const contracts = [
         sdk.airdropper,
         sdk.consumerHost, 
@@ -143,22 +154,24 @@ export async function ownerTransfer(sdk: ContractSDK) {
     for (const contract of contracts) {
         const owner = await contract.owner();
         if (owner != startupConfig.multiSign) {
-            console.info(`Transfer Ownership: ${contract.contractName}`);
+            logger.info(`Transfer Ownership: ${contract.contractName}`);
             await sendTx(() => contract.transferOwnership(startupConfig.multiSign));
         } else {
-            console.info(`${contract.contractName} already transfered`);
+            console.info(`${contract.contractName} ownership has already transfered`);
         } 
     }
 
+    console.log('\n');
 }
 
 export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
+    logger = getLogger('Token');
     const balance = await sdk.sqToken.balanceOf(wallet.address);
     if (balance.gt(0)){
-        console.info(`Transfer ${balance.toString()} from ${wallet.address} to ${startupConfig.multiSign}`);
+        logger.info(`Transfer ${balance.toString()} from ${wallet.address} to ${startupConfig.multiSign}`);
         await sendTx(() => sdk.sqToken.transfer(startupConfig.multiSign, balance));
     }else{
-        console.info(`Balance already transfered`)
+        logger.info(`Balance already transfered`)
     }
     
 }
@@ -180,9 +193,8 @@ const main = async () => {
         case '--kepler':
             confirms = 20;
             startupConfig = startupKeplerConfig;
-            await airdrop(sdk, provider);
             await createProjects(sdk);
-            await createPlanTemplates(sdk);
+            // await createPlanTemplates(sdk);
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
@@ -192,7 +204,7 @@ const main = async () => {
             await createProjects(sdk);
             await createPlanTemplates(sdk);
             await airdrop(sdk, provider);
-            await setupPermissionExchange(sdk, provider, wallet);
+            // await setupPermissionExchange(sdk, provider, wallet);
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
