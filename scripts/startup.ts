@@ -59,6 +59,14 @@ export async function createProjects(sdk: ContractSDK) {
             cidToBytes32(deploymentId)
         ));
     }
+
+    logger.info('Remove owner from creator whitelist');
+    const owner = await sdk.queryRegistry.owner();
+    await sendTx(() => sdk.queryRegistry.removeCreator(owner));
+
+    logger.info('Add mutli-sig wallet as creator');
+    await sendTx(() => sdk.queryRegistry.addCreator(startupConfig.multiSign));
+
     console.log('\n');
 }
 
@@ -101,6 +109,13 @@ export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider)
     const totalAmount = eval(startupConfig.amounts.join("+"));
     await sendTx(() => sdk.sqToken.increaseAllowance(sdk.airdropper.address, parseEther(totalAmount.toString())));
     await sendTx(() => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts));
+
+    const owner = await sdk.airdropper.owner();
+    logger.info(`Remove owner from airdrop controller: ${owner}`);
+    await sendTx(() => sdk.airdropper.removeController(owner));
+
+    logger.info('Add mutli-sig wallet as airdrop controller');
+    await sendTx(() => sdk.airdropper.addController(startupConfig.multiSign));
 
     console.log('\n');
 }
