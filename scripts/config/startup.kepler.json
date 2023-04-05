@@ -1,11 +1,8 @@
 {
-    "planTemplates": [
-    ],
-    "QRCreator": [
-    ],
-    "AirdropController": [
-    ],
-    "multiSign": "",
+    "planTemplates": [],
+    "QRCreator": [],
+    "AirdropController": [],
+    "multiSign": "0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C",
     "projects": [ 
         {
             "name": "Polkadot Dictionary",
