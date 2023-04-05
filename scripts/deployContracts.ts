@@ -223,7 +223,7 @@ export async function deployContracts(
     );
 
     // deploy SQToken contract
-    const totalSupply = config['SQTToken'][0];
+    const [totalSupply] = config['SQTToken'];
     const sqtToken = await new SQToken__factory(wallet).deploy(deployment.InflationController.address, totalSupply, await getOverrides(wallet));
     await sqtToken.deployTransaction.wait(confirms);
     if (process.env.DEBUG) {
@@ -241,7 +241,8 @@ export async function deployContracts(
     updateDeployment(deployment, 'VSQToken', vsqtToken.address, '', vsqtToken.deployTransaction.hash);
 
     //deploy Airdropper contract
-    const airdropper = await new Airdropper__factory(wallet).deploy(await getOverrides(wallet));
+    const [settleDestination] = config['Airdropper'];
+    const airdropper = await new Airdropper__factory(wallet).deploy(settleDestination, await getOverrides(wallet));
     await airdropper.deployTransaction.wait(confirms);
     if (process.env.DEBUG) {
         console.log(`Deploy airdropper: ${airdropper.deployTransaction.hash}`);
