@@ -1,5 +1,5 @@
 import { BaseContract, ContractTransaction, Overrides } from 'ethers';
-import {ContractFactory, Contract} from 'ethers';
+import {Contract} from 'ethers';
 import {readFileSync, writeFileSync} from 'fs';
 import Pino from 'pino';
 import sha256 from 'sha256';
@@ -59,66 +59,16 @@ import {
 } from '../src';
 import { Provider } from '@ethersproject/providers';
 import { SubqueryNetwork } from '@subql/contract-sdk';
+import { CONTRACT_FACTORY, Contracts, FactoryContstructor, UPGRADEBAL_CONTRACTS } from './contracts';
 
-interface FactoryContstructor {
-    new (wallet: Wallet): ContractFactory;
-    readonly abi: any;
-}
-
-export type Contracts = {
-    proxyAdmin: ProxyAdmin;
-    settings: Settings;
-    inflationController: InflationController;
-    token: SQToken;
-    vtoken: VSQToken;
-    staking: Staking;
-    stakingManager: StakingManager;
-    eraManager: EraManager;
-    indexerRegistry: IndexerRegistry;
-    queryRegistry: QueryRegistry;
-    planManager: PlanManager;
-    purchaseOfferMarket: PurchaseOfferMarket;
-    serviceAgreementRegistry: ServiceAgreementRegistry;
-    rewardsDistributer: RewardsDistributer;
-    rewardsPool: RewardsPool;
-    rewardsStaking: RewardsStaking;
-    rewardsHelper: RewardsHelper;
-    stateChannel: StateChannel;
-    airdropper: Airdropper;
-    permissionedExchange: PermissionedExchange;
-    vesting: Vesting;
-    consumerHost: ConsumerHost;
-    disputeManager: DisputeManager;
-};
-
-const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: string}, FactoryContstructor]>> = {
-    InflationController: [CONTRACTS.InflationController, InflationController__factory],
-    IndexerRegistry: [CONTRACTS.IndexerRegistry, IndexerRegistry__factory],
-    PlanManager: [CONTRACTS.PlanManager, PlanManager__factory],
-    QueryRegistry: [CONTRACTS.QueryRegistry, QueryRegistry__factory],
-    RewardsDistributer: [CONTRACTS.RewardsDistributer, RewardsDistributer__factory],
-    RewardsPool: [CONTRACTS.RewardsPool, RewardsPool__factory],
-    RewardsStaking: [CONTRACTS.RewardsStaking, RewardsStaking__factory],
-    RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
-    ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
-    Staking: [CONTRACTS.Staking, Staking__factory],
-    StakingManager: [CONTRACTS.StakingManager, StakingManager__factory],
-    EraManager: [CONTRACTS.EraManager, EraManager__factory],
-    PurchaseOfferMarket: [CONTRACTS.PurchaseOfferMarket, PurchaseOfferMarket__factory],
-    StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
-
-    PermissionedExchange: [CONTRACTS.PermissionedExchange, PermissionedExchange__factory],
-    ConsumerHost: [CONTRACTS.ConsumerHost, ConsumerHost__factory],
-    DisputeManager: [CONTRACTS.DisputeManager, DisputeManager__factory],
-};
-
-let provider: Provider;
+let wallet: Wallet;
 let network: SubqueryNetwork;
 let logger: Pino.Logger;
 let confirms: number;
+let deployment: Partial<ContractDeployment> = {};
 
 async function getOverrides(): Promise<Overrides> {
-    const price = await provider.getGasPrice();
+    const price = await wallet.provider.getGasPrice();
     const gasPrice = price.add(15000000000); // add extra 15 gwei
     return { gasPrice };
 }
@@ -126,12 +76,15 @@ async function getOverrides(): Promise<Overrides> {
 export function saveDeployment(name: string, deployment: Partial<ContractDeployment>) {
     const filePath = `${__dirname}/../publish/${name}.json`;
     writeFileSync(filePath, JSON.stringify(deployment, null, 4));
-    console.log(`Exported deployment of network ${name} result to ${filePath}`);
+    logger.info(`Exported deployment of network ${name} result to ${filePath}`);
 }
 
 function loadDeployment(name: string) {
     const filePath = `${__dirname}/../publish/${name}.json`;
     const deployment =JSON.parse(readFileSync(filePath, 'utf8'));
+
+    logger?.info(`Load deployment for network: ${name} from ${filePath}:`);
+    logger?.info(`Deployments: ${JSON.stringify(deployment)}`);
 
     return deployment;
 }
@@ -142,6 +95,12 @@ async function deployContract<T extends BaseContract>(
     initFn?: (name: ContractName,contract: T, overrides: Overrides) => Promise<ContractTransaction>
 ): Promise<T> {
     if (network !== 'local') logger = getLogger(name);
+    
+    const contractAddress = deployment[name]?.address;
+    if (contractAddress) {
+        logger?.info(`🤖 Contract ${name} already deployed at ${contractAddress}`);
+        return CONTRACT_FACTORY[name].connect(contractAddress, wallet) as T;
+    }
 
     logger?.info('🤞 Deploying contract');
     let overrides = await getOverrides();
@@ -208,16 +167,16 @@ function updateDeployment(
 }
 
 export async function deployContracts(
-    wallet: Wallet,
+    _wallet: Wallet,
     config: DeploymentConfig['contracts'],
     options?: { network: SubqueryNetwork, confirms: number, history: boolean },
 ): Promise<[Partial<ContractDeployment>, Contracts]> {
-    provider = wallet.provider;
+    wallet = _wallet;
     confirms = options?.confirms ?? 1;
     network = options?.network ?? 'local';
 
     if (network !== 'local') getLogger('Wallet').info(colorText(`Deploy with wallet ${wallet.address}`, TextColor.GREEN));
-    const deployment: Partial<ContractDeployment> = config?.history ? loadDeployment(network) : {};
+    if (config?.history) deployment = loadDeployment(network);
 
     try {
         const proxyAdmin = await deployContract<ProxyAdmin>('ProxyAdmin', async (name, overrides) => {
@@ -609,7 +568,8 @@ export async function deployContracts(
         ];
     } catch (error) {
         logger.info(`Failed to deploy contracts: ${error}`);
-        logger.info(`Latest deployment: ${deployment}`);
+        logger.info(`Latest deployment: ${JSON.stringify(deployment)}`);
+        saveDeployment(network, deployment);
     }
 }
 
@@ -617,10 +577,10 @@ export const upgradeContract = async (
     proxyAdmin: ProxyAdmin,
     proxyAddress: string,
     ContractFactory: FactoryContstructor,
-    wallet: Wallet,
+    _wallet: Wallet,
     confirms: number
 ): Promise<[string, Contract]> => {
-    provider = wallet.provider;
+    wallet = _wallet;
     const contractFactory = new ContractFactory(wallet);
     const contract = await contractFactory.deploy(await getOverrides());
     await contract.deployTransaction.wait(confirms);
@@ -632,14 +592,15 @@ export const upgradeContract = async (
 };
 
 export async function upgradeContracts(
-    wallet: Wallet,
-    deployment: ContractDeployment,
+    _wallet: Wallet,
+    _deployment: ContractDeployment,
     confirms: number
 ): Promise<ContractDeployment> {
     const logger = getLogger('Upgrade Contract');
     logger.info(`Upgrade contrqact with wallet ${wallet.address}`);
     
-    provider = wallet.provider;
+    wallet = _wallet;
+    deployment = _deployment;
     const proxyAdmin = ProxyAdmin__factory.connect(deployment.ProxyAdmin.address, wallet);
 
     const changed: (keyof typeof CONTRACTS)[] = [];
@@ -663,5 +624,5 @@ export async function upgradeContracts(
         const [innerAddr, contract] = await upgradeContract(proxyAdmin, address, factory, wallet, confirms);
         updateDeployment(deployment, contractName, contract, innerAddr);
     }
-    return deployment;
+    return deployment as ContractDeployment;
 }
