@@ -47,7 +47,7 @@ let deployment: Partial<ContractDeployment> = {};
 
 async function getOverrides(): Promise<Overrides> {
     const price = await wallet.provider.getGasPrice();
-    const gasPrice = price.add(15000000000); // add extra 15 gwei
+    const gasPrice = price.add(20000000000); // add extra 15 gwei
     return { gasPrice };
 }
 

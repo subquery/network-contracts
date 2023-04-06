@@ -55,7 +55,7 @@ Get configuration from js-sdk `networks['kepler']` or rust-sdk `Network::Kepler`
 #### rust-sdk
 `cargo build` build with `debug` mode.
 
-### deploy
+### deploy contracts
 
 To deploy on local network
 
@@ -65,6 +65,16 @@ To deploy to mainnet and testnet
 
 -   `yarn deploy --mainnet`
 -   `yarn deploy --testnet`
+
+If contracts deploy failed with unexpected errors, you can try to continue deploying the contracts from the last step:
+
+- `yarn deploy --testnet --history`
+
+To verify the contracts deployment, run the following cmd to verify specific type:
+
+- `yarn verify --testnet --initialisation`
+- `yarn verify --testnet --configuration`
+- `yarn verify --testnet --ownership`
 
 ### test
 
