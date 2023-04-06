@@ -154,13 +154,13 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     /**
      * @dev Initialize this contract.
      */
-    function initialize(uint256 _lockPeriod, ISettings _settings) external initializer {
+    function initialize(ISettings _settings, uint256 _lockPeriod, uint256 _unbondFeeRate) external initializer {
         __Ownable_init();
 
         indexerLeverageLimit = 10;
-        unbondFeeRate = 1e3;
         maxUnbondingRequest = 20;
 
+        unbondFeeRate = _unbondFeeRate;
         lockPeriod = _lockPeriod;
         settings = _settings;
     }
