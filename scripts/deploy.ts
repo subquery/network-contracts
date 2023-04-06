@@ -1,16 +1,20 @@
-import { StaticJsonRpcProvider } from '@ethersproject/providers';
-import {writeFileSync} from 'fs';
-
 import setup from './setup';
-import {deployContracts} from './deployContracts';
+import {deployContracts, saveDeployment} from './deployContracts';
 
 const main = async () => {
-    const {name, config, wallet, confirms} = await setup(process.argv[2]);
-    const [deployment] = await deployContracts(wallet, config.contracts, { network: name, confirms });
-
-    const filePath = `${__dirname}/../publish/${name}.json`;
-    writeFileSync(filePath, JSON.stringify(deployment, null, 4));
-    console.log('Exported the deployment result to ', filePath);
+    try {
+        const {name, config, wallet, confirms, history} = await setup(process.argv);
+        const result = await deployContracts(wallet, config.contracts, { network: name, confirms, history });
+        if (!result) {
+            console.log('Failed to deploy contracts!');
+            return;
+        }
+    
+        const [deployment] = result;
+        saveDeployment(name, deployment);
+    } catch (error) {
+        console.log(`Failed to deploy contracts: ${error}`);
+    }
 };
 
 main();

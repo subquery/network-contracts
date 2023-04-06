@@ -1,4 +1,4 @@
-import {ethers, ContractReceipt, ContractTransaction, Wallet} from 'ethers';
+import {ethers, ContractReceipt, ContractTransaction, Wallet, Overrides} from 'ethers';
 import Pino from 'pino';
 
 import setup from './setup';
@@ -8,20 +8,30 @@ import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
 import {METADATA_HASH} from '../test/constants';
 import {cidToBytes32, lastestTime} from '../test/helper';
-import {ContractSDK} from '../src';
+import {ContractDeployment, ContractSDK} from '../src';
 import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
 
-import deployment from '../publish/testnet.json';
+import testnetDeployment from '../publish/testnet.json';
+import mainnetDeployment from '../publish/mainnet.json';
+import keplerDeployment from '../publish/kepler.json';
 import { parseEther } from 'ethers/lib/utils';
-import { StaticJsonRpcProvider } from '@ethersproject/providers';
+import { Provider, StaticJsonRpcProvider } from '@ethersproject/providers';
 import { getLogger } from './logger';
 
 let startupConfig : any = startupTestnetConfig;
 let logger: Pino.Logger;
 let confirms = 0;
+let provider: Provider;
 
-async function sendTx(transaction: () => Promise<ContractTransaction>): Promise<ContractReceipt> {
-    const tx = await transaction();
+async function getOverrides(): Promise<Overrides> {
+    const price = await provider.getGasPrice();
+    const gasPrice = price.add(20000000000); // add extra 15 gwei
+    return { gasPrice };
+}
+
+async function sendTx(transaction: (overrides: Overrides) => Promise<ContractTransaction>): Promise<ContractReceipt> {
+    const overrides = await getOverrides();
+    const tx = await transaction(overrides);
     logger?.info(`🤞 Sending transaction: ${tx.hash}`);
     const receipt = await tx.wait(confirms);
     logger?.info('🚀 Transaction successful!');
@@ -35,13 +45,14 @@ async function getAirdropTimeConfig(provider) {
     return {startTime, endTime};
 }
 
-export async function createProjects(sdk: ContractSDK) {
+export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpcProvider) {
+    if (_provider) provider = _provider;
     logger = getLogger('Projects');
     for (const creator of startupConfig.QRCreator) {
         const result = await sdk.queryRegistry.creatorWhitelist(creator); 
         if (!result) {
             logger.info(`Add project creator: ${creator}`);
-            await sendTx(() => sdk.queryRegistry.addCreator(creator));
+            await sendTx((overrides) => sdk.queryRegistry.addCreator(creator, overrides));
         } else {
             logger.info(`${creator} has already exist`);
         } 
@@ -53,43 +64,46 @@ export async function createProjects(sdk: ContractSDK) {
     for (var i = queryId.toNumber(); i < projects.length; i++){
         const {name, metadataCid, versionCid, deploymentId} = projects[i];
         logger.info(`Create query project: ${name}`);
-        await sendTx(() => sdk.queryRegistry.createQueryProject(
+        await sendTx((overrides) => sdk.queryRegistry.createQueryProject(
             cidToBytes32(metadataCid),
             cidToBytes32(versionCid),
-            cidToBytes32(deploymentId)
+            cidToBytes32(deploymentId),
+            overrides
         ));
     }
 
     logger.info('Remove owner from creator whitelist');
     const owner = await sdk.queryRegistry.owner();
-    await sendTx(() => sdk.queryRegistry.removeCreator(owner));
+    await sendTx((overrides) => sdk.queryRegistry.removeCreator(owner, overrides));
 
     logger.info('Add mutli-sig wallet as creator');
-    await sendTx(() => sdk.queryRegistry.addCreator(startupConfig.multiSign));
+    await sendTx((overrides) => sdk.queryRegistry.addCreator(startupConfig.multiSign, overrides));
 
     console.log('\n');
 }
 
-export async function createPlanTemplates(sdk: ContractSDK) {
+export async function createPlanTemplates(sdk: ContractSDK, _provider?: StaticJsonRpcProvider) {
+    if (_provider) provider = _provider;
     logger = getLogger('Plan Templates');
     const templateId = await sdk.planManager.nextTemplateId(); 
     const templates = startupConfig.planTemplates;
     for (var i = templateId.toNumber(); i < templates.length; i++){
         const {period, dailyReqCap, rateLimit} = templates[i];
         logger.info(`Create No. ${i} plan template: ${period} | ${dailyReqCap} | ${rateLimit}`);
-        await sendTx(() => sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, METADATA_HASH));
+        await sendTx((overrides) => sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, METADATA_HASH, overrides));
     }
 
     console.log('\n');
 }
 
-export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider) {
+export async function airdrop(sdk: ContractSDK, _provider?: StaticJsonRpcProvider) {
+    if (_provider) provider = _provider;
     logger = getLogger('Airdrop');
     for (const controller of startupConfig.AirdropController) {
         const result = await sdk.airdropper.controllers(controller); 
         if (!result) {
             logger.info(`Add airdrop controller: ${controller}`);
-            await sendTx(() => sdk.airdropper.addController(controller));
+            await sendTx((overrides) => sdk.airdropper.addController(controller, overrides));
         } else {
             logger.info(`${controller} has already exist`);
         } 
@@ -98,7 +112,7 @@ export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider)
     if (startupConfig.airdrops.length > 0) {
         logger.info("Create Airdrop round");
         const {startTime, endTime} = await getAirdropTimeConfig(provider);
-        const receipt = await sendTx(() => sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime));
+        const receipt = await sendTx((overrides) => sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime, overrides));
         const roundId = receipt.events[0].args.roundId;
         logger.info(`Round ${roundId} created: ${startTime} | ${endTime}`);
     
@@ -108,34 +122,36 @@ export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider)
     
         logger.info("Batch send Airdrop");
         const totalAmount = eval(startupConfig.amounts.join("+"));
-        await sendTx(() => sdk.sqToken.increaseAllowance(sdk.airdropper.address, parseEther(totalAmount.toString())));
-        await sendTx(() => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts));    
+        await sendTx((overrides) => sdk.sqToken.increaseAllowance(sdk.airdropper.address, parseEther(totalAmount.toString()), overrides));
+        await sendTx((overrides) => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts, overrides));    
     }
 
     const owner = await sdk.airdropper.owner();
     logger.info(`Remove owner from airdrop controller: ${owner}`);
-    await sendTx(() => sdk.airdropper.removeController(owner));
+    await sendTx((overrides) => sdk.airdropper.removeController(owner, overrides));
 
     logger.info('Add mutli-sig wallet as airdrop controller');
-    await sendTx(() => sdk.airdropper.addController(startupConfig.multiSign));
+    await sendTx((overrides) => sdk.airdropper.addController(startupConfig.multiSign, overrides));
 
     console.log('\n');
 }
 
-async function setupPermissionExchange(sdk: ContractSDK, provider: StaticJsonRpcProvider, wallet: Wallet) {
+async function setupPermissionExchange(sdk: ContractSDK, wallet: Wallet, _provider?: StaticJsonRpcProvider) {
+    if (_provider) provider = _provider;
     logger = getLogger('Permission Exchange');
     logger.info("Setup exchange order");
     const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = startupConfig.exchange;
     const usdcContract = new ethers.Contract(usdcAddress, Token.abi, provider);
     await usdcContract.connect(wallet).increaseAllowance(sdk.permissionedExchange.address, tokenGiveBalance);
 
-    await sendTx(() => sdk.permissionedExchange.createPairOrders(
+    await sendTx((overrides) => sdk.permissionedExchange.createPairOrders(
         usdcAddress,
         sdk.sqToken.address,
         amountGive,
         amountGet,
         expireDate,
-        tokenGiveBalance
+        tokenGiveBalance,
+        overrides
     ));
 
     console.log('\n');
@@ -172,7 +188,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
         const owner = await contract.owner();
         if (owner != startupConfig.multiSign) {
             logger.info(`Transfer Ownership: ${contract.address}`);
-            await sendTx(() => contract.transferOwnership(startupConfig.multiSign));
+            await sendTx((overrides) => contract.transferOwnership(startupConfig.multiSign, overrides));
         } else {
             console.info(`${contract.contractName} ownership has already transfered`);
         } 
@@ -186,17 +202,34 @@ export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
     const balance = await sdk.sqToken.balanceOf(wallet.address);
     if (balance.gt(0)){
         logger.info(`Transfer ${balance.toString()} from ${wallet.address} to ${startupConfig.multiSign}`);
-        await sendTx(() => sdk.sqToken.transfer(startupConfig.multiSign, balance));
+        await sendTx((overrides) => sdk.sqToken.transfer(startupConfig.multiSign, balance, overrides));
     }else{
         logger.info(`Balance already transfered`)
     }
 }
 
 const main = async () => {
-    const {wallet, provider} = await setup(process.argv[2]);
+    const {wallet} = await setup(process.argv);
+    const networkType = process.argv[2];
+    provider = wallet.provider;
+
+    let deployment: ContractDeployment;
+    switch (networkType) {
+        case '--mainnet':
+            deployment = mainnetDeployment;
+            break;
+        case '--kepler':
+            deployment = keplerDeployment;
+            break;
+        case '--testnet':
+            deployment = testnetDeployment;
+            break;
+        default:
+            throw new Error(`Please provide correct network ${networkType}`)
+    }
+
     const sdk = await ContractSDK.create(wallet, {deploymentDetails: deployment});
 
-    const networkType = process.argv[2];
     switch (networkType) {
         case '--mainnet':
             startupConfig = startupMainnetConfig;
@@ -209,6 +242,7 @@ const main = async () => {
         case '--kepler':
             confirms = 20;
             startupConfig = startupKeplerConfig;
+            await airdrop(sdk);
             await createProjects(sdk);
             // await createPlanTemplates(sdk);
             await balanceTransfer(sdk, wallet);
@@ -219,8 +253,8 @@ const main = async () => {
             startupConfig = startupTestnetConfig;
             await createProjects(sdk);
             await createPlanTemplates(sdk);
-            await airdrop(sdk, provider);
-            // await setupPermissionExchange(sdk, provider, wallet);
+            await airdrop(sdk);
+            // await setupPermissionExchange(sdk, wallet);
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
