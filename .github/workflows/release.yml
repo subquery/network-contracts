@@ -37,7 +37,6 @@ jobs:
       #Publish to npm
       - uses: JS-DevTools/npm-publish@v1
         name: Publish
-        if: steps.changed.outputs.changed == 'true'
         with:
           token: ${{ secrets.NPM_TOKEN }}
           tag: latest
