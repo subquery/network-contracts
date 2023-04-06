@@ -95,20 +95,22 @@ export async function airdrop(sdk: ContractSDK, provider: StaticJsonRpcProvider)
         } 
     }
 
-    logger.info("Create Airdrop round");
-    const {startTime, endTime} = await getAirdropTimeConfig(provider);
-    const receipt = await sendTx(() => sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime));
-    const roundId = receipt.events[0].args.roundId;
-    logger.info(`Round ${roundId} created: ${startTime} | ${endTime}`);
-
-    const airdropAccounts = startupConfig.airdrops;
-    const rounds = new Array(airdropAccounts.length).fill(roundId);
-    const amounts = startupConfig.amounts.map((a) => parseEther(a.toString()));
-
-    logger.info("Batch send Airdrop");
-    const totalAmount = eval(startupConfig.amounts.join("+"));
-    await sendTx(() => sdk.sqToken.increaseAllowance(sdk.airdropper.address, parseEther(totalAmount.toString())));
-    await sendTx(() => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts));
+    if (startupConfig.airdrops.length > 0) {
+        logger.info("Create Airdrop round");
+        const {startTime, endTime} = await getAirdropTimeConfig(provider);
+        const receipt = await sendTx(() => sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime));
+        const roundId = receipt.events[0].args.roundId;
+        logger.info(`Round ${roundId} created: ${startTime} | ${endTime}`);
+    
+        const airdropAccounts = startupConfig.airdrops;
+        const rounds = new Array(airdropAccounts.length).fill(roundId);
+        const amounts = startupConfig.amounts.map((a) => parseEther(a.toString()));
+    
+        logger.info("Batch send Airdrop");
+        const totalAmount = eval(startupConfig.amounts.join("+"));
+        await sendTx(() => sdk.sqToken.increaseAllowance(sdk.airdropper.address, parseEther(totalAmount.toString())));
+        await sendTx(() => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts));    
+    }
 
     const owner = await sdk.airdropper.owner();
     logger.info(`Remove owner from airdrop controller: ${owner}`);
