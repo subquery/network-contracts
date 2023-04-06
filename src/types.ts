@@ -28,6 +28,8 @@ export type ContractDeploymentDetail = {
 };
 export type ContractDeployment = Record<keyof typeof CONTRACTS, ContractDeploymentDetail>;
 
+export type ContractName = keyof ContractDeployment;
+
 export type SdkOptions = {
     network?: SubqueryNetwork;
     deploymentDetails?: ContractDeployment;

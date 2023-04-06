@@ -4,6 +4,8 @@
 pragma solidity 0.8.15;
 
 interface IInflationController {
+    function inflationRate() external view returns (uint256);
+
     function setInflationRate(uint256 _inflationRateBP) external;
 
     function setInflationDestination(address _inflationDestination) external;

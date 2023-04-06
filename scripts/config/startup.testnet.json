@@ -26,14 +26,13 @@
         "tokenGiveBalance": "50000000"
     },
     "QRCreator": [
-        "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",
-        "0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe"
+        "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77"
     ],
     "AirdropController": [
-        "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",
+        "0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f",
         "0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe"
     ],
-    "multiSign": "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",
+    "multiSign": "0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f",
     "projects": [ 
         {
             "name": "Polkadot Dictionary",
