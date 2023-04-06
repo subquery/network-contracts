@@ -83,8 +83,8 @@ function loadDeployment(name: string) {
     const filePath = `${__dirname}/../publish/${name}.json`;
     const deployment =JSON.parse(readFileSync(filePath, 'utf8'));
 
-    logger?.info(`Load deployment for network: ${name} from ${filePath}:`);
-    logger?.info(`Deployments: ${JSON.stringify(deployment)}`);
+    getLogger('Load Deployments').info(`Load deployment for network: ${name} from ${filePath}:`);
+    console.log(deployment);
 
     return deployment;
 }
@@ -98,7 +98,7 @@ async function deployContract<T extends BaseContract>(
     
     const contractAddress = deployment[name]?.address;
     if (contractAddress) {
-        logger?.info(`🤖 Contract ${name} already deployed at ${contractAddress}`);
+        logger?.info(`🎃 Contract ${name} already deployed at ${contractAddress}`);
         return CONTRACT_FACTORY[name].connect(contractAddress, wallet) as T;
     }
 
@@ -176,7 +176,7 @@ export async function deployContracts(
     network = options?.network ?? 'local';
 
     if (network !== 'local') getLogger('Wallet').info(colorText(`Deploy with wallet ${wallet.address}`, TextColor.GREEN));
-    if (config?.history) deployment = loadDeployment(network);
+    if (options?.history) deployment = loadDeployment(network);
 
     try {
         const proxyAdmin = await deployContract<ProxyAdmin>('ProxyAdmin', async (name, overrides) => {
@@ -567,7 +567,7 @@ export async function deployContracts(
             },
         ];
     } catch (error) {
-        logger.info(`Failed to deploy contracts: ${error}`);
+        logger.info(`Failed to deploy contracts: ${JSON.stringify(error)}`);
         logger.info(`Latest deployment: ${JSON.stringify(deployment)}`);
         saveDeployment(network, deployment);
     }

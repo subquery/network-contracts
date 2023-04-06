@@ -52,7 +52,7 @@ const setup = async (argv) => {
             name = "local";
     }
 
-    if (argv[3] === '--hisotry') history = true;
+    if (argv[3] === '--history') history = true;
 
     if (process.env.ENDPOINT) {
         console.log(`use overridden endpoint ${process.env.ENDPOINT}`);
