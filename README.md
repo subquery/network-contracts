@@ -76,7 +76,6 @@ To verify the contracts deployment, run the following cmd to verify specific typ
 - `yarn verify --testnet --initialisation`
 - `yarn verify --testnet --configuration`
 - `yarn verify --testnet --ownership`
-- `yarn verify --testnet --all`
 
 ### test
 
