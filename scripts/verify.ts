@@ -39,6 +39,15 @@ async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
         expect(totalSupply).to.eql(amount);
         logger.info('🎉 SQToken Contract verified\n');
 
+        // SQToken
+        logger = getLogger('SQToken');
+        logger.info(colorText(`Verifying SQToken Contract: ${sdk.sqToken.address}`, TextColor.YELLOW));
+        const [totalSupply] = config.contracts['SQToken'];
+        const amount = await sdk.sqToken.totalSupply();
+        logger.info(`Initial supply to be equal ${amount.toString()}`);
+        expect(totalSupply).to.eql(amount.toString());
+        logger.info(colorText('SQToken Contract verified', TextColor.YELLOW));
+
         //Staking
         logger = getLogger('Staking');
         logger.info(`🧮 Verifying Staking Contract: ${sdk.staking.address}`);

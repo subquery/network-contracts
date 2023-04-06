@@ -238,6 +238,7 @@ const main = async () => {
         case '--kepler':
             confirms = 20;
             startupConfig = startupKeplerConfig;
+            await airdrop(sdk, provider);
             await createProjects(sdk);
             // await createPlanTemplates(sdk);
             await balanceTransfer(sdk, wallet);
