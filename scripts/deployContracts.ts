@@ -43,7 +43,14 @@ let network: SubqueryNetwork;
 let logger: Pino.Logger;
 let confirms: number;
 let config: ContractConfig;
-let deployment: Partial<ContractDeployment> = {};
+const deployment: Partial<ContractDeployment> = {};
+
+function clearObject(obj: Record<string, unknown>) {
+    const keys = Object.keys(obj);
+    for (const key of keys) {
+        delete obj[key];
+    }
+}
 
 async function getOverrides(): Promise<Overrides> {
     const price = await wallet.provider.getGasPrice();
@@ -173,10 +180,10 @@ export async function deployContracts(
     network = options?.network ?? 'local';
 
     if (network !== 'local') getLogger('Wallet').info(colorText(`Deploy with wallet ${wallet.address}`, TextColor.GREEN));
-    if (options?.history){
-        deployment = loadDeployment(network);
+    if (options?.history) {
+        Object.assign(deployment, ...loadDeployment(network));
     } else {
-        deployment = {};
+        clearObject(deployment)
     }
 
     try {
@@ -345,14 +352,13 @@ export const upgradeContract = async (
 
 export async function upgradeContracts(
     _wallet: Wallet,
-    _deployment: ContractDeployment,
+    deployment: ContractDeployment,
     confirms: number
 ): Promise<ContractDeployment> {
     const logger = getLogger('Upgrade Contract');
     logger.info(`Upgrade contrqact with wallet ${wallet.address}`);
     
     wallet = _wallet;
-    deployment = _deployment;
     const proxyAdmin = ProxyAdmin__factory.connect(deployment.ProxyAdmin.address, wallet);
 
     const changed: (keyof typeof CONTRACTS)[] = [];

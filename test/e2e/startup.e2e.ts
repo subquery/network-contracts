@@ -25,7 +25,7 @@ describe('startup script', () => {
 
         await createPlanTemplates(sdk);
         await createProjects(sdk);
-        await airdrop(sdk, mockProvider);
+        await airdrop(sdk);
     });
 
     describe('startup', async () => {

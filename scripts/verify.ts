@@ -17,8 +17,9 @@ let logger: Pino.Logger;
 
 const BN = (value: string | number): BigNumber => BigNumber.from(value);
 
-async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
+async function checkInitialisation(sdk: ContractSDK, config, startupConfig, caller: string) {
     try {
+        const multiSig = startupConfig.multiSign;
         //InflationController
         logger = getLogger('InflationController');
         logger.info(`🧮 Verifying inflationController Contract: ${sdk.inflationController.address}`);
@@ -37,16 +38,9 @@ async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
         const amount = await sdk.sqToken.totalSupply();
         logger.info(`Initial supply to be equal ${amount.toString()}`);
         expect(totalSupply).to.eql(amount);
+        logger.info(`Multi-sig wallet: ${multiSig} own the total assets`);
+        expect(totalSupply).to.eql(await sdk.sqToken.balanceOf(multiSig));
         logger.info('🎉 SQToken Contract verified\n');
-
-        // SQToken
-        logger = getLogger('SQToken');
-        logger.info(colorText(`Verifying SQToken Contract: ${sdk.sqToken.address}`, TextColor.YELLOW));
-        const [totalSupply] = config.contracts['SQToken'];
-        const amount = await sdk.sqToken.totalSupply();
-        logger.info(`Initial supply to be equal ${amount.toString()}`);
-        expect(totalSupply).to.eql(amount.toString());
-        logger.info(colorText('SQToken Contract verified', TextColor.YELLOW));
 
         //Staking
         logger = getLogger('Staking');
@@ -64,11 +58,6 @@ async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
         const [settleDestination] = config.contracts['Airdropper'];
         logger.info(`settleDestination to be equal ${settleDestination}`);
         expect((await sdk.airdropper.settleDestination()).toUpperCase()).to.equal(settleDestination.toUpperCase());
-        logger.info(`${caller} is not controller`)
-        expect(await sdk.airdropper.controllers(caller)).to.be.false;
-        const multiSig = destination;
-        logger.info(`${multiSig} is controller`)
-        expect(await sdk.airdropper.controllers(multiSig)).to.be.true;
         logger.info('🎉 Airdrop Contract verified\n');
 
         //EraManager
@@ -260,7 +249,7 @@ const main = async () => {
     const verifyType = process.argv[3]; 
     switch (verifyType) {
         case '--initialisation':
-            await checkInitialisation(sdk, config, caller);
+            await checkInitialisation(sdk, config, startupConfig, caller);
             break;
         case '--configuration':
             await checkConfiguration(sdk, startupConfig, caller);
