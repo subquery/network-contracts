@@ -432,7 +432,7 @@ async function main() {
     assert(INDEXER_PK, 'Not found SEED in env');
     assert(CONSUMER_PK, 'Not found SEED in env');
 
-    const {wallet, provider} = await setup(process.argv[2]);
+    const {wallet, provider} = await setup(process.argv);
     Provider = provider;
     sdk = await ContractSDK.create(wallet, {deploymentDetails: deployment});
     root_wallet = wallet;

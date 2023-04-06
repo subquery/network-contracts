@@ -193,7 +193,7 @@ export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
 }
 
 const main = async () => {
-    const {wallet, provider} = await setup(process.argv[2]);
+    const {wallet, provider} = await setup(process.argv);
     const sdk = await ContractSDK.create(wallet, {deploymentDetails: deployment});
 
     const networkType = process.argv[2];

@@ -85,6 +85,9 @@ async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
         const [threshold] = config.contracts['ServiceAgreementRegistry'];
         logger.info(`threshold to be equal ${threshold}`);
         expect(await sdk.serviceAgreementRegistry.threshold()).to.eql(BN(threshold));
+        logger.info('PlanMananger and PurchaseOfferContract are in the whitelist');
+        expect(await sdk.serviceAgreementRegistry.establisherWhitelist(sdk.planManager.address)).to.be.true;
+        expect(await sdk.serviceAgreementRegistry.establisherWhitelist(sdk.purchaseOfferMarket.address)).to.be.true;
         logger.info('🎉 ServiceAgreementRegistry Contract verified\n');
 
         //PurchaseOfferMarket
@@ -112,6 +115,14 @@ async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
         expect(await sdk.queryRegistry.creatorWhitelist(caller)).to.be.false;
         logger.info(`${multiSig} is project creator`)
         expect(await sdk.queryRegistry.creatorWhitelist(multiSig)).to.be.true;
+        logger.info('🎉 QueryRegistry Contract verified\n');
+
+        //PermissionExchange
+        logger = getLogger('P');
+        logger.info(`🧮 Verifying PermissionExchange Contract: ${sdk.permissionedExchange.address}`);
+        logger.info(`RewardDistribute is the controller: ${sdk.rewardsDistributor.address}`);
+        expect(await sdk.permissionedExchange.exchangeController(sdk.rewardsDistributor.address)).to.be.true;
+        logger.info('🎉 PermissionExchange Contract verified\n');
 
         //ConsumerHost
         logger = getLogger('ConsumerHost');
@@ -214,7 +225,7 @@ async function checkOwnership(sdk: ContractSDK, owner: string) {
     try {
         for (const contract of contracts) {
             const o = await contract.owner();
-            expect(o).to.eql(owner);
+            expect(o.toLowerCase()).to.eql(owner.toLocaleLowerCase());
             logger.info(`🎉 Ownership of contract: ${contract.address} verified`);
         }
     } catch (error) {
@@ -225,7 +236,7 @@ async function checkOwnership(sdk: ContractSDK, owner: string) {
 const main = async () => {
     let sdk: ContractSDK;
     let startupConfig: any = startupTestnetConfig;
-    const {wallet, config} = await setup(process.argv[2]);
+    const {wallet, config} = await setup(process.argv);
     const caller = wallet.address;
 
     const networkType = process.argv[2];

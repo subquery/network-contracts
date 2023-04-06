@@ -99,7 +99,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
     /**
      * @dev Initialize this contract. Load establisherWhitelist.
      */
-    function initialize(ISettings _settings, uint256 _threshold, address[] calldata _whitelist) external initializer {
+    function initialize(ISettings _settings, address[] calldata _whitelist, uint256 _threshold) external initializer {
         __Ownable_init();
 
         settings = _settings;
