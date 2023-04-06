@@ -64,6 +64,7 @@ To deploy on local network
 To deploy to mainnet and testnet
 
 -   `yarn deploy --mainnet`
+-   `yarn deploy --kepler`
 -   `yarn deploy --testnet`
 
 If contracts deploy failed with unexpected errors, you can try to continue deploying the contracts from the last step:
