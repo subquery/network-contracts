@@ -45,7 +45,8 @@ async function getAirdropTimeConfig(provider) {
     return {startTime, endTime};
 }
 
-export async function createProjects(sdk: ContractSDK) {
+export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpcProvider) {
+    if (_provider) provider = _provider;
     logger = getLogger('Projects');
     for (const creator of startupConfig.QRCreator) {
         const result = await sdk.queryRegistry.creatorWhitelist(creator); 
@@ -81,7 +82,8 @@ export async function createProjects(sdk: ContractSDK) {
     console.log('\n');
 }
 
-export async function createPlanTemplates(sdk: ContractSDK) {
+export async function createPlanTemplates(sdk: ContractSDK, _provider?: StaticJsonRpcProvider) {
+    if (_provider) provider = _provider;
     logger = getLogger('Plan Templates');
     const templateId = await sdk.planManager.nextTemplateId(); 
     const templates = startupConfig.planTemplates;
@@ -94,7 +96,8 @@ export async function createPlanTemplates(sdk: ContractSDK) {
     console.log('\n');
 }
 
-export async function airdrop(sdk: ContractSDK) {
+export async function airdrop(sdk: ContractSDK, _provider?: StaticJsonRpcProvider) {
+    if (_provider) provider = _provider;
     logger = getLogger('Airdrop');
     for (const controller of startupConfig.AirdropController) {
         const result = await sdk.airdropper.controllers(controller); 
@@ -133,7 +136,8 @@ export async function airdrop(sdk: ContractSDK) {
     console.log('\n');
 }
 
-async function setupPermissionExchange(sdk: ContractSDK, wallet: Wallet) {
+async function setupPermissionExchange(sdk: ContractSDK, wallet: Wallet, _provider?: StaticJsonRpcProvider) {
+    if (_provider) provider = _provider;
     logger = getLogger('Permission Exchange');
     logger.info("Setup exchange order");
     const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = startupConfig.exchange;

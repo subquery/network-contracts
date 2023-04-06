@@ -23,9 +23,9 @@ describe('startup script', () => {
             permissionedExchange: deployment.permissionedExchange,
         };
 
-        await createPlanTemplates(sdk);
-        await createProjects(sdk);
-        await airdrop(sdk);
+        await createPlanTemplates(sdk, mockProvider);
+        await createProjects(sdk, mockProvider);
+        await airdrop(sdk, mockProvider);
     });
 
     describe('startup', async () => {
