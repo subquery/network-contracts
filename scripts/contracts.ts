@@ -1,5 +1,5 @@
 import {Wallet} from '@ethersproject/wallet';
-import {BaseContract, ContractFactory, Signer} from 'ethers';
+import {BaseContract, BigNumber, ContractFactory, Signer} from 'ethers';
 import { Provider } from '@ethersproject/abstract-provider';
 
 import CONTRACTS from '../src/contracts';
@@ -133,3 +133,6 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
   ConsumerHost: ConsumerHost__factory,
   DisputeManager: DisputeManager__factory,
 }
+
+export type Config = number | string | BigNumber | string[];
+export type ContractConfig = Record<ContractName, Config[]>;

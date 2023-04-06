@@ -15,16 +15,29 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
     const [_, contracts] = await deploy(
         wallet,
         {
-            InflationController: [1000, wallet1.address], // inflationRate, inflationDestination
-            SQToken: [etherParse("10000000000")], // initial supply 10 billion
-            Staking: [1000, 1e3], // LockPeriod
-            Airdropper: [ZERO_ADDRESS], // settle destination
-            EraManager: [60 * 60 * 24], 
-            ServiceAgreementRegistry: [0], //threshold
+            InflationController: [1000, wallet1.address],
+            SQToken: [etherParse("10000000000")],
+            Staking: [1000, 1e3],
+            Airdropper: [ZERO_ADDRESS],
+            EraManager: [60 * 60 * 24],
+            ServiceAgreementRegistry: [0],
             PurchaseOfferMarket: [1e5, ZERO_ADDRESS],
             IndexerRegistry: [etherParse("1000")],
-            ConsumerHost: [1], // Fee Percentage, default is 1%
-            DisputeManager: [etherParse("1000")], // minimumDeposit
+            ConsumerHost: [1],
+            DisputeManager: [etherParse("1000")],
+            Settings: [],
+            VSQToken: [],
+            StakingManager: [],
+            QueryRegistry: [],
+            PlanManager: [],
+            RewardsDistributer: [],
+            RewardsPool: [],
+            RewardsStaking: [],
+            RewardsHelper: [],
+            ProxyAdmin: [],
+            StateChannel: [],
+            PermissionedExchange: [],
+            Vesting: []
         }
     );
 
