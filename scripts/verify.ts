@@ -133,7 +133,7 @@ async function checkInitialisation(sdk: ContractSDK, config, startupConfig, call
     }
 }
 
-async function checkConfiguration(sdk: ContractSDK, config, caller: string) {
+async function checkConfiguration(sdk: ContractSDK, config) {
     try {
         // planTemplates
         let logger = getLogger('planTemplates');
@@ -179,6 +179,7 @@ async function checkConfiguration(sdk: ContractSDK, config, caller: string) {
             expect(isController).to.eql(false);
             logger.info(`🎉 AirdropController: ${controller} verified`);
         }
+        console.log('\n');
     } catch (error) {
         console.log(error);
     }
@@ -252,9 +253,14 @@ const main = async () => {
             await checkInitialisation(sdk, config, startupConfig, caller);
             break;
         case '--configuration':
-            await checkConfiguration(sdk, startupConfig, caller);
+            await checkConfiguration(sdk, startupConfig);
             break;
         case '--ownership':
+            await checkOwnership(sdk, startupConfig.multiSign);
+            break;
+        case '--all':
+            await checkInitialisation(sdk, config, startupConfig, caller);
+            await checkConfiguration(sdk, startupConfig);
             await checkOwnership(sdk, startupConfig.multiSign);
             break;
         default:
