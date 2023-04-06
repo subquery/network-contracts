@@ -25,10 +25,12 @@ async function setupCommon({rpcUrls, chainId, chainName}: DeploymentConfig["netw
     };
 }
 
-const setup = async (argv: string) => {
+const setup = async (argv) => {
     let config = { contracts: null, network: null };
     let name: SubqueryNetwork;
-    switch (argv) {
+    let hisotry = false;
+
+    switch (argv[2]) {
         case '--mainnet':
             config.contracts = contractsConfig.mainnet;
             config.network = networks.mainnet;
@@ -50,6 +52,8 @@ const setup = async (argv: string) => {
             name = "local";
     }
 
+    if (argv[3] === '--hisotry') hisotry = true;
+
     if (process.env.ENDPOINT) {
         console.log(`use overridden endpoint ${process.env.ENDPOINT}`);
         config.network.rpcUrls = [process.env.ENDPOINT];
@@ -58,11 +62,11 @@ const setup = async (argv: string) => {
     if (['Mumbai', 'Hardaht', 'Moonbase-alpha'].includes(config.network.chainName)) {
         const {wallet, provider, overrides} =  await setupCommon(config.network);
         const confirms = 1;
-        return {name, config, wallet, provider, overrides, confirms}
+        return {name, config, wallet, provider, overrides, confirms, hisotry}
     } else if(['Polygon'].includes(config.network.chainName)){
         const {wallet, provider, overrides} =  await setupCommon(config.network);
         const confirms = 20
-        return {name, config, wallet, provider, overrides, confirms}
+        return {name, config, wallet, provider, overrides, confirms, hisotry}
     }
     else {
         throw new Error(`Network ${config.network.chainName} not supported`);

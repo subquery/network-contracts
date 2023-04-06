@@ -1,5 +1,6 @@
 import { BaseContract, ContractTransaction, Overrides } from 'ethers';
 import {ContractFactory, Contract} from 'ethers';
+import {readFileSync, writeFileSync} from 'fs';
 import Pino from 'pino';
 import sha256 from 'sha256';
 import {Wallet} from '@ethersproject/wallet';
@@ -118,8 +119,21 @@ let confirms: number;
 
 async function getOverrides(): Promise<Overrides> {
     const price = await provider.getGasPrice();
-    const gasPrice = price.add(10000000000); // add extra 10 gwei
+    const gasPrice = price.add(15000000000); // add extra 15 gwei
     return { gasPrice };
+}
+
+export function saveDeployment(name: string, deployment: Partial<ContractDeployment>) {
+    const filePath = `${__dirname}/../publish/${name}.json`;
+    writeFileSync(filePath, JSON.stringify(deployment, null, 4));
+    console.log(`Exported deployment of network ${name} result to ${filePath}`);
+}
+
+function loadDeployment(name: string) {
+    const filePath = `${__dirname}/../publish/${name}.json`;
+    const deployment =JSON.parse(readFileSync(filePath, 'utf8'));
+
+    return deployment;
 }
 
 async function deployContract<T extends BaseContract>(
@@ -196,14 +210,14 @@ function updateDeployment(
 export async function deployContracts(
     wallet: Wallet,
     config: DeploymentConfig['contracts'],
-    options?: { network: SubqueryNetwork, confirms: number },
+    options?: { network: SubqueryNetwork, confirms: number, history: boolean },
 ): Promise<[Partial<ContractDeployment>, Contracts]> {
     provider = wallet.provider;
     confirms = options?.confirms ?? 1;
     network = options?.network ?? 'local';
 
     if (network !== 'local') getLogger('Wallet').info(colorText(`Deploy with wallet ${wallet.address}`, TextColor.GREEN));
-    const deployment: Partial<ContractDeployment> = {};
+    const deployment: Partial<ContractDeployment> = config?.history ? loadDeployment(network) : {};
 
     try {
         const proxyAdmin = await deployContract<ProxyAdmin>('ProxyAdmin', async (name, overrides) => {
