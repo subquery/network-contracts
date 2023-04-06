@@ -173,7 +173,11 @@ export async function deployContracts(
     network = options?.network ?? 'local';
 
     if (network !== 'local') getLogger('Wallet').info(colorText(`Deploy with wallet ${wallet.address}`, TextColor.GREEN));
-    if (options?.history) deployment = loadDeployment(network);
+    if (options?.history){
+        deployment = loadDeployment(network);
+    } else {
+        deployment = {};
+    }
 
     try {
         const proxyAdmin = await deployContract<ProxyAdmin>('ProxyAdmin');
