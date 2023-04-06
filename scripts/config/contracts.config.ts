@@ -1,4 +1,4 @@
-import {etherParse} from 'test/helper';
+import {etherParse} from '../../test/helper';
 
 export default {
     mainnet: {

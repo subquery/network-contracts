@@ -1,4 +1,7 @@
 import {BigNumber} from 'ethers';
+import {expect} from 'chai';
+import Pino from 'pino';
+
 import setup from './setup';
 import {ContractSDK} from '../src';
 import testnetDeployment from '../publish/testnet.json';
@@ -7,14 +10,16 @@ import mainnetDeployment from '../publish/mainnet.json';
 import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
-import {expect} from 'chai';
-import { colorText, getLogger, TextColor } from './logger';
+import { getLogger } from './logger';
+import { cidToBytes32 } from '../test/helper';
 
-async function checkInitialisation(sdk: ContractSDK, config) {
+let logger: Pino.Logger;
+
+async function checkInitialisation(sdk: ContractSDK, config, caller: string) {
     try {
         //InflationController
-        let logger = getLogger('InflationController');
-        logger.info(colorText(`Verifying inflationController Contract: ${sdk.inflationController.address}`, TextColor.YELLOW));
+        logger = getLogger('InflationController');
+        logger.info(`🧮 Verifying inflationController Contract: ${sdk.inflationController.address}`);
         const [rate, destination] = config.contracts['InflationController'];
         const inflationRate = await sdk.inflationController.inflationRate();
         logger.info(`InflationRate to be equal ${rate}`);
@@ -23,7 +28,16 @@ async function checkInitialisation(sdk: ContractSDK, config) {
         const inflationDestination = await sdk.inflationController.inflationDestination();
         logger.info(`InflationDestination to be equal ${destination}`);
         expect(inflationDestination.toUpperCase()).to.equal(destination.toUpperCase());
-        logger.info(colorText('InflationController Contract verified', TextColor.YELLOW));
+        logger.info('🎉 InflationController Contract verified\n');
+
+        // SQToken
+        logger = getLogger('SQToken');
+        logger.info(`🧮 Verifying SQToken Contract: ${sdk.sqToken.address}`);
+        const [totalSupply] = config.contracts['SQToken'];
+        const amount = await sdk.sqToken.totalSupply();
+        logger.info(`Initial supply to be equal ${amount.toString()}`);
+        expect(totalSupply).to.eql(amount);
+        logger.info('🎉 SQToken Contract verified\n');
 
         // SQToken
         logger = getLogger('SQToken');
@@ -36,132 +50,151 @@ async function checkInitialisation(sdk: ContractSDK, config) {
 
         //Staking
         logger = getLogger('Staking');
-        logger.info(colorText(`Verifying Staking Contract: ${sdk.staking.address}`, TextColor.YELLOW));
+        logger.info(`🧮 Verifying Staking Contract: ${sdk.staking.address}`);
         const [lPeriod] = config.contracts['Staking'];
         const lockPeriod = await sdk.staking.lockPeriod();
         logger.info(`lockPeriod to be equal ${lPeriod}`);
         expect(lockPeriod).to.eql(BigNumber.from(lPeriod));
-        logger.info(colorText('Staking Contract verified', TextColor.YELLOW));
+        logger.info('🎉 Staking Contract verified\n');
+
+        // Airdrop
+        logger = getLogger('Airdrop');
+        logger.info(`🧮 Verifying Airdrop Contract: ${sdk.airdropper.address}`);
+        const [sDestination] = config.contracts['Airdropper'];
+        const settleDestination = await sdk.airdropper.settleDestination();
+        logger.info(`settleDestination to be equal ${sDestination}`);
+        expect(settleDestination.toUpperCase()).to.equal(sDestination.toUpperCase());
+        logger.info(`${caller} is not controller`)
+        expect(await sdk.airdropper.controllers(caller)).to.be.false;
+        const multiSig = destination;
+        logger.info(`${multiSig} is controller`)
+        expect(await sdk.airdropper.controllers(multiSig)).to.be.true;
+        logger.info('🎉 Airdrop Contract verified\n');
 
         //EraManager
         logger = getLogger('EraManager');
-        logger.info(colorText(`Verifying EraManager Contract: ${sdk.eraManager.address}`, TextColor.YELLOW));
+        logger.info(`🧮 Verifying EraManager Contract: ${sdk.eraManager.address}`);
         const [ePeriod] = config.contracts['EraManager'];
         const eraPeriod = await sdk.eraManager.eraPeriod();
         logger.info(`eraPeriod to be equal ${ePeriod}`);
         expect(eraPeriod).to.eql(BigNumber.from(ePeriod));
-        logger.info(colorText('EraManager Contract verified', TextColor.YELLOW));
+        logger.info('🎉 EraManager Contract verified\n');
 
         //ServiceAgreementRegistry
         logger = getLogger('ServiceAgreementRegistry');
-        logger.info(colorText(`Verifying ServiceAgreementRegistry Contract: ${sdk.serviceAgreementRegistry.address}`, TextColor.YELLOW));
+        logger.info(`🧮 Verifying ServiceAgreementRegistry Contract: ${sdk.serviceAgreementRegistry.address}`);
         const [Threshold] = config.contracts['ServiceAgreementRegistry'];
         const threshold = await sdk.serviceAgreementRegistry.threshold();
         logger.info(`threshold to be equal ${Threshold}`);
         expect(threshold).to.eql(BigNumber.from(Threshold));
-        logger.info(colorText('ServiceAgreementRegistry Contract verified', TextColor.YELLOW));
+        logger.info('🎉 ServiceAgreementRegistry Contract verified\n');
 
         //PurchaseOfferMarket
         logger = getLogger('PurchaseOfferMarket');
-        logger.info(colorText(`Verifying PurchaseOfferMarket Contract: ${sdk.purchaseOfferMarket.address}`, TextColor.YELLOW));
+        logger.info(`🧮 Verifying PurchaseOfferMarket Contract: ${sdk.purchaseOfferMarket.address}`);
         const [pRate, pDestination] = config.contracts['PurchaseOfferMarket'];
         const penaltyRate = await sdk.purchaseOfferMarket.penaltyRate();
         logger.info(`penaltyRate to be equal ${pRate}`);
         expect(penaltyRate).to.eql(BigNumber.from(pRate));
         const penaltyDestination = await sdk.purchaseOfferMarket.penaltyDestination();
-        console.log(`penaltyDestination to be equal ${pDestination}`);
+        logger.info(`penaltyDestination to be equal ${pDestination}`);
         expect(penaltyDestination.toUpperCase()).to.equal(pDestination.toUpperCase());
-        logger.info(colorText('PurchaseOfferMarket Contract verified', TextColor.YELLOW));
+        logger.info('🎉 PurchaseOfferMarket Contract verified\n');
 
         //IndexerRegistry
         logger = getLogger('IndexerRegistry');
-        logger.info(colorText(`Verifying IndexerRegistry Contract: ${sdk.indexerRegistry.address}`, TextColor.YELLOW));
+        logger.info(`🧮 Verifying IndexerRegistry Contract: ${sdk.indexerRegistry.address}`);
         const [msa] = config.contracts['IndexerRegistry'];
         const minimumStakingAmount = await sdk.indexerRegistry.minimumStakingAmount();
         logger.info(`minimumStakingAmount to be equal ${msa}`);
         expect(minimumStakingAmount).to.eql(BigNumber.from(msa));
-        logger.info(colorText('IndexerRegistry Contract verified', TextColor.YELLOW));
+        logger.info('🎉 IndexerRegistry Contract verified\n');
+
+        //QueryRegistry
+        logger = getLogger('QueryRegistry');
+        logger.info(`🧮 Verifying QueryRegistry Contract: ${sdk.queryRegistry.address}`);
+        logger.info(`${caller} is not project creator`)
+        expect(await sdk.queryRegistry.creatorWhitelist(caller)).to.be.false;
+        logger.info(`${multiSig} is project creator`)
+        expect(await sdk.queryRegistry.creatorWhitelist(multiSig)).to.be.true;
 
         //ConsumerHost
         logger = getLogger('ConsumerHost');
-        logger.info(colorText(`Verifying ConsumerHost Contract: ${sdk.consumerHost.address}`, TextColor.YELLOW));
+        logger.info(`🧮 Verifying ConsumerHost Contract: ${sdk.consumerHost.address}`);
         const [fee] = config.contracts['ConsumerHost'];
         const feePercentage = await sdk.consumerHost.feePercentage();
         logger.info(`feePercentage to be equal ${fee}`);
         expect(feePercentage).to.eql(BigNumber.from(fee));
-        logger.info(colorText('ConsumerHost Contract verified', TextColor.YELLOW));
+        logger.info('🎉 ConsumerHost Contract verified\n');
 
         //DisputeManager
         logger = getLogger('DisputeManager');
-        logger.info(colorText(`Verifying DisputeManager Contract: ${sdk.disputeManager.address}`, TextColor.YELLOW));
+        logger.info(`🧮 Verifying DisputeManager Contract: ${sdk.disputeManager.address}`);
         const [minDeposit] = config.contracts['DisputeManager'];
         const minimumDeposit = await sdk.disputeManager.minimumDeposit();
-        console.log(`DisputeManager minimumDeposit to be equal ${minDeposit}`);
+        logger.info(`DisputeManager minimumDeposit to be equal ${minDeposit}`);
         expect(minimumDeposit).to.eql(BigNumber.from(minDeposit));
-        logger.info(colorText('DisputeManager Contract verified', TextColor.YELLOW));
+        logger.info('🎉 DisputeManager Contract verified\n');
     } catch(err){
-        console.log(err);
+        logger.info(`Failed to verify contract: ${err}`);
     }
 }
 
-async function checkConfiguration(sdk, config) {
+async function checkConfiguration(sdk: ContractSDK, config, caller: string) {
     try {
-        //planTemplates
+        // planTemplates
         let logger = getLogger('planTemplates');
-        logger.info(colorText(`Verifying planTemplates`, TextColor.YELLOW));
+        logger.info(`🧮 Verifying planTemplates`));
         let planTemplates = config.planTemplates;
         for(let i = 0; i < planTemplates.length; i++) {
             let planTemplate = planTemplates[i];
             let pm = await sdk.planManager.getPlanTemplate(i);
-            expect(BigNumber.from(planTemplate.period)).to.eql(BigNumber.from(pm.period));
-            expect(BigNumber.from(planTemplate.dailyReqCap)).to.eql(BigNumber.from(pm.dailyReqCap));
-            expect(BigNumber.from(planTemplate.rateLimit)).to.eql(BigNumber.from(pm.rateLimit));
-            logger.info(colorText(`planTemplate ${i} verified`, TextColor.YELLOW));
+            expect(BigNumber.from(planTemplate.period)).to.eql(pm.period);
+            expect(BigNumber.from(planTemplate.dailyReqCap)).to.eql(pm.dailyReqCap);
+            expect(BigNumber.from(planTemplate.rateLimit)).to.eql(pm.rateLimit);
+            logger.info(`🎉 planTemplate ${i} verified\n`);
         }
+
         //projects
         logger = getLogger('projects');
-        logger.info(colorText(`Verifying projects`, TextColor.YELLOW));
+        logger.info(`🧮 Verifying projects`);
         let projects = config.projects; 
         for(let i = 0; i < projects.length; i++) {
             let project = projects[i];
             let p = await sdk.queryRegistry.queryInfos(i);
-            console.log(project);
-            console.log(p);
-            expect(project.deploymentId).to.eql(p.latestDeploymentId);
-            expect(project.versionCid).to.eql(p.latestVersion);
-            expect(project.metadataCid).to.eql(p.metadata);
-            logger.info(colorText(`project ${i} verified`, TextColor.YELLOW));
+            expect(cidToBytes32(project.deploymentId)).to.eql(p.latestDeploymentId);
+            expect(cidToBytes32(project.versionCid)).to.eql(p.latestVersion);
+            expect(cidToBytes32(project.metadataCid)).to.eql(p.metadata);
+            logger.info(`🎉 project ${project.name} verified`);
         }
         //QRCreators
         logger = getLogger('QRCreators');
-        logger.info(colorText(`Verifying QRCreators`, TextColor.YELLOW));
+        logger.info(`🧮 Verifying QRCreators`);
         let creators = config.QRCreator; 
         for(let i = 0; i < creators.length; i++) {
             let creator = creators[i];
             let isCreator = await sdk.queryRegistry.creatorWhitelist(creator);
             expect(isCreator).to.eql(true);
-            logger.info(colorText(`QRCreator: ${creator} verified`, TextColor.YELLOW));
+            logger.info(`🎉 QRCreator: ${creator} verified`);
         }
         //AirdropControllers
         logger = getLogger('AirdropControllers');
-        logger.info(colorText(`Verifying AirdropControllers`, TextColor.YELLOW));
+        logger.info(`🧮 Verifying AirdropControllers`);
         let controllers = config.AirdropController; 
         for(let i = 0; i < controllers.length; i++) {
             let controller = controllers[i];
             let isController = await sdk.airdropper.controllers(controller);
             expect(isController).to.eql(true);
-            logger.info(colorText(`AirdropController: ${controller} verified`, TextColor.YELLOW));
+            logger.info(`🎉 AirdropController: ${controller} verified`);
         }
-
-
     } catch (error) {
         console.log(error);
     }
 }
 
-async function checkOwnership(sdk, owner) {
+async function checkOwnership(sdk: ContractSDK, owner: string) {
     let logger = getLogger('ownership');
-    logger.info(colorText(`Verifying ownership`, TextColor.YELLOW));
+    logger.info(`🧮 Verifying ownership`);
     const contracts = [
         sdk.airdropper,
         sdk.consumerHost, 
@@ -190,7 +223,7 @@ async function checkOwnership(sdk, owner) {
         for (const contract of contracts) {
             const o = await contract.owner();
             expect(o).to.eql(owner);
-            logger.info(colorText(`Ownership of contract: ${contract.address} verified`, TextColor.YELLOW));
+            logger.info(`🎉 Ownership of contract: ${contract.address} verified`);
         }
     } catch (error) {
         console.log(error);
@@ -201,6 +234,7 @@ const main = async () => {
     let sdk: ContractSDK;
     let startupConfig: any = startupTestnetConfig;
     const {wallet, config} = await setup(process.argv[2]);
+    const caller = wallet.address;
 
     const networkType = process.argv[2];
     switch (networkType) {
@@ -223,10 +257,10 @@ const main = async () => {
     const verifyType = process.argv[3]; 
     switch (verifyType) {
         case '--initialisation':
-            await checkInitialisation(sdk, config);
+            await checkInitialisation(sdk, config, caller);
             break;
         case '--configuration':
-            await checkConfiguration(sdk, startupConfig);
+            await checkConfiguration(sdk, startupConfig, caller);
             break;
         case '--ownership':
             await checkOwnership(sdk, startupConfig.multiSign);
