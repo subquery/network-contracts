@@ -78,6 +78,9 @@ To verify the contracts deployment, run the following cmd to verify specific typ
 - `yarn verify --testnet --ownership`
 - `yarn verify --testnet --all`
 
+### Verify on Etherscan
+- `yarn hardhat publish --deployment ./publish/kepler.json --network kepler`
+
 ### test
 
 `yarn test`
