@@ -40,9 +40,8 @@ const IPFS_KEPLER: &str = "https://unauthipfs.subquery.network/ipfs/api/v0";
 const IPFS_TESTNET: &str = "https://interipfs.thechaindata.com/ipfs/api/v0";
 
 const SUBQL_MAINNET: &str = "";
-const SUBQL_KEPLER: &str = "https://api.subquery.network/sq/subquery/kepler-subquery-project";
-const SUBQL_TESTNET: &str =
-    "https://api.subquery.network/sq/subquery/kepler-subquery-project-mumbai";
+const SUBQL_KEPLER: &str = "https://api.subquery.network/sq/subquery/kepler-network";
+const SUBQL_TESTNET: &str = "https://api.subquery.network/sq/subquery/kepler-testnet";
 
 const EXPLORER_MAINNET: &str = "";
 const EXPLORER_KEPLER: &str = "https://kepler.subquery.network";
