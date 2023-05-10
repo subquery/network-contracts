@@ -137,7 +137,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     /**
      * @dev Emitted when request withdraw.
      */
-    event UnbondWithdrawn(address indexed source, uint256 amount, uint256 index);
+    event UnbondWithdrawn(address indexed source, uint256 amount, uint256 fee, uint256 index);
 
     /**
      * @dev Emitted when delegtor cancel unbond request.
@@ -368,7 +368,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
 
             lockedAmount[_source] -= amount;
 
-            emit UnbondWithdrawn(_source, availableAmount, _index);
+            emit UnbondWithdrawn(_source, availableAmount, burnAmount, _index);
         }
     }
 
