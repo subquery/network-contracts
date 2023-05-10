@@ -345,7 +345,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         uamount.startTime = block.timestamp;
         uamount.indexer = _indexer;
 
-        emit UnbondRequested(_source, _indexer, uamount.amount, nextIndex, _type);
+        emit UnbondRequested(_source, _indexer, _amount, nextIndex, _type);
     }
 
     /**

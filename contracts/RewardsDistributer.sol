@@ -294,7 +294,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             IERC20(settings.getSQToken()).safeTransfer(settings.getStaking(), commission);
             IStaking(settings.getStaking()).unbondCommission(indexer, commission);
 
-            emit DistributeRewards(indexer, rewardInfo.lastClaimEra, commission);
+            emit DistributeRewards(indexer, rewardInfo.lastClaimEra, rewardInfo.eraReward);
 
             IPermissionedExchange exchange = IPermissionedExchange(settings.getPermissionedExchange());
             exchange.addQuota(settings.getSQToken(), indexer, commission);
