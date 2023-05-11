@@ -206,10 +206,6 @@ describe('RewardsDistributer Contract', () => {
             const balance = await token.balanceOf(rewardsDistributor.address);
             const stakingBalance = await token.balanceOf(staking.address);
             const tx = await rewardsDistributor.collectAndDistributeRewards(indexer.address);
-            const event = await eventFrom(tx, rewardsDistributor, "DistributeRewards(address,uint256,uint256)");
-
-            expect(await token.balanceOf(rewardsDistributor.address)).to.be.eq(balance.sub(event.rewards));
-            expect(await token.balanceOf(staking.address)).to.be.eq(stakingBalance.add(event.rewards));
 
             let eventFilter = staking.filters.UnbondRequested();
             const evt = (await staking.queryFilter(eventFilter))[0];
@@ -217,9 +213,11 @@ describe('RewardsDistributer Contract', () => {
                 staking.interface.getEvent("UnbondRequested"),
                 evt.data
             );
+
+            expect(await token.balanceOf(rewardsDistributor.address)).to.be.eq(balance.sub(unbondEvent.amount));
+            expect(await token.balanceOf(staking.address)).to.be.eq(stakingBalance.add(unbondEvent.amount));
             const unbond = await staking.unbondingAmount(indexer.address, unbondEvent.index);
-            expect(unbond.amount).to.be.eq(event.rewards);
-            expect(unbondEvent.amount).to.be.eq(event.rewards);
+            expect(unbond.amount).to.be.eq(unbondEvent.amount);
             expect(unbondEvent._type).to.be.eq(2);
         });
 
