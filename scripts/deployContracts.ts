@@ -355,10 +355,10 @@ export async function upgradeContracts(
     deployment: ContractDeployment,
     confirms: number
 ): Promise<ContractDeployment> {
+    wallet = _wallet;
     const logger = getLogger('Upgrade Contract');
     logger.info(`Upgrade contrqact with wallet ${wallet.address}`);
-    
-    wallet = _wallet;
+
     const proxyAdmin = ProxyAdmin__factory.connect(deployment.ProxyAdmin.address, wallet);
 
     const changed: (keyof typeof CONTRACTS)[] = [];
