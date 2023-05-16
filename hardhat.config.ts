@@ -56,22 +56,22 @@ task('publish', "verify and publish contracts on etherscan")
 
     try{
         //InflationController
-        await hre.run("verify:verify", {
-            address: deployment.InflationController.innerAddress,
-            constructorArguments: [],
-        });
+        // await hre.run("verify:verify", {
+        //     address: deployment.InflationController.innerAddress,
+        //     constructorArguments: [],
+        // });
 
         //SQToken
-        await hre.run("verify:verify", {
-            address: deployment.SQToken.address,
-            constructorArguments: [deployment.InflationController.address, etherParse("25000000")],
-        });
+        // await hre.run("verify:verify", {
+        //     address: deployment.SQToken.address,
+        //     constructorArguments: [deployment.InflationController.address, etherParse("25000000")],
+        // });
 
         //VSQToken
-        await hre.run("verify:verify", {
-            address: deployment.VSQToken.address,
-            constructorArguments: [],
-        });
+        // await hre.run("verify:verify", {
+        //     address: deployment.VSQToken.address,
+        //     constructorArguments: [],
+        // });
 
         //Airdropper
         await hre.run("verify:verify", {
