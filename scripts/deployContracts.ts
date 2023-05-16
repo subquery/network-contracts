@@ -52,6 +52,10 @@ function clearObject(obj: Record<string, unknown>) {
     }
 }
 
+function codeToHash(code: string) {
+    return sha256(Buffer.from(code.replace(/^0x/, '')));
+}
+
 async function getOverrides(): Promise<Overrides> {
     const price = await wallet.provider.getGasPrice();
     const gasPrice = price.add(20000000000); // add extra 15 gwei
@@ -164,7 +168,7 @@ function updateDeployment(
     deployment[name] = {
         innerAddress: innerAddr,
         address,
-        bytecodeHash: sha256(Buffer.from(CONTRACTS[name].bytecode.replace(/^0x/, ''), 'hex')),
+        bytecodeHash: codeToHash(CONTRACTS[name].bytecode),
         lastUpdate: new Date().toUTCString(),
     };
 }
@@ -363,7 +367,7 @@ export async function upgradeContracts(
 
     const changed: (keyof typeof CONTRACTS)[] = [];
     for (const contract of Object.keys(UPGRADEBAL_CONTRACTS)) {
-        const bytecodeHash = sha256(Buffer.from(CONTRACTS[contract].bytecode.replace(/^0x/, ''), 'hex'));
+        const bytecodeHash = codeToHash(CONTRACTS[contract].bytecode),
         if (bytecodeHash !== deployment[contract].bytecodeHash) {
             changed.push(contract as any);
         }
@@ -383,7 +387,7 @@ export async function upgradeContracts(
         deployment[contractName] = {
             innerAddress: innerAddr,
             address,
-            bytecodeHash: sha256(Buffer.from(CONTRACTS[contractName].bytecode.replace(/^0x/, ''), 'hex')),
+            bytecodeHash: codeToHash(CONTRACTS[contractName].bytecode),
             lastUpdate: new Date().toUTCString(),
         };
     }
