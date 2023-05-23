@@ -83,7 +83,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
     /// @dev ### EVENTS
     /// @notice Emitted when rewards are distributed for the earliest pending distributed Era.
-    event DistributeRewards(address indexed indexer, uint256 indexed eraIdx, uint256 rewards);
+    event DistributeRewards(address indexed indexer, uint256 indexed eraIdx, uint256 rewards, uint256 commission);
     /// @notice Emitted when user claimed rewards.
     event ClaimRewards(address indexed indexer, address indexed delegator, uint256 rewards);
     /// @notice Emitted when the rewards change, such as when rewards coming from new agreement.
@@ -289,12 +289,12 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             uint256 commission = MathUtil.mulDiv(commissionRate, rewardInfo.eraReward, PER_MILL);
 
             info[indexer].accSQTPerStake += MathUtil.mulDiv(rewardInfo.eraReward - commission, PER_TRILL, totalStake);
-    
+
             // add commission to unbonding request
             IERC20(settings.getSQToken()).safeTransfer(settings.getStaking(), commission);
             IStaking(settings.getStaking()).unbondCommission(indexer, commission);
 
-            emit DistributeRewards(indexer, rewardInfo.lastClaimEra, commission);
+            emit DistributeRewards(indexer, rewardInfo.lastClaimEra, rewardInfo.eraReward, commission);
 
             IPermissionedExchange exchange = IPermissionedExchange(settings.getPermissionedExchange());
             exchange.addQuota(settings.getSQToken(), indexer, commission);

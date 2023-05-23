@@ -9,6 +9,7 @@ import 'solidity-coverage';
 import 'tsconfig-paths/register';
 import 'hardhat-contract-sizer';
 import 'solidity-docgen';
+import {etherParse} from './test/helper';
 require('solidity-coverage');
 
 
@@ -55,27 +56,27 @@ task('publish', "verify and publish contracts on etherscan")
 
     try{
         //InflationController
-        await hre.run("verify:verify", {
-            address: deployment.InflationController.innerAddress,
-            constructorArguments: [],
-        });
+        // await hre.run("verify:verify", {
+        //     address: deployment.InflationController.innerAddress,
+        //     constructorArguments: [],
+        // });
 
         //SQToken
-        await hre.run("verify:verify", {
-            address: deployment.SQToken.address,
-            constructorArguments: [deployment.InflationController.address],
-        });
+        // await hre.run("verify:verify", {
+        //     address: deployment.SQToken.address,
+        //     constructorArguments: [deployment.InflationController.address, etherParse("25000000")],
+        // });
 
         //VSQToken
-        await hre.run("verify:verify", {
-            address: deployment.VSQToken.address,
-            constructorArguments: [],
-        });
+        // await hre.run("verify:verify", {
+        //     address: deployment.VSQToken.address,
+        //     constructorArguments: [],
+        // });
 
         //Airdropper
         await hre.run("verify:verify", {
             address: deployment.Airdropper.address,
-            constructorArguments: [],
+            constructorArguments: ["0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C"],
         });
 
         //Vesting
