@@ -171,8 +171,7 @@ fn contract_parse(name: &str, file: &str, network: Network) -> Result<(Abi, Addr
         .parse()
         .map_err(|_| ())?;
 
-    let abi_str = serde_json::from_str::<Value>(file).map_err(|_| ())?["abi"].to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
+    let abi: Abi = serde_json::from_str(file).map_err(|_| ())?;
     Ok((abi, contract_address))
 }
 
@@ -197,139 +196,137 @@ macro_rules! contract {
 contract!(
     settings,
     "Settings",
-    include_str!("../artifacts/contracts/Settings.sol/Settings.json")
+    include_str!("../publish/ABI/Settings.json")
 );
 
 contract!(
     sqtoken,
     "SQToken",
-    include_str!("../artifacts/contracts/SQToken.sol/SQToken.json")
+    include_str!("../publish/ABI/SQToken.json")
 );
 
 contract!(
     vsqtoken,
     "VSQToken",
-    include_str!("../artifacts/contracts/VSQToken.sol/VSQToken.json")
+    include_str!("../publish/ABI/VSQToken.json")
 );
 
 contract!(
     staking,
     "Staking",
-    include_str!("../artifacts/contracts/Staking.sol/Staking.json")
+    include_str!("../publish/ABI/Staking.json")
 );
 
 contract!(
     staking_manager,
     "StakingManager",
-    include_str!("../artifacts/contracts/StakingManager.sol/StakingManager.json")
+    include_str!("../publish/ABI/StakingManager.json")
 );
 
 contract!(
     indexer_registry,
     "IndexerRegistry",
-    include_str!("../artifacts/contracts/IndexerRegistry.sol/IndexerRegistry.json")
+    include_str!("../publish/ABI/IndexerRegistry.json")
 );
 
 contract!(
     query_registry,
     "QueryRegistry",
-    include_str!("../artifacts/contracts/QueryRegistry.sol/QueryRegistry.json")
+    include_str!("../publish/ABI/QueryRegistry.json")
 );
 
 contract!(
     inflation_controller,
     "InflationController",
-    include_str!("../artifacts/contracts/InflationController.sol/InflationController.json")
+    include_str!("../publish/ABI/InflationController.json")
 );
 
 contract!(
     service_agreement_registry,
     "ServiceAgreementRegistry",
-    include_str!(
-        "../artifacts/contracts/ServiceAgreementRegistry.sol/ServiceAgreementRegistry.json"
-    )
+    include_str!("../publish/ABI/ServiceAgreementRegistry.json")
 );
 
 contract!(
     plan_manager,
     "PlanManager",
-    include_str!("../artifacts/contracts/PlanManager.sol/PlanManager.json")
+    include_str!("../publish/ABI/PlanManager.json")
 );
 
 contract!(
     purchase_offer_market,
     "PurchaseOfferMarket",
-    include_str!("../artifacts/contracts/PurchaseOfferMarket.sol/PurchaseOfferMarket.json")
+    include_str!("../publish/ABI/PurchaseOfferMarket.json")
 );
 
 contract!(
     era_manager,
     "EraManager",
-    include_str!("../artifacts/contracts/EraManager.sol/EraManager.json")
+    include_str!("../publish/ABI/EraManager.json")
 );
 
 contract!(
     rewards_distributer,
     "RewardsDistributer",
-    include_str!("../artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json")
+    include_str!("../publish/ABI/RewardsDistributer.json")
 );
 
 contract!(
     rewards_pool,
     "RewardsPool",
-    include_str!("../artifacts/contracts/RewardsPool.sol/RewardsPool.json")
+    include_str!("../publish/ABI/RewardsPool.json")
 );
 
 contract!(
     rewards_staking,
     "RewardsStaking",
-    include_str!("../artifacts/contracts/RewardsStaking.sol/RewardsStaking.json")
+    include_str!("../publish/ABI/RewardsStaking.json")
 );
 
 contract!(
     rewards_helper,
     "RewardsHelper",
-    include_str!("../artifacts/contracts/RewardsHelper.sol/RewardsHelper.json")
+    include_str!("../publish/ABI/RewardsHelper.json")
 );
 
 contract!(
     proxy_admin,
     "ProxyAdmin",
-    include_str!("../artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json")
+    include_str!("../publish/ABI/ProxyAdmin.json")
 );
 
 contract!(
     state_channel,
     "StateChannel",
-    include_str!("../artifacts/contracts/StateChannel.sol/StateChannel.json")
+    include_str!("../publish/ABI/StateChannel.json")
 );
 
 contract!(
     airdropper,
     "Airdropper",
-    include_str!("../artifacts/contracts/Airdropper.sol/Airdropper.json")
+    include_str!("../publish/ABI/Airdropper.json")
 );
 
 contract!(
     permissioned_exchange,
     "PermissionedExchange",
-    include_str!("../artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json")
+    include_str!("../publish/ABI/PermissionedExchange.json")
 );
 
 contract!(
     vesting,
     "Vesting",
-    include_str!("../artifacts/contracts/Vesting.sol/Vesting.json")
+    include_str!("../publish/ABI/Vesting.json")
 );
 
 contract!(
     consumer_host,
     "ConsumerHost",
-    include_str!("../artifacts/contracts/ConsumerHost.sol/ConsumerHost.json")
+    include_str!("../publish/ABI/ConsumerHost.json")
 );
 
 contract!(
     dispute_manager,
     "DisputeManager",
-    include_str!("../artifacts/contracts/DisputeManager.sol/DisputeManager.json")
+    include_str!("../publish/ABI/DisputeManager.json")
 );
