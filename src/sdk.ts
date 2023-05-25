@@ -53,10 +53,6 @@ export class ContractSDK {
   readonly proxyAdmin?: ProxyAdmin;
   readonly vesting?: Vesting;
 
-  static create(signerOrProvider: AbstractProvider | Signer, options?: SdkOptions) {
-    return new ContractSDK(signerOrProvider, options);
-  }
-
   constructor(
     private readonly signerOrProvider: AbstractProvider | Signer,
     public readonly options?: SdkOptions
@@ -64,6 +60,10 @@ export class ContractSDK {
     const defaultOptions = require(`./publish/${options?.network || 'testnet'}.json`);
     this._contractDeployments = options?.deploymentDetails || defaultOptions;
     this._init();
+  }
+
+  static create(signerOrProvider: AbstractProvider | Signer, options?: SdkOptions) {
+    return new ContractSDK(signerOrProvider, options);
   }
 
   private async _init() {
