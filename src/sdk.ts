@@ -1,81 +1,61 @@
-import type {Contract, Signer} from 'ethers';
+import type {Signer} from 'ethers';
 import type {Provider as AbstractProvider} from '@ethersproject/abstract-provider';
 import {ContractDeployment, ContractName, SdkOptions} from './types';
 import {
     SQToken,
-    SQToken__factory,
     Settings,
-    Settings__factory,
     Staking,
-    Staking__factory,
     StakingManager,
-    StakingManager__factory,
     IndexerRegistry,
-    IndexerRegistry__factory,
     InflationController,
-    InflationController__factory,
     QueryRegistry,
-    QueryRegistry__factory,
     ServiceAgreementRegistry,
-    ServiceAgreementRegistry__factory,
     EraManager,
-    EraManager__factory,
     PlanManager,
-    PlanManager__factory,
     RewardsDistributer,
-    RewardsDistributer__factory,
     RewardsPool,
-    RewardsPool__factory,
     RewardsStaking,
-    RewardsStaking__factory,
     RewardsHelper,
-    RewardsHelper__factory,
     PurchaseOfferMarket,
-    PurchaseOfferMarket__factory,
     StateChannel,
-    StateChannel__factory,
     Airdropper,
-    Airdropper__factory,
     PermissionedExchange,
-    PermissionedExchange__factory,
     ConsumerHost,
-    ConsumerHost__factory,
     DisputeManager,
-    DisputeManager__factory,
     ProxyAdmin,
-    ProxyAdmin__factory,
     Vesting,
-    Vesting__factory
 } from './typechain';
 import { CONTRACT_FACTORY, FactoryContstructor } from './types';
 
 export class ContractSDK {
   private _contractDeployments: ContractDeployment;
 
-  // private _settings?: Settings;
-  // private _sqToken?: SQToken;
-  // private _staking?: Staking;
-  // private _stakingManager?: StakingManager;
-  // private _indexerRegistry?: IndexerRegistry;
-  // private _queryRegistry?: QueryRegistry;
-  // private _inflationController?: InflationController;
-  // private _serviceAgreementRegistry?: ServiceAgreementRegistry;
-  // private _eraManager?: EraManager;
-  // private _planManager?: PlanManager;
-  // private _rewardsDistributor?: RewardsDistributer;
-  // private _rewardsPool?: RewardsPool;
-  // private _rewardsStaking?: RewardsStaking;
-  // private _rewardsHelper?: RewardsHelper;
-  // private _purchaseOfferMarket?: PurchaseOfferMarket;
-  // private _stateChannel?: StateChannel;
-  // private _airdropper?: Airdropper;
-  // private _permissionedExchange?: PermissionedExchange;
-  // private _consumerHost?: ConsumerHost;
-  // private _disputeManager?: DisputeManager;
-  // private _proxyAdmin?: ProxyAdmin;
-  // private _vesting?: Vesting;
+  readonly settings?: Settings;
+  readonly sqToken?: SQToken;
+  readonly staking?: Staking;
+  readonly stakingManager?: StakingManager;
+  readonly indexerRegistry?: IndexerRegistry;
+  readonly queryRegistry?: QueryRegistry;
+  readonly inflationController?: InflationController;
+  readonly serviceAgreementRegistry?: ServiceAgreementRegistry;
+  readonly eraManager?: EraManager;
+  readonly planManager?: PlanManager;
+  readonly rewardsDistributor?: RewardsDistributer;
+  readonly rewardsPool?: RewardsPool;
+  readonly rewardsStaking?: RewardsStaking;
+  readonly rewardsHelper?: RewardsHelper;
+  readonly purchaseOfferMarket?: PurchaseOfferMarket;
+  readonly stateChannel?: StateChannel;
+  readonly airdropper?: Airdropper;
+  readonly permissionedExchange?: PermissionedExchange;
+  readonly consumerHost?: ConsumerHost;
+  readonly disputeManager?: DisputeManager;
+  readonly proxyAdmin?: ProxyAdmin;
+  readonly vesting?: Vesting;
 
-  private contracts: Record<string, Contract> = {};
+  static create(signerOrProvider: AbstractProvider | Signer, options?: SdkOptions) {
+    return new ContractSDK(signerOrProvider, options);
+  }
 
   constructor(
     private readonly signerOrProvider: AbstractProvider | Signer,
@@ -84,50 +64,25 @@ export class ContractSDK {
     const defaultOptions = require(`./publish/${options?.network || 'testnet'}.json`);
     this._contractDeployments = options?.deploymentDetails || defaultOptions;
     this._init();
-    this.createProxy();
-  }
-
-  // create getter for private properties dynamically
-  createProxy() {
-    return new Proxy(this, {
-      get(target, prop) {
-        if (target.hasOwnProperty(prop) &&typeof prop === 'string' && prop.startsWith('_')) {
-          return target[prop];
-        }
-
-        return target[prop];
-      }
-    });
   }
 
   private async _init() {
-    const contracts = Object.entries(this._contractDeployments).map(([name, info]) => ({
-      address: info.address,
-      factory: CONTRACT_FACTORY[name] as FactoryContstructor,
+    const contracts = Object.entries(this._contractDeployments).map(([name, contract]) => ({
+      address: contract.address,
+      factory: CONTRACT_FACTORY[name as ContractName] as FactoryContstructor,
       name: name as ContractName,
     }))
 
     for (const { name, factory, address } of contracts) {
       const contractInstance = factory.connect(address, this.signerOrProvider);
       if (contractInstance) {
-        const key = `_${name.charAt(0).toLowerCase() + name.slice(1)}`;
-        if (this.hasOwnProperty(key)) {
-          this[key] = contractInstance;
-        }
-        
+        const key = name.charAt(0).toLowerCase() + name.slice(1);
+        Object.defineProperty(this, key, {
+          get: () => contractInstance,
+        });
       } else {
         throw new Error(`${name} contract not found`);
       }
     }
-  }
-
-  public getContract(contractType: string): Contract {
-    const contract = this.contracts[contractType];
-
-    if (!contract) {
-      throw new Error(`Contract of type '${contractType}' not found`);
-    }
-
-    return contract;
   }
 }
