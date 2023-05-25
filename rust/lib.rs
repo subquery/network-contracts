@@ -37,7 +37,7 @@ const RPC_TESTNET3: &str = "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b
 
 const IPFS_MAINNET: &str = "";
 const IPFS_KEPLER: &str = "https://unauthipfs.subquery.network/ipfs/api/v0";
-const IPFS_TESTNET: &str = "https://interipfs.thechaindata.com/ipfs/api/v0";
+const IPFS_TESTNET: &str = "https://unauthipfs.subquery.network/ipfs/api/v0";
 
 const SUBQL_MAINNET: &str = "";
 const SUBQL_KEPLER: &str = "https://api.subquery.network/sq/subquery/kepler-network";
