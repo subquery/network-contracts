@@ -41,7 +41,8 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     mapping(address => bool) public exchangeController;
     /// @notice Orders: orderId => ExchangeOrder
     mapping(uint256 => ExchangeOrder) public orders;
-    uint256 public tradingLimitation;
+    /// @notice stable coin trade limitation
+    uint256 public tradeLimitation;
 
     /// @dev ### EVENTS
     /// @notice Emitted when exchange order sent.
@@ -94,11 +95,11 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Set the USDC trading limitation in single transaction. 
+     * @notice Set the stable coin trading limitation in single transaction. 
      * @param _limit New limitation.
      */
-    function setTradingLimitation(uint256 _limit) external onlyOwner {
-        tradingLimitation = _limit;
+    function setTradeLimitation(uint256 _limit) external onlyOwner {
+        tradeLimitation = _limit;
     }
 
     /**
@@ -203,8 +204,8 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         if (order.tokenGet == settings.getSQToken()) {
             require(tradeQuota[order.tokenGet][msg.sender] >= _amount, 'PE005');
         }
-        if (order.tokenGive == settings.getSQToken() && tradingLimitation > 0) {
-            require(_amount <= tradingLimitation, 'PE012');
+        if (order.tokenGive == settings.getSQToken()) {
+            require(_amount <= tradeLimitation, 'PE012');
         }
         require(order.expireDate > block.timestamp, 'PE006');
         uint256 amount = (order.amountGive * _amount) / order.amountGet;
