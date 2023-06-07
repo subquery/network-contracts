@@ -54,10 +54,10 @@
         "lastUpdate": "Sun, 14 May 2023 23:25:50 GMT"
     },
     "EraManager": {
-        "innerAddress": "0x578397dfe8ef43937f3607a8a5598f39c4c0be57",
+        "innerAddress": "0xb5F2114437e369d5A4E97EC7E1C498d9df4ed977",
         "address": "0x7Bf309E35405B9aD3077D45c077E569C480B8F0b",
         "bytecodeHash": "88503faac12230778596d096b106933f2c52b162d6de1ed711d54c0caca56bfd",
-        "lastUpdate": "Thu, 06 Apr 2023 06:23:37 GMT"
+        "lastUpdate": "Sun, 14 May 2023 23:26:41 GMT"
     },
     "IndexerRegistry": {
         "innerAddress": "0x4e1ffeea246e89d16da7c184757d5b2b484a1dfc",
