@@ -61,7 +61,7 @@ export class ContractSDK {
     this._init();
   }
 
-  static create(signerOrProvider: AbstractProvider | Signer, options?: SdkOptions) {
+  static create(signerOrProvider: AbstractProvider | Signer, options: SdkOptions) {
     return new ContractSDK(signerOrProvider, options);
   }
 
