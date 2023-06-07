@@ -59,6 +59,8 @@ describe('PermissionedExchange Contract', () => {
         asqtAddress = asqToken.address;
 
         //setup
+        await permissionedExchange.setTradeLimitation(etherParse('10000'));
+
         await asqToken.transfer(wallet_1.address, etherParse('1000'));
         await asqToken.transfer(wallet_2.address, etherParse('1000'));
         await sqToken.transfer(wallet_1.address, etherParse('1000'));
@@ -83,6 +85,12 @@ describe('PermissionedExchange Contract', () => {
             expect(await permissionedExchange.exchangeController(wallet_1.address)).to.equal(true);
             await permissionedExchange.setController(wallet_1.address, false);
             expect(await permissionedExchange.exchangeController(wallet_1.address)).to.equal(false);
+        });
+
+        it('set trade limitation should work', async () => {
+            expect(await permissionedExchange.tradeLimitation()).to.equal(etherParse('10000'));
+            await permissionedExchange.setTradeLimitation(etherParse('1000'));
+            expect(await permissionedExchange.tradeLimitation()).to.equal(etherParse('1000'));
         });
 
         it('add Quota should work', async () => {
@@ -156,6 +164,29 @@ describe('PermissionedExchange Contract', () => {
             expect(await (await permissionedExchange.orders(1)).tokenGiveBalance).to.be.eq(etherParse('10'));
             expect(await asqToken.balanceOf(permissionedExchange.address)).to.be.eq(etherParse('10'));
         });
+
+        it('add liquidity to order should work', async () => {
+            expect(await permissionedExchange.nextOrderId()).to.be.eq(1);
+            const expiredTime = await futureTimestamp(mockProvider, 60 * 60 * 24);
+            await expect(permissionedExchange.sendOrder(
+                asqtAddress,
+                sqtAddress,
+                etherParse('1'),
+                etherParse('5'),
+                expiredTime,
+                0,
+                etherParse('10')
+            ))
+                .to.be.emit(permissionedExchange, 'ExchangeOrderSent')
+                .withArgs(1, wallet_0.address, asqtAddress, sqtAddress, etherParse('1'), etherParse('5'), expiredTime);
+
+            await expect(permissionedExchange.addLiquidity(1, etherParse('1')))
+                .to.be.emit(permissionedExchange, 'ExchangeOrderChanged')
+                .withArgs(1, etherParse('11'));
+
+            expect((await permissionedExchange.orders(1)).tokenGiveBalance).to.be.eq(etherParse('11'));
+        });
+
         it('send order with invalid parameters should fail', async () => {
             await expect(
                 permissionedExchange.sendOrder(
@@ -276,6 +307,12 @@ describe('PermissionedExchange Contract', () => {
             expect(await sqToken.balanceOf(wallet_2.address)).to.be.eq(etherParse('1008'));
             expect(await sqToken.balanceOf(permissionedExchange.address)).to.be.eq(etherParse('0'));
             expect(await (await permissionedExchange.orders(2)).tokenGiveBalance).to.be.eq(etherParse('0'));
+        });
+        it('trade stable coin over limit in a single transaction should fail', async () => {
+            await permissionedExchange.setTradeLimitation(etherParse('1'));
+            await expect(permissionedExchange.connect(wallet_2).trade(2, etherParse('2'))).to.be.revertedWith(
+                'PE012'
+            );
         });
         it('trade on invalid order should fail', async () => {
             await expect(permissionedExchange.connect(wallet_2).trade(10, etherParse('2'))).to.be.revertedWith(
