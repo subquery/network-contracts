@@ -51,6 +51,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     /// @notice StateChannels' belongs to consumer
     mapping(uint256 => address) public channels;
 
+    /// @notice controller account belongs to consumer
+    mapping(address => address) private controllerConsumer;
+    mapping(address => address) private consumerController;
+
+
     /// @dev ### EVENTS
     /// @notice Emitted when consumer approve host to manager the balance.
     event Approve(address consumer);
@@ -69,6 +74,12 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
     /// @notice Emitted when consumer pay for open a state channel
     event Claimed(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance);
+
+    /// @notice Emitted when consumer set the controller account.
+    event SetControllerAccount(address indexed indexer, address indexed controller);
+
+    /// @notice Emitted when consumer remove the controller account.
+    event RemoveControllerAccount(address indexed indexer, address indexed controller);
 
     /**
      * @dev ### FUNCTIONS
@@ -98,6 +109,30 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     function setFeePercentage(uint256 _feePercentage) external onlyOwner {
         require(_feePercentage <= 100, 'C001');
         feePercentage = _feePercentage;
+    }
+
+    /**
+     * @notice consumer call to set the controller account, since consumer only allowed to set one controller account, we need to remove the previous controller account.
+     * @param controller The address of controller account, consumer to set
+     */
+    function setControllerAccount(address controller) external {
+        address oldController = consumerController[msg.sender];
+        delete controllerConsumer[oldController];
+        consumerController[msg.sender] = controller;
+        controllerConsumer[controller] = msg.sender;
+
+        emit SetControllerAccount(msg.sender, controller);
+    }
+
+    /**
+     * @notice consumer call to remove the controller account. 
+     */
+    function removeControllerAccount() public {
+        address controller = consumerController[msg.sender];
+        delete consumerController[msg.sender];
+        delete controllerConsumer[controller];
+
+        emit RemoveControllerAccount(msg.sender, controller);
     }
 
     /**
@@ -231,6 +266,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
             bytes32 payload = keccak256(abi.encode(channelId, amount, nonce));
             bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
             address sConsumer = ECDSA.recover(hash, sign);
+            sConsumer = controllerConsumer[sConsumer] != address(0) ? controllerConsumer[sConsumer] : sConsumer;
             require(sConsumer == consumer, 'C006');
             info.nonce = nonce + 1;
         }
@@ -272,6 +308,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     ) external view returns (bool) {
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
         address sConsumer = ECDSA.recover(hash, sign);
+        sConsumer = controllerConsumer[sConsumer] != address(0) ? controllerConsumer[sConsumer] : sConsumer;
         if (signerIndex[sConsumer] > 0) {
             return true;
         }
