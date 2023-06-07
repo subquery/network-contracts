@@ -55,10 +55,9 @@ export class ContractSDK {
 
   constructor(
     private readonly signerOrProvider: AbstractProvider | Signer,
-    public readonly options?: SdkOptions
+    public readonly options: SdkOptions
   ) {
-    const defaultOptions = require(`./publish/${options?.network || 'testnet'}.json`);
-    this._contractDeployments = options?.deploymentDetails || defaultOptions;
+    this._contractDeployments = options.deploymentDetails;
     this._init();
   }
 

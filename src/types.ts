@@ -60,8 +60,7 @@ export type ContractDeployment = Record<keyof typeof CONTRACTS, ContractDeployme
 export type ContractName = keyof ContractDeployment;
 
 export type SdkOptions = {
-    network?: SubqueryNetwork;
-    deploymentDetails?: ContractDeployment;
+    deploymentDetails: ContractDeployment;
 };
 
 export interface FactoryContstructor {
