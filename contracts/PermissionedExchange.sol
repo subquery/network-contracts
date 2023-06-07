@@ -106,7 +106,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      * @param _orderId order id 
      * @param _amount amount to add 
      */
-    function addLiquidity(uint256 _orderId, _uint256 _amount) external onlyOwner {
+    function addLiquidity(uint256 _orderId, uint256 _amount) external onlyOwner {
         ExchangeOrder storage order = orders[_orderId];
         require(order.expireDate > block.timestamp, 'PE006');      
         require(_amount > 0, 'PE007');
