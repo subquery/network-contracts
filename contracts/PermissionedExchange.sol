@@ -41,6 +41,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     mapping(address => bool) public exchangeController;
     /// @notice Orders: orderId => ExchangeOrder
     mapping(uint256 => ExchangeOrder) public orders;
+    uint256 public tradingLimitation;
 
     /// @dev ### EVENTS
     /// @notice Emitted when exchange order sent.
@@ -65,6 +66,8 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     );
     /// @notice Emitted when controller add trade quota to trader.
     event QuotaAdded(address token, address account, uint256 amount);
+    /// @notice Emitted when addLiquidity by owner.
+    event ExchangeOrderChanged(uint256 indexed orderId, uint256 tokenGiveBalance);
 
     /**
      * @dev ### FUNCTIONS
@@ -88,6 +91,28 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      */
     function setController(address _controller, bool _isController) external onlyOwner {
         exchangeController[_controller] = _isController;
+    }
+
+    /**
+     * @notice Set the USDC trading limitation in single transaction. 
+     * @param _limit New limitation.
+     */
+    function setTradingLimitation(uint256 _limit) external onlyOwner {
+        tradingLimitation = _limit;
+    }
+
+    /**
+     * @notice Add liquidity to a exist order.
+     * @param _orderId order id 
+     * @param _amount amount to add 
+     */
+    function addLiquidity(uint256 _orderId, _uint256 _amount) external onlyOwner {
+        ExchangeOrder storage order = orders[_orderId];
+        require(order.expireDate > block.timestamp, 'PE006');      
+        require(_amount > 0, 'PE007');
+        IERC20(order.tokenGive).safeTransferFrom(msg.sender, address(this), _amount);
+        order.tokenGiveBalance = order.tokenGiveBalance + _amount;
+        emit ExchangeOrderChanged(_orderId, order.tokenGiveBalance);
     }
 
     /**
@@ -177,6 +202,9 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         ExchangeOrder storage order = orders[_orderId];
         if (order.tokenGet == settings.getSQToken()) {
             require(tradeQuota[order.tokenGet][msg.sender] >= _amount, 'PE005');
+        }
+        if (order.tokenGive == settings.getSQToken()) {
+            require(_amount <= tradingLimitation, '');
         }
         require(order.expireDate > block.timestamp, 'PE006');
         uint256 amount = (order.amountGive * _amount) / order.amountGet;

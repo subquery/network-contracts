@@ -72,6 +72,7 @@
     "PE009": "order not exist",
     "PE010": "order not expired",
     "PE011": "only order sender allowed",
+    "PE012": "reach USDC trading limitation in single transaction",
     "PM001": "Period need to be positive",
     "PM002": "DailyReqCap need to be positive",
     "PM003": "RateLimit need to be positive",
