@@ -203,8 +203,8 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         if (order.tokenGet == settings.getSQToken()) {
             require(tradeQuota[order.tokenGet][msg.sender] >= _amount, 'PE005');
         }
-        if (order.tokenGive == settings.getSQToken()) {
-            require(_amount <= tradingLimitation, '');
+        if (order.tokenGive == settings.getSQToken() && tradingLimitation > 0) {
+            require(_amount <= tradingLimitation, 'PE012');
         }
         require(order.expireDate > block.timestamp, 'PE006');
         uint256 amount = (order.amountGive * _amount) / order.amountGet;
