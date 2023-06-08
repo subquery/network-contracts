@@ -120,10 +120,10 @@
         "lastUpdate": "Thu, 06 Apr 2023 07:40:08 GMT"
     },
     "PermissionedExchange": {
-        "innerAddress": "0x3CD3531769A97515938f5e21845Aa4D3B2f372DE",
+        "innerAddress": "0x1f64750a740fa3517da92e0300e3fa1e64d06cf4",
         "address": "0x063482d40B31f78d4aDA6D0CDCBaE73F07Ea4865",
-        "bytecodeHash": "ee8b5a55b981104e2e5930ada4805dbafbd0dd91f4bc1ca0373fd77cd555b4f9",
-        "lastUpdate": "Thu, 06 Apr 2023 07:43:15 GMT"
+        "bytecodeHash": "8ee7c6224c1ceb34be68d9039ad5896034180004094f427beaf7a175c8909cac",
+        "lastUpdate": "Thu, 08 June 2023 07:43:15 GMT"
     },
     "ConsumerHost": {
         "innerAddress": "0x0A9Cb79bA58BD4C29470F468Ed6F2B673F02559E",
