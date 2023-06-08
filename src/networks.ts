@@ -68,20 +68,5 @@ export const networks: { [key in SubqueryNetwork]: Network } = {
           symbol: '',
           decimals: 18
         }
-    },
-    moonbase: {
-        chainId: '0x507',
-        chainName: 'Moonbase-alpha',
-        rpcUrls: [
-            'https://moonbeam-alpha.api.onfinality.io/public',
-            'https://rpc.api.moonbase.moonbeam.network'	
-        ],
-        iconUrls: [],
-        blockExplorerUrls: ['https://moonbase.moonscan.io/'],
-        nativeCurrency: {
-          name: 'DEV',
-          symbol: 'DEV',
-          decimals: 18
-        }
     }
 }

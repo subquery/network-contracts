@@ -29,7 +29,7 @@ import {
 } from './typechain';
 import type CONTRACTS from './contracts';
 
-export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'moonbase' | 'local';
+export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'local';
 
 export type Network = {
     chainId: string,
