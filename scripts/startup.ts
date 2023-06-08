@@ -8,12 +8,9 @@ import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
 import {METADATA_HASH} from '../test/constants';
 import {cidToBytes32, lastestTime} from '../test/helper';
-import {ContractDeployment, ContractSDK} from '../src';
+import {ContractSDK, SubqueryNetwork } from '../build';
 import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
 
-import testnetDeployment from '../publish/testnet.json';
-import mainnetDeployment from '../publish/mainnet.json';
-import keplerDeployment from '../publish/kepler.json';
 import { parseEther } from 'ethers/lib/utils';
 import { Provider, StaticJsonRpcProvider } from '@ethersproject/providers';
 import { getLogger } from './logger';
@@ -213,22 +210,22 @@ const main = async () => {
     const networkType = process.argv[2];
     provider = wallet.provider;
 
-    let deployment: ContractDeployment;
+    let network: SubqueryNetwork;
     switch (networkType) {
         case '--mainnet':
-            deployment = mainnetDeployment;
+            network = 'mainnet';
             break;
         case '--kepler':
-            deployment = keplerDeployment;
+            network = 'kepler';
             break;
         case '--testnet':
-            deployment = testnetDeployment;
+            network = 'testnet';
             break;
         default:
             throw new Error(`Please provide correct network ${networkType}`)
     }
 
-    const sdk = await ContractSDK.create(wallet, {deploymentDetails: deployment});
+    const sdk = ContractSDK.create(wallet, { network });
 
     switch (networkType) {
         case '--mainnet':
