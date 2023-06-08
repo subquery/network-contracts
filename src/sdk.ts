@@ -1,4 +1,4 @@
-import type {Signer} from 'ethers';
+import {BaseContract, Signer} from 'ethers';
 import type {Provider as AbstractProvider} from '@ethersproject/abstract-provider';
 import {ContractDeployment, ContractName, SdkOptions, SubqueryNetwork} from './types';
 import {
@@ -45,28 +45,28 @@ const DEPLOYMENT_DETAILS: Record<SubqueryNetwork, ContractDeployment> = {
 export class ContractSDK {
   private _contractDeployments: ContractDeployment;
 
-  readonly settings: Settings;
-  readonly sqToken: SQToken;
-  readonly staking: Staking;
-  readonly stakingManager: StakingManager;
-  readonly indexerRegistry: IndexerRegistry;
-  readonly queryRegistry: QueryRegistry;
-  readonly inflationController: InflationController;
-  readonly serviceAgreementRegistry: ServiceAgreementRegistry;
-  readonly eraManager: EraManager;
-  readonly planManager: PlanManager;
-  readonly rewardsDistributor: RewardsDistributer;
-  readonly rewardsPool: RewardsPool;
-  readonly rewardsStaking: RewardsStaking;
-  readonly rewardsHelper: RewardsHelper;
-  readonly purchaseOfferMarket: PurchaseOfferMarket;
-  readonly stateChannel: StateChannel;
-  readonly airdropper: Airdropper;
-  readonly permissionedExchange: PermissionedExchange;
-  readonly consumerHost: ConsumerHost;
-  readonly disputeManager: DisputeManager;
-  readonly proxyAdmin: ProxyAdmin;
-  readonly vesting: Vesting;
+  readonly settings?: Settings;
+  readonly sqToken?: SQToken;
+  readonly staking?: Staking;
+  readonly stakingManager?: StakingManager;
+  readonly indexerRegistry?: IndexerRegistry;
+  readonly queryRegistry?: QueryRegistry;
+  readonly inflationController?: InflationController;
+  readonly serviceAgreementRegistry?: ServiceAgreementRegistry;
+  readonly eraManager?: EraManager;
+  readonly planManager?: PlanManager;
+  readonly rewardsDistributor?: RewardsDistributer;
+  readonly rewardsPool?: RewardsPool;
+  readonly rewardsStaking?: RewardsStaking;
+  readonly rewardsHelper?: RewardsHelper;
+  readonly purchaseOfferMarket?: PurchaseOfferMarket;
+  readonly stateChannel?: StateChannel;
+  readonly airdropper?: Airdropper;
+  readonly permissionedExchange?: PermissionedExchange;
+  readonly consumerHost?: ConsumerHost;
+  readonly disputeManager?: DisputeManager;
+  readonly proxyAdmin?: ProxyAdmin;
+  readonly vesting?: Vesting;
 
   constructor(
     private readonly signerOrProvider: AbstractProvider | Signer,

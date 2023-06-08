@@ -1,4 +1,3 @@
-import { Network } from './types';
 import {Wallet} from '@ethersproject/wallet';
 import {BaseContract, ContractFactory, Signer} from 'ethers';
 import { Provider } from '@ethersproject/abstract-provider';
