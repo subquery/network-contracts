@@ -379,17 +379,17 @@ export async function upgradeContracts(
     }
 
     logger.info(`Contract Changed: ${changed.join(',')}`);
-    // for (const contractName of changed) {
-    //     logger.info(`Upgrading ${contractName}`);
-    //     const [_, factory] = UPGRADEBAL_CONTRACTS[contractName];
-    //     const {address} = deployment[contractName];
-    //     const [innerAddr] = await upgradeContract(proxyAdmin, address, factory, wallet, confirms);
-    //     deployment[contractName] = {
-    //         innerAddress: innerAddr,
-    //         address,
-    //         bytecodeHash: codeToHash(CONTRACTS[contractName].bytecode),
-    //         lastUpdate: new Date().toUTCString(),
-    //     };
-    // }
+    for (const contractName of changed) {
+        logger.info(`Upgrading ${contractName}`);
+        const [_, factory] = UPGRADEBAL_CONTRACTS[contractName];
+        const {address} = deployment[contractName];
+        const [innerAddr] = await upgradeContract(proxyAdmin, address, factory, wallet, confirms);
+        deployment[contractName] = {
+            innerAddress: innerAddr,
+            address,
+            bytecodeHash: codeToHash(CONTRACTS[contractName].bytecode),
+            lastUpdate: new Date().toUTCString(),
+        };
+    }
     return deployment as ContractDeployment;
 }
