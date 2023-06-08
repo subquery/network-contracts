@@ -53,7 +53,7 @@ function clearObject(obj: Record<string, unknown>) {
 }
 
 function codeToHash(code: string) {
-    return sha256(Buffer.from(code.replace(/^0x/, '')));
+    return sha256(Buffer.from(code.replace(/^0x/, ''), 'hex'));
 }
 
 async function getOverrides(): Promise<Overrides> {
