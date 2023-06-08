@@ -1,3 +1,4 @@
+import { Network } from './types';
 import {Wallet} from '@ethersproject/wallet';
 import {BaseContract, BigNumber, ContractFactory, Signer} from 'ethers';
 import { Provider } from '@ethersproject/abstract-provider';
@@ -60,7 +61,8 @@ export type ContractDeployment = Record<keyof typeof CONTRACTS, ContractDeployme
 export type ContractName = keyof ContractDeployment;
 
 export type SdkOptions = {
-    deploymentDetails: ContractDeployment;
+    network: SubqueryNetwork;
+    deploymentDetails?: ContractDeployment;
 };
 
 export interface FactoryContstructor {
