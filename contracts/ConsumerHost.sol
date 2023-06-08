@@ -210,6 +210,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      */
     function paid(
         uint256 channelId,
+        address sender,
         uint256 amount,
         bytes memory callback
     ) external {
@@ -233,6 +234,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
             address sConsumer = ECDSA.recover(hash, sign);
             require(sConsumer == consumer, 'C006');
             info.nonce = nonce + 1;
+
+            require(sConsumer == sender, 'C010');
+        } else {
+            require(signerIndex[sender] > 0 || consumer == sender, 'C011');
         }
 
         info.balance -= (amount + fixedFee);
