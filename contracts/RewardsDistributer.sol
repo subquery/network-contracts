@@ -143,6 +143,17 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     /**
+     * @notice Reset era reward remove table.
+     * Only Owner can call.
+     * @param indexer address
+     * @param era uint256
+     * @param amount uint256
+     */
+    function resetEraRewardRemoveTable(address indexer, uint256 era, uint256 amount) external onlyOwner {
+        info[indexer].eraRewardRemoveTable[era] = amount;
+    }
+
+    /**
      * @notice Split rewards from agreemrnt into Eras:
      * Rewards split into one era;
      * Rewards split into two eras;
@@ -180,12 +191,12 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             uint256 firstEraReward = MathUtil.mulDiv(firstEraPortion, agreementValue, agreementPeriod);
             uint256 lastEraReward = MathUtil.sub(agreementValue, firstEraReward);
             rewardInfo.eraRewardAddTable[agreementStartEra] += firstEraReward;
+            rewardInfo.eraRewardRemoveTable[agreementStartEra + 1] += firstEraReward;
 
-            uint256 postEndEra = agreementStartEra + 2;
-            rewardInfo.eraRewardAddTable[agreementStartEra + 1] += firstEraReward < lastEraReward ? lastEraReward - firstEraReward : firstEraReward - lastEraReward;
-            rewardInfo.eraRewardRemoveTable[postEndEra] += lastEraReward;
+            rewardInfo.eraRewardAddTable[agreementStartEra + 1] += lastEraReward;
+            rewardInfo.eraRewardRemoveTable[agreementStartEra + 2] += lastEraReward;
 
-            _emitRewardsChangedEvent(indexer, postEndEra, rewardInfo);
+            _emitRewardsChangedEvent(indexer, agreementStartEra + 2, rewardInfo);
         } else {
             // span in > two eras
             uint256 firstEraReward = MathUtil.mulDiv(firstEraPortion, agreementValue, agreementPeriod);
