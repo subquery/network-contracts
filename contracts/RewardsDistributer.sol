@@ -157,7 +157,9 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         uint256[] memory removeAmounts
     ) external onlyOwner {
         require(indexers.length == eras.length, 'G100');
-        require(indexers.length == amounts.length, 'G100');
+        require(indexers.length == addAmounts.length, 'G100');
+        require(indexers.length == removeAmounts.length, 'G100');
+
         for (uint256 i = 0; i < indexers.length; i++) {
             info[indexers[i]].eraRewardAddTable[eras[i]] = addAmounts[i];
             info[indexers[i]].eraRewardRemoveTable[eras[i]] = removeAmounts[i];
