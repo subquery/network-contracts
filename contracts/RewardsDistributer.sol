@@ -147,13 +147,22 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * Only Owner can call.
      * @param indexers address[]
      * @param eras uint256[]
-     * @param amounts uint256[]
+     * @param addAmounts uint256[]
+     * @param removeAmounts uint256[]
      */
-    function resetEraRewardRemoveTables(address[] memory indexers, uint256[] memory eras, uint256[] memory amounts) external onlyOwner {
+    function resetEraRewardRemoveTables(
+        address[] memory indexers,
+        uint256[] memory eras,
+        uint256[] memory addAmounts,
+        uint256[] memory removeAmounts
+    ) external onlyOwner {
         require(indexers.length == eras.length, 'G100');
         require(indexers.length == amounts.length, 'G100');
         for (uint256 i = 0; i < indexers.length; i++) {
-            info[indexers[i]].eraRewardRemoveTable[eras[i]] = amounts[i];
+            info[indexers[i]].eraRewardAddTable[eras[i]] = addAmounts[i];
+            info[indexers[i]].eraRewardRemoveTable[eras[i]] = removeAmounts[i];
+
+            emit RewardsChanged(indexers[i], eras[i], addAmounts[i], removeAmounts[i]);
         }
     }
 
