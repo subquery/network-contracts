@@ -143,14 +143,14 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     }
 
     /**
-     * @notice Reset era reward remove table.
+     * @notice Reset era reward tables.
      * Only Owner can call.
      * @param indexers address[]
      * @param eras uint256[]
      * @param addAmounts uint256[]
      * @param removeAmounts uint256[]
      */
-    function resetEraRewardRemoveTables(
+    function resetEraRewardTables(
         address[] memory indexers,
         uint256[] memory eras,
         uint256[] memory addAmounts,
