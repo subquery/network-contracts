@@ -28,6 +28,12 @@ import {
 } from './typechain';
 import { CONTRACT_FACTORY, FactoryContstructor } from './types';
 
+// HOTFIX: Contract names are not consistent between deployments and privous var names
+const contractNameConversion = {
+  sQToken: 'sqToken',
+  rewardsDistributer: 'rewardsDistributor',
+};
+
 export class ContractSDK {
   private _contractDeployments: ContractDeployment;
 
@@ -77,7 +83,8 @@ export class ContractSDK {
       const contractInstance = factory.connect(address, this.signerOrProvider);
       if (contractInstance) {
         const key = name.charAt(0).toLowerCase() + name.slice(1);
-        Object.defineProperty(this, key, {
+        const contractName = contractNameConversion[key] ?? key;
+        Object.defineProperty(this, contractName, {
           get: () => contractInstance,
         });
       } else {
