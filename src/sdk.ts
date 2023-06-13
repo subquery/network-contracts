@@ -29,7 +29,7 @@ import {
 import { CONTRACT_FACTORY, FactoryContstructor } from './types';
 
 // HOTFIX: Contract names are not consistent between deployments and privous var names
-const contractNameConversion = {
+const contractNameConversion: Record<string, string> = {
   sQToken: 'sqToken',
   rewardsDistributer: 'rewardsDistributor',
 };
