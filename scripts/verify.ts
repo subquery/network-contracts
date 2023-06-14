@@ -3,10 +3,7 @@ import {expect} from 'chai';
 import Pino from 'pino';
 
 import setup from './setup';
-import {ContractSDK} from '../src';
-import testnetDeployment from '../publish/testnet.json';
-import keplerDeployment from '../publish/kepler.json';
-import mainnetDeployment from '../publish/mainnet.json';
+import {ContractSDK, SubqueryNetwork, } from '../build';
 import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
@@ -230,22 +227,25 @@ const main = async () => {
     const caller = wallet.address;
 
     const networkType = process.argv[2];
+    let network: SubqueryNetwork;
     switch (networkType) {
         case '--mainnet':
-            sdk = await ContractSDK.create(wallet, {deploymentDetails: mainnetDeployment});
+            network = 'mainnet';
             startupConfig = startupMainnetConfig;
             break;
         case '--kepler':
-            sdk = await ContractSDK.create(wallet, {deploymentDetails: keplerDeployment});
+            network = 'kepler';
             startupConfig = startupKeplerConfig;
             break;
         case '--testnet':
-            sdk = await ContractSDK.create(wallet, {deploymentDetails: testnetDeployment});
+            network = 'testnet';
             startupConfig = startupTestnetConfig;
             break;
         default:
             throw new Error(`Please provide correct network ${networkType}`)
     }
+
+    sdk = ContractSDK.create(wallet, { network });
 
     const verifyType = process.argv[3]; 
     switch (verifyType) {
