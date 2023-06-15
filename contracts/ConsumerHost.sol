@@ -52,7 +52,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     mapping(uint256 => address) public channels;
 
     /// @notice controller account belongs to consumer
-    mapping(address => address) private controllers;
+    mapping(address => address) public controllers;
 
 
     /// @dev ### EVENTS
