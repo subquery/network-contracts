@@ -27,6 +27,7 @@ describe('ConsumerHost Contract', () => {
     let indexerRegistry: IndexerRegistry;
     let stateChannel: StateChannel;
     let consumerHost: ConsumerHost;
+    const address_zero = "0x0000000000000000000000000000000000000000";
 
     const openChannel = async (
         channelId: Uint8Array,
@@ -186,6 +187,18 @@ describe('ConsumerHost Contract', () => {
 
             await consumerHost.connect(wallet_0).removeSigner(consumer2.address);
             expect((await consumerHost.getSigners())[0]).to.equal(hoster.address);
+        });
+
+        it('set and remove controller account should work', async () => {
+            expect((await consumerHost.controllers(wallet_0.address))).to.equal(address_zero);
+            await expect(consumerHost.setControllerAccount(consumer.address))
+            .to.be.emit(consumerHost, 'SetControllerAccount')
+            .withArgs(wallet_0.address, consumer.address);
+            expect((await consumerHost.controllers(wallet_0.address))).to.equal(consumer.address);
+            await expect(consumerHost.removeControllerAccount())
+            .to.be.emit(consumerHost, 'RemoveControllerAccount')
+            .withArgs(wallet_0.address, consumer.address);
+            expect((await consumerHost.controllers(wallet_0.address))).to.equal(address_zero);
         });
 
         it('Approve host can use consumer balance should work', async () => {

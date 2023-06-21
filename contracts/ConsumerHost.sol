@@ -51,6 +51,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     /// @notice StateChannels' belongs to consumer
     mapping(uint256 => address) public channels;
 
+    /// @notice controller account belongs to consumer
+    mapping(address => address) public controllers;
+
+
     /// @dev ### EVENTS
     /// @notice Emitted when consumer approve host to manager the balance.
     event Approve(address consumer);
@@ -69,6 +73,12 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
     /// @notice Emitted when consumer pay for open a state channel
     event Claimed(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance);
+
+    /// @notice Emitted when consumer set the controller account.
+    event SetControllerAccount(address consumer, address controller);
+
+    /// @notice Emitted when consumer remove the controller account.
+    event RemoveControllerAccount(address consumer, address controller);
 
     /**
      * @dev ### FUNCTIONS
@@ -98,6 +108,27 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     function setFeePercentage(uint256 _feePercentage) external onlyOwner {
         require(_feePercentage <= 100, 'C001');
         feePercentage = _feePercentage;
+    }
+
+    /**
+     * @notice consumer call to set the controller account, since consumer only allowed to set one controller account, we need to remove the previous controller account.
+     * @param controller The address of controller account, consumer to set
+     */
+    function setControllerAccount(address controller) external {
+        controllers[msg.sender] = controller;
+
+        emit SetControllerAccount(msg.sender, controller);
+    }
+
+
+    /**
+     * @notice consumer call to remove the controller account. 
+     */
+    function removeControllerAccount() public {
+        address controller = controllers[msg.sender];
+        delete controllers[msg.sender];
+
+        emit RemoveControllerAccount(msg.sender, controller);
     }
 
     /**
@@ -231,7 +262,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
             bytes32 payload = keccak256(abi.encode(channelId, amount, nonce));
             bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
             address sConsumer = ECDSA.recover(hash, sign);
-            require(sConsumer == consumer, 'C006');
+            require(sConsumer == consumer || sConsumer == controllers[consumer], 'C006');
             info.nonce = nonce + 1;
         }
 
@@ -275,7 +306,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         if (signerIndex[sConsumer] > 0) {
             return true;
         }
-        return channels[channelId] == sConsumer;
+        return channels[channelId] == sConsumer || controllers[channels[channelId]] == sConsumer;
     }
 
     /**
