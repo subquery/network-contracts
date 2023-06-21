@@ -1,5 +1,5 @@
 import {Wallet} from '@ethersproject/wallet';
-import {BaseContract, BigNumber, ContractFactory, Signer} from 'ethers';
+import {BaseContract, ContractFactory, Signer} from 'ethers';
 import { Provider } from '@ethersproject/abstract-provider';
 
 import {
@@ -29,7 +29,7 @@ import {
 } from './typechain';
 import type CONTRACTS from './contracts';
 
-export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'moonbase' | 'local';
+export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'local';
 
 export type Network = {
     chainId: string,
@@ -60,7 +60,7 @@ export type ContractDeployment = Record<keyof typeof CONTRACTS, ContractDeployme
 export type ContractName = keyof ContractDeployment;
 
 export type SdkOptions = {
-    network?: SubqueryNetwork;
+    network: SubqueryNetwork;
     deploymentDetails?: ContractDeployment;
 };
 

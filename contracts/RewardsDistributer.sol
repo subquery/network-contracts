@@ -180,12 +180,12 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             uint256 firstEraReward = MathUtil.mulDiv(firstEraPortion, agreementValue, agreementPeriod);
             uint256 lastEraReward = MathUtil.sub(agreementValue, firstEraReward);
             rewardInfo.eraRewardAddTable[agreementStartEra] += firstEraReward;
+            rewardInfo.eraRewardRemoveTable[agreementStartEra + 1] += firstEraReward;
 
-            uint256 postEndEra = agreementStartEra + 2;
-            rewardInfo.eraRewardAddTable[agreementStartEra + 1] += firstEraReward < lastEraReward ? lastEraReward - firstEraReward : firstEraReward - lastEraReward;
-            rewardInfo.eraRewardRemoveTable[postEndEra] += lastEraReward;
+            rewardInfo.eraRewardAddTable[agreementStartEra + 1] += lastEraReward;
+            rewardInfo.eraRewardRemoveTable[agreementStartEra + 2] += lastEraReward;
 
-            _emitRewardsChangedEvent(indexer, postEndEra, rewardInfo);
+            _emitRewardsChangedEvent(indexer, agreementStartEra + 2, rewardInfo);
         } else {
             // span in > two eras
             uint256 firstEraReward = MathUtil.mulDiv(firstEraPortion, agreementValue, agreementPeriod);
@@ -360,5 +360,9 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
     function getRewardRemoveTable(address indexer, uint256 era) public view returns (uint256) {
         return info[indexer].eraRewardRemoveTable[era];
+    }
+
+    function getRewardDebt(address indexer, address user) public view returns (uint256) {
+        return info[indexer].rewardDebt[user];
     }
 }
