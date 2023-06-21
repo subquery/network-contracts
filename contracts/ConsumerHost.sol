@@ -75,10 +75,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     event Claimed(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance);
 
     /// @notice Emitted when consumer set the controller account.
-    event SetControllerAccount(address indexed indexer, address indexed controller);
+    event SetControllerAccount(address consumer, address controller);
 
     /// @notice Emitted when consumer remove the controller account.
-    event RemoveControllerAccount(address indexed indexer, address indexed controller);
+    event RemoveControllerAccount(address consumer, address controller);
 
     /**
      * @dev ### FUNCTIONS
