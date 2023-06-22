@@ -11,7 +11,8 @@ interface ISettings {
         address _planManager,
         address _serviceAgreementRegistry,
         address _disputeManager,
-        address _stateChannel
+        address _stateChannel,
+        address _consumerRegistry
     ) external;
 
     function setTokenAddresses(
@@ -94,4 +95,8 @@ interface ISettings {
     function setStateChannel(address _stateChannel) external;
 
     function getStateChannel() external view returns (address);
+
+    function setConsumerRegistry(address _consumerRegistry) external;
+
+    function getConsumerRegistry() external view returns (address);
 }
