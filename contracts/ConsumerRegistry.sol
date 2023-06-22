@@ -57,7 +57,7 @@ contract ConsumerRegistry is Initializable, OwnableUpgradeable {
         if (_isContract(consumer)) {
             require(consumer.supportsInterface(type(IConsumer).interfaceId), 'CR002');
             IConsumer cConsumer = IConsumer(consumer);
-            require(cConsumer.checkSigner(msg.sender), 'CR003');
+            require(cConsumer.isSigner(msg.sender), 'CR003');
         } else {
             require(msg.sender == consumer, 'CR001');
         }
@@ -73,7 +73,7 @@ contract ConsumerRegistry is Initializable, OwnableUpgradeable {
         if (_isContract(consumer)) {
             require(consumer.supportsInterface(type(IConsumer).interfaceId), 'CR002');
             IConsumer cConsumer = IConsumer(consumer);
-            require(cConsumer.checkSigner(msg.sender), 'CR003');
+            require(cConsumer.isSigner(msg.sender), 'CR003');
         } else {
             require(msg.sender == consumer, 'CR001');
         }

@@ -178,10 +178,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
     /**
      * @notice check sender is signer
-     * @param sender the checked address
+     * @param signer the checked address
      */
-    function checkSigner(address sender) external view returns (bool) {
-        return signerIndex[sender] > 0;
+    function isSigner(address signer) external view returns (bool) {
+        return signerIndex[signer] > 0;
     }
 
     /**
