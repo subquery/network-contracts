@@ -66,8 +66,6 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     uint256 public terminateExpiration;
     /// @notice The states of the channels
     mapping(uint256 => ChannelState) private channels;
-    /// @notice The controller of the consumer
-    mapping(address => address) private consumerControllers;
 
     /// @dev ### EVENTS
     /// @notice Emitted when open a channel for Pay-as-you-go service
@@ -115,30 +113,6 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Get the consumer's controller
-     * @param consumer consumer address
-     * @return controller address
-     */
-    function consumerController(address consumer) external view returns (address) {
-        return consumerControllers[consumer];
-    }
-
-    /**
-     * @notice Set the consumer's controller
-     * @param controller controller address
-     */
-    function setConsumerController(address controller) external {
-        consumerControllers[msg.sender] = controller;
-    }
-
-    /**
-     * @notice remove the consumer's controller
-     */
-    function removeConsumerController() external {
-        delete consumerControllers[msg.sender];
-    }
-
-    /**
      * @notice Indexer and Consumer open a channel for Pay-as-you-go service.
      * It will lock the amount of consumer and start a new channel.
      * Need consumer approve amount first. If consumer is contract, use callback to call paid
@@ -170,7 +144,6 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         // check indexer registered
         IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
         require(indexerRegistry.isIndexer(indexer), 'G002');
-        address controller = indexerRegistry.getController(indexer);
 
         // check sign
         bytes32 payload = keccak256(
@@ -182,12 +155,11 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             require(cConsumer.checkSign(channelId, payload, consumerSign), 'C006');
             cConsumer.paid(channelId, msg.sender, amount, callback);
         } else {
-            address cController = consumerControllers[consumer];
-            _checkSign(payload, consumerSign, consumer, cController);
+            _checkSign(payload, consumerSign, consumer, false);
             require(msg.sender == consumer, 'SC111');
         }
 
-        _checkSign(payload, indexerSign, indexer, controller);
+        _checkSign(payload, indexerSign, indexer, true);
 
         // transfer the balance to contract
         IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
@@ -224,7 +196,6 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     ) external {
         address indexer = channels[channelId].indexer;
         address consumer = channels[channelId].consumer;
-        address controller = IIndexerRegistry(settings.getIndexerRegistry()).getController(indexer);
         require(channels[channelId].expiredAt == preExpirationAt, 'SC002');
 
         // check sign
@@ -232,10 +203,9 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         if (_isContract(consumer)) {
             require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'C006');
         } else {
-            address cController = consumerControllers[consumer];
-            _checkSign(payload, consumerSign, consumer, cController);
+            _checkSign(payload, consumerSign, consumer, false);
         }
-        _checkSign(payload, indexerSign, indexer, controller);
+        _checkSign(payload, indexerSign, indexer, true);
 
         channels[channelId].expiredAt += expiration;
         emit ChannelExtend(channelId, channels[channelId].expiredAt);
@@ -400,27 +370,37 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         bytes memory consumerSign
     ) private view {
         address indexer = channels[channelId].indexer;
-        address controller = IIndexerRegistry(settings.getIndexerRegistry()).getController(indexer);
         address consumer = channels[channelId].consumer;
         if (_isContract(consumer)) {
             require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'C006');
         } else {
-            address cController = consumerControllers[consumer];
-            _checkSign(payload, consumerSign, consumer, cController);
+            _checkSign(payload, consumerSign, consumer, false);
         }
-        _checkSign(payload, indexerSign, indexer, controller);
+        _checkSign(payload, indexerSign, indexer, true);
     }
 
     /// @notice Check the signature of the hash with given addresses
     function _checkSign(
         bytes32 payload,
         bytes memory indexerSign,
-        address channelIndexer,
-        address channelController
-    ) private pure {
+        address checkSigner,
+        bool isIndexer
+    ) private view {
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
-        address signIndexer = ECDSA.recover(hash, indexerSign);
-        require(signIndexer == channelIndexer || signIndexer == channelController, 'SC009');
+        address signer = ECDSA.recover(hash, indexerSign);
+
+        if (isIndexer) {
+            if (signer == checkSigner) {
+                return;
+            }
+
+            // check indexer registered
+            address controller = IIndexerRegistry(settings.getIndexerRegistry()).getController(checkSigner);
+            require(signer == controller, 'SC009');
+        } else {
+            // TODO consumer controllers
+            require(signer == checkSigner, 'SC011');
+        }
     }
 
     /// @notice Settlement the new state
