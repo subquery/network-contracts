@@ -45,18 +45,20 @@ describe('StateChannel Contract', () => {
         const recoveredConsumer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), consumerSign);
         expect(consumer.address).to.equal(recoveredConsumer);
 
-        await stateChannel.open(
-            channelId,
-            indexer.address,
-            consumer.address,
-            amount,
-            price,
-            expiration,
-            deploymentId,
-            '0x',
-            indexerSign,
-            consumerSign
-        );
+        await stateChannel
+            .connect(consumer)
+            .open(
+                channelId,
+                indexer.address,
+                consumer.address,
+                amount,
+                price,
+                expiration,
+                deploymentId,
+                '0x',
+                indexerSign,
+                consumerSign
+            );
     };
 
     const buildQueryState = async (

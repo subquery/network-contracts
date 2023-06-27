@@ -27,7 +27,7 @@ describe('ConsumerHost Contract', () => {
     let indexerRegistry: IndexerRegistry;
     let stateChannel: StateChannel;
     let consumerHost: ConsumerHost;
-    const address_zero = "0x0000000000000000000000000000000000000000";
+    const address_zero = '0x0000000000000000000000000000000000000000';
 
     const openChannel = async (
         channelId: Uint8Array,
@@ -76,18 +76,37 @@ describe('ConsumerHost Contract', () => {
         const recoveredHoster = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), hosterSign);
         expect(hoster.address).to.equal(recoveredHoster);
 
-        await stateChannel.open(
-            channelId,
-            indexer.address,
-            consumerHost.address,
-            amount,
-            price,
-            expiration,
-            deploymentId,
-            consumerCallback,
-            indexerSign,
-            hosterSign
-        );
+        if (isApproved) {
+            await stateChannel
+                .connect(hoster)
+                .open(
+                    channelId,
+                    indexer.address,
+                    consumerHost.address,
+                    amount,
+                    price,
+                    expiration,
+                    deploymentId,
+                    consumerCallback,
+                    indexerSign,
+                    hosterSign
+                );
+        } else {
+            await stateChannel
+                .connect(consumer)
+                .open(
+                    channelId,
+                    indexer.address,
+                    consumerHost.address,
+                    amount,
+                    price,
+                    expiration,
+                    deploymentId,
+                    consumerCallback,
+                    indexerSign,
+                    hosterSign
+                );
+        }
     };
 
     const fundChannel = async (
@@ -122,7 +141,11 @@ describe('ConsumerHost Contract', () => {
         const recoveredHoster = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), hosterSign);
         expect(hoster.address).to.equal(recoveredHoster);
 
-        await stateChannel.fund(channelId, preTotal, amount, consumerCallback, hosterSign);
+        if (isApproved) {
+            await stateChannel.connect(hoster).fund(channelId, preTotal, amount, consumerCallback, hosterSign);
+        } else {
+            await stateChannel.connect(consumer).fund(channelId, preTotal, amount, consumerCallback, hosterSign);
+        }
     };
 
     const buildQueryState = async (
@@ -191,15 +214,15 @@ describe('ConsumerHost Contract', () => {
         });
 
         it('set and remove controller account should work', async () => {
-            expect((await consumerHost.controllers(wallet_0.address))).to.equal(address_zero);
+            expect(await consumerHost.controllers(wallet_0.address)).to.equal(address_zero);
             await expect(consumerHost.setControllerAccount(consumer.address))
-            .to.be.emit(consumerHost, 'SetControllerAccount')
-            .withArgs(wallet_0.address, consumer.address);
-            expect((await consumerHost.controllers(wallet_0.address))).to.equal(consumer.address);
+                .to.be.emit(consumerHost, 'SetControllerAccount')
+                .withArgs(wallet_0.address, consumer.address);
+            expect(await consumerHost.controllers(wallet_0.address)).to.equal(consumer.address);
             await expect(consumerHost.removeControllerAccount())
-            .to.be.emit(consumerHost, 'RemoveControllerAccount')
-            .withArgs(wallet_0.address, consumer.address);
-            expect((await consumerHost.controllers(wallet_0.address))).to.equal(address_zero);
+                .to.be.emit(consumerHost, 'RemoveControllerAccount')
+                .withArgs(wallet_0.address, consumer.address);
+            expect(await consumerHost.controllers(wallet_0.address)).to.equal(address_zero);
         });
 
         it('Approve host can use consumer balance should work', async () => {
