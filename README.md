@@ -22,7 +22,21 @@ We use dotenv to load env variable from `.env` file, copy `.env_template` to `.e
 
 ### Deploy
 Make sure the local node is running and the `.env` config correctly.
+
 Run `yarn deploy`, will see the addresses of contracts output in the console.
+
+For example deploying the contracts to Testnet
+
+```
+yarn deploy --testnet
+```
+
+You can also continue deploying the contracts from the last step with `--history` parameter:
+
+```
+yarn deploy --testnet --history
+```
+
 Find the latest deployment file: `./publish/local.json`.
 
 ## Testnet
