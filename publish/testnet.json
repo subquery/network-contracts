@@ -118,5 +118,23 @@
         "address": "0xD9c834cc85a74357303bFF0E03e5337B10f3d23a",
         "bytecodeHash": "b50d8e76a189d47bd8781ce490f9f86844ee61c51ebd81fbb6bb0976333a9017",
         "lastUpdate": "Tue, 04 Jul 2023 00:23:54 GMT"
+    },
+    "PermissionedExchange": {
+        "innerAddress": "0xC0eD89e00EE7815196C6D3288CD5B41fe9Fc2452",
+        "address": "0xC60545B44f6b083dEE11F59A21942DC839f5621E",
+        "bytecodeHash": "8ee7c6224c1ceb34be68d9039ad5896034180004094f427beaf7a175c8909cac",
+        "lastUpdate": "Tue, 04 Jul 2023 00:29:06 GMT"
+    },
+    "ConsumerHost": {
+        "innerAddress": "0xedCe0fc459842D712E218C8260E4203b7CA8e10D",
+        "address": "0x165a38Ff8a0EEE4A557F8349Dde3f9ef714d5DC5",
+        "bytecodeHash": "8c9d0cd9e4e4c6c62763a2f03c54b38a28a1f8cc60bfd15adc516de1a57a8d8e",
+        "lastUpdate": "Tue, 04 Jul 2023 00:29:46 GMT"
+    },
+    "DisputeManager": {
+        "innerAddress": "0x11611D790F89aD71A5AA625fEAf6263E67d6BC16",
+        "address": "0x317f20Bd29afd21b968ABF0DA79B98174835ccE1",
+        "bytecodeHash": "d6c54bf5972f360487685de1a85e91e61d88a9817b5874fe7e9f0b061909912c",
+        "lastUpdate": "Tue, 04 Jul 2023 00:30:20 GMT"
     }
 }
