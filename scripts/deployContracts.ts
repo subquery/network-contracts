@@ -43,7 +43,7 @@ let network: SubqueryNetwork;
 let logger: Pino.Logger;
 let confirms: number;
 let config: ContractConfig;
-const deployment: Partial<ContractDeployment> = {};
+let deployment: Partial<ContractDeployment> = {};
 
 function clearObject(obj: Record<string, unknown>) {
     const keys = Object.keys(obj);
@@ -70,7 +70,7 @@ export function saveDeployment(name: string, deployment: Partial<ContractDeploym
 
 function loadDeployment(name: string) {
     const filePath = `${__dirname}/../publish/${name}.json`;
-    const deployment =JSON.parse(readFileSync(filePath, 'utf8'));
+    const deployment = JSON.parse(readFileSync(filePath, 'utf8'));
     getLogger('Load Deployments').info(`Load deployment for network: ${name} from ${filePath}:`);
 
     return deployment;
@@ -185,7 +185,8 @@ export async function deployContracts(
 
     if (network !== 'local') getLogger('Wallet').info(colorText(`Deploy with wallet ${wallet.address}`, TextColor.GREEN));
     if (options?.history) {
-        Object.assign(deployment, ...loadDeployment(network));
+        const localDeployment = loadDeployment(network);
+        deployment = localDeployment;
     } else {
         clearObject(deployment)
     }
