@@ -44,6 +44,12 @@
                 "internalType": "uint256",
                 "name": "rewards",
                 "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "commission",
+                "type": "uint256"
             }
         ],
         "name": "DistributeRewards",
@@ -267,6 +273,30 @@
             }
         ],
         "name": "getRewardAddTable",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "indexer",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            }
+        ],
+        "name": "getRewardDebt",
         "outputs": [
             {
                 "internalType": "uint256",

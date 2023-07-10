@@ -280,65 +280,6 @@
     {
         "inputs": [
             {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "name": "channels",
-        "outputs": [
-            {
-                "internalType": "enum StateChannel.ChannelStatus",
-                "name": "status",
-                "type": "uint8"
-            },
-            {
-                "internalType": "address",
-                "name": "indexer",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "consumer",
-                "type": "address"
-            },
-            {
-                "internalType": "uint256",
-                "name": "total",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "spent",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "expiredAt",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "terminatedAt",
-                "type": "uint256"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "deploymentId",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "bool",
-                "name": "terminateByIndexer",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
                 "components": [
                     {
                         "internalType": "uint256",
@@ -427,6 +368,11 @@
             {
                 "internalType": "uint256",
                 "name": "channelId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "preTotal",
                 "type": "uint256"
             },
             {
