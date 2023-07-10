@@ -7,7 +7,7 @@ pragma solidity ^0.8.15;
 
 interface IConsumer {
     // Params: channel id, msg sender, amount, callback info.
-    function paid(uint256 channelId, uint256 amount, bytes memory callback) external;
+    function paid(uint256 channelId, address sender, uint256 amount, bytes memory callback) external;
 
     // Params: channel id, msg sender, amount.
     function claimed(uint256 channelId, uint256 amount) external;
