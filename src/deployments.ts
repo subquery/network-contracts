@@ -2,7 +2,7 @@
 
 import { ContractDeployment, SubqueryNetwork } from './types';
 // The path is compatible with `build` folder
-import mainnetDeployment from './publish/mainnet.json';
+import mainnetDeployment from '../publish/mainnet.json';
 import keplerDeployment from './publish/kepler.json';
 import testnetDeployment from './publish/testnet.json';
 
