@@ -114,10 +114,10 @@
         "lastUpdate": "Tue, 13 Jun 2023 05:30:46 GMT"
     },
     "StateChannel": {
-        "innerAddress": "0x6f3a10DF6AE7862C10fa3254884B55AC01f95823",
+        "innerAddress": "0x0e1d5a09f2449Eacaa3B9A5CE340873F36f4836b",
         "address": "0xcd5E5807298a24734EBcC3B08F10Bf6b0C309E45",
-        "bytecodeHash": "a43a8d8f2be0bbda7a5b622b15ebe162796189f7c4788363a7d26a6a49460dc2",
-        "lastUpdate": "Thu, 06 Apr 2023 07:40:08 GMT"
+        "bytecodeHash": "b50d8e76a189d47bd8781ce490f9f86844ee61c51ebd81fbb6bb0976333a9017",
+        "lastUpdate": "Fri, 07 Jul 2023 03:32:11 GMT"
     },
     "PermissionedExchange": {
         "innerAddress": "0x1f64750a740fa3517da92e0300e3fa1e64d06cf4",
@@ -126,10 +126,10 @@
         "lastUpdate": "Thu, 08 June 2023 07:43:15 GMT"
     },
     "ConsumerHost": {
-        "innerAddress": "0x0A9Cb79bA58BD4C29470F468Ed6F2B673F02559E",
+        "innerAddress": "0x62A7338594a35075cd12aba67ba42c6cb091FB08",
         "address": "0xAcA09ae390F372e38b383fd5853babce78c49F16",
-        "bytecodeHash": "0d6fa951cf2b430d987da3ca30c82e59bf406ffa2fdaa5ccc83fde45e3296a0d",
-        "lastUpdate": "Thu, 06 Apr 2023 07:45:56 GMT"
+        "bytecodeHash": "8c9d0cd9e4e4c6c62763a2f03c54b38a28a1f8cc60bfd15adc516de1a57a8d8e",
+        "lastUpdate": "Fri, 07 Jul 2023 03:33:06 GMT"
     },
     "DisputeManager": {
         "innerAddress": "0x65b63d992461c35a34Faf2945b618Fd086842514",
