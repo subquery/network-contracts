@@ -45,18 +45,20 @@ describe('StateChannel Contract', () => {
         const recoveredConsumer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), consumerSign);
         expect(consumer.address).to.equal(recoveredConsumer);
 
-        await stateChannel.open(
-            channelId,
-            indexer.address,
-            consumer.address,
-            amount,
-            price,
-            expiration,
-            deploymentId,
-            '0x',
-            indexerSign,
-            consumerSign
-        );
+        await stateChannel
+            .connect(consumer)
+            .open(
+                channelId,
+                indexer.address,
+                consumer.address,
+                amount,
+                price,
+                expiration,
+                deploymentId,
+                '0x',
+                indexerSign,
+                consumerSign
+            );
     };
 
     const buildQueryState = async (
@@ -300,17 +302,17 @@ describe('StateChannel Contract', () => {
 
             const abi = ethers.utils.defaultAbiCoder;
             const msg = abi.encode(
-                ['uint256', 'address', 'address', 'uint256', 'bytes'],
-                [channelId, indexer.address, consumer.address, etherParse('0.1'), '0x']
+                ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
+                [channelId, indexer.address, consumer.address, etherParse('1'), etherParse('0.1'), '0x']
             );
             let payload = ethers.utils.keccak256(msg);
             let sign = await consumer.signMessage(ethers.utils.arrayify(payload));
             const recover = ethers.utils.verifyMessage(ethers.utils.arrayify(payload), sign);
             expect(consumer.address).to.equal(recover);
 
-            await expect(stateChannel.fund(channelId, etherParse('0.1'),etherParse('0.1'), '0x', sign)).to.be.revertedWith(
-                'SC003'
-            );
+            await expect(
+                stateChannel.fund(channelId, etherParse('1'), etherParse('0.1'), '0x', sign)
+            ).to.be.revertedWith('SC003');
 
             // extend the expiration
             const state = await stateChannel.channel(channelId);
@@ -327,7 +329,7 @@ describe('StateChannel Contract', () => {
             await stateChannel.extend(channelId, preExpirationAt, nextExpiration, indexerSign, consumerSign);
 
             // fund again when renewal expiredAt.
-            await stateChannel.fund(channelId, etherParse('0.1'), etherParse('0.1'), '0x', sign);
+            await stateChannel.fund(channelId, etherParse('1'), etherParse('0.1'), '0x', sign);
             const state2 = await stateChannel.channel(channelId);
             expect(state2.total).to.equal(etherParse('1.1'));
 
