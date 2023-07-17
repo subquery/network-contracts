@@ -8,6 +8,6 @@ include = ["/rust", "/publish"]
 path = "rust/lib.rs"
 
 [dependencies]
-ethers = "2.0"
+ethers = { git = "https://github.com/gakonst/ethers-rs.git", tag = "ethers-v2.0.7" }
 paste = "1.0"
 serde_json = "1.0"
