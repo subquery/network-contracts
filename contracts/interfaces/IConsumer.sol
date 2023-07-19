@@ -10,7 +10,7 @@ interface IConsumer {
     function isSigner(address signer) external view returns (bool);
 
     // Params: channel id, msg sender, amount, callback info.
-    function paid(uint256 channelId, uint256 amount, bytes memory callback) external;
+    function paid(uint256 channelId, address sender, uint256 amount, bytes memory callback) external;
 
     // Params: channel id, msg sender, amount.
     function claimed(uint256 channelId, uint256 amount) external;

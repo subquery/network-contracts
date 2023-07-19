@@ -13,6 +13,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './interfaces/IConsumer.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/ISettings.sol';
+import './interfaces/IConsumerRegistry.sol';
 
 /**
  * @title Consumer Host Contract
@@ -249,6 +250,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      */
     function paid(
         uint256 channelId,
+        address sender,
         uint256 amount,
         bytes memory callback
     ) external {
@@ -270,8 +272,12 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
             bytes32 payload = keccak256(abi.encode(channelId, amount, nonce));
             bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
             address sConsumer = ECDSA.recover(hash, sign);
-            require(sConsumer == consumer || sConsumer == controllers[consumer], 'C006');
+            require(sConsumer == consumer || IConsumerRegistry(settings.getConsumerRegistry()).isController(consumer, sConsumer), 'C006');
             info.nonce = nonce + 1;
+
+            require(sConsumer == sender, 'C010');
+        } else {
+            require(signerIndex[sender] > 0 || consumer == sender, 'C011');
         }
 
         info.balance -= (amount + fixedFee);
@@ -314,7 +320,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         if (signerIndex[sConsumer] > 0) {
             return true;
         }
-        return channels[channelId] == sConsumer || controllers[channels[channelId]] == sConsumer;
+        return channels[channelId] == sConsumer || IConsumerRegistry(settings.getConsumerRegistry()).isController(channels[channelId], sConsumer);
     }
 
     /**

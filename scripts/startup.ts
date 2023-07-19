@@ -259,12 +259,12 @@ const main = async () => {
         case '--testnet':
             confirms = 1;
             startupConfig = startupTestnetConfig;
-            await createProjects(sdk);
+            // await createProjects(sdk);
             await createPlanTemplates(sdk);
-            await airdrop(sdk);
+            // await airdrop(sdk);
             // await setupPermissionExchange(sdk, wallet);
-            await balanceTransfer(sdk, wallet);
-            await ownerTransfer(sdk);
+            // await balanceTransfer(sdk, wallet);
+            // await ownerTransfer(sdk);
             break;
         default:
             throw new Error(`Please provide correct network ${networkType}`);

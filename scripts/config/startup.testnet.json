@@ -12,8 +12,8 @@
     ],
     "amounts": [100, 200, 300, 400, 500, 600, 900, 900, 1200],
     "planTemplates": [
+        {"period": 604800, "dailyReqCap": 50000, "rateLimit": 3000},
         {"period": 129600, "dailyReqCap": 100000, "rateLimit": 6000},
-        {"period": 86400, "dailyReqCap": 50000, "rateLimit": 3000},
         {"period": 43200, "dailyReqCap": 10000, "rateLimit": 1200},
         {"period": 21600, "dailyReqCap": 2000, "rateLimit": 600},
         {"period": 7200, "dailyReqCap": 100, "rateLimit": 300}
