@@ -26,6 +26,7 @@ contract Settings is ISettings, Ownable, Constants {
     address public permissionedExchange;
     address public disputeManager;
     address public stateChannel;
+    address public priceOracle;
 
     constructor() Ownable() {}
 
@@ -64,7 +65,8 @@ contract Settings is ISettings, Ownable, Constants {
         address _rewardsHelper,
         address _inflationController,
         address _vesting,
-        address _permissionedExchange
+        address _permissionedExchange,
+        address _priceOracle
     ) external override onlyOwner {
         require(_sqToken != ZERO_ADDRESS);
         require(_staking != ZERO_ADDRESS);
@@ -76,6 +78,7 @@ contract Settings is ISettings, Ownable, Constants {
         require(_rewardsStaking != ZERO_ADDRESS);
         require(_rewardsHelper != ZERO_ADDRESS);
         require(_permissionedExchange != ZERO_ADDRESS);
+        require(_priceOracle != ZERO_ADDRESS);
 
         sqToken = _sqToken;
         staking = _staking;
@@ -87,6 +90,8 @@ contract Settings is ISettings, Ownable, Constants {
         inflationController = _inflationController;
         vesting = _vesting;
         permissionedExchange = _permissionedExchange;
+        priceOracle = _priceOracle;
+
     }
 
     function setSQToken(address _sqToken) external override onlyOwner {
@@ -233,5 +238,13 @@ contract Settings is ISettings, Ownable, Constants {
 
     function getStateChannel() external view returns (address) {
         return stateChannel;
+    }
+
+    function setPriceOracle(address _priceOracle) external override onlyOwner {
+        priceOracle = _priceOracle;
+    }
+
+    function getPriceOracle() external view returns (address) {
+        return priceOracle;
     }
 }

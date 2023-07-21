@@ -12,6 +12,7 @@ import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IPlanManager.sol';
 import './interfaces/IEraManager.sol';
+import './interfaces/IPriceOracle.sol'
 
 /**
  * @title Plan Manager Contract
@@ -44,6 +45,9 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
 
     /// @notice PlanId => Plan
     mapping(uint256 => Plan) private plans;
+    
+    /// @notice PlanId => bool true: stable / false: SQT
+    mapping(uint256 => bool) private priceMode;
 
     /// @notice indexer => deploymentId => already plan number
     mapping(address => mapping(bytes32 => uint256)) private limits;
@@ -59,7 +63,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     event PlanTemplateStatusChanged(uint256 indexed templateId, bool active);
 
     /// @notice Emitted when Indexer create a Plan.
-    event PlanCreated(uint256 indexed planId, address creator, bytes32 deploymentId, uint256 planTemplateId, uint256 price);
+    event PlanCreated(uint256 indexed planId, address creator, bytes32 deploymentId, uint256 planTemplateId, uint256 price, bool isStablePrice);
 
     /// @notice Emitted when Indexer remove a Plan.
     event PlanRemoved(uint256 indexed planId);
@@ -134,16 +138,17 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param templateId plan template id
      * @param deploymentId project deployment Id on plan
      */
-    function createPlan(uint256 price, uint256 templateId, bytes32 deploymentId) external {
+    function createPlan(uint256 price, uint256 templateId, bytes32 deploymentId, bool isStablePrice) external {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         require(price > 0, 'PM005');
         require(templates[templateId].active, 'PM006');
         require(limits[msg.sender][deploymentId] < limit, 'PM007');
 
         plans[nextPlanId] = Plan(msg.sender, price, templateId, deploymentId, true);
+        priceMode[nextPlanId] = isStablePrice;
         limits[msg.sender][deploymentId] += 1;
 
-        emit PlanCreated(nextPlanId, msg.sender, deploymentId, templateId, price);
+        emit PlanCreated(nextPlanId, msg.sender, deploymentId, templateId, price, isStablePrice);
         nextPlanId++;
     }
 
@@ -158,6 +163,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         bytes32 deploymentId = plans[planId].deploymentId;
         limits[msg.sender][deploymentId] -= 1;
         delete plans[planId];
+        delete priceMode[planId];
 
         emit PlanRemoved(planId);
     }
@@ -176,6 +182,11 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
             require(plan.deploymentId == deploymentId, 'PM010');
         } else {
             require(deploymentId != bytes32(0), 'PM011');
+        }
+
+        //stable price mode
+        if (priceMode[planId]){
+            plan.price = plan.price * 1e18 / IPriceOracle(settings.getPriceOracle()).getAssetPrice(settings.getSQToken());
         }
 
         // create closed service agreement contract
