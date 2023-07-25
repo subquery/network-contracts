@@ -69,7 +69,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     event Withdraw(address consumer, uint256 amount, uint256 balance);
 
     /// @notice Emitted when consumer pay for open a state channel
-    event Paid(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance);
+    event Paid(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance, uint256 fee);
 
     /// @notice Emitted when consumer pay for open a state channel
     event Claimed(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance);
@@ -274,7 +274,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         info.balance -= (amount + fixedFee);
         fee += fixedFee;
 
-        emit Paid(channelId, consumer, msg.sender, amount, info.balance);
+        emit Paid(channelId, consumer, msg.sender, amount, info.balance, fixedFee);
     }
 
     /**
