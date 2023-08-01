@@ -85,6 +85,7 @@
     "PM010": "DeploymentId can not be empty",
     "PM011": "Plan not match with the deployment",
     "PM012": "invalid plan id",
+    "PM013": "priced token not support",
     "PO001": "Invalid penalty rate",
     "PO002": "invalid expiration",
     "PO003": "should deposit positive amount",
@@ -153,5 +154,6 @@
     "V008": "Vesting: transfer failure",
     "V009": "vesting start date must in the future",
     "V010": "balance not enough for allocation",
-    "V011": "vesting is not set on the account"
+    "V011": "vesting is not set on the account",
+    "OR001": "cannot get the price"
 }

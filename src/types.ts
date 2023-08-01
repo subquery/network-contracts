@@ -25,7 +25,8 @@ import {
     DisputeManager__factory,
     ProxyAdmin__factory,
     Vesting__factory,
-    VSQToken__factory
+    VSQToken__factory,
+    PriceOracle__factory,
 } from './typechain';
 import type CONTRACTS from './contracts';
 
@@ -94,4 +95,5 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PermissionedExchange: PermissionedExchange__factory,
     ConsumerHost: ConsumerHost__factory,
     DisputeManager: DisputeManager__factory,
+    PriceOracle: PriceOracle__factory,
   }

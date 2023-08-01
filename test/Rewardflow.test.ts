@@ -54,9 +54,9 @@ describe.skip('Rewardflow tests', () => {
         await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
         await planManager.createPlanTemplate(time.duration.days(10).toString(), 1000, 100, METADATA_HASH);
         await planManager.createPlanTemplate(time.duration.days(15).toString(), 1000, 100, METADATA_HASH);
-        await planManager.connect(indexer).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
-        await planManager.connect(indexer).createPlan(etherParse('10000'), 1, DEPLOYMENT_ID);
-        await planManager.connect(indexer).createPlan(etherParse('10000'), 2, DEPLOYMENT_ID);
+        await planManager.connect(indexer).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID, token.address);
+        await planManager.connect(indexer).createPlan(etherParse('10000'), 1, DEPLOYMENT_ID, token.address);
+        await planManager.connect(indexer).createPlan(etherParse('10000'), 2, DEPLOYMENT_ID, token.address);
     };
 
     const collectRewards = async (indexer) => {

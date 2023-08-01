@@ -67,7 +67,7 @@ describe('Maintenance Mode Test', () => {
         await indexerRegistry.connect(wallet_2).registerIndexer(etherParse('1000'), METADATA_HASH, 0);
 
         await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
-        await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
+        await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID, token.address);
         await purchaseOfferMarket.createPurchaseOffer(
             DEPLOYMENT_ID,
             0,
@@ -138,7 +138,7 @@ describe('Maintenance Mode Test', () => {
 
     describe('PlanManager check', () => {
         it('createPlan should ban in maintenance mode', async () => {
-            await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID)).to.be.revertedWith('G019');
+            await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID, token.address)).to.be.revertedWith('G019');
         });
         it('removePlan should ban in maintenance mode', async () => {
             await expect(planManager.removePlan(0)).to.be.revertedWith('G019');

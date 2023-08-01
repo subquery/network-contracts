@@ -11,6 +11,7 @@ import {METADATA_HASH} from './constants';
 const {constants, time} = require('@openzeppelin/test-helpers');
 import web3 from 'web3';
 import {StaticJsonRpcProvider} from '@ethersproject/providers';
+import { SQToken } from 'build';
 
 export {constants, time};
 
@@ -106,11 +107,11 @@ export async function acceptPlan(
     period: number,
     value: BigNumber,
     DEPLOYMENT_ID,
-    serviceAgreementRegistry: ServiceAgreementRegistry,
+    sqtToken: SQToken,
     planManager: PlanManager
 ) {
     await planManager.createPlanTemplate(time.duration.days(period).toString(), 1000, 100, METADATA_HASH);
-    await planManager.connect(indexer).createPlan(value, 0, DEPLOYMENT_ID);
+    await planManager.connect(indexer).createPlan(value, 0, DEPLOYMENT_ID, sqtToken.address);
     await planManager.connect(consumer).acceptPlan((await planManager.nextPlanId()).toNumber() - 1, DEPLOYMENT_ID);
 }
 

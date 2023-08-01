@@ -109,7 +109,7 @@ describe.skip('RewardsDistributer Contract', () => {
         await queryRegistry.connect(indexer).updateIndexingStatusToReady(DEPLOYMENT_ID);
         // create plan
         await planManager.createPlanTemplate(time.duration.days(7).toString(), 1000, 100, METADATA_HASH);
-        await planManager.connect(indexer).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
+        await planManager.connect(indexer).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID, token.address);
         // purchase plan
         await startNewEra(mockProvider, eraManager);
         await futureTimestamp(mockProvider, time.duration.days(2));
@@ -218,7 +218,7 @@ describe.skip('RewardsDistributer Contract', () => {
         await queryRegistry.connect(indexer).updateIndexingStatusToReady(DEPLOYMENT_ID);
         // create plan
         await planManager.createPlanTemplate(time.duration.days(35).toString(), 1000, 100, METADATA_HASH);
-        await planManager.connect(indexer).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
+        await planManager.connect(indexer).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID, token.address);
         // purchase plan
         await startNewEra(mockProvider, eraManager);
         await futureTimestamp(mockProvider, time.duration.days(4));

@@ -52,6 +52,8 @@ import {
   ConsumerHost__factory,
   DisputeManager,
   DisputeManager__factory,
+  PriceOracle,
+  PriceOracle__factory,
   ContractName,
 } from '../src';
 
@@ -85,6 +87,7 @@ export type Contracts = {
   vesting: Vesting;
   consumerHost: ConsumerHost;
   disputeManager: DisputeManager;
+  priceOracle: PriceOracle;
 };
 
 export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: string}, FactoryContstructor]>> = {
@@ -132,6 +135,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
   PermissionedExchange: PermissionedExchange__factory,
   ConsumerHost: ConsumerHost__factory,
   DisputeManager: DisputeManager__factory,
+  PriceOracle: PriceOracle__factory,
 }
 
 export type Config = number | string | BigNumber | string[];

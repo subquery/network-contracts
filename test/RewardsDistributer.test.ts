@@ -125,7 +125,7 @@ describe('RewardsDistributer Contract', () => {
                 5,
                 etherParse('3'),
                 DEPLOYMENT_ID,
-                serviceAgreementRegistry,
+                token,
                 planManager
             );
         });
@@ -136,7 +136,7 @@ describe('RewardsDistributer Contract', () => {
                 30,
                 etherParse('3'),
                 DEPLOYMENT_ID,
-                serviceAgreementRegistry,
+                token,
                 planManager
             );
             const currentEar = await (await eraManager.eraNumber()).toNumber();
@@ -171,10 +171,10 @@ describe('RewardsDistributer Contract', () => {
                 30,
                 etherParse('3'),
                 DEPLOYMENT_ID,
-                serviceAgreementRegistry,
+                token,
                 planManager
             );
-            await acceptPlan(root, consumer, 30, etherParse('3'), DEPLOYMENT_ID, serviceAgreementRegistry, planManager);
+            await acceptPlan(root, consumer, 30, etherParse('3'), DEPLOYMENT_ID, token, planManager);
         });
         it('rewards should be able to collect and distribute', async () => {
             //move to Era3
@@ -569,7 +569,7 @@ describe('RewardsDistributer Contract', () => {
                 5,
                 etherParse('3'),
                 DEPLOYMENT_ID,
-                serviceAgreementRegistry,
+                token,
                 planManager
             );
             await timeTravel(mockProvider, 6);
@@ -685,7 +685,7 @@ describe('RewardsDistributer Contract', () => {
                 5,
                 etherParse('3'),
                 DEPLOYMENT_ID,
-                serviceAgreementRegistry,
+                token,
                 planManager
             );
             await startNewEra(mockProvider, eraManager);
@@ -734,7 +734,7 @@ describe('RewardsDistributer Contract', () => {
                 5,
                 etherParse('3'),
                 DEPLOYMENT_ID,
-                serviceAgreementRegistry,
+                token,
                 planManager
             );
             await startNewEra(mockProvider, eraManager);

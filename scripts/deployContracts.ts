@@ -34,6 +34,7 @@ import {
     Vesting,
     ConsumerHost,
     DisputeManager,
+    PriceOracle,
 } from '../src';
 import { SubqueryNetwork } from '@subql/contract-sdk';
 import { CONTRACT_FACTORY, Config, ContractConfig, Contracts, FactoryContstructor, UPGRADEBAL_CONTRACTS } from './contracts';
@@ -272,6 +273,9 @@ export async function deployContracts(
         
         // deploy DisputeManager contract
         const disputeManager = await deployContract<DisputeManager>('DisputeManager', { proxyAdmin, initConfig: [settingsAddress] });
+
+        // delpoy PriceOracle contract
+        const priceOracle = await deployContract<PriceOracle>('PriceOracle')
     
         // Register addresses on settings contract
         const txToken = await settings.setTokenAddresses(
@@ -285,6 +289,7 @@ export async function deployContracts(
             deployment.InflationController.address,
             deployment.Vesting.address,
             deployment.PermissionedExchange.address,
+            deployment.PriceOracle.address,
             await getOverrides()
         );
     
@@ -329,6 +334,7 @@ export async function deployContracts(
                 vesting,
                 consumerHost,
                 disputeManager,
+                priceOracle,
             },
         ];
     } catch (error) {

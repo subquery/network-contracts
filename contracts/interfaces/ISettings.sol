@@ -24,7 +24,8 @@ interface ISettings {
         address _rewardsHelper,
         address _inflationController,
         address _vesting,
-        address _permissionedExchange
+        address _permissionedExchange,
+        address _priceOracle
     ) external;
 
     function setSQToken(address _sqToken) external;
@@ -94,4 +95,8 @@ interface ISettings {
     function setStateChannel(address _stateChannel) external;
 
     function getStateChannel() external view returns (address);
+
+    function setPriceOracle(address _priceOracle) external;
+
+    function getPriceOracle() external view returns (address);
 }

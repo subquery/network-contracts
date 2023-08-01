@@ -21,6 +21,7 @@ import PermissionedExchange from './artifacts/contracts/PermissionedExchange.sol
 import Vesting from './artifacts/contracts/Vesting.sol/Vesting.json';
 import ConsumerHost from './artifacts/contracts/ConsumerHost.sol/ConsumerHost.json';
 import DisputeManager from './artifacts/contracts/DisputeManager.sol/DisputeManager.json';
+import PriceOracle from './artifacts/contracts/PriceOracle.sol/PriceOracle.json';
 
 export default {
     Settings,
@@ -46,4 +47,5 @@ export default {
     Vesting,
     ConsumerHost,
     DisputeManager,
+    PriceOracle,
 };

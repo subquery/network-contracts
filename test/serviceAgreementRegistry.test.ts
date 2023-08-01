@@ -392,7 +392,7 @@ describe('Service Agreement Registry Contract', () => {
             // period 10 days
             // use planTemplateId: 1
             // use planId: 1
-            await planManager.connect(wallet1).createPlan(100, 1, deploymentIds[0]);
+            await planManager.connect(wallet1).createPlan(100, 1, deploymentIds[0], token.address);
         });
 
         it('renew agreement generated from purchaseOfferMarket should fail', async () => {
