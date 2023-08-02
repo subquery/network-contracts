@@ -85,7 +85,6 @@
     "PM010": "DeploymentId can not be empty",
     "PM011": "Plan not match with the deployment",
     "PM012": "invalid plan id",
-    "PM013": "priced token not support",
     "PO001": "Invalid penalty rate",
     "PO002": "invalid expiration",
     "PO003": "should deposit positive amount",

@@ -19,7 +19,6 @@ import {
     PriceOracle,
 } from '../src';
 import {constants, registerIndexer, startNewEra, time, etherParse, eventFrom} from './helper';
-import {utils} from 'ethers';
 
 describe('PlanManger Contract', () => {
     const mockProvider = waffle.provider;
@@ -35,6 +34,7 @@ describe('PlanManger Contract', () => {
     let rewardsDistributor: RewardsDistributer;
     let rewardsHelper: RewardsHelper;
     let priceOracle: PriceOracle;
+    let usdc = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
 
     beforeEach(async () => {
         [indexer, consumer] = await ethers.getSigners();
@@ -286,8 +286,6 @@ describe('PlanManger Contract', () => {
 
     describe('Stable priced Plan', () => {
         beforeEach(async () => {
-            let usdc = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
-     
             await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '2000');
             await token.transfer(consumer.address, etherParse('100'));
             await token.connect(consumer).increaseAllowance(planManager.address, etherParse('100'));
@@ -297,8 +295,6 @@ describe('PlanManger Contract', () => {
             await queryRegistry.startIndexing(DEPLOYMENT_ID);
             await queryRegistry.updateIndexingStatusToReady(DEPLOYMENT_ID);
 
-            //allow usdc as priced token
-            await planManager.setAllowedPricedToken(usdc,true);
             //set oracle 
             //1 USDC = 13 SQT
             await priceOracle.setAssetPrice(usdc, token.address, BigNumber.from("13000000000000000000000000000000"));
@@ -309,15 +305,6 @@ describe('PlanManger Contract', () => {
             await planManager.createPlan(BigNumber.from("2730000"), 0, constants.ZERO_BYTES32, usdc); // plan id = 1;
         });
 
-        it('set allowed priced token should work', async () => {
-            let token = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
-            expect(await planManager.allowedPricedTokens(token)).to.eq(false);
-            await planManager.setAllowedPricedToken(token, true);
-            expect(await planManager.allowedPricedTokens(token)).to.eq(true);
-            await planManager.setAllowedPricedToken(token, false);
-            expect(await planManager.allowedPricedTokens(token)).to.eq(false);
-        });
-
         it('feed price to price oracle should work', async () => {
             let tokenA = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
             let tokenB = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
@@ -326,28 +313,18 @@ describe('PlanManger Contract', () => {
             expect(await priceOracle.getAssetPrice(tokenA, tokenB)).to.be.eq(etherParse('1'));
         });
 
-        it('create a plan with not allowed stable price should fail', async () => {
-            let token = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
-            await expect(planManager.createPlan(BigNumber.from("2730000"), 0, constants.ZERO_BYTES32, token)).to.be.revertedWith("PM013");
-        });
-
         it('create a plan with allowed stable price should work', async () => {
-            let usdc = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
             await planManager.createPlan(BigNumber.from("2730000"), 0, constants.ZERO_BYTES32, usdc);
             expect(await planManager.pricedToken(2)).to.eq(usdc);
         });
 
         it('accept the plan with allowed stable price should work', async () => {
             const balance = await token.balanceOf(consumer.address);
-            const plan = await planManager.getPlan(1);
             const rewardsDistrBalance = await token.balanceOf(rewardsDistributor.address);
             let price = await planManager.getPrice(1);
             expect(price).to.equal(etherParse("35.49"));
             await token.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, price);
-            const tx = await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
-            const agreementId = (
-                await eventFrom(tx, serviceAgreementRegistry, 'ClosedAgreementCreated(address,address,bytes32,uint256)')
-            ).serviceAgreementId;
+            await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
 
             // check balances
             expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(price));
@@ -355,7 +332,6 @@ describe('PlanManger Contract', () => {
         });
 
         it('accept the plan with no price should fail', async () => {
-            let usdc = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
             await priceOracle.setAssetPrice(usdc, token.address, BigNumber.from("0"));
             await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith("OR001");
         });

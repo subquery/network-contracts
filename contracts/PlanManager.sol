@@ -49,9 +49,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     /// @notice PlanId => address plan priced token
     mapping(uint256 => address) public pricedToken;
 
-    /// @notice allowed priced token
-    mapping(address => bool) public allowedPricedTokens;
-
     /// @notice indexer => deploymentId => already plan number
     mapping(address => mapping(bytes32 => uint256)) private limits;
 
@@ -81,10 +78,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         settings = _settings;
         limit = 5;
         nextPlanId = 1;
-    }
-
-    function setAllowedPricedToken(address token, bool allow) external onlyOwner {
-        allowedPricedTokens[token] = allow;
     }
 
     /**
@@ -147,9 +140,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      */
     function createPlan(uint256 price, uint256 templateId, bytes32 deploymentId, address _pricedToken) external {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
-        if(_pricedToken != settings.getSQToken()){
-            require(allowedPricedTokens[_pricedToken], 'PM013');
-        }
         require(price > 0, 'PM005');
         require(templates[templateId].active, 'PM006');
         require(limits[msg.sender][deploymentId] < limit, 'PM007');

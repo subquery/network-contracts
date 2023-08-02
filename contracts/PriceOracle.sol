@@ -23,7 +23,7 @@ contract PriceOracle is Ownable {
     ///Thus, if we wanted set 1 USDC = 13 SQT The price be 13000000000000000000000000000000(13e30)
 
     function setAssetPrice(address assetA, address assetB, uint price) public onlyOwner {
-        prices[assetA][assetB] = price;
         emit PricePosted(assetA, assetB, prices[assetA][assetB], price);
+        prices[assetA][assetB] = price;
     }
 }
