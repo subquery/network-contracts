@@ -228,6 +228,11 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param templateId plan template id
      */
     function getPlanTemplate(uint256 templateId) external view returns (PlanTemplateV2 memory) {
-        return v2templates[templateId];
+        if (v2templates[templateId].period > 0) {
+            return v2templates[templateId];
+        } else {
+            PlanTemplate memory v1template = templates[templateId];
+            return PlanTemplateV2(v1template.period, v1template.dailyReqCap, v1template.rateLimit, settings.getSQToken(), v1template.metadata, v1template.active);
+        }
     }
 }
