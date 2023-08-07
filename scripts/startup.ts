@@ -8,14 +8,14 @@ import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
 import {METADATA_HASH} from '../test/constants';
 import {cidToBytes32, lastestTime} from '../test/helper';
-import {ContractSDK, SubqueryNetwork } from '../build';
+import {ContractSDK, SubqueryNetwork} from '../build';
 import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
 
-import { parseEther } from 'ethers/lib/utils';
-import { Provider, StaticJsonRpcProvider } from '@ethersproject/providers';
-import { getLogger } from './logger';
+import {parseEther} from 'ethers/lib/utils';
+import {Provider, StaticJsonRpcProvider} from '@ethersproject/providers';
+import {getLogger} from './logger';
 
-let startupConfig : any = startupTestnetConfig;
+let startupConfig: any = startupTestnetConfig;
 let logger: Pino.Logger;
 let confirms = 0;
 let provider: Provider;
@@ -23,7 +23,7 @@ let provider: Provider;
 async function getOverrides(): Promise<Overrides> {
     const price = await provider.getGasPrice();
     const gasPrice = price.add(20000000000); // add extra 15 gwei
-    return { gasPrice };
+    return {gasPrice};
 }
 
 async function sendTx(transaction: (overrides: Overrides) => Promise<ContractTransaction>): Promise<ContractReceipt> {
@@ -46,27 +46,29 @@ export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpc
     if (_provider) provider = _provider;
     logger = getLogger('Projects');
     for (const creator of startupConfig.QRCreator) {
-        const result = await sdk.queryRegistry.creatorWhitelist(creator); 
+        const result = await sdk.queryRegistry.creatorWhitelist(creator);
         if (!result) {
             logger.info(`Add project creator: ${creator}`);
             await sendTx((overrides) => sdk.queryRegistry.addCreator(creator, overrides));
         } else {
             logger.info(`${creator} has already exist`);
-        } 
+        }
     }
-    
+
     logger.info('Create Query Projects');
-    const queryId = await sdk.queryRegistry.nextQueryId(); 
+    const queryId = await sdk.queryRegistry.nextQueryId();
     const projects = startupConfig.projects;
-    for (var i = queryId.toNumber(); i < projects.length; i++){
+    for (var i = queryId.toNumber(); i < projects.length; i++) {
         const {name, metadataCid, versionCid, deploymentId} = projects[i];
         logger.info(`Create query project: ${name}`);
-        await sendTx((overrides) => sdk.queryRegistry.createQueryProject(
-            cidToBytes32(metadataCid),
-            cidToBytes32(versionCid),
-            cidToBytes32(deploymentId),
-            overrides
-        ));
+        await sendTx((overrides) =>
+            sdk.queryRegistry.createQueryProject(
+                cidToBytes32(metadataCid),
+                cidToBytes32(versionCid),
+                cidToBytes32(deploymentId),
+                overrides
+            )
+        );
     }
 
     logger.info('Remove owner from creator whitelist');
@@ -82,12 +84,14 @@ export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpc
 export async function createPlanTemplates(sdk: ContractSDK, _provider?: StaticJsonRpcProvider) {
     if (_provider) provider = _provider;
     logger = getLogger('Plan Templates');
-    const templateId = await sdk.planManager.nextTemplateId(); 
+    const templateId = await sdk.planManager.nextTemplateId();
     const templates = startupConfig.planTemplates;
-    for (var i = templateId.toNumber(); i < templates.length; i++){
+    for (var i = templateId.toNumber(); i < templates.length; i++) {
         const {period, dailyReqCap, rateLimit} = templates[i];
         logger.info(`Create No. ${i} plan template: ${period} | ${dailyReqCap} | ${rateLimit}`);
-        await sendTx((overrides) => sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, METADATA_HASH, overrides));
+        await sendTx((overrides) =>
+            sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, METADATA_HASH, overrides)
+        );
     }
 
     console.log('\n');
@@ -97,30 +101,34 @@ export async function airdrop(sdk: ContractSDK, _provider?: StaticJsonRpcProvide
     if (_provider) provider = _provider;
     logger = getLogger('Airdrop');
     for (const controller of startupConfig.AirdropController) {
-        const result = await sdk.airdropper.controllers(controller); 
+        const result = await sdk.airdropper.controllers(controller);
         if (!result) {
             logger.info(`Add airdrop controller: ${controller}`);
             await sendTx((overrides) => sdk.airdropper.addController(controller, overrides));
         } else {
             logger.info(`${controller} has already exist`);
-        } 
+        }
     }
 
     if (startupConfig.airdrops.length > 0) {
-        logger.info("Create Airdrop round");
+        logger.info('Create Airdrop round');
         const {startTime, endTime} = await getAirdropTimeConfig(provider);
-        const receipt = await sendTx((overrides) => sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime, overrides));
+        const receipt = await sendTx((overrides) =>
+            sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime, overrides)
+        );
         const roundId = receipt.events[0].args.roundId;
         logger.info(`Round ${roundId} created: ${startTime} | ${endTime}`);
-    
+
         const airdropAccounts = startupConfig.airdrops;
         const rounds = new Array(airdropAccounts.length).fill(roundId);
         const amounts = startupConfig.amounts.map((a) => parseEther(a.toString()));
-    
-        logger.info("Batch send Airdrop");
-        const totalAmount = eval(startupConfig.amounts.join("+"));
-        await sendTx((overrides) => sdk.sqToken.increaseAllowance(sdk.airdropper.address, parseEther(totalAmount.toString()), overrides));
-        await sendTx((overrides) => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts, overrides));    
+
+        logger.info('Batch send Airdrop');
+        const totalAmount = eval(startupConfig.amounts.join('+'));
+        await sendTx((overrides) =>
+            sdk.sqToken.increaseAllowance(sdk.airdropper.address, parseEther(totalAmount.toString()), overrides)
+        );
+        await sendTx((overrides) => sdk.airdropper.batchAirdrop(airdropAccounts, rounds, amounts, overrides));
     }
 
     const owner = await sdk.airdropper.owner();
@@ -136,20 +144,22 @@ export async function airdrop(sdk: ContractSDK, _provider?: StaticJsonRpcProvide
 async function setupPermissionExchange(sdk: ContractSDK, wallet: Wallet, _provider?: StaticJsonRpcProvider) {
     if (_provider) provider = _provider;
     logger = getLogger('Permission Exchange');
-    logger.info("Setup exchange order");
+    logger.info('Setup exchange order');
     const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = startupConfig.exchange;
     const usdcContract = new ethers.Contract(usdcAddress, Token.abi, provider);
     await usdcContract.connect(wallet).increaseAllowance(sdk.permissionedExchange.address, tokenGiveBalance);
 
-    await sendTx((overrides) => sdk.permissionedExchange.createPairOrders(
-        usdcAddress,
-        sdk.sqToken.address,
-        amountGive,
-        amountGet,
-        expireDate,
-        tokenGiveBalance,
-        overrides
-    ));
+    await sendTx((overrides) =>
+        sdk.permissionedExchange.createPairOrders(
+            usdcAddress,
+            sdk.sqToken.address,
+            amountGive,
+            amountGet,
+            expireDate,
+            tokenGiveBalance,
+            overrides
+        )
+    );
 
     console.log('\n');
 }
@@ -158,14 +168,14 @@ export async function ownerTransfer(sdk: ContractSDK) {
     logger = getLogger('Owner Transfer');
     const contracts = [
         sdk.airdropper,
-        sdk.consumerHost, 
+        sdk.consumerHost,
         sdk.disputeManager,
         sdk.eraManager,
-        sdk.indexerRegistry, 
+        sdk.indexerRegistry,
         sdk.inflationController,
         sdk.permissionedExchange,
         sdk.planManager,
-        sdk.proxyAdmin, 
+        sdk.proxyAdmin,
         sdk.purchaseOfferMarket,
         sdk.queryRegistry,
         sdk.rewardsDistributor,
@@ -179,8 +189,9 @@ export async function ownerTransfer(sdk: ContractSDK) {
         sdk.stakingManager,
         sdk.stateChannel,
         sdk.vesting,
+        sdk.consumerRegistry,
     ];
-    
+
     for (const contract of contracts) {
         const owner = await contract.owner();
         if (owner != startupConfig.multiSign) {
@@ -188,7 +199,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
             await sendTx((overrides) => contract.transferOwnership(startupConfig.multiSign, overrides));
         } else {
             console.info(`${contract.contractName} ownership has already transfered`);
-        } 
+        }
     }
 
     console.log('\n');
@@ -197,11 +208,11 @@ export async function ownerTransfer(sdk: ContractSDK) {
 export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
     logger = getLogger('Token');
     const balance = await sdk.sqToken.balanceOf(wallet.address);
-    if (balance.gt(0)){
+    if (balance.gt(0)) {
         logger.info(`Transfer ${balance.toString()} from ${wallet.address} to ${startupConfig.multiSign}`);
         await sendTx((overrides) => sdk.sqToken.transfer(startupConfig.multiSign, balance, overrides));
-    }else{
-        logger.info(`Balance already transfered`)
+    } else {
+        logger.info(`Balance already transfered`);
     }
 }
 
@@ -222,10 +233,10 @@ const main = async () => {
             network = 'testnet';
             break;
         default:
-            throw new Error(`Please provide correct network ${networkType}`)
+            throw new Error(`Please provide correct network ${networkType}`);
     }
 
-    const sdk = ContractSDK.create(wallet, { network });
+    const sdk = ContractSDK.create(wallet, {network});
 
     switch (networkType) {
         case '--mainnet':
@@ -256,11 +267,11 @@ const main = async () => {
             // await ownerTransfer(sdk);
             break;
         default:
-            throw new Error(`Please provide correct network ${networkType}`)
+            throw new Error(`Please provide correct network ${networkType}`);
     }
 
     logger = getLogger('Contract Setup');
-    logger.info('🎉Contract setup completed!🎉')
+    logger.info('🎉Contract setup completed!🎉');
 };
 
 main();
