@@ -136,5 +136,11 @@
         "address": "0x317f20Bd29afd21b968ABF0DA79B98174835ccE1",
         "bytecodeHash": "d6c54bf5972f360487685de1a85e91e61d88a9817b5874fe7e9f0b061909912c",
         "lastUpdate": "Tue, 04 Jul 2023 00:30:20 GMT"
+    },
+    "ConsumerRegistry": {
+        "innerAddress": "0xcB615eF6BFfD196A721620ECE316A9eaf325bc68",
+        "address": "0xa85Ff42A55D06bCd3470506589841e55bD967AD0",
+        "bytecodeHash": "1b51ca8446a48c6022b81bf868a0a0db85b98ddf3cd26c11f5a4e9b8089372c9",
+        "lastUpdate": "Thu, 10 Aug 2023 23:42:24 GMT"
     }
 }
