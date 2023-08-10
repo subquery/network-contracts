@@ -322,6 +322,7 @@ export async function deployContracts(
         });
 
         // Register addresses on settings contract
+        getLogger('SettingContract').info('🤞 Set token addresses');
         const txToken = await settings.setTokenAddresses(
             deployment.SQToken.address,
             deployment.Staking.address,
@@ -337,7 +338,9 @@ export async function deployContracts(
         );
 
         await txToken.wait(confirms);
+        getLogger('SettingContract').info('🚀  Set token addresses success');
 
+        getLogger('SettingContract').info('🤞 Set project addresses');
         const txProject = await settings.setProjectAddresses(
             deployment.IndexerRegistry.address,
             deployment.QueryRegistry.address,
@@ -351,6 +354,7 @@ export async function deployContracts(
         );
 
         await txProject.wait(confirms);
+        getLogger('SettingContract').info('🚀  Set project addresses success');
 
         return [
             deployment,
@@ -382,7 +386,7 @@ export async function deployContracts(
             },
         ];
     } catch (error) {
-        logger?.info(`Failed to deploy contracts: ${JSON.stringify(error)}`);
+        getLogger('ContractDeployment').info(`Failed to deploy contracts: ${JSON.stringify(error)}`);
         saveDeployment(network, deployment);
     }
 }
@@ -440,13 +444,13 @@ export async function upgradeContracts(
         }
 
         const { address } = deployment[contractName];
-        // const [innerAddr] = await upgradeContract(proxyAdmin, address, factory, wallet, confirms);
-        // deployment[contractName] = {
-        //     innerAddress: innerAddr,
-        //     address,
-        //     bytecodeHash: codeToHash(CONTRACTS[contractName].bytecode),
-        //     lastUpdate: new Date().toUTCString(),
-        // };
+        const [innerAddr] = await upgradeContract(proxyAdmin, address, factory, wallet, confirms);
+        deployment[contractName] = {
+            innerAddress: innerAddr,
+            address,
+            bytecodeHash: codeToHash(CONTRACTS[contractName].bytecode),
+            lastUpdate: new Date().toUTCString(),
+        };
     }
     return deployment as ContractDeployment;
 }
