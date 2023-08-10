@@ -22,6 +22,7 @@ import Vesting from './artifacts/contracts/Vesting.sol/Vesting.json';
 import ConsumerHost from './artifacts/contracts/ConsumerHost.sol/ConsumerHost.json';
 import DisputeManager from './artifacts/contracts/DisputeManager.sol/DisputeManager.json';
 import PriceOracle from './artifacts/contracts/PriceOracle.sol/PriceOracle.json';
+import ConsumerRegistry from './artifacts/contracts/ConsumerRegistry.sol/ConsumerRegistry.json';
 
 export default {
     Settings,
@@ -48,4 +49,5 @@ export default {
     ConsumerHost,
     DisputeManager,
     PriceOracle,
+    ConsumerRegistry,
 };

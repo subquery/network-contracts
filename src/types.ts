@@ -1,6 +1,6 @@
 import {Wallet} from '@ethersproject/wallet';
 import {BaseContract, ContractFactory, Signer} from 'ethers';
-import { Provider } from '@ethersproject/abstract-provider';
+import {Provider} from '@ethersproject/abstract-provider';
 
 import {
     SQToken__factory,
@@ -27,23 +27,24 @@ import {
     Vesting__factory,
     VSQToken__factory,
     PriceOracle__factory,
+    ConsumerRegistry__factory,
 } from './typechain';
 import type CONTRACTS from './contracts';
 
 export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'local';
 
 export type Network = {
-    chainId: string,
-    chainName: string,
-    rpcUrls: string[],
-    blockExplorerUrls: string[],
-    iconUrls: string[],
+    chainId: string;
+    chainName: string;
+    rpcUrls: string[];
+    blockExplorerUrls: string[];
+    iconUrls: string[];
     nativeCurrency: {
-        name: string,
-        symbol: string,
-        decimals: number
-    }
-}
+        name: string;
+        symbol: string;
+        decimals: number;
+    };
+};
 
 export type DeploymentConfig = {
     network: Network;
@@ -70,7 +71,7 @@ export interface FactoryContstructor {
     connect: (address: string, signerOrProvider: Signer | Provider) => BaseContract;
     readonly abi: any;
 }
-  
+
 export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ProxyAdmin: ProxyAdmin__factory,
     Settings: Settings__factory,
@@ -96,4 +97,5 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ConsumerHost: ConsumerHost__factory,
     DisputeManager: DisputeManager__factory,
     PriceOracle: PriceOracle__factory,
-  }
+    ConsumerRegistry: ConsumerRegistry__factory,
+};

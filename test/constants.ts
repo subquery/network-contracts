@@ -22,8 +22,8 @@ export const versions = [
 
 export const deploymentIds = [
     '0xbec921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c55',
-    '0xccc921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c55',
-    '0xddc921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c55',
+    '0xccc921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c56',
+    '0xddc921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c57',
 ];
 
 export const mmrRoot = '0xab3921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c55';
