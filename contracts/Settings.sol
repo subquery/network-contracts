@@ -251,6 +251,7 @@ contract Settings is ISettings, Ownable, Constants {
 
     function getConsumerRegistry() external view returns (address) {
         return consumerRegistry;
+    }
 
     function setPriceOracle(address _priceOracle) external override onlyOwner {
         priceOracle = _priceOracle;
