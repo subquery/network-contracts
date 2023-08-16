@@ -25,9 +25,9 @@
     },
     "VSQToken": {
         "innerAddress": "",
-        "address": "0xe613276dBA2A737524DE8b7eEaE32aB9949CD931",
-        "bytecodeHash": "6021c61785bf9430b6c3741e2336c7e1be85ffcde5d22ef83cf1ef8c3fcadb69",
-        "lastUpdate": "Thu, 06 Apr 2023 06:09:40 GMT"
+        "address": "0x11bEf44e07479E445f40ec79a7bf8497dCc6c5C3",
+        "bytecodeHash": "16df6d167a4ae72780a8b91523027ec287901295ffdbb57685b76f0e54514cca",
+        "lastUpdate": "Wed, 16 Aug 2023 05:25:38 GMT"
     },
     "Airdropper": {
         "innerAddress": "",
