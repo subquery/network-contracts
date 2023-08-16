@@ -7,9 +7,9 @@
     },
     "Settings": {
         "innerAddress": "",
-        "address": "0x65016767BF259c49ba20D92e70de3baeE56F7454",
-        "bytecodeHash": "7796589e3d4b50c3fcd5305af139786ce4257aa2e76b3aaa1a5c8741fd0eb119",
-        "lastUpdate": "Thu, 06 Apr 2023 06:08:20 GMT"
+        "address": "0x679f878B4b5AAF24bB95029c2552558D26dCB6d1",
+        "bytecodeHash": "5001873e97ecbeb963fd32d6c97c65b2cc81a38af6c98299e4eac2b53de4e9c4",
+        "lastUpdate": "Wed, 16 Aug 2023 04:33:30 GMT"
     },
     "InflationController": {
         "innerAddress": "0x0aef31cffdd16cade9cdf2f2e9de55b413768d3b",
