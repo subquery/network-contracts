@@ -97,6 +97,14 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /**
+     * @notice Update setting state.
+     * @param _settings ISettings contract
+     */
+    function setSettings(ISettings _settings) external onlyOwner {
+        settings = _settings;
+    }
+
+    /**
      * @notice Update the expiration of the terminate
      * @param expiration terminate expiration time in seconds
      */

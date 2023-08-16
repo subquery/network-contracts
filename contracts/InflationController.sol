@@ -60,6 +60,14 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
     }
 
     /**
+     * @notice Update setting state.
+     * @param _settings ISettings contract
+     */
+    function setSettings(ISettings _settings) external onlyOwner {
+        settings = _settings;
+    }
+
+    /**
      * @notice Set the inflation rate
      * @param _inflationRate One year inflationRate for SQT token
      */
