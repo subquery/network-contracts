@@ -134,6 +134,14 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     }
 
     /**
+     * @notice Update setting state.
+     * @param _settings ISettings contract
+     */
+    function setSettings(ISettings _settings) external onlyOwner {
+        settings = _settings;
+    }
+
+    /**
      * @notice allow admin the set the Penalty Rate for cancel unexpired offer.
      * @param _penaltyRate penalty rate to set
      */
