@@ -5,6 +5,44 @@
             {
                 "indexed": true,
                 "internalType": "address",
+                "name": "consumer",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "controller",
+                "type": "address"
+            }
+        ],
+        "name": "ControllerAdded",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "consumer",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "controller",
+                "type": "address"
+            }
+        ],
+        "name": "ControllerRemoved",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
                 "name": "previousOwner",
                 "type": "address"
             },
@@ -19,78 +57,42 @@
         "type": "event"
     },
     {
-        "inputs": [],
-        "name": "PER_BILL",
-        "outputs": [
+        "inputs": [
             {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
+                "internalType": "address",
+                "name": "consumer",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "controller",
+                "type": "address"
             }
         ],
-        "stateMutability": "view",
+        "name": "addController",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "PER_MILL",
-        "outputs": [
+        "inputs": [
             {
-                "internalType": "uint256",
+                "internalType": "address",
                 "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "PER_TRILL",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "ZERO_ADDRESS",
-        "outputs": [
+                "type": "address"
+            },
             {
                 "internalType": "address",
                 "name": "",
                 "type": "address"
             }
         ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "inflationDestination",
+        "name": "controllers",
         "outputs": [
             {
-                "internalType": "address",
+                "internalType": "bool",
                 "name": "",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "inflationRate",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
+                "type": "bool"
             }
         ],
         "stateMutability": "view",
@@ -102,16 +104,6 @@
                 "internalType": "contract ISettings",
                 "name": "_settings",
                 "type": "address"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_inflationRate",
-                "type": "uint256"
-            },
-            {
-                "internalType": "address",
-                "name": "_inflationDestination",
-                "type": "address"
             }
         ],
         "name": "initialize",
@@ -120,41 +112,27 @@
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "lastInflationTimestamp",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "mintInflatedTokens",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_destination",
+                "name": "consumer",
                 "type": "address"
             },
             {
-                "internalType": "uint256",
-                "name": "_amount",
-                "type": "uint256"
+                "internalType": "address",
+                "name": "controller",
+                "type": "address"
             }
         ],
-        "name": "mintSQT",
-        "outputs": [],
-        "stateMutability": "nonpayable",
+        "name": "isController",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -171,34 +149,26 @@
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "renounceOwnership",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_inflationDestination",
+                "name": "consumer",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "controller",
                 "type": "address"
             }
         ],
-        "name": "setInflationDestination",
+        "name": "removeController",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_inflationRate",
-                "type": "uint256"
-            }
-        ],
-        "name": "setInflationRate",
+        "inputs": [],
+        "name": "renounceOwnership",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

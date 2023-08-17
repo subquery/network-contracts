@@ -26,6 +26,7 @@ const main = async () => {
             'Vesting',
             'ConsumerHost',
             'DisputeManager',
+            'ConsumerRegistry',
         ];
         contracts.forEach(function (name) {
             const readPath = `${__dirname}/../artifacts/contracts/${name}.sol/${name}.json`;

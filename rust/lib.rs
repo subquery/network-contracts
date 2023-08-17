@@ -27,13 +27,10 @@ const CHAIN_NAME_TESTNET: &str = "Polygon Mumbai";
 
 const RPC_MAINNET1: &str = "";
 const RPC_MAINNET2: &str = "";
-const RPC_KEPLER1: &str =
-    "https://polygon.api.onfinality.io/rpc?apikey=e7acc294-c859-48ed-a742-5aadf0a084b9";
-const RPC_KEPLER2: &str = "https://polygon-rpc.com";
-const RPC_TESTNET1: &str =
-    "https://polygon-mumbai.api.onfinality.io/rpc?apikey=6b43efc3-a13c-4250-9203-e097fb9f239";
-const RPC_TESTNET2: &str = "https://rpc.ankr.com/polygon_mumbai";
-const RPC_TESTNET3: &str = "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78";
+const RPC_KEPLER1: &str = "https://polygon-rpc.com";
+const RPC_KEPLER2: &str = "https://polygon.api.onfinality.io/rpc";
+const RPC_TESTNET1: &str = "https://rpc.ankr.com/polygon_mumbai";
+const RPC_TESTNET2: &str = "https://polygon-mumbai.api.onfinality.io/rpc";
 
 const IPFS_MAINNET: &str = "";
 const IPFS_KEPLER: &str = "https://unauthipfs.subquery.network/ipfs/api/v0";
@@ -142,11 +139,7 @@ impl Network {
             Network::Testnet => NetworkConfig {
                 chain_id: CHAIN_ID_TESTNET,
                 chain_name: CHAIN_NAME_TESTNET.to_owned(),
-                rpc_urls: vec![
-                    RPC_TESTNET1.to_owned(),
-                    RPC_TESTNET2.to_owned(),
-                    RPC_TESTNET3.to_owned(),
-                ],
+                rpc_urls: vec![RPC_TESTNET1.to_owned(), RPC_TESTNET2.to_owned()],
                 icon_urls: vec![CHAIN_ICON_URL.to_owned()],
                 block_explorer_urls: vec![BLOCK_EXPLORER_TESTNET.to_owned()],
                 native_currency: NetworkCurrency {
@@ -334,5 +327,5 @@ contract!(
 contract!(
     consumer_registry,
     "ConsumerRegistry",
-    include_str!("../artifacts/contracts/ConsumerRegistry.sol/ConsumerRegistry.json")
+    include_str!("../publish/ABI/ConsumerRegistry.json")
 );

@@ -77,6 +77,19 @@
     },
     {
         "inputs": [],
+        "name": "consumerRegistry",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "disputeManager",
         "outputs": [
             {
@@ -91,6 +104,19 @@
     {
         "inputs": [],
         "name": "eraManager",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getConsumerRegistry",
         "outputs": [
             {
                 "internalType": "address",
@@ -476,6 +502,19 @@
         "inputs": [
             {
                 "internalType": "address",
+                "name": "_consumerRegistry",
+                "type": "address"
+            }
+        ],
+        "name": "setConsumerRegistry",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
                 "name": "_disputeManager",
                 "type": "address"
             }
@@ -585,6 +624,11 @@
             {
                 "internalType": "address",
                 "name": "_stateChannel",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_consumerRegistry",
                 "type": "address"
             }
         ],

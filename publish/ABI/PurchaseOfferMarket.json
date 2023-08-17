@@ -479,6 +479,19 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "contract ISettings",
+                "name": "_settings",
+                "type": "address"
+            }
+        ],
+        "name": "setSettings",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "settings",
         "outputs": [

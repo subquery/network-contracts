@@ -465,6 +465,19 @@
     {
         "inputs": [
             {
+                "internalType": "contract ISettings",
+                "name": "_settings",
+                "type": "address"
+            }
+        ],
+        "name": "setSettings",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "_limit",
                 "type": "uint256"
