@@ -3,6 +3,7 @@
 
 pragma solidity ^0.8.15;
 
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
@@ -10,7 +11,7 @@ import './interfaces/ISettings.sol';
 import './interfaces/IStaking.sol';
 import './interfaces/IVesting.sol';
 
-contract VSQToken is Initializable {
+contract VSQToken is Initializable, OwnableUpgradeable {
     string private _name = 'VotingSubQueryToken';
     string private _symbol = 'VSQT';
     uint8 private _decimals = 18;
@@ -19,6 +20,15 @@ contract VSQToken is Initializable {
     function initialize(ISettings _settings) external initializer {
         settings = _settings;
     }
+
+    /**
+     * @notice Update setting state.
+     * @param _settings ISettings contract
+     */
+    function setSettings(ISettings _settings) external onlyOwner {
+        settings = _settings;
+    }
+
 
     function name() public view returns (string memory) {
         return _name;
