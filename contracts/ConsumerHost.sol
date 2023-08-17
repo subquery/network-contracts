@@ -13,6 +13,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './interfaces/IConsumer.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/ISettings.sol';
+import './interfaces/IConsumerRegistry.sol';
 
 /**
  * @title Consumer Host Contract
@@ -69,7 +70,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     event Withdraw(address consumer, uint256 amount, uint256 balance);
 
     /// @notice Emitted when consumer pay for open a state channel
-    event Paid(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance);
+    event Paid(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance, uint256 fee);
 
     /// @notice Emitted when consumer pay for open a state channel
     event Claimed(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance);
@@ -99,6 +100,14 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         // Approve Token to State Channel.
         IERC20 sqt = IERC20(_sqt);
         sqt.approve(_channel, sqt.totalSupply());
+    }
+
+    /**
+     * @notice Update setting state.
+     * @param _settings ISettings contract
+     */
+    function setSettings(ISettings _settings) external onlyOwner {
+        settings = _settings;
     }
 
     /**
@@ -174,6 +183,14 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
         signers.pop();
         delete signerIndex[_signer];
+    }
+
+    /**
+     * @notice check sender is signer
+     * @param signer the checked address
+     */
+    function isSigner(address signer) external view returns (bool) {
+        return signerIndex[signer] > 0;
     }
 
     /**
@@ -263,7 +280,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
             bytes32 payload = keccak256(abi.encode(channelId, amount, nonce));
             bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
             address sConsumer = ECDSA.recover(hash, sign);
-            require(sConsumer == consumer || sConsumer == controllers[consumer], 'C006');
+            require(sConsumer == consumer || IConsumerRegistry(settings.getConsumerRegistry()).isController(consumer, sConsumer), 'C006');
             info.nonce = nonce + 1;
 
             require(sConsumer == sender, 'C010');
@@ -274,7 +291,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         info.balance -= (amount + fixedFee);
         fee += fixedFee;
 
-        emit Paid(channelId, consumer, msg.sender, amount, info.balance);
+        emit Paid(channelId, consumer, msg.sender, amount, info.balance, fixedFee);
     }
 
     /**
@@ -311,7 +328,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         if (signerIndex[sConsumer] > 0) {
             return true;
         }
-        return channels[channelId] == sConsumer || controllers[channels[channelId]] == sConsumer;
+        return channels[channelId] == sConsumer || IConsumerRegistry(settings.getConsumerRegistry()).isController(channels[channelId], sConsumer);
     }
 
     /**

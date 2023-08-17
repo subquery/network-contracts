@@ -6,6 +6,9 @@ pragma solidity ^0.8.15;
 //import '@openzeppelin/contracts/utils/introspection/IERC165.sol';
 
 interface IConsumer {
+    // Params: msg sender
+    function isSigner(address signer) external view returns (bool);
+
     // Params: channel id, msg sender, amount, callback info.
     function paid(uint256 channelId, address sender, uint256 amount, bytes memory callback) external;
 

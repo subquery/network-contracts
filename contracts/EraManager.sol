@@ -54,6 +54,14 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
         emit NewEraStart(eraNumber, msg.sender);
     }
 
+    /**
+     * @notice Update setting state.
+     * @param _settings ISettings contract
+     */
+    function setSettings(ISettings _settings) external onlyOwner {
+        settings = _settings;
+    }
+
     function enableMaintenance() external onlyOwner {
         maintenance = true;
     }

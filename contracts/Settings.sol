@@ -26,6 +26,7 @@ contract Settings is ISettings, Ownable, Constants {
     address public permissionedExchange;
     address public disputeManager;
     address public stateChannel;
+    address public consumerRegistry;
 
     constructor() Ownable() {}
 
@@ -36,7 +37,8 @@ contract Settings is ISettings, Ownable, Constants {
         address _planManager,
         address _serviceAgreementRegistry,
         address _disputeManager,
-        address _stateChannel
+        address _stateChannel,
+        address _consumerRegistry
     ) external override onlyOwner {
         require(_indexerRegistry != ZERO_ADDRESS);
         require(_queryRegistry != ZERO_ADDRESS);
@@ -44,6 +46,8 @@ contract Settings is ISettings, Ownable, Constants {
         require(_planManager != ZERO_ADDRESS);
         require(_serviceAgreementRegistry != ZERO_ADDRESS);
         require(_disputeManager != ZERO_ADDRESS);
+        require(_stateChannel != ZERO_ADDRESS);
+        require(_consumerRegistry != ZERO_ADDRESS);
 
         indexerRegistry = _indexerRegistry;
         queryRegistry = _queryRegistry;
@@ -52,6 +56,7 @@ contract Settings is ISettings, Ownable, Constants {
         serviceAgreementRegistry = _serviceAgreementRegistry;
         disputeManager = _disputeManager;
         stateChannel = _stateChannel;
+        consumerRegistry = _consumerRegistry;
     }
 
     function setTokenAddresses(
@@ -233,5 +238,13 @@ contract Settings is ISettings, Ownable, Constants {
 
     function getStateChannel() external view returns (address) {
         return stateChannel;
+    }
+
+    function setConsumerRegistry(address _consumerRegistry) external override onlyOwner {
+        consumerRegistry = _consumerRegistry;
+    }
+
+    function getConsumerRegistry() external view returns (address) {
+        return consumerRegistry;
     }
 }

@@ -14,6 +14,7 @@ import './interfaces/IConsumer.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IRewardsPool.sol';
+import './interfaces/IConsumerRegistry.sol';
 
 /**
  * @title State Channel Contract
@@ -92,6 +93,14 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         __Ownable_init();
 
         terminateExpiration = 86400;
+        settings = _settings;
+    }
+
+    /**
+     * @notice Update setting state.
+     * @param _settings ISettings contract
+     */
+    function setSettings(ISettings _settings) external onlyOwner {
         settings = _settings;
     }
 
@@ -236,9 +245,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             require(cConsumer.checkSign(channelId, payload, sign), 'C006');
             cConsumer.paid(channelId, msg.sender, amount, callback);
         } else {
-            bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
-            address sConsumer = ECDSA.recover(hash, sign);
-            require(sConsumer == consumer, 'C006');
+            _checkSign(payload, sign, consumer, false);
         }
 
         // transfer the balance to contract
@@ -382,12 +389,12 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     /// @notice Check the signature of the hash with given addresses
     function _checkSign(
         bytes32 payload,
-        bytes memory indexerSign,
+        bytes memory sign,
         address checkSigner,
         bool isIndexer
     ) private view {
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
-        address signer = ECDSA.recover(hash, indexerSign);
+        address signer = ECDSA.recover(hash, sign);
 
         if (isIndexer) {
             if (signer == checkSigner) {
@@ -398,8 +405,13 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             address controller = IIndexerRegistry(settings.getIndexerRegistry()).getController(checkSigner);
             require(signer == controller, 'SC009');
         } else {
-            // TODO consumer controllers
-            require(signer == checkSigner, 'SC011');
+            if (signer == checkSigner) {
+                return;
+            }
+
+            //check consumer registered
+            bool isController = IConsumerRegistry(settings.getConsumerRegistry()).isController(checkSigner, signer);
+            require(isController, 'SC011');
         }
     }
 

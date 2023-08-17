@@ -33,6 +33,14 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
     }
 
     /**
+     * @notice Update setting state.
+     * @param _settings ISettings contract
+     */
+    function setSettings(ISettings _settings) external onlyOwner {
+        settings = _settings;
+    }
+
+    /**
      * @dev Apply a list of stakers' StakeChanges, call applyStakeChange one by one.
      */
     function batchApplyStakeChange(address indexer, address[] memory stakers) public {

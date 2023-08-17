@@ -86,6 +86,14 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     }
 
     /**
+     * @notice Update setting state.
+     * @param _settings ISettings contract
+     */
+    function setSettings(ISettings _settings) external onlyOwner {
+        settings = _settings;
+    }
+
+    /**
      * @notice Set controller role for this contract, controller have the permission to addQuota for trader.
      * @param _controller The account address to set.
      * @param _isController Set to controller or not.

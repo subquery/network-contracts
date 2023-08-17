@@ -3,12 +3,12 @@ import {expect} from 'chai';
 import Pino from 'pino';
 
 import setup from './setup';
-import {ContractSDK, SubqueryNetwork, } from '../build';
+import {ContractSDK, SubqueryNetwork} from '../build';
 import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
-import { getLogger } from './logger';
-import { cidToBytes32 } from '../test/helper';
+import {getLogger} from './logger';
+import {cidToBytes32} from '../test/helper';
 
 let logger: Pino.Logger;
 
@@ -25,7 +25,9 @@ async function checkInitialisation(sdk: ContractSDK, config, startupConfig, call
         expect(await sdk.inflationController.inflationRate()).to.eql(BN(rate));
 
         logger.info(`InflationDestination to be equal ${destination}`);
-        expect((await sdk.inflationController.inflationDestination()).toUpperCase()).to.equal(destination.toUpperCase());
+        expect((await sdk.inflationController.inflationDestination()).toUpperCase()).to.equal(
+            destination.toUpperCase()
+        );
         logger.info('🎉 InflationController Contract verified\n');
 
         // SQToken
@@ -97,9 +99,9 @@ async function checkInitialisation(sdk: ContractSDK, config, startupConfig, call
         //QueryRegistry
         logger = getLogger('QueryRegistry');
         logger.info(`🧮 Verifying QueryRegistry Contract: ${sdk.queryRegistry.address}`);
-        logger.info(`${caller} is not project creator`)
+        logger.info(`${caller} is not project creator`);
         expect(await sdk.queryRegistry.creatorWhitelist(caller)).to.be.false;
-        logger.info(`${multiSig} is project creator`)
+        logger.info(`${multiSig} is project creator`);
         expect(await sdk.queryRegistry.creatorWhitelist(multiSig)).to.be.true;
         logger.info('🎉 QueryRegistry Contract verified\n');
 
@@ -125,7 +127,7 @@ async function checkInitialisation(sdk: ContractSDK, config, startupConfig, call
         logger.info(`DisputeManager minimumDeposit to be equal ${minDeposit}`);
         expect(await sdk.disputeManager.minimumDeposit()).to.eql(BN(minDeposit));
         logger.info('🎉 DisputeManager Contract verified\n');
-    } catch(err){
+    } catch (err) {
         logger.info(`Failed to verify contract: ${err}`);
     }
 }
@@ -136,7 +138,7 @@ async function checkConfiguration(sdk: ContractSDK, config) {
         let logger = getLogger('planTemplates');
         logger.info(`🧮 Verifying planTemplates`);
         let planTemplates = config.planTemplates;
-        for(let i = 0; i < planTemplates.length; i++) {
+        for (let i = 0; i < planTemplates.length; i++) {
             let planTemplate = planTemplates[i];
             let pm = await sdk.planManager.getPlanTemplate(i);
             expect(BN(planTemplate.period)).to.eql(pm.period);
@@ -147,8 +149,8 @@ async function checkConfiguration(sdk: ContractSDK, config) {
         //projects
         logger = getLogger('projects');
         logger.info(`🧮 Verifying projects`);
-        let projects = config.projects; 
-        for(let i = 0; i < projects.length; i++) {
+        let projects = config.projects;
+        for (let i = 0; i < projects.length; i++) {
             let project = projects[i];
             let p = await sdk.queryRegistry.queryInfos(i);
             expect(cidToBytes32(project.deploymentId)).to.eql(p.latestDeploymentId);
@@ -159,8 +161,8 @@ async function checkConfiguration(sdk: ContractSDK, config) {
         //QRCreators
         logger = getLogger('QRCreators');
         logger.info(`🧮 Verifying QRCreators`);
-        let creators = config.QRCreator; 
-        for(let i = 0; i < creators.length; i++) {
+        let creators = config.QRCreator;
+        for (let i = 0; i < creators.length; i++) {
             let creator = creators[i];
             let isCreator = await sdk.queryRegistry.creatorWhitelist(creator);
             expect(isCreator).to.be.false;
@@ -169,8 +171,8 @@ async function checkConfiguration(sdk: ContractSDK, config) {
         //AirdropControllers
         logger = getLogger('AirdropControllers');
         logger.info(`🧮 Verifying AirdropControllers`);
-        let controllers = config.AirdropController; 
-        for(let i = 0; i < controllers.length; i++) {
+        let controllers = config.AirdropController;
+        for (let i = 0; i < controllers.length; i++) {
             let controller = controllers[i];
             let isController = await sdk.airdropper.controllers(controller);
             expect(isController).to.eql(false);
@@ -187,14 +189,14 @@ async function checkOwnership(sdk: ContractSDK, owner: string) {
     logger.info(`🧮 Verifying ownership`);
     const contracts = [
         sdk.airdropper,
-        sdk.consumerHost, 
+        sdk.consumerHost,
         sdk.disputeManager,
         sdk.eraManager,
-        sdk.indexerRegistry, 
+        sdk.indexerRegistry,
         sdk.inflationController,
         sdk.permissionedExchange,
         sdk.planManager,
-        sdk.proxyAdmin, 
+        sdk.proxyAdmin,
         sdk.purchaseOfferMarket,
         sdk.queryRegistry,
         sdk.rewardsDistributor,
@@ -208,6 +210,7 @@ async function checkOwnership(sdk: ContractSDK, owner: string) {
         sdk.stakingManager,
         sdk.stateChannel,
         sdk.vesting,
+        sdk.consumerRegistry,
     ];
     try {
         for (const contract of contracts) {
@@ -242,12 +245,12 @@ const main = async () => {
             startupConfig = startupTestnetConfig;
             break;
         default:
-            throw new Error(`Please provide correct network ${networkType}`)
+            throw new Error(`Please provide correct network ${networkType}`);
     }
 
-    sdk = ContractSDK.create(wallet, { network });
+    sdk = ContractSDK.create(wallet, {network});
 
-    const verifyType = process.argv[3]; 
+    const verifyType = process.argv[3];
     switch (verifyType) {
         case '--initialisation':
             await checkInitialisation(sdk, config, startupConfig, caller);
@@ -266,6 +269,6 @@ const main = async () => {
         default:
             throw new Error(`Please provide correct network ${networkType}`);
     }
-}
+};
 
 main();

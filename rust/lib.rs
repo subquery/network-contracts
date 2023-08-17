@@ -330,3 +330,9 @@ contract!(
     "DisputeManager",
     include_str!("../publish/ABI/DisputeManager.json")
 );
+
+contract!(
+    consumer_registry,
+    "ConsumerRegistry",
+    include_str!("../artifacts/contracts/ConsumerRegistry.sol/ConsumerRegistry.json")
+);

@@ -1,42 +1,49 @@
-import { BaseContract, Overrides } from 'ethers';
-import {Contract} from 'ethers';
-import {readFileSync, writeFileSync} from 'fs';
+import { Wallet } from '@ethersproject/wallet';
+import { BaseContract, Contract, Overrides } from 'ethers';
+import { readFileSync, writeFileSync } from 'fs';
 import Pino from 'pino';
 import sha256 from 'sha256';
-import {Wallet} from '@ethersproject/wallet';
 import CONTRACTS from '../src/contracts';
-import {ContractDeployment, ContractName} from '../src/types';
-import { colorText, getLogger, TextColor } from './logger';
+import { ContractDeployment, ContractName } from '../src/types';
+import { TextColor, colorText, getLogger } from './logger';
 
+import { SubqueryNetwork } from '@subql/contract-sdk';
 import {
-    ProxyAdmin,
-    ProxyAdmin__factory,
     AdminUpgradeabilityProxy__factory,
-    InflationController,
-    Staking,
-    StakingManager,
-    QueryRegistry,
-    ServiceAgreementRegistry,
-    Settings,
-    SQToken,
-    VSQToken,
+    Airdropper,
+    ConsumerHost,
+    ConsumerRegistry,
+    DisputeManager,
     EraManager,
     IndexerRegistry,
+    InflationController,
+    PermissionedExchange,
     PlanManager,
+    ProxyAdmin,
+    ProxyAdmin__factory,
     PurchaseOfferMarket,
+    QueryRegistry,
     RewardsDistributer,
+    RewardsHelper,
     RewardsPool,
     RewardsStaking,
-    RewardsHelper,
+    SQToken,
+    ServiceAgreementRegistry,
+    Settings,
+    Staking,
+    StakingManager,
     StateChannel,
-    Airdropper,
-    PermissionedExchange,
+    VSQToken,
     Vesting,
-    ConsumerHost,
-    DisputeManager,
 } from '../src';
-import { SubqueryNetwork } from '@subql/contract-sdk';
-import { CONTRACT_FACTORY, Config, ContractConfig, Contracts, FactoryContstructor, UPGRADEBAL_CONTRACTS } from './contracts';
+import {
+    CONTRACT_FACTORY,
+    Config,
+    ContractConfig,
+    Contracts,
+    FactoryContstructor,
+    UPGRADEBAL_CONTRACTS,
+} from './contracts';
 
 let wallet: Wallet;
 let network: SubqueryNetwork;
@@ -77,15 +84,15 @@ function loadDeployment(name: string) {
 }
 
 async function deployContract<T extends BaseContract>(
-    name: ContractName, 
+    name: ContractName,
     options?: {
-        proxyAdmin?: ProxyAdmin,
-        initConfig?: (string | string[])[],
-        deployConfig?: Config[],
+        proxyAdmin?: ProxyAdmin;
+        initConfig?: (string | string[])[];
+        deployConfig?: Config[];
     }
 ): Promise<T> {
     if (network !== 'local') logger = getLogger(name);
-    
+
     const contractAddress = deployment[name]?.address;
     if (contractAddress) {
         logger?.info(`🎃 Contract ${name} already deployed at ${contractAddress}`);
@@ -103,11 +110,11 @@ async function deployContract<T extends BaseContract>(
         [contract, innerAddress] = await deployProxy<T>(proxyAdmin, CONTRACT_FACTORY[name], wallet, confirms);
     } else {
         const overrides = await getOverrides();
-        contract = await new CONTRACT_FACTORY[name](wallet).deploy(...deployConfig, overrides) as T;
+        contract = (await new CONTRACT_FACTORY[name](wallet).deploy(...deployConfig, overrides)) as T;
         await contract.deployTransaction.wait(confirms);
         logger?.info(`🔎 Tx hash: ${contract.deployTransaction.hash}`);
     }
-   
+
     logger?.info(`🚀 Contract address: ${contract.address}`);
 
     if (initConfig) {
@@ -115,7 +122,7 @@ async function deployContract<T extends BaseContract>(
         const defaultConfig = config[name] ?? [];
         const params = [...initConfig, ...defaultConfig];
         const overrides = await getOverrides();
-    
+
         // @ts-ignore
         const tx = await contract.initialize(...params, overrides);
         logger?.info(`🔎 Tx hash: ${tx.hash}`);
@@ -157,7 +164,7 @@ function updateDeployment(
     deployment: Partial<ContractDeployment>,
     name: ContractName,
     contract: Contract,
-    innerAddr: string,
+    innerAddr: string
 ) {
     const address = contract.address;
     const txHash = contract.deployTransaction.hash;
@@ -176,104 +183,146 @@ function updateDeployment(
 export async function deployContracts(
     _wallet: Wallet,
     _config: ContractConfig,
-    options?: { network: SubqueryNetwork, confirms: number, history: boolean },
+    options?: { network: SubqueryNetwork; confirms: number; history: boolean }
 ): Promise<[Partial<ContractDeployment>, Contracts]> {
     wallet = _wallet;
     config = _config;
     confirms = options?.confirms ?? 1;
     network = options?.network ?? 'local';
 
-    if (network !== 'local') getLogger('Wallet').info(colorText(`Deploy with wallet ${wallet.address}`, TextColor.GREEN));
+    if (network !== 'local')
+        getLogger('Wallet').info(colorText(`Deploy with wallet ${wallet.address}`, TextColor.GREEN));
     if (options?.history) {
         const localDeployment = loadDeployment(network);
         deployment = localDeployment;
     } else {
-        clearObject(deployment)
+        clearObject(deployment);
     }
 
     try {
         const proxyAdmin = await deployContract<ProxyAdmin>('ProxyAdmin');
-    
-        const settings =  await deployContract<Settings>('Settings');
-    
+
+        const settings = await deployContract<Settings>('Settings');
+
         const settingsAddress = settings.address;
         const inflationController = await deployContract<InflationController>('InflationController', {
             initConfig: [settingsAddress],
             proxyAdmin,
         });
-    
+
         // deploy SQToken contract
         const sqtToken = await deployContract<SQToken>('SQToken', {
-            deployConfig: [inflationController.address, ...config['SQToken']]
+            deployConfig: [inflationController.address, ...config['SQToken']],
         });
-    
+
         // deploy VSQToken contract
         const vsqtToken = await deployContract<VSQToken>('VSQToken', { initConfig: [settingsAddress] });
-        
+
         //deploy Airdropper contract
         const [settleDestination] = config['Airdropper'];
         const airdropper = await deployContract<Airdropper>('Airdropper', { deployConfig: [settleDestination] });
-        
+
         //deploy vesting contract
         const vesting = await deployContract<Vesting>('Vesting', { deployConfig: [deployment.SQToken.address] });
-        
+
         // deploy Staking contract
         const staking = await deployContract<Staking>('Staking', { proxyAdmin, initConfig: [settingsAddress] });
 
         // deploy StakingManager contract
-        const stakingManager = await deployContract<StakingManager>('StakingManager', { proxyAdmin, initConfig: [settingsAddress] });
-    
+        const stakingManager = await deployContract<StakingManager>('StakingManager', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // deploy Era manager
         const eraManager = await deployContract<EraManager>('EraManager', { proxyAdmin, initConfig: [settingsAddress] });
-    
+
         // deploy IndexerRegistry contract
-        const indexerRegistry = await deployContract<IndexerRegistry>('IndexerRegistry', { proxyAdmin, initConfig: [settingsAddress] });
+        const indexerRegistry = await deployContract<IndexerRegistry>('IndexerRegistry', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
 
         // deploy QueryRegistry contract
-        const queryRegistry = await deployContract<QueryRegistry>('QueryRegistry', { proxyAdmin, initConfig: [settingsAddress] });
-        
+        const queryRegistry = await deployContract<QueryRegistry>('QueryRegistry', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // deploy PlanManager contract
-        const planManager = await deployContract<PlanManager>('PlanManager', { proxyAdmin, initConfig: [settingsAddress] });
-        
+        const planManager = await deployContract<PlanManager>('PlanManager', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // deploy PurchaseOfferMarket contract
-        const purchaseOfferMarket = await deployContract<PurchaseOfferMarket>('PurchaseOfferMarket', { proxyAdmin, initConfig: [settingsAddress] });
-    
+        const purchaseOfferMarket = await deployContract<PurchaseOfferMarket>('PurchaseOfferMarket', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // deploy ServiceAgreementRegistry contract
-        const serviceAgreementRegistry = await deployContract<ServiceAgreementRegistry>(
-            'ServiceAgreementRegistry', 
-            { proxyAdmin, initConfig: [settingsAddress, [planManager.address, purchaseOfferMarket.address]] });
+        const serviceAgreementRegistry = await deployContract<ServiceAgreementRegistry>('ServiceAgreementRegistry', {
+            proxyAdmin,
+            initConfig: [settingsAddress, [planManager.address, purchaseOfferMarket.address]],
+        });
 
         // deploy RewardsDistributer contract
-        const rewardsDistributer = await deployContract<RewardsDistributer>('RewardsDistributer', { proxyAdmin, initConfig: [settingsAddress] });
-    
+        const rewardsDistributer = await deployContract<RewardsDistributer>('RewardsDistributer', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // deploy RewardsPool contract
-        const rewardsPool = await deployContract<RewardsPool>('RewardsPool', { proxyAdmin, initConfig: [settingsAddress] });
-    
+        const rewardsPool = await deployContract<RewardsPool>('RewardsPool', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // deploy RewardsStaking contract
-        const rewardsStaking = await deployContract<RewardsStaking>('RewardsStaking', { proxyAdmin, initConfig: [settingsAddress] });
-    
+        const rewardsStaking = await deployContract<RewardsStaking>('RewardsStaking', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // deploy RewardsHelper contract
-        const rewardsHelper = await deployContract<RewardsHelper>('RewardsHelper', { proxyAdmin, initConfig: [settingsAddress] });
-    
+        const rewardsHelper = await deployContract<RewardsHelper>('RewardsHelper', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // deploy stateChannel contract
-        const stateChannel = await deployContract<StateChannel>('StateChannel', { proxyAdmin, initConfig: [settingsAddress] });
-    
+        const stateChannel = await deployContract<StateChannel>('StateChannel', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // deploy PermissionedExchange contract
-        const permissionedExchange = await deployContract<PermissionedExchange>(
-            'PermissionedExchange', 
-            {proxyAdmin, initConfig: [settingsAddress, [rewardsDistributer.address]] }
-        );
-        
+        const permissionedExchange = await deployContract<PermissionedExchange>('PermissionedExchange', {
+            proxyAdmin,
+            initConfig: [settingsAddress, [rewardsDistributer.address]],
+        });
+
         // deploy ConsumerHost contract
-        const consumerHost = await deployContract<ConsumerHost>(
-            'ConsumerHost',
-            { proxyAdmin, initConfig: [settingsAddress, sqtToken.address, stateChannel.address] }
-        );
-        
+        const consumerHost = await deployContract<ConsumerHost>('ConsumerHost', {
+            proxyAdmin,
+            initConfig: [settingsAddress, sqtToken.address, stateChannel.address],
+        });
+
         // deploy DisputeManager contract
-        const disputeManager = await deployContract<DisputeManager>('DisputeManager', { proxyAdmin, initConfig: [settingsAddress] });
-    
+        const disputeManager = await deployContract<DisputeManager>('DisputeManager', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
+        // deploy ConsumerRegistry contract
+        const consumerRegistry = await deployContract<ConsumerRegistry>('ConsumerRegistry', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // Register addresses on settings contract
+        getLogger('SettingContract').info('🤞 Set token addresses');
         const txToken = await settings.setTokenAddresses(
             deployment.SQToken.address,
             deployment.Staking.address,
@@ -287,9 +336,11 @@ export async function deployContracts(
             deployment.PermissionedExchange.address,
             await getOverrides()
         );
-    
+
         await txToken.wait(confirms);
-    
+        getLogger('SettingContract').info('🚀  Set token addresses success');
+
+        getLogger('SettingContract').info('🤞 Set project addresses');
         const txProject = await settings.setProjectAddresses(
             deployment.IndexerRegistry.address,
             deployment.QueryRegistry.address,
@@ -298,11 +349,13 @@ export async function deployContracts(
             deployment.ServiceAgreementRegistry.address,
             deployment.DisputeManager.address,
             deployment.StateChannel.address,
+            deployment.ConsumerRegistry.address,
             await getOverrides()
         );
-    
+
         await txProject.wait(confirms);
-    
+        getLogger('SettingContract').info('🚀  Set project addresses success');
+
         return [
             deployment,
             {
@@ -329,10 +382,11 @@ export async function deployContracts(
                 vesting,
                 consumerHost,
                 disputeManager,
+                consumerRegistry,
             },
         ];
     } catch (error) {
-        logger?.info(`Failed to deploy contracts: ${JSON.stringify(error)}`);
+        getLogger('ContractDeployment').info(`Failed to deploy contracts: ${JSON.stringify(error)}`);
         saveDeployment(network, deployment);
     }
 }
@@ -369,7 +423,7 @@ export async function upgradeContracts(
     const changed: (keyof typeof CONTRACTS)[] = [];
     for (const contract of Object.keys(UPGRADEBAL_CONTRACTS)) {
         const bytecodeHash = codeToHash(CONTRACTS[contract].bytecode);
-        if (bytecodeHash !== deployment[contract].bytecodeHash) {
+        if (bytecodeHash !== deployment[contract]?.bytecodeHash) {
             changed.push(contract as any);
         }
     }
@@ -382,8 +436,14 @@ export async function upgradeContracts(
     logger.info(`Contract Changed: ${changed.join(',')}`);
     for (const contractName of changed) {
         logger.info(`Upgrading ${contractName}`);
+
         const [_, factory] = UPGRADEBAL_CONTRACTS[contractName];
-        const {address} = deployment[contractName];
+        if (!deployment[contractName]) {
+            console.warn(`contract ${contractName} not deployed`);
+            continue;
+        }
+
+        const { address } = deployment[contractName];
         const [innerAddr] = await upgradeContract(proxyAdmin, address, factory, wallet, confirms);
         deployment[contractName] = {
             innerAddress: innerAddr,
