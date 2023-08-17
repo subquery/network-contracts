@@ -16,14 +16,6 @@ contract VSQToken is Initializable {
     uint8 private _decimals = 18;
     ISettings public settings;
 
-    /**
-     * @notice Update setting state.
-     * @param _settings ISettings contract
-     */
-    function setSettings(ISettings _settings) external onlyOwner {
-        settings = _settings;
-    }
-
     function initialize(ISettings _settings) external initializer {
         settings = _settings;
     }
