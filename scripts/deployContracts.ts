@@ -202,9 +202,9 @@ export async function deployContracts(
     try {
         const proxyAdmin = await deployContract<ProxyAdmin>('ProxyAdmin');
 
-        const settings = await deployContract<Settings>('Settings', { proxyAdmin });
-
+        const settings = await deployContract<Settings>('Settings', { proxyAdmin, initConfig: [] });
         const settingsAddress = settings.address;
+
         const inflationController = await deployContract<InflationController>('InflationController', {
             initConfig: [settingsAddress],
             proxyAdmin,

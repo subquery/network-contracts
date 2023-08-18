@@ -18,6 +18,7 @@ contract VSQToken is Initializable, OwnableUpgradeable {
     ISettings public settings;
 
     function initialize(ISettings _settings) external initializer {
+        __Ownable_init();
         settings = _settings;
     }
 

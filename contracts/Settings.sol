@@ -8,7 +8,7 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import './interfaces/ISettings.sol';
 import './Constants.sol';
 
-contract Settings is ISettings, OwnableUpgradeable, Constants {
+contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
     address public sqToken;
     address public staking;
     address public stakingManager;
@@ -27,6 +27,10 @@ contract Settings is ISettings, OwnableUpgradeable, Constants {
     address public disputeManager;
     address public stateChannel;
     address public consumerRegistry;
+
+    function initialize() external initializer {
+        __Ownable_init();
+    }
 
     function setProjectAddresses(
         address _indexerRegistry,
