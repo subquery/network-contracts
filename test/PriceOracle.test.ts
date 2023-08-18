@@ -26,7 +26,7 @@ describe('PriceOracle Contract', () => {
         it('change price change limit', async () => {
             await priceOracle.setLimit(10, 100);
             expect(await priceOracle.sizeLimit()).to.equal(10);
-            expect(await priceOracle.timeLimit()).to.equal(100);
+            expect(await priceOracle.blockLimit()).to.equal(100);
         });
         it('change controller', async () => {
             await priceOracle.setController(wallet_1.address);

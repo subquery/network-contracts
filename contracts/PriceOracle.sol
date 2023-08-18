@@ -13,7 +13,7 @@ contract PriceOracle is Ownable {
     uint256 public sizeLimit;
 
     ///@notice the time limit when controller change price
-    uint256 public timeLimit;
+    uint256 public blockLimit;
 
     ///@notice the time of latest set price
     uint256 public latestPriceTime;
@@ -21,17 +21,17 @@ contract PriceOracle is Ownable {
     ///@notice the controller account which can change price
     address public controller;
 
-    constructor(uint256 _sizeLimit, uint256 _timeLimit) Ownable() {
+    constructor(uint256 _sizeLimit, uint256 _blockLimit) Ownable() {
         sizeLimit = _sizeLimit;
-        timeLimit = _timeLimit;
+        blockLimit = _blockLimit;
     }
 
     event PricePosted(address assetA, address assetB, uint256 previousPrice, uint256 newPrice);
 
     ///@notice update change price limit
-    function setLimit(uint256 _sizeLimit, uint256 _timeLimit) public onlyOwner {
+    function setLimit(uint256 _sizeLimit, uint256 _blockLimit) public onlyOwner {
         sizeLimit = _sizeLimit;
-        timeLimit = _timeLimit;
+        blockLimit = _blockLimit;
     }
 
     ///@notice update the controller account
@@ -53,7 +53,7 @@ contract PriceOracle is Ownable {
     function setAssetPrice(address assetA, address assetB, uint256 price) public {
         uint256 prePrice = prices[assetA][assetB];
         if (msg.sender == controller) {
-            require(latestPriceTime + timeLimit < block.number, "PO002");
+            require(latestPriceTime + blockLimit < block.number, "PO002");
             uint256 sizeChanged = 0;
             if (prePrice > price) {
                 sizeChanged = (prePrice - price) * 100 / prePrice;
