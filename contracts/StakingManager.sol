@@ -26,6 +26,14 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         settings = _settings;
     }
 
+    /**
+     * @notice Update setting state.
+     * @param _settings ISettings contract
+     */
+    function setSettings(ISettings _settings) external onlyOwner {
+        settings = _settings;
+    }
+
      /**
      * @dev Indexers stake to themself.
      * The caller can be either an existing indexer or IndexerRegistry contract. The staking change will be applied immediately if the caller is IndexerRegistry.

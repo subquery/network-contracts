@@ -3,12 +3,12 @@
 
 pragma solidity 0.8.15;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import './interfaces/ISettings.sol';
 import './Constants.sol';
 
-contract Settings is ISettings, Ownable, Constants {
+contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
     address public sqToken;
     address public staking;
     address public stakingManager;
@@ -29,7 +29,9 @@ contract Settings is ISettings, Ownable, Constants {
     address public consumerRegistry;
     address public priceOracle;
 
-    constructor() Ownable() {}
+    function initialize() external initializer {
+        __Ownable_init();
+    }
 
     function setProjectAddresses(
         address _indexerRegistry,

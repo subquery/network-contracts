@@ -81,6 +81,14 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     }
 
     /**
+     * @notice Update setting state.
+     * @param _settings ISettings contract
+     */
+    function setSettings(ISettings _settings) external onlyOwner {
+        settings = _settings;
+    }
+
+    /**
      * @notice Set the indexer plan limit.
      * @param _limit limit to set
      */

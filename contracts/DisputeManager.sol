@@ -57,6 +57,14 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
         minimumDeposit = _minimumDeposit;
     }
 
+    /**
+     * @notice Update setting state.
+     * @param _settings ISettings contract
+     */
+    function setSettings(ISettings _settings) external onlyOwner {
+        settings = _settings;
+    }
+
     function setMinimumDeposit(uint256 _minimumDeposit) external onlyOwner {
         minimumDeposit = _minimumDeposit;
     }
