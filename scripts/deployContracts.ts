@@ -202,9 +202,9 @@ export async function deployContracts(
     try {
         const proxyAdmin = await deployContract<ProxyAdmin>('ProxyAdmin');
 
-        const settings = await deployContract<Settings>('Settings');
-
+        const settings = await deployContract<Settings>('Settings', { proxyAdmin, initConfig: [] });
         const settingsAddress = settings.address;
+
         const inflationController = await deployContract<InflationController>('InflationController', {
             initConfig: [settingsAddress],
             proxyAdmin,
@@ -216,7 +216,7 @@ export async function deployContracts(
         });
 
         // deploy VSQToken contract
-        const vsqtToken = await deployContract<VSQToken>('VSQToken', { initConfig: [settingsAddress] });
+        const vsqtToken = await deployContract<VSQToken>('VSQToken', { proxyAdmin, initConfig: [settingsAddress] });
 
         //deploy Airdropper contract
         const [settleDestination] = config['Airdropper'];
