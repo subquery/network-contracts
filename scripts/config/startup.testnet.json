@@ -33,48 +33,82 @@
         "0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe"
     ],
     "multiSign": "0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f",
-    "projects": [ 
+    "projects": [
         {
-            "name": "Polkadot Dictionary",
-            "deploymentId": "QmSjjRjfjXXEfSUTheNwvWcBaH54pWoToTHPDsJRby955X",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE"
+          "metadataCid": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE",
+          "versionCid": "QmYmUdTTaiKY5WPeCiSu3Lh8XbWK72hSncdtbkzfFHq5zA",
+          "deploymentId": "QmZGAZQ7e1oZgfuK4V29Fa5gveYK3G2zEwvUzTZKNvSBsm"
         },
         {
-            "name": "Avalanche Dictionary",
-            "deploymentId": "QmaMetzawjqpAcNTv6nzF88yFHVCpLE4h5goxvayLn9Yxj",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "QmZTh1vfdFrRfVBDYyttDen7GZFhRC5NWGzCHA4YWyqXCr"
+          "metadataCid": "QmdSV6BkPcgEgh27Sb7mtr7ozy8t5ifXoxpctCoSasUbnN",
+          "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+          "deploymentId": "Qmarrhgrpqw5VK71rMtb4GARpPvq8ajMjAqnjnWZFLV61N"
         },
         {
-            "name": "Moonbeam Dictionary",
-            "deploymentId": "QmPHi8Y6bnLdidDjsd2sjgBdyEbwBu5s5QxN4n78zYpxJq",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj"
+          "metadataCid": "QmPjDY5LobMy2yJ5q3WLQF3vstzipNKJPKivHXvFvJ14sV",
+          "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+          "deploymentId": "QmPuHdLxTQHEAitgLe9Sg1Jnr1WwJASDRSL5RUzBe3NywV"
         },
         {
-            "name": "Moonriver Dictionary",
-            "deploymentId": "QmQnhLMgV3SrXbunjgHjnfdw32BAHQS3nNhLWKpNjtFTSZ", 
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "Qmdvn23qiTYNEBaJ5BwzaDBESXvzG3mrPtWuK9zajkXvLn"
+          "metadataCid": "QmW2AFuU1T7W3qwBT8BwC8vtsLzSbQcYGGggRY3pvFn6KR",
+          "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+          "deploymentId": "QmPKMkqTe7UMRPZWxuD8dFgufjKzWQEeW84Qo1x1X8VVLR"
         },
         {
-            "name": "Juno Dictionary",
-            "deploymentId": "QmPP9XLoquWhUc8fyrTBfaaPzz4VR65nsVvzYBcPX1DoUz",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "QmZ9RitNZKhcguQnaswzkWvPZqSDgxE5munMqAfjbKgZbd"
+          "metadataCid": "QmSVtXAxrnKNHYw6aFQsyyvS7mPVTmQ6AMvSmACnV8mzAf",
+          "versionCid": "QmU1yzJ13ejf61uBRqq9t6RmYB64shdBEENYiFZcGTq6jr",
+          "deploymentId": "QmQtmsHoJEYUcxKE4tBqr9Z8kudcgkczQPfhkAxVExQX5y"
         },
         {
-            "name": "Acala Dictionary",
-            "deploymentId": "QmYH4KFV9yeLnbWwswoqLBLH6Z69ae2Snbyrs218cpPs1K",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "QmZPBEJu4q89T2UwxrDw1TkQ8UASAS7JyE4xuy1HMvw1NR"
+          "metadataCid": "QmQVqXHFeppVZk3aiNCSejqWT87nFSmVePGA4mj8j9zyMW",
+          "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+          "deploymentId": "QmWumrabg4k6t4EUMhQg19xWwcxGq1hWbcmfmRYiy2Bod5"
         },
         {
-            "name": "Kusama Dictionary",
-            "deploymentId": "QmPemHcmAJ6BRyV13FN91miLCHNtqXLLacsqYjSaTmbFmr",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX"
-      }
-    ]
+          "metadataCid": "QmR13QM4u4Kg3f8qx7Tq55rwXE8aDb3bwxBpt4DFUdrKBa",
+          "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+          "deploymentId": "QmUmnKPhcE6JwGMYvY3Yitb5j8qxbQBMxgpkHpVQuXqxDH"
+        },
+        {
+          "metadataCid": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj",
+          "versionCid": "QmcGoNtw98BmQNUy8X8DhnDMPiK2MqJASysVwpJua8Rv9d",
+          "deploymentId": "QmRwisx41SRrR8fhNTRpKetNdpP7SaNkRAVrRgcdwoEtCH"
+        },
+        {
+          "metadataCid": "QmbxHDwk2D7ZiAzb6Qh6pP6cCi4KdeBc14CKjQykWADga6",
+          "versionCid": "QmS2itCAeMRtozMfQQZgdDPRq43NCcFrvKBRLiEZSEfqLV",
+          "deploymentId": "QmUVXKjcsYkS6WfJQfeD7juDbnMWCuo5qKgRRo893LajE2"
+        },
+        {
+          "metadataCid": "QmPg4D5QfbXYvKmyaq3NwE3B51oo8bB5Q28wAVdpaPEHLb",
+          "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+          "deploymentId": "QmUwTD5dqQRRFcMCihJ4HHnMPfEvRpKpcFvGcTJjBpGg9T"
+        },
+        {
+          "metadataCid": "QmaDZ6AK2Vdf9EZ4xujuhQVEv6CEF47GyiTA7oqNXRbEjP",
+          "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+          "deploymentId": "QmYCAns2cunZKJFU85KNK8CvL2ATAmCFVZRdBf963GqWYs"
+        },
+        {
+          "metadataCid": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX",
+          "versionCid": "QmZnFNWoRk4LPQ4wZKr2RzZwjq2T7rkyufQ5XbD9kjTsjM",
+          "deploymentId": "QmXwfCF8858YY924VHgNLsxRQfBLosVbB31mygRLhgJbWn"
+        },
+        {
+          "metadataCid": "QmXWq1vnukGD2TqfPoC4KYH7qP6pipEsYgrMBUpDaRAsHY",
+          "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+          "deploymentId": "Qma6BeSQGHrhP5aydmkQcJCR25TEwuNMogS5boovBBwoeW"
+        },
+        {
+          "metadataCid": "QmfLCxhB8P8JraM14CqKaWX7Wh5Lb8WFLJt1dmDYN1QGhn",
+          "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+          "deploymentId": "QmXCr6uZFdY1YcGTa4u6ZieQPXK4VHE1Pjy7CBr7ubFwKR"
+        },
+        {
+          "metadataCid": "QmWH14imJQoSWF5cdWWaB9u4BivGLQCpJZkwQKH5VAQN9i",
+          "versionCid": "QmdugqUUYZcq12SLdKQ3xKw9XruyA6yHiFiqhBqjicTHgS",
+          "deploymentId": "QmV6sbiPyTDUjcQNJs2eGcAQp2SMXL2BU6qdv5aKrRr7Hg"
+        }
+      ]
+      
 }
