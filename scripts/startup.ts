@@ -1,19 +1,19 @@
-import {ethers, ContractReceipt, ContractTransaction, Wallet, Overrides} from 'ethers';
+import { ContractReceipt, ContractTransaction, Overrides, Wallet, ethers } from 'ethers';
 import Pino from 'pino';
 
 import setup from './setup';
 
+import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
+import { ContractSDK, SubqueryNetwork } from '../build';
+import { METADATA_HASH } from '../test/constants';
+import { cidToBytes32, etherParse, lastestTime } from '../test/helper';
 import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
-import {METADATA_HASH} from '../test/constants';
-import {cidToBytes32, lastestTime} from '../test/helper';
-import {ContractSDK, SubqueryNetwork} from '../build';
-import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
 
-import {parseEther} from 'ethers/lib/utils';
-import {Provider, StaticJsonRpcProvider} from '@ethersproject/providers';
-import {getLogger} from './logger';
+import { Provider, StaticJsonRpcProvider } from '@ethersproject/providers';
+import { parseEther } from 'ethers/lib/utils';
+import { getLogger } from './logger';
 
 let startupConfig: any = startupTestnetConfig;
 let logger: Pino.Logger;
@@ -23,7 +23,7 @@ let provider: Provider;
 async function getOverrides(): Promise<Overrides> {
     const price = await provider.getGasPrice();
     const gasPrice = price.add(20000000000); // add extra 15 gwei
-    return {gasPrice};
+    return { gasPrice };
 }
 
 async function sendTx(transaction: (overrides: Overrides) => Promise<ContractTransaction>): Promise<ContractReceipt> {
@@ -39,7 +39,7 @@ async function getAirdropTimeConfig(provider) {
     const startTime = (await lastestTime(provider)) + 600;
     const endTime = startTime + 864000;
 
-    return {startTime, endTime};
+    return { startTime, endTime };
 }
 
 export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpcProvider) {
@@ -59,7 +59,7 @@ export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpc
     const queryId = await sdk.queryRegistry.nextQueryId();
     const projects = startupConfig.projects;
     for (var i = queryId.toNumber(); i < projects.length; i++) {
-        const {name, metadataCid, versionCid, deploymentId} = projects[i];
+        const { name, metadataCid, versionCid, deploymentId } = projects[i];
         logger.info(`Create query project: ${name}`);
         await sendTx((overrides) =>
             sdk.queryRegistry.createQueryProject(
@@ -87,7 +87,7 @@ export async function createPlanTemplates(sdk: ContractSDK, _provider?: StaticJs
     const templateId = await sdk.planManager.nextTemplateId();
     const templates = startupConfig.planTemplates;
     for (var i = templateId.toNumber(); i < templates.length; i++) {
-        const {period, dailyReqCap, rateLimit} = templates[i];
+        const { period, dailyReqCap, rateLimit } = templates[i];
         logger.info(`Create No. ${i} plan template: ${period} | ${dailyReqCap} | ${rateLimit}`);
         await sendTx((overrides) =>
             sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, METADATA_HASH, overrides)
@@ -112,7 +112,7 @@ export async function airdrop(sdk: ContractSDK, _provider?: StaticJsonRpcProvide
 
     if (startupConfig.airdrops.length > 0) {
         logger.info('Create Airdrop round');
-        const {startTime, endTime} = await getAirdropTimeConfig(provider);
+        const { startTime, endTime } = await getAirdropTimeConfig(provider);
         const receipt = await sendTx((overrides) =>
             sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime, overrides)
         );
@@ -145,7 +145,7 @@ async function setupPermissionExchange(sdk: ContractSDK, wallet: Wallet, _provid
     if (_provider) provider = _provider;
     logger = getLogger('Permission Exchange');
     logger.info('Setup exchange order');
-    const {usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance} = startupConfig.exchange;
+    const { usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance } = startupConfig.exchange;
     const usdcContract = new ethers.Contract(usdcAddress, Token.abi, provider);
     await usdcContract.connect(wallet).increaseAllowance(sdk.permissionedExchange.address, tokenGiveBalance);
 
@@ -205,6 +205,16 @@ export async function ownerTransfer(sdk: ContractSDK) {
     console.log('\n');
 }
 
+async function transferTokenToIndexers(sdk: ContractSDK) {
+    logger = getLogger('Token');
+    const { indexers } = startupConfig;
+    const amount = etherParse('1000000');
+    for (const indexer of indexers) {
+        await sdk.sqToken.transfer(indexer, amount);
+        logger.info(`Transfer 1_000_000 sqt to ${indexer}`);
+    }
+}
+
 export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
     logger = getLogger('Token');
     const balance = await sdk.sqToken.balanceOf(wallet.address);
@@ -217,7 +227,7 @@ export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
 }
 
 const main = async () => {
-    const {wallet} = await setup(process.argv);
+    const { wallet } = await setup(process.argv);
     const networkType = process.argv[2];
     provider = wallet.provider;
 
@@ -236,7 +246,7 @@ const main = async () => {
             throw new Error(`Please provide correct network ${networkType}`);
     }
 
-    const sdk = ContractSDK.create(wallet, {network});
+    const sdk = ContractSDK.create(wallet, { network });
 
     switch (networkType) {
         case '--mainnet':
@@ -260,8 +270,9 @@ const main = async () => {
             confirms = 1;
             startupConfig = startupTestnetConfig;
             // await createProjects(sdk);
-            await createPlanTemplates(sdk);
+            // await createPlanTemplates(sdk);
             // await airdrop(sdk);
+            await transferTokenToIndexers(sdk);
             // await setupPermissionExchange(sdk, wallet);
             // await balanceTransfer(sdk, wallet);
             // await ownerTransfer(sdk);
