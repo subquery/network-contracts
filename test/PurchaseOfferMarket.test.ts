@@ -1,23 +1,21 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {Wallet} from 'ethers';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
-import {DEPLOYMENT_ID, METADATA_HASH, VERSION, mmrRoot} from './constants';
-import {futureTimestamp, timeTravel, time, createPurchaseOffer, registerIndexer, etherParse} from './helper';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
 import {
     IndexerRegistry,
+    PlanManager,
     PurchaseOfferMarket,
     QueryRegistry,
-    ServiceAgreementRegistry,
-    SQToken,
-    Staking,
     RewardsDistributer,
-    PlanManager,
+    SQToken,
+    ServiceAgreementRegistry,
+    Staking,
 } from '../src';
-import {utils} from 'ethers';
+import { DEPLOYMENT_ID, METADATA_HASH, VERSION, mmrRoot } from './constants';
+import { createPurchaseOffer, etherParse, futureTimestamp, registerIndexer, time, timeTravel } from './helper';
+import { deployContracts } from './setup';
 
 describe('Purchase Offer Market Contract', () => {
     const mockProvider = waffle.provider;
@@ -50,7 +48,7 @@ describe('Purchase Offer Market Contract', () => {
         token = deployment.token;
         rewardsDistributor = deployment.rewardsDistributer;
         planManager = deployment.planManager;
-        await planManager.createPlanTemplate(contractPeriod, 1000, 100, METADATA_HASH);
+        await planManager.createPlanTemplate(contractPeriod, 1000, 100, token.address, METADATA_HASH);
         await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
     });
 

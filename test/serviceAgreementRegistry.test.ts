@@ -1,25 +1,25 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {BigNumber} from 'ethers';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
-import {deploymentIds, DEPLOYMENT_ID, METADATA_HASH, VERSION, mmrRoot} from './constants';
-import {createPurchaseOffer, futureTimestamp, time, timeTravel, etherParse, eventFrom} from './helper';
+import { expect } from 'chai';
+import { BigNumber } from 'ethers';
+import { ethers, waffle } from 'hardhat';
 import {
-    SQToken,
-    Staking,
+    EraManager,
     IndexerRegistry,
-    QueryRegistry,
     PlanManager,
     PurchaseOfferMarket,
-    ServiceAgreementRegistry,
-    EraManager,
+    QueryRegistry,
     RewardsDistributer,
-    RewardsStaking,
     RewardsHelper,
+    RewardsStaking,
+    SQToken,
+    ServiceAgreementRegistry,
+    Staking,
 } from '../src';
+import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, mmrRoot } from './constants';
+import { createPurchaseOffer, etherParse, eventFrom, futureTimestamp, time, timeTravel } from './helper';
+import { deployContracts } from './setup';
 
 describe('Service Agreement Registry Contract', () => {
     const mockProvider = waffle.provider;
@@ -81,7 +81,7 @@ describe('Service Agreement Registry Contract', () => {
 
         // period 1000 s
         // planTemplateId: 0
-        await planManager.createPlanTemplate(1000, 1000, 100, METADATA_HASH);
+        await planManager.createPlanTemplate(1000, 1000, 100, token.address, METADATA_HASH);
 
         await serviceAgreementRegistry.setThreshold(allowanceMultiplerBP);
         await token.transfer(wallet.address, etherParse('1000'));
@@ -249,7 +249,7 @@ describe('Service Agreement Registry Contract', () => {
                 };
                 //random period 1 <= x <= 10 days
                 const period = (Math.floor(Math.random() * 10) + 1) * 60 * 60 * 24;
-                await planManager.createPlanTemplate(period, 1000, 100, METADATA_HASH);
+                await planManager.createPlanTemplate(period, 1000, 100, token.address, METADATA_HASH);
                 await purchaseOfferMarket.createPurchaseOffer(
                     DEPLOYMENT_ID,
                     i + 1,
@@ -268,7 +268,7 @@ describe('Service Agreement Registry Contract', () => {
                     agreementId: agreementId,
                     index: i,
                 };
-                Object.assign(agreements, {[agreementId.toNumber()]: agreementInfo});
+                Object.assign(agreements, { [agreementId.toNumber()]: agreementInfo });
                 await checkStateChange(agreementInfo, stateInfo, false);
             }
 
@@ -282,7 +282,7 @@ describe('Service Agreement Registry Contract', () => {
                 const agreementId = await serviceAgreementRegistry.closedServiceAgreementIds(wallet.address, i);
                 const agreementExpired = await serviceAgreementRegistry.closedServiceAgreementExpired(agreementId);
                 if (agreementExpired) {
-                    Object.assign(expiredAgreements, {[agreementId.toNumber()]: agreementId});
+                    Object.assign(expiredAgreements, { [agreementId.toNumber()]: agreementId });
                 }
             }
 
@@ -369,7 +369,7 @@ describe('Service Agreement Registry Contract', () => {
             await token.connect(wallet2).increaseAllowance(serviceAgreementRegistry.address, 10000000);
             await indexerRegistry
                 .connect(wallet1)
-                .registerIndexer(etherParse('1000'), METADATA_HASH, 100, {gasLimit: '2000000'});
+                .registerIndexer(etherParse('1000'), METADATA_HASH, 100, { gasLimit: '2000000' });
 
             // create query project
             await queryRegistry.connect(wallet1).createQueryProject(METADATA_HASH, VERSION, deploymentIds[0]);
@@ -378,7 +378,7 @@ describe('Service Agreement Registry Contract', () => {
 
             // period 10 days
             // planTemplateId: 1
-            await planManager.createPlanTemplate(time.duration.days(10).toString(), 1000, 100, METADATA_HASH);
+            await planManager.createPlanTemplate(time.duration.days(10).toString(), 1000, 100, token.address, METADATA_HASH);
 
             // create purchase offer
             // value 100*2
@@ -392,7 +392,7 @@ describe('Service Agreement Registry Contract', () => {
             // period 10 days
             // use planTemplateId: 1
             // use planId: 1
-            await planManager.connect(wallet1).createPlan(100, 1, deploymentIds[0], token.address);
+            await planManager.connect(wallet1).createPlan(100, 1, deploymentIds[0]);
         });
 
         it('renew agreement generated from purchaseOfferMarket should fail', async () => {
