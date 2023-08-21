@@ -12,11 +12,11 @@ contract PriceOracle is Ownable {
     ///@notice the size limit when controller change price
     uint256 public sizeLimit;
 
-    ///@notice the time limit when controller change price
+    ///@notice the block number limit when controller change price
     uint256 public blockLimit;
 
-    ///@notice the time of latest set price
-    uint256 public latestPriceTime;
+    ///@notice the block number of latest set price
+    uint256 public latestPriceBlock;
 
     ///@notice the controller account which can change price
     address public controller;
@@ -49,23 +49,20 @@ contract PriceOracle is Ownable {
     ///set the price of assetA in assetB
     ///AssetA in AssetB with a fixed precision of 18 decimal places
     ///Thus, if we wanted set 1 USDC = 13 SQT The price be 13000000000000000000000000000000(13e30)
-
     function setAssetPrice(address assetA, address assetB, uint256 price) public {
         uint256 prePrice = prices[assetA][assetB];
         if (msg.sender == controller) {
-            require(latestPriceTime + blockLimit < block.number, "PO002");
-            uint256 sizeChanged = 0;
-            if (prePrice > price) {
-                sizeChanged = (prePrice - price) * 100 / prePrice;
-            } else {
-                sizeChanged = (price - prePrice) * 100 / prePrice;
-            }
+            require(latestPriceBlock + blockLimit < block.number, "PO002");
+
+            uint256 priceChanged = prePrice > price ? prePrice - price : price - prePrice;
+            uint256 sizeChanged = priceChanged * 100 / prePrice;
+
             require(sizeChanged < sizeLimit, "PO003");
         } else {
             require(msg.sender == owner(), "PO004");
         }
 
-        latestPriceTime = block.number;
+        latestPriceBlock = block.number;
         prices[assetA][assetB] = price;
         emit PricePosted(assetA, assetB, prePrice, price);
     }
