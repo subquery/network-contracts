@@ -6,7 +6,7 @@ import setup from './setup';
 import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
 import { ContractSDK, SubqueryNetwork } from '../build';
 import { METADATA_HASH } from '../test/constants';
-import { cidToBytes32, lastestTime } from '../test/helper';
+import { cidToBytes32, etherParse, lastestTime } from '../test/helper';
 import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
@@ -205,6 +205,16 @@ export async function ownerTransfer(sdk: ContractSDK) {
     console.log('\n');
 }
 
+async function transferTokenToIndexers(sdk: ContractSDK) {
+    logger = getLogger('Token');
+    const { indexers } = startupConfig;
+    const amount = etherParse('1000000');
+    for (const indexer of indexers) {
+        await sdk.sqToken.transfer(indexer, amount);
+        logger.info(`Transfer 1_000_000 sqt to ${indexer}`);
+    }
+}
+
 export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
     logger = getLogger('Token');
     const balance = await sdk.sqToken.balanceOf(wallet.address);
@@ -260,8 +270,9 @@ const main = async () => {
             confirms = 1;
             startupConfig = startupTestnetConfig;
             // await createProjects(sdk);
-            await createPlanTemplates(sdk);
+            // await createPlanTemplates(sdk);
             // await airdrop(sdk);
+            await transferTokenToIndexers(sdk);
             // await setupPermissionExchange(sdk, wallet);
             // await balanceTransfer(sdk, wallet);
             // await ownerTransfer(sdk);
