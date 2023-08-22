@@ -42,7 +42,7 @@ contract PriceOracle is Ownable {
     ///@notice get the price of assetA in assetB
     function getAssetPrice(address assetA, address assetB) public view returns (uint256) {
         uint256 price = prices[assetA][assetB];
-        require(price > 0, "PO001");
+        require(price > 0, "OR001");
         return price;
     }
 
@@ -52,14 +52,14 @@ contract PriceOracle is Ownable {
     function setAssetPrice(address assetA, address assetB, uint256 price) public {
         uint256 prePrice = prices[assetA][assetB];
         if (msg.sender == controller) {
-            require(latestPriceBlock + blockLimit < block.number, "PO002");
+            require(latestPriceBlock + blockLimit < block.number, "OR002");
 
             uint256 priceChanged = prePrice > price ? prePrice - price : price - prePrice;
             uint256 sizeChanged = priceChanged * 100 / prePrice;
 
-            require(sizeChanged < sizeLimit, "PO003");
+            require(sizeChanged < sizeLimit, "OR003");
         } else {
-            require(msg.sender == owner(), "PO004");
+            require(msg.sender == owner(), "OR004");
         }
 
         latestPriceBlock = block.number;

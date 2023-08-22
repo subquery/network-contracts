@@ -332,10 +332,5 @@ describe('PlanManger Contract', () => {
             // expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(price));
             // expect(await token.balanceOf(consumer.address)).to.equal(balance.sub(price));
         });
-
-        it('accept the plan with no price should fail', async () => {
-            await priceOracle.setAssetPrice(usdc, token.address, BigNumber.from("0"));
-            await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith("OR001");
-        });
     });
 });

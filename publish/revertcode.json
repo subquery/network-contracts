@@ -154,5 +154,8 @@
     "V009": "vesting start date must in the future",
     "V010": "balance not enough for allocation",
     "V011": "vesting is not set on the account",
-    "OR001": "cannot get the price"
+    "OR001": "invalid asset price",
+    "OR002": "not meet the block number limitation",
+    "OR003": "invalid price size change",
+    "OR004": "invalid owner"
 }
