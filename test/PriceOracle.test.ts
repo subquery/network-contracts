@@ -1,11 +1,11 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
-import {PriceOracle} from '../src';
-import {blockTravel} from './helper';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
+import { PriceOracle } from '../src';
+import { blockTravel } from './helper';
+import { deployContracts } from './setup';
 
 describe('PriceOracle Contract', () => {
     const mockProvider = waffle.provider;
@@ -37,7 +37,7 @@ describe('PriceOracle Contract', () => {
     describe('set price', () => {
         it('controller set price should work', async () => {
             await priceOracle.setLimit(10, 100);
-            await priceOracle.setController(wallet_1.address);
+            await priceOracle.setController(wallet_1.address); ``
 
             await blockTravel(mockProvider, 100);
 
@@ -47,7 +47,7 @@ describe('PriceOracle Contract', () => {
 
             // time limit
             await expect(priceOracle.connect(wallet_1).setAssetPrice(assetA, assetB, price1)).to.be.revertedWith(
-                'PO002'
+                'OR002'
             );
 
             await blockTravel(mockProvider, 100);
@@ -60,13 +60,13 @@ describe('PriceOracle Contract', () => {
 
             const price3 = (price / 100) * 110; // +10%
             await expect(priceOracle.connect(wallet_1).setAssetPrice(assetA, assetB, price3)).to.be.revertedWith(
-                'PO003'
+                'OR003'
             );
         });
         it('owner set price should work', async () => {
             const price1 = (price / 100) * 110; // +10%
             await expect(priceOracle.connect(wallet_2).setAssetPrice(assetA, assetB, price1)).to.be.revertedWith(
-                'PO004'
+                'OR004'
             );
 
             await expect(priceOracle.setAssetPrice(assetA, assetB, price1));
