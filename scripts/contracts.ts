@@ -54,6 +54,8 @@ import {
     DisputeManager__factory,
     ConsumerRegistry__factory,
     ConsumerRegistry,
+    PriceOracle,
+    PriceOracle__factory,
     ContractName,
 } from '../src';
 
@@ -88,6 +90,7 @@ export type Contracts = {
     consumerHost: ConsumerHost;
     disputeManager: DisputeManager;
     consumerRegistry: ConsumerRegistry;
+    priceOracle: PriceOracle;
 };
 
 export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{bytecode: string}, FactoryContstructor]>> =
@@ -138,6 +141,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ConsumerHost: ConsumerHost__factory,
     DisputeManager: DisputeManager__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
+    PriceOracle: PriceOracle__factory,
 };
 
 export type Config = number | string | BigNumber | string[];

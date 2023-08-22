@@ -1,11 +1,11 @@
 import { ContractSDK } from '@subql/contract-sdk';
-import {Wallet, utils, BigNumber, ContractTransaction, ethers, ContractReceipt} from 'ethers';
+import Token from '@subql/contract-sdk/artifacts/contracts/SQToken.sol/SQToken.json';
+import deployment from '@subql/contract-sdk/publish/testnet.json';
+import assert from 'assert';
+import { BigNumber, ContractReceipt, ContractTransaction, Wallet, ethers, utils } from 'ethers';
 import web3 from 'web3';
 import setup from '../../scripts/setup';
-import assert from 'assert';
-import { VERSION, mmrRoot} from '../constants';
-import deployment from '@subql/contract-sdk/publish/testnet.json';
-import Token from '@subql/contract-sdk/artifacts/contracts/SQToken.sol/SQToken.json';
+import { VERSION, mmrRoot } from '../constants';
 
 let INDEXER_ADDR;
 let CONSUMER_ADDR;
@@ -92,7 +92,8 @@ async function planTemplateSetup() {
     const next = await sdk.planManager.nextPlanId();
     if (next.toNumber() == 0) {
         console.log('start create planTemplate 0 ...');
-        await sendTx(() => sdk.planManager.createPlanTemplate(10800, 10000, 10000, METADATA_HASH));
+        // @ts-ignore
+        await sendTx(() => sdk.planManager.createPlanTemplate(10800, 10000, 10000, sdk.token.address, METADATA_HASH));
     }
     const info = await sdk.planManager.getPlanTemplate(0);
     if (info.metadata != METADATA_HASH) {
@@ -146,7 +147,7 @@ async function clearEndedAgreements(indexer) {
     const receipt = await sendTx(() => sdk.serviceAgreementRegistry.clearAllEndedAgreements(indexer));
     const events = receipt.events;
     events.forEach((event) => {
-        if(event.args){
+        if (event.args) {
             console.log(event.args);
         }
     });
@@ -277,7 +278,7 @@ async function stakingTest() {
 
     await sendTx(() => sdk.sqToken.connect(root_wallet).transfer(consumer_wallet.address, etherParse('10')));
     await sendTx(() => sdk.sqToken.connect(consumer_wallet).increaseAllowance(sdk.stakingManager.address, etherParse('10')));
-    
+
     let delegation = await sdk.staking.delegation(CONSUMER_ADDR, INDEXER_ADDR);
     console.log(`current delegation: ${delegation}`);
 
@@ -335,7 +336,7 @@ async function airdropTest() {
     console.log('\n====Airdrop=====\n');
 
     const airdrops = [
-        '0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4', 
+        '0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4',
         '0x592C6A31df20DD24a7d33f5fe526730358337189',
         '0x9184cFF04fD32123db66329Ab50Bf176ece2e211',
         '0xFf60C1Efa7f0F10594229D8A68c312d7020E3478',
@@ -348,7 +349,7 @@ async function airdropTest() {
     const roundId = await sdk.airdropper.nextRoundId();
     console.log(`=> CreateRound ${roundId}`);
     await sendTx(() => sdk.airdropper.createRound(sdk.sqToken.address, startTime, endTime));
-    
+
     let round = await sdk.airdropper.roundRecord(roundId);
     console.log(`created Round ${roundId} with: `);
     console.log(`tokenAddress: ${round.tokenAddress}`);
@@ -360,7 +361,7 @@ async function airdropTest() {
     const amounts = airdrops.map(() => etherParse('0.5'));
 
     await sendTx(() => sdk.sqToken.increaseAllowance(sdk.airdropper.address, etherParse('100')));
-    
+
     console.log(`=> Start bathAirdrop for round ${roundId} ...`);
     await sendTx(() => sdk.airdropper.batchAirdrop(airdrops, rounds, amounts));
     round = await sdk.airdropper.roundRecord(roundId);
@@ -428,13 +429,13 @@ async function permissionedExchangedtest() {
 
 async function main() {
     const INDEXER_PK = process.env.INDEXER_PK;
-    const CONSUMER_PK = process.env.CONSUMER_PK; 
+    const CONSUMER_PK = process.env.CONSUMER_PK;
     assert(INDEXER_PK, 'Not found SEED in env');
     assert(CONSUMER_PK, 'Not found SEED in env');
 
-    const {wallet, provider} = await setup(process.argv);
+    const { wallet, provider } = await setup(process.argv);
     Provider = provider;
-    sdk = await ContractSDK.create(wallet, {deploymentDetails: deployment});
+    sdk = await ContractSDK.create(wallet, { deploymentDetails: deployment });
     root_wallet = wallet;
     indexer_wallet = new Wallet(INDEXER_PK, provider);
     consumer_wallet = new Wallet(CONSUMER_PK, provider);

@@ -1,26 +1,26 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
 import {
-    PermissionedExchange,
-    Settings,
-    SQToken,
-    Staking,
-    QueryRegistry,
-    IndexerRegistry,
-    PlanManager,
-    EraManager,
-    RewardsDistributer,
-    ServiceAgreementRegistry,
     ConsumerHost,
+    EraManager,
+    IndexerRegistry,
+    PermissionedExchange,
+    PlanManager,
     PurchaseOfferMarket,
+    QueryRegistry,
+    RewardsDistributer,
+    SQToken,
+    ServiceAgreementRegistry,
+    Settings,
+    Staking,
     StakingManager
 } from '../src';
-import {etherParse, futureTimestamp, time, startNewEra} from './helper';
-import {METADATA_HASH, DEPLOYMENT_ID, mmrRoot} from './constants';
+import { DEPLOYMENT_ID, METADATA_HASH, mmrRoot } from './constants';
+import { etherParse, futureTimestamp, startNewEra, time } from './helper';
+import { deployContracts } from './setup';
 
 
 describe('Maintenance Mode Test', () => {
@@ -66,7 +66,7 @@ describe('Maintenance Mode Test', () => {
         await indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0);
         await indexerRegistry.connect(wallet_2).registerIndexer(etherParse('1000'), METADATA_HASH, 0);
 
-        await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
+        await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
         await planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID);
         await purchaseOfferMarket.createPurchaseOffer(
             DEPLOYMENT_ID,
@@ -76,10 +76,10 @@ describe('Maintenance Mode Test', () => {
             100,
             await futureTimestamp(mockProvider)
         );
-        
+
         await stakingManager.connect(wallet_1).delegate(wallet_0.address, etherParse('10'));
         await stakingManager.connect(wallet_1).undelegate(wallet_0.address, etherParse('1'));
-        await startNewEra(mockProvider,eraManager);
+        await startNewEra(mockProvider, eraManager);
 
         await eraManager.connect(wallet_0).enableMaintenance();
     });
@@ -126,7 +126,7 @@ describe('Maintenance Mode Test', () => {
             await expect(consumerHost.withdraw(etherParse('9.5'))).to.be.revertedWith('G019');
         });
     });
-    
+
     describe('PermissionedExchange check', () => {
         it('trade should ban in maintenance mode', async () => {
             await expect(permissionedExchange.trade(1, etherParse('2'))).to.be.revertedWith('G019');
@@ -165,7 +165,7 @@ describe('Maintenance Mode Test', () => {
         });
 
         it('acceptPurchaseOffer should ban in maintenance mode', async () => {
-            await expect(purchaseOfferMarket.acceptPurchaseOffer(0,mmrRoot)).to.be.revertedWith('G019');
+            await expect(purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot)).to.be.revertedWith('G019');
         });
     });
 

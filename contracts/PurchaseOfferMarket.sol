@@ -180,8 +180,9 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         require(_deposit > 0, 'PO003');
         require(_limit > 0, 'PO004');
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
-        PlanTemplate memory template = planManager.getPlanTemplate(_planTemplateId);
+        PlanTemplateV2 memory template = planManager.getPlanTemplate(_planTemplateId);
         require(template.active, 'PO005');
+        require(template.priceToken == settings.getSQToken());
 
         offers[numOffers] = PurchaseOffer(
             _deposit,
@@ -274,7 +275,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         offerMmrRoot[_offerId][msg.sender] = _mmrRoot;
 
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
-        PlanTemplate memory template = planManager.getPlanTemplate(offer.planTemplateId);
+        PlanTemplateV2 memory template = planManager.getPlanTemplate(offer.planTemplateId);
         // create closed service agreement contract
         ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
             offer.consumer,

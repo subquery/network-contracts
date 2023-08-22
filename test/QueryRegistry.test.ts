@@ -1,23 +1,23 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {Wallet} from 'ethers';
-import {ethers, waffle} from 'hardhat';
+import { expect } from 'chai';
+import { Wallet } from 'ethers';
+import { ethers, waffle } from 'hardhat';
 
-import {deployContracts} from './setup';
+import { IndexerRegistry, PlanManager, PurchaseOfferMarket, QueryRegistry, SQToken, Staking } from '../src';
+import { METADATA_HASH, deploymentIds, metadatas, mmrRoot, versions } from './constants';
 import {
     constants,
-    timeTravel,
-    etherParse,
-    lastestTime,
-    registerIndexer,
     createPurchaseOffer,
     delay,
+    etherParse,
     futureTimestamp,
+    lastestTime,
+    registerIndexer,
+    timeTravel,
 } from './helper';
-import {metadatas, versions, deploymentIds, mmrRoot, METADATA_HASH} from './constants';
-import {IndexerRegistry, QueryRegistry, Staking, SQToken, PurchaseOfferMarket, PlanManager} from '../src';
+import { deployContracts } from './setup';
 
 enum IndexingServiceStatus {
     NOTINDEXING,
@@ -337,7 +337,7 @@ describe('Query Registry Contract', () => {
             await queryRegistry.startIndexing(deploymentId);
             await queryRegistry.updateIndexingStatusToReady(deploymentId);
             await token.increaseAllowance(purchaseOfferMarket.address, etherParse('5'));
-            await planManager.createPlanTemplate(1000, 1000, 100, METADATA_HASH);
+            await planManager.createPlanTemplate(1000, 1000, 100, token.address, METADATA_HASH);
             await createPurchaseOffer(purchaseOfferMarket, token, deploymentId, await futureTimestamp(mockProvider));
             await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
             await expect(queryRegistry.stopIndexing(deploymentId)).to.be.revertedWith('QR011');

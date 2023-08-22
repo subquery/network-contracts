@@ -126,12 +126,7 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
         emit DisputeFinalized(disputeId, state, indexerSlashAmount, newDeposit);
     }
 
-    function isOnDispute(address indexer) external returns (bool) {
-        if(disputeIdByIndexer[indexer].length > 0){
-            return true;
-        }else{
-            return false;
-        }
+    function isOnDispute(address indexer) external view returns (bool) {
+        return disputeIdByIndexer[indexer].length > 0;
     }
-
 }

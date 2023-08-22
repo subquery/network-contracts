@@ -87,10 +87,10 @@ export async function createPlanTemplates(sdk: ContractSDK, _provider?: StaticJs
     const templateId = await sdk.planManager.nextTemplateId();
     const templates = startupConfig.planTemplates;
     for (var i = templateId.toNumber(); i < templates.length; i++) {
-        const { period, dailyReqCap, rateLimit } = templates[i];
+        const { period, dailyReqCap, rateLimit, token } = templates[i];
         logger.info(`Create No. ${i} plan template: ${period} | ${dailyReqCap} | ${rateLimit}`);
         await sendTx((overrides) =>
-            sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, METADATA_HASH, overrides)
+            sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, token, METADATA_HASH, overrides)
         );
     }
 

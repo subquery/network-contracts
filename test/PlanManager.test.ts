@@ -1,24 +1,24 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {BigNumber} from 'ethers';
-import {deployContracts} from './setup';
-import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
+import { expect } from 'chai';
+import { BigNumber } from 'ethers';
+import { ethers, waffle } from 'hardhat';
 import {
+    EraManager,
     IndexerRegistry,
     PlanManager,
+    PriceOracle,
     QueryRegistry,
-    ServiceAgreementRegistry,
     RewardsDistributer,
     RewardsHelper,
-    EraManager,
     SQToken,
+    ServiceAgreementRegistry,
     Staking,
 } from '../src';
-import {constants, registerIndexer, startNewEra, time, etherParse, eventFrom} from './helper';
-import {utils} from 'ethers';
+import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, metadatas } from './constants';
+import { constants, etherParse, eventFrom, registerIndexer, startNewEra, time } from './helper';
+import { deployContracts } from './setup';
 
 describe('PlanManger Contract', () => {
     const mockProvider = waffle.provider;
@@ -33,6 +33,8 @@ describe('PlanManger Contract', () => {
     let serviceAgreementRegistry: ServiceAgreementRegistry;
     let rewardsDistributor: RewardsDistributer;
     let rewardsHelper: RewardsHelper;
+    let priceOracle: PriceOracle;
+    let usdc = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
 
     beforeEach(async () => {
         [indexer, consumer] = await ethers.getSigners();
@@ -46,6 +48,7 @@ describe('PlanManger Contract', () => {
         rewardsDistributor = deployment.rewardsDistributer;
         rewardsHelper = deployment.rewardsHelper;
         eraManager = deployment.eraManager;
+        priceOracle = deployment.priceOracle;
     });
 
     describe('Plan Manager Config', () => {
@@ -64,11 +67,11 @@ describe('PlanManger Contract', () => {
 
     describe('Plan Templates Management', () => {
         beforeEach(async () => {
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
+            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
         });
 
         it('create plan template should work', async () => {
-            await expect(planManager.createPlanTemplate(100, 100, 10, METADATA_HASH))
+            await expect(planManager.createPlanTemplate(100, 100, 10, token.address, METADATA_HASH))
                 .to.be.emit(planManager, 'PlanTemplateCreated')
                 .withArgs(1);
             expect(await planManager.nextTemplateId()).to.equal(2);
@@ -103,7 +106,7 @@ describe('PlanManger Contract', () => {
         it('plan management with invalid params should fail', async () => {
             // not owner
             await expect(
-                planManager.connect(consumer).createPlanTemplate(1000, 1000, 100, METADATA_HASH)
+                planManager.connect(consumer).createPlanTemplate(1000, 1000, 100, token.address, METADATA_HASH)
             ).to.be.revertedWith('Ownable: caller is not the owner');
             // not owner
             await expect(planManager.connect(consumer).updatePlanTemplateStatus(0, false)).to.be.revertedWith(
@@ -121,15 +124,15 @@ describe('PlanManger Contract', () => {
                 'PM004'
             );
             // invalid period
-            await expect(planManager.createPlanTemplate(0, 1000, 100, METADATA_HASH)).to.be.revertedWith(
+            await expect(planManager.createPlanTemplate(0, 1000, 100, token.address, METADATA_HASH)).to.be.revertedWith(
                 'PM001'
             );
             // invalid daily request cap
-            await expect(planManager.createPlanTemplate(1000, 0, 100, METADATA_HASH)).to.be.revertedWith(
+            await expect(planManager.createPlanTemplate(1000, 0, 100, token.address, METADATA_HASH)).to.be.revertedWith(
                 'PM002'
             );
             // invalid rate limit
-            await expect(planManager.createPlanTemplate(1000, 1000, 0, METADATA_HASH)).to.be.revertedWith(
+            await expect(planManager.createPlanTemplate(1000, 1000, 0, token.address, METADATA_HASH)).to.be.revertedWith(
                 'PM003'
             );
         });
@@ -138,8 +141,8 @@ describe('PlanManger Contract', () => {
     describe('Plan Management', () => {
         beforeEach(async () => {
             await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '2000');
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH); // template_id = 0
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 100, 10, METADATA_HASH); // template_id = 1
+            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH); // template_id = 0
+            await planManager.createPlanTemplate(time.duration.days(3).toString(), 100, 10, token.address, METADATA_HASH); // template_id = 1
         });
 
         it('create plan should work', async () => {
@@ -202,7 +205,7 @@ describe('PlanManger Contract', () => {
             await queryRegistry.startIndexing(DEPLOYMENT_ID);
             await queryRegistry.updateIndexingStatusToReady(DEPLOYMENT_ID);
             // create plan template
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
+            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
             // default plan -> planId: 1
             await planManager.createPlan(etherParse('2'), 0, constants.ZERO_BYTES32); // plan id = 1;
         });
@@ -278,6 +281,56 @@ describe('PlanManger Contract', () => {
             await queryRegistry.updateIndexingStatusToReady(newDeployment);
 
             await checkAcceptPlan(1, newDeployment);
+        });
+    });
+
+    describe('Stable priced Plan', () => {
+        beforeEach(async () => {
+            await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '2000');
+            await token.transfer(consumer.address, etherParse('100'));
+            await token.connect(consumer).increaseAllowance(planManager.address, etherParse('100'));
+            // create query project
+            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+            // wallet_0 start project
+            await queryRegistry.startIndexing(DEPLOYMENT_ID);
+            await queryRegistry.updateIndexingStatusToReady(DEPLOYMENT_ID);
+
+            //set oracle 
+            //1 USDC = 13 SQT
+            await priceOracle.setAssetPrice(usdc, token.address, BigNumber.from("13000000000000000000000000000000"));
+            // create plan template
+            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
+            // default plan -> planId: 1
+            //price: 2.73 usdc 
+            await planManager.createPlan(BigNumber.from("2730000"), 0, constants.ZERO_BYTES32); // plan id = 1;
+        });
+
+        it('feed price to price oracle should work', async () => {
+            let tokenA = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
+            let tokenB = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
+            await expect(priceOracle.getAssetPrice(tokenA, tokenB)).to.be.revertedWith("OR001");
+            await priceOracle.setAssetPrice(tokenA, tokenB, etherParse('1'));
+            expect(await priceOracle.getAssetPrice(tokenA, tokenB)).to.be.eq(etherParse('1'));
+        });
+
+        it('create a plan with allowed stable price should work', async () => {
+            await planManager.createPlan(BigNumber.from("2730000"), 0, constants.ZERO_BYTES32);
+            // FIXME:
+            // expect(await planManager.pricedToken(2)).to.eq(usdc);
+        });
+
+        it('accept the plan with allowed stable price should work', async () => {
+            const balance = await token.balanceOf(consumer.address);
+            const rewardsDistrBalance = await token.balanceOf(rewardsDistributor.address);
+            // FIXME:
+            // let price = await planManager.getPrice(1);
+            // expect(price).to.equal(etherParse("35.49"));
+            // await token.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, price);
+            // await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
+
+            // // check balances
+            // expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(price));
+            // expect(await token.balanceOf(consumer.address)).to.equal(balance.sub(price));
         });
     });
 });

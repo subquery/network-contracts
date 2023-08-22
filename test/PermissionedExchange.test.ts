@@ -1,25 +1,24 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
 import {
+    EraManager,
+    IndexerRegistry,
     PermissionedExchange,
-    Settings,
+    PlanManager,
+    QueryRegistry,
+    RewardsDistributer,
     SQToken,
     SQToken__factory,
-    Staking,
-    QueryRegistry,
-    IndexerRegistry,
-    PlanManager,
-    EraManager,
-    RewardsDistributer,
     ServiceAgreementRegistry,
+    Settings,
+    Staking,
 } from '../src';
-import {ZERO_ADDRESS} from './constants';
-import {etherParse, futureTimestamp, timeTravel, registerIndexer, constants, time, startNewEra} from './helper';
-import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
+import { DEPLOYMENT_ID, METADATA_HASH, VERSION, ZERO_ADDRESS } from './constants';
+import { constants, etherParse, futureTimestamp, registerIndexer, startNewEra, time, timeTravel } from './helper';
+import { deployContracts } from './setup';
 
 describe('PermissionedExchange Contract', () => {
     const mockProvider = waffle.provider;
@@ -121,7 +120,7 @@ describe('PermissionedExchange Contract', () => {
             await queryRegistry.connect(indexer).startIndexing(DEPLOYMENT_ID);
             await queryRegistry.connect(indexer).updateIndexingStatusToReady(DEPLOYMENT_ID);
             // create plan template
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
+            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, sqToken.address, METADATA_HASH);
             // default plan -> planId: 1
             await planManager.connect(indexer).createPlan(etherParse('10'), 0, constants.ZERO_BYTES32);
             await sqToken.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, etherParse('50'));
