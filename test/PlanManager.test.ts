@@ -148,7 +148,7 @@ describe('PlanManger Contract', () => {
         it('create plan should work', async () => {
             await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID))
                 .to.be.emit(planManager, 'PlanCreated')
-                .withArgs(1, indexer.address, DEPLOYMENT_ID, 0, etherParse('2'), token.address);
+                .withArgs(1, indexer.address, DEPLOYMENT_ID, 0, etherParse('2'));
 
             // check plan
             expect(await planManager.nextPlanId()).to.equal(2);
