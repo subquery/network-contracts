@@ -141,11 +141,12 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     }
 
     function convertPlanPriceToSQT(address priceToken, uint256 price) public view returns (uint256) {
-        if (priceToken != settings.getSQToken()){
-            return price * 1e18 / IPriceOracle(settings.getPriceOracle()).getAssetPrice(priceToken, settings.getSQToken());
-        } else {
+        if (priceToken == settings.getSQToken()){
             return price;
         }
+
+        uint256 assetPrice = IPriceOracle(settings.getPriceOracle()).getAssetPrice(priceToken, settings.getSQToken());
+        return price * 1e18 / assetPrice;
     }
 
     /**

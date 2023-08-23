@@ -3,9 +3,12 @@
 
 pragma solidity 0.8.15;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-contract PriceOracle is Ownable {
+import './interfaces/IPriceOracle.sol';
+
+contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable {
     ///@notice the price of assetA in assetB
     mapping(address => mapping(address => uint256)) public prices;
 
@@ -21,7 +24,9 @@ contract PriceOracle is Ownable {
     ///@notice the controller account which can change price
     address public controller;
 
-    constructor(uint256 _sizeLimit, uint256 _blockLimit) Ownable() {
+    function initialize(uint256 _sizeLimit, uint256 _blockLimit) external initializer {
+        __Ownable_init();
+
         sizeLimit = _sizeLimit;
         blockLimit = _blockLimit;
     }

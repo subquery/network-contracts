@@ -4,5 +4,5 @@
 pragma solidity 0.8.15;
 
 interface IPriceOracle {
-    function getAssetPrice(address assetA, address assetB) external view returns (uint);
+    function getAssetPrice(address assetA, address assetB) external view returns (uint256);
 }

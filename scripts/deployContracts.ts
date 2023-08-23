@@ -1,13 +1,13 @@
-import {Wallet} from '@ethersproject/wallet';
-import {BaseContract, Contract, Overrides} from 'ethers';
-import {readFileSync, writeFileSync} from 'fs';
+import { Wallet } from '@ethersproject/wallet';
+import { BaseContract, Contract, Overrides } from 'ethers';
+import { readFileSync, writeFileSync } from 'fs';
 import Pino from 'pino';
 import sha256 from 'sha256';
 import CONTRACTS from '../src/contracts';
-import {ContractDeployment, ContractName} from '../src/types';
-import {TextColor, colorText, getLogger} from './logger';
+import { ContractDeployment, ContractName } from '../src/types';
+import { TextColor, colorText, getLogger } from './logger';
 
-import {SubqueryNetwork} from '@subql/contract-sdk';
+import { SubqueryNetwork } from '@subql/contract-sdk';
 import {
     AdminUpgradeabilityProxy__factory,
     Airdropper,
@@ -67,7 +67,7 @@ function codeToHash(code: string) {
 async function getOverrides(): Promise<Overrides> {
     const price = await wallet.provider.getGasPrice();
     const gasPrice = price.add(20000000000); // add extra 15 gwei
-    return {gasPrice};
+    return { gasPrice };
 }
 
 export function saveDeployment(name: string, deployment: Partial<ContractDeployment>) {
@@ -88,7 +88,7 @@ async function deployContract<T extends BaseContract>(
     name: ContractName,
     options?: {
         proxyAdmin?: ProxyAdmin;
-        initConfig?: (string | string[])[];
+        initConfig?: (string | number | string[])[];
         deployConfig?: Config[];
     }
 ): Promise<T> {
@@ -104,7 +104,7 @@ async function deployContract<T extends BaseContract>(
 
     let contract: T;
     let innerAddress = '';
-    const {proxyAdmin, initConfig} = options ?? {};
+    const { proxyAdmin, initConfig } = options ?? {};
     const deployConfig = options?.deployConfig ?? [];
 
     if (proxyAdmin) {
@@ -184,7 +184,7 @@ function updateDeployment(
 export async function deployContracts(
     _wallet: Wallet,
     _config: ContractConfig,
-    options?: {network: SubqueryNetwork; confirms: number; history: boolean}
+    options?: { network: SubqueryNetwork; confirms: number; history: boolean }
 ): Promise<[Partial<ContractDeployment>, Contracts]> {
     wallet = _wallet;
     config = _config;
@@ -221,13 +221,13 @@ export async function deployContracts(
 
         //deploy Airdropper contract
         const [settleDestination] = config['Airdropper'];
-        const airdropper = await deployContract<Airdropper>('Airdropper', {deployConfig: [settleDestination]});
+        const airdropper = await deployContract<Airdropper>('Airdropper', { deployConfig: [settleDestination] });
 
         //deploy vesting contract
-        const vesting = await deployContract<Vesting>('Vesting', {deployConfig: [deployment.SQToken.address]});
+        const vesting = await deployContract<Vesting>('Vesting', { deployConfig: [deployment.SQToken.address] });
 
         // deploy Staking contract
-        const staking = await deployContract<Staking>('Staking', {proxyAdmin, initConfig: [settingsAddress]});
+        const staking = await deployContract<Staking>('Staking', { proxyAdmin, initConfig: [settingsAddress] });
 
         // deploy StakingManager contract
         const stakingManager = await deployContract<StakingManager>('StakingManager', {
@@ -236,7 +236,7 @@ export async function deployContracts(
         });
 
         // deploy Era manager
-        const eraManager = await deployContract<EraManager>('EraManager', {proxyAdmin, initConfig: [settingsAddress]});
+        const eraManager = await deployContract<EraManager>('EraManager', { proxyAdmin, initConfig: [settingsAddress] });
 
         // deploy IndexerRegistry contract
         const indexerRegistry = await deployContract<IndexerRegistry>('IndexerRegistry', {
@@ -324,7 +324,8 @@ export async function deployContracts(
 
         // delpoy PriceOracle contract
         const priceOracle = await deployContract<PriceOracle>('PriceOracle', {
-            deployConfig: [10, 3600],
+            proxyAdmin,
+            initConfig: [10, 3600],
         });
 
         // Register addresses on settings contract
@@ -451,7 +452,7 @@ export async function upgradeContracts(
             continue;
         }
 
-        const {address} = deployment[contractName];
+        const { address } = deployment[contractName];
         const [innerAddr] = await upgradeContract(proxyAdmin, address, factory, wallet, confirms);
         deployment[contractName] = {
             innerAddress: innerAddr,
