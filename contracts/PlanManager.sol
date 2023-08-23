@@ -201,7 +201,13 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
 
         //stable price mode
         PlanTemplateV2 memory template = v2templates[plan.templateId];
-        uint256 sqtPrice = convertPlanPriceToSQT(template.priceToken, plan.price);
+        address priceToken = template.priceToken;
+        uint256 period = template.period;
+        if (priceToken == address(0)) {
+            priceToken = settings.getSQToken();
+            period = templates[plan.templateId].period;
+        }
+        uint256 sqtPrice = convertPlanPriceToSQT(priceToken, plan.price);
 
         // create closed service agreement contract
         ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
@@ -210,7 +216,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
             deploymentId,
             sqtPrice,
             block.timestamp,
-            v2templates[plan.templateId].period,
+            period,
             planId,
             plan.templateId
         );
