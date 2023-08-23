@@ -200,7 +200,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         }
 
         //stable price mode
-        PlanTemplateV2 memory template = v2templates[plan.templateId];
+        PlanTemplateV2 memory template = getPlanTemplate(plan.templateId);
         uint256 sqtPrice = convertPlanPriceToSQT(template.priceToken, plan.price);
 
         // create closed service agreement contract
@@ -210,7 +210,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
             deploymentId,
             sqtPrice,
             block.timestamp,
-            v2templates[plan.templateId].period,
+            template.period,
             planId,
             plan.templateId
         );
@@ -236,7 +236,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @notice Get a specific plan templates
      * @param templateId plan template id
      */
-    function getPlanTemplate(uint256 templateId) external view returns (PlanTemplateV2 memory) {
+    function getPlanTemplate(uint256 templateId) public view returns (PlanTemplateV2 memory) {
         if (v2templates[templateId].period > 0) {
             return v2templates[templateId];
         } else {
