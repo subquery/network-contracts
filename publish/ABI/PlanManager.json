@@ -140,6 +140,30 @@
     {
         "inputs": [
             {
+                "internalType": "address",
+                "name": "priceToken",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "price",
+                "type": "uint256"
+            }
+        ],
+        "name": "convertPlanPriceToSQT",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "price",
                 "type": "uint256"
@@ -176,6 +200,11 @@
                 "internalType": "uint256",
                 "name": "rateLimit",
                 "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "priceToken",
+                "type": "address"
             },
             {
                 "internalType": "bytes32",
@@ -262,6 +291,11 @@
                         "type": "uint256"
                     },
                     {
+                        "internalType": "address",
+                        "name": "priceToken",
+                        "type": "address"
+                    },
+                    {
                         "internalType": "bytes32",
                         "name": "metadata",
                         "type": "bytes32"
@@ -272,7 +306,7 @@
                         "type": "bool"
                     }
                 ],
-                "internalType": "struct PlanTemplate",
+                "internalType": "struct PlanTemplateV2",
                 "name": "",
                 "type": "tuple"
             }

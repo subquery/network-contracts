@@ -1,10 +1,5 @@
 [
     {
-        "inputs": [],
-        "stateMutability": "nonpayable",
-        "type": "constructor"
-    },
-    {
         "anonymous": false,
         "inputs": [
             {
@@ -207,6 +202,19 @@
     },
     {
         "inputs": [],
+        "name": "getPriceOracle",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "getQueryRegistry",
         "outputs": [
             {
@@ -376,6 +384,13 @@
     },
     {
         "inputs": [],
+        "name": "initialize",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "owner",
         "outputs": [
             {
@@ -403,6 +418,19 @@
     {
         "inputs": [],
         "name": "planManager",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "priceOracle",
         "outputs": [
             {
                 "internalType": "address",
@@ -585,6 +613,19 @@
             }
         ],
         "name": "setPlanManager",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_priceOracle",
+                "type": "address"
+            }
+        ],
+        "name": "setPriceOracle",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -817,6 +858,11 @@
             {
                 "internalType": "address",
                 "name": "_permissionedExchange",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_priceOracle",
                 "type": "address"
             }
         ],
