@@ -445,8 +445,7 @@ export async function upgradeContracts(
     }
 
     logger.info(`Contract Changed: ${changed.join(',')}`);
-    const _changed = ['Settings', 'PlanManager', 'PurchaseOfferMarket', 'DisputeManager'];
-    for (const contractName of _changed) {
+    for (const contractName of changed) {
         logger.info(`Upgrading ${contractName}`);
 
         const [_, factory] = UPGRADEBAL_CONTRACTS[contractName];
