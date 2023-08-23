@@ -28,8 +28,19 @@ struct PlanTemplate {
     bool active;
 }
 
+struct PlanTemplateV2 {
+    uint256 period;
+    uint256 dailyReqCap;
+    uint256 rateLimit;
+    address priceToken;
+    bytes32 metadata;
+    bool active;
+}
+
 interface IPlanManager {
     function getPlan(uint256 planId) external view returns (Plan memory);
 
-    function getPlanTemplate(uint256 templateId) external view returns (PlanTemplate memory);
+    function getPlanTemplate(uint256 templateId) external view returns (PlanTemplateV2 memory);
+
+    function convertPlanPriceToSQT(address priceToken, uint256 price) external view returns (uint256);
 }

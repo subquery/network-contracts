@@ -1,27 +1,27 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {BigNumber, providers, utils} from 'ethers';
-import {deployContracts} from './setup';
-import {METADATA_HASH, DEPLOYMENT_ID, VERSION} from './constants';
+import { expect } from 'chai';
+import { BigNumber } from 'ethers';
+import { ethers, waffle } from 'hardhat';
 import {
+    EraManager,
     IndexerRegistry,
+    InflationController,
     PlanManager,
     QueryRegistry,
-    ServiceAgreementRegistry,
     RewardsDistributer,
-    RewardsStaking,
     RewardsHelper,
-    EraManager,
+    RewardsStaking,
     SQToken,
+    ServiceAgreementRegistry,
+    Settings,
     Staking,
     StakingManager,
-    Settings,
-    InflationController,
 } from '../src';
-import {startNewEra, time, acceptPlan, etherParse, timeTravel, eventFrom, futureTimestamp} from './helper';
+import { DEPLOYMENT_ID, METADATA_HASH } from './constants';
+import { etherParse, startNewEra, time } from './helper';
+import { deployContracts } from './setup';
 
 describe.skip('Rewardflow tests', () => {
     const mockProvider = waffle.provider;
@@ -46,14 +46,14 @@ describe.skip('Rewardflow tests', () => {
     const registerIndexer = async (rootWallet, wallet, amount, rate) => {
         await token.connect(rootWallet).transfer(wallet.address, amount);
         await token.connect(wallet).increaseAllowance(staking.address, amount);
-        await indexerRegistry.connect(wallet).registerIndexer(amount, METADATA_HASH, rate, {gasLimit: '2000000'});
+        await indexerRegistry.connect(wallet).registerIndexer(amount, METADATA_HASH, rate, { gasLimit: '2000000' });
         // start indexing project
         await queryRegistry.connect(wallet).startIndexing(DEPLOYMENT_ID);
         await queryRegistry.connect(wallet).updateIndexingStatusToReady(DEPLOYMENT_ID);
         // create plan
-        await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, METADATA_HASH);
-        await planManager.createPlanTemplate(time.duration.days(10).toString(), 1000, 100, METADATA_HASH);
-        await planManager.createPlanTemplate(time.duration.days(15).toString(), 1000, 100, METADATA_HASH);
+        await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
+        await planManager.createPlanTemplate(time.duration.days(10).toString(), 1000, 100, token.address, METADATA_HASH);
+        await planManager.createPlanTemplate(time.duration.days(15).toString(), 1000, 100, token.address, METADATA_HASH);
         await planManager.connect(indexer).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
         await planManager.connect(indexer).createPlan(etherParse('10000'), 1, DEPLOYMENT_ID);
         await planManager.connect(indexer).createPlan(etherParse('10000'), 2, DEPLOYMENT_ID);
