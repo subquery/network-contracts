@@ -1,10 +1,8 @@
 # SubQuery Contracts
 
-The Subquery is a indexing tool for querying blockchains data. Anyone can build indexing service with subquery, and provide the api to making blockchain data easily accessible.
+The SubQuery is a indexing tool for querying blockchains data. Anyone can build indexing service with SubQuery, and provide the api to making blockchain data easily accessible.
 
-The Subquery Network Smart Contracts are a set of Solidity contracts that are going to delpoy on EVM. The contracts enable a decentralized network that welcome indexers running query projects and provide queries to consumers. Consumers pay for queries with the Subquery Token (SQT).
-
-The Subquery Network allows Delegators staking on Indxers to share their rewards, more delegation also help indxers are able to gain more rewards.
+The SubQuery Network Smart Contracts are a set of Solidity contracts that power the decentralised SubQuery Network. The contracts enable a decentralized network that welcome indexers running query projects and provide queries to consumers. Consumers pay for queries with the SubQuery Token (SQT).
 
 This repository includes contracts, js-sdk and rust-sdk.
 
