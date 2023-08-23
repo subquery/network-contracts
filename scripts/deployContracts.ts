@@ -434,6 +434,8 @@ export async function upgradeContracts(
         const bytecodeHash = codeToHash(CONTRACTS[contract].bytecode);
         if (bytecodeHash !== deployment[contract]?.bytecodeHash) {
             changed.push(contract as any);
+        } else {
+            logger.info(`Contract ${contract} not changed`);
         }
     }
 
@@ -443,7 +445,8 @@ export async function upgradeContracts(
     }
 
     logger.info(`Contract Changed: ${changed.join(',')}`);
-    for (const contractName of changed) {
+    const _changed = ['Settings', 'PlanManager', 'PurchaseOfferMarket', 'DisputeManager'];
+    for (const contractName of _changed) {
         logger.info(`Upgrading ${contractName}`);
 
         const [_, factory] = UPGRADEBAL_CONTRACTS[contractName];

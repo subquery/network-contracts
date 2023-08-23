@@ -6,10 +6,10 @@
         "lastUpdate": "Thu, 17 Aug 2023 21:12:08 GMT"
     },
     "Settings": {
-        "innerAddress": "0xfE2ADe8557E59F884f11edadf1Ae8Ce24Bfd442C",
+        "innerAddress": "0xFdAa698B9C9bDB788c9Aee7df94d9F4A95Bbaf7C",
         "address": "0x108553fB4A6F3b3044740B0212fb4Ce3a9cBef2E",
-        "bytecodeHash": "72687fabf5e34076c19c9fc4d7de25ac31eb1fe7f88c7ce9c0b7a657c4d51e26",
-        "lastUpdate": "Fri, 18 Aug 2023 01:50:01 GMT"
+        "bytecodeHash": "22e95eb1b6dda7712b7aa3ab9ee30b645e446f2670536e3116c8f024c1b83e6d",
+        "lastUpdate": "Wed, 23 Aug 2023 11:35:17 GMT"
     },
     "InflationController": {
         "innerAddress": "0x133989826b9CcA1F9aE520a09b7e368581a39697",
@@ -72,16 +72,16 @@
         "lastUpdate": "Thu, 17 Aug 2023 21:16:24 GMT"
     },
     "PlanManager": {
-        "innerAddress": "0xd88cBa0e8E5f7875777FA47FDF82d9669a980E7E",
+        "innerAddress": "0x576d090Ab4312BcC392146ff12518C8144e50626",
         "address": "0xc0f525Fe59F6f1D4A201dB36f93F4D2F34d6C45D",
-        "bytecodeHash": "bb80b55633f93b4bee02a1f77b274e321610773ad430639b82690da8ba2bbbdb",
-        "lastUpdate": "Thu, 17 Aug 2023 21:16:56 GMT"
+        "bytecodeHash": "72b2179afa28dfb6bdf87a65877fc7b2fa934ee21588162a7e3911d7dd91951e",
+        "lastUpdate": "Wed, 23 Aug 2023 11:35:34 GMT"
     },
     "PurchaseOfferMarket": {
-        "innerAddress": "0x754Ec915e899e2eA97cE89E977bB1426a152a473",
+        "innerAddress": "0x0f1C53a325891A0c899c604706B05C57371B81C1",
         "address": "0xB1360A9C92F129d744C72E0D2f10FDC4612e6dB9",
-        "bytecodeHash": "a4dc4d7b61d5bf63d91559f7ce2d3b7f1584415c15947a3b2ae19d19f9feace2",
-        "lastUpdate": "Thu, 17 Aug 2023 21:17:23 GMT"
+        "bytecodeHash": "3faa4df5e165a4896245ac5ad77350b28104c36c4fc78b6483385a3b41fb09e8",
+        "lastUpdate": "Wed, 23 Aug 2023 11:35:51 GMT"
     },
     "ServiceAgreementRegistry": {
         "innerAddress": "0xAF1b870D4F0639FeD175A103ebB1Feff163d8507",
@@ -132,10 +132,10 @@
         "lastUpdate": "Thu, 17 Aug 2023 21:21:21 GMT"
     },
     "DisputeManager": {
-        "innerAddress": "0x01db66f944c1C4e28741714B3De57869Fce3928c",
+        "innerAddress": "0xc5B4BD6b0775558A6588572585b5bb083640154A",
         "address": "0x1f32C28240384E2800AC3C28891713B763F1638B",
-        "bytecodeHash": "d81d057c21c8ff9c7479d6e71a4be450a94ab018f01a9d669d3702112a96d284",
-        "lastUpdate": "Thu, 17 Aug 2023 21:21:48 GMT"
+        "bytecodeHash": "c1ca58d833d56f490f98565be2e18425544a0146dd2e940090c77d8fe6164bff",
+        "lastUpdate": "Wed, 23 Aug 2023 11:36:10 GMT"
     },
     "ConsumerRegistry": {
         "innerAddress": "0x974B148bc0f2eDaAfbC8368EB000b8e0AAe237d5",
