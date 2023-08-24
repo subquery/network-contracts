@@ -144,9 +144,9 @@
         "lastUpdate": "Thu, 17 Aug 2023 21:22:16 GMT"
     },
     "PriceOracle": {
-        "innerAddress": "0xe5546fca97f790DE7A8C00b18204eC21E114Bd79",
-        "address": "0x1099Aba6B6fEeC85493f54C72266ED9c1BF070cA",
-        "bytecodeHash": "f44474d7057fb38fe3c639ab2f64b216300f3f656e4ff3a58a3f7f5d1c096d9b",
-        "lastUpdate": "Wed, 23 Aug 2023 11:21:37 GMT"
+        "innerAddress": "0xA667c15450946baD729779B6D186738e53Cf04c9",
+        "address": "0x03Bf8E450f8a85Cb0F3F7c0a9b2d72A3c74da924",
+        "bytecodeHash": "d95aa2638edb0b1ce643f883a60435b44390ac9e78035b6c0579ba1b50b54a33",
+        "lastUpdate": "Thu, 24 Aug 2023 04:39:06 GMT"
     }
 }
