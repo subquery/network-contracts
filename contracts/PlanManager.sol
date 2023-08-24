@@ -120,9 +120,13 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param metadata metadata to update
      */
     function updatePlanTemplateMetadata(uint256 templateId, bytes32 metadata) external onlyOwner {
-        require(v2templates[templateId].period > 0, 'PM004');
-
-        v2templates[templateId].metadata = metadata;
+        if (v2templates[templateId].period > 0) {
+            v2templates[templateId].metadata = metadata;
+        } else if (templates[templateId].period > 0) {
+            templates[templateId].metadata = metadata;
+        } else {
+            revert('PM004');
+        }
 
         emit PlanTemplateMetadataChanged(templateId, metadata);
     }
@@ -133,10 +137,13 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param active plan template active or not
      */
     function updatePlanTemplateStatus(uint256 templateId, bool active) external onlyOwner {
-        require(v2templates[templateId].period > 0, 'PM004');
-
-        v2templates[templateId].active = active;
-
+        if (v2templates[templateId].period > 0) {
+            v2templates[templateId].active = active;
+        } else if (templates[templateId].period > 0) {
+            templates[templateId].active = active;
+        } else {
+            revert('PM004');
+        }
         emit PlanTemplateStatusChanged(templateId, active);
     }
 
@@ -158,7 +165,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     function createPlan(uint256 price, uint256 templateId, bytes32 deploymentId) external {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         require(price > 0, 'PM005');
-        require(v2templates[templateId].active, 'PM006');
+        require(getPlanTemplate(templateId).active, 'PM006');
         require(limits[msg.sender][deploymentId] < limit, 'PM007');
 
         plans[nextPlanId] = Plan(msg.sender, price, templateId, deploymentId, true);
