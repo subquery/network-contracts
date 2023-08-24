@@ -4,7 +4,7 @@
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { PriceOracle } from '../src';
-import { blockTravel } from './helper';
+import { blockTravel, etherParse } from './helper';
 import { deployContracts } from './setup';
 
 describe('PriceOracle Contract', () => {
