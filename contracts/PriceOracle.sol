@@ -9,7 +9,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './interfaces/IPriceOracle.sol';
 
 contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable {
-    ///@notice the price of assetA in assetB
+    ///@notice the price of assetTo in assetFrom
     mapping(address => mapping(address => uint256)) public prices;
 
     ///@notice the size limit when controller change price
@@ -21,7 +21,7 @@ contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable {
     ///@notice the block number of latest set price
     uint256 public latestPriceBlock;
 
-    uint256 public enlargementFactor = 1e6;
+    uint256 public enlargementFactor;
 
     ///@notice the controller account which can change price
     address public controller;
@@ -31,9 +31,10 @@ contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable {
 
         sizeLimit = _sizeLimit;
         blockLimit = _blockLimit;
+        enlargementFactor = 1e6;
     }
 
-    event PricePosted(address assetA, address assetB, uint256 previousPrice, uint256 newPrice);
+    event PricePosted(address assetFrom, address assetTo, uint256 previousPrice, uint256 newPrice);
 
     ///@notice update change price limit
     function setLimit(uint256 _sizeLimit, uint256 _blockLimit) public onlyOwner {
@@ -46,18 +47,18 @@ contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable {
         controller = _controller;
     }
 
-    ///@notice get the price of assetA in assetB
+    ///@notice get the price of assetTo in assetFrom
     function getAssetPrice(address assetFrom, address assetTo) public view returns (uint256) {
         uint256 price = prices[assetFrom][assetTo];
         require(price > 0, "OR001");
         return price;
     }
 
-    ///set the price of assetA in assetB
-    ///AssetA in AssetB with a fixed precision of 18 decimal places
-    ///Thus, if we wanted set 1 USDC = 13 SQT The price be 13000000000000000000000000000000(13e30)
-    ///@param assetA priceToken
-    ///@param assetB sqtToken
+    ///set the price of assetTo in assetFrom
+    ///use enlargementFactor
+    ///Thus, if we wanted set 1 USDC (decimal=6) = 13 SQT(decimal=18) The price be 13e(18-6+6)
+    ///@param assetFrom priceToken
+    ///@param assetTo sqtToken
     function setAssetPrice(address assetFrom, address assetTo, uint256 assetFromAmount, uint256 assetToAmount) public {
         uint256 prePrice = prices[assetFrom][assetTo];
         uint256 price = assetToAmount * enlargementFactor / assetFromAmount;
