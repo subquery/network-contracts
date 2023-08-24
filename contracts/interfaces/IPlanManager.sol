@@ -42,5 +42,4 @@ interface IPlanManager {
 
     function getPlanTemplate(uint256 templateId) external view returns (PlanTemplateV2 memory);
 
-    function convertPlanPriceToSQT(address priceToken, uint256 price) external view returns (uint256);
 }
