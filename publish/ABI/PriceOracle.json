@@ -1,21 +1,5 @@
 [
     {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_sizeLimit",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_blockLimit",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "nonpayable",
-        "type": "constructor"
-    },
-    {
         "anonymous": false,
         "inputs": [
             {
@@ -40,13 +24,13 @@
             {
                 "indexed": false,
                 "internalType": "address",
-                "name": "assetA",
+                "name": "assetFrom",
                 "type": "address"
             },
             {
                 "indexed": false,
                 "internalType": "address",
-                "name": "assetB",
+                "name": "assetTo",
                 "type": "address"
             },
             {
@@ -95,12 +79,54 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "assetA",
+                "name": "fromToken",
                 "type": "address"
             },
             {
                 "internalType": "address",
-                "name": "assetB",
+                "name": "toToken",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "convertPrice",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "enlargementFactor",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "assetFrom",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "assetTo",
                 "type": "address"
             }
         ],
@@ -113,6 +139,24 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_sizeLimit",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_blockLimit",
+                "type": "uint256"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -176,17 +220,22 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "assetA",
+                "name": "assetFrom",
                 "type": "address"
             },
             {
                 "internalType": "address",
-                "name": "assetB",
+                "name": "assetTo",
                 "type": "address"
             },
             {
                 "internalType": "uint256",
-                "name": "price",
+                "name": "assetFromAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "assetToAmount",
                 "type": "uint256"
             }
         ],

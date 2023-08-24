@@ -6,7 +6,7 @@
     "scripts": {
         "build:contract": "hardhat compile",
         "build:ts": "scripts/build.sh",
-        "build": "yarn build:contract && yarn build:ts",
+        "build": "yarn build:contract && yarn build:ts && yarn abi",
         "lint": "solhint contracts/**/*.sol",
         "test": "hardhat test",
         "test:coverage": "hardhat coverage",
