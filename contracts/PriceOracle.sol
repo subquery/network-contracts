@@ -74,7 +74,7 @@ contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable {
         }
 
         latestPriceBlock = block.number;
-        prices[assetFrom][assetTo] = assetToAmount * enlargementFactor / assetToAmount;
+        prices[assetFrom][assetTo] = price;
         emit PricePosted(assetFrom, assetTo, prePrice, price);
     }
 
