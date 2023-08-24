@@ -115,7 +115,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     }
 
     /**
-     * @notice Allow admin to update the Metadata of a PlanTemplate. v1 template can not be upgraded
+     * @notice Allow admin to update the Metadata of a PlanTemplate.
      * @param templateId plan template id
      * @param metadata metadata to update
      */
