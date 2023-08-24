@@ -147,15 +147,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         emit PlanTemplateStatusChanged(templateId, active);
     }
 
-    function convertPlanPriceToSQT(address priceToken, uint256 price) public view returns (uint256) {
-        if (priceToken == settings.getSQToken()){
-            return price;
-        }
-
-        uint256 assetPrice = IPriceOracle(settings.getPriceOracle()).getAssetPrice(priceToken, settings.getSQToken());
-        return price * 1e18 / assetPrice;
-    }
-
     /**
      * @notice Allow Indexer to create a Plan basing on a specific plan template.
      * @param price plan price
@@ -208,7 +199,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
 
         //stable price mode
         PlanTemplateV2 memory template = getPlanTemplate(plan.templateId);
-        uint256 sqtPrice = convertPlanPriceToSQT(template.priceToken, plan.price);
+        uint256 sqtPrice = IPriceOracle(settings.getPriceOracle()).convertPrice(template.priceToken, settings.getSQToken(), plan.price);
 
         // create closed service agreement contract
         ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(

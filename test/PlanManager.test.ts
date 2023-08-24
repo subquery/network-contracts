@@ -295,22 +295,14 @@ describe('PlanManger Contract', () => {
             await queryRegistry.startIndexing(DEPLOYMENT_ID);
             await queryRegistry.updateIndexingStatusToReady(DEPLOYMENT_ID);
 
-            //set oracle 
-            //1 USDC = 13 SQT
-            await priceOracle.setAssetPrice(usdc, token.address, BigNumber.from("13000000000000000000000000000000"));
+            //set oracle
+            //1 USDC(ether) = 13 SQT(ether), <> 1 USDC = 13e12
+            await priceOracle.setAssetPrice(usdc, token.address, 1, 13e12);
             // create plan template
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
             // default plan -> planId: 1
-            //price: 2.73 usdc 
+            //price: 2.73 usdc
             await planManager.createPlan(BigNumber.from("2730000"), 0, constants.ZERO_BYTES32); // plan id = 1;
-        });
-
-        it('feed price to price oracle should work', async () => {
-            let tokenA = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
-            let tokenB = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
-            await expect(priceOracle.getAssetPrice(tokenA, tokenB)).to.be.revertedWith("OR001");
-            await priceOracle.setAssetPrice(tokenA, tokenB, etherParse('1'));
-            expect(await priceOracle.getAssetPrice(tokenA, tokenB)).to.be.eq(etherParse('1'));
         });
 
         it('create a plan with allowed stable price should work', async () => {
