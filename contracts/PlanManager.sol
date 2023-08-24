@@ -120,9 +120,13 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param metadata metadata to update
      */
     function updatePlanTemplateMetadata(uint256 templateId, bytes32 metadata) external onlyOwner {
-        require(v2templates[templateId].period > 0, 'PM004');
-
-        v2templates[templateId].metadata = metadata;
+        if (v2templates[templateId].period > 0) {
+            v2templates[templateId].metadata = metadata;
+        } else if (templates[templateId].period > 0) {
+            templates[templateId].metadata = metadata;
+        } else {
+            revert('PM004');
+        }
 
         emit PlanTemplateMetadataChanged(templateId, metadata);
     }
@@ -133,19 +137,14 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param active plan template active or not
      */
     function updatePlanTemplateStatus(uint256 templateId, bool active) external onlyOwner {
-        require(v2templates[templateId].period > 0, 'PM004');
-
-        v2templates[templateId].active = active;
-
-        emit PlanTemplateStatusChanged(templateId, active);
-    }
-
-    function convertPlanPriceToSQT(address priceToken, uint256 price) public view returns (uint256) {
-        if (priceToken != settings.getSQToken()){
-            return price * 1e18 / IPriceOracle(settings.getPriceOracle()).getAssetPrice(priceToken, settings.getSQToken());
+        if (v2templates[templateId].period > 0) {
+            v2templates[templateId].active = active;
+        } else if (templates[templateId].period > 0) {
+            templates[templateId].active = active;
         } else {
-            return price;
+            revert('PM004');
         }
+        emit PlanTemplateStatusChanged(templateId, active);
     }
 
     /**
@@ -157,7 +156,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     function createPlan(uint256 price, uint256 templateId, bytes32 deploymentId) external {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         require(price > 0, 'PM005');
-        require(v2templates[templateId].active, 'PM006');
+        require(getPlanTemplate(templateId).active, 'PM006');
         require(limits[msg.sender][deploymentId] < limit, 'PM007');
 
         plans[nextPlanId] = Plan(msg.sender, price, templateId, deploymentId, true);
@@ -199,8 +198,8 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         }
 
         //stable price mode
-        PlanTemplateV2 memory template = v2templates[plan.templateId];
-        uint256 sqtPrice = convertPlanPriceToSQT(template.priceToken, plan.price);
+        PlanTemplateV2 memory template = getPlanTemplate(plan.templateId);
+        uint256 sqtPrice = IPriceOracle(settings.getPriceOracle()).convertPrice(template.priceToken, settings.getSQToken(), plan.price);
 
         // create closed service agreement contract
         ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
@@ -209,7 +208,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
             deploymentId,
             sqtPrice,
             block.timestamp,
-            v2templates[plan.templateId].period,
+            template.period,
             planId,
             plan.templateId
         );
@@ -235,7 +234,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @notice Get a specific plan templates
      * @param templateId plan template id
      */
-    function getPlanTemplate(uint256 templateId) external view returns (PlanTemplateV2 memory) {
+    function getPlanTemplate(uint256 templateId) public view returns (PlanTemplateV2 memory) {
         if (v2templates[templateId].period > 0) {
             return v2templates[templateId];
         } else {
