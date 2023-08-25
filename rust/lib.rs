@@ -7,7 +7,42 @@ const KEPLER_ADDRESS: &str = include_str!("../publish/kepler.json");
 const TESTNET_ADDRESS: &str = include_str!("../publish/testnet.json");
 
 /// Default network that all services use now.
-pub const CURRENT_NETWORK: Network = Network::Testnet;
+pub const CURRENT_NETWORK: Network = Network::Kepler;
+
+const CHAIN_ICON_URL: &str = "https://icons.llamao.fi/icons/chains/rsz_polygon.jpg";
+const CHAIN_TOKEN_NAME: &str = "Matic Token";
+const CHAIN_TOKEN_SYMBOL: &str = "MATIC";
+const CHAIN_TOKEN_DECIMALS: i32 = 18;
+
+const BLOCK_EXPLORER_MAINNET: &str = "";
+const BLOCK_EXPLORER_KEPLER: &str = "https://polygonscan.com";
+const BLOCK_EXPLORER_TESTNET: &str = "https://mumbai.polygonscan.com";
+
+const CHAIN_ID_MAINNET: i32 = 137;
+const CHAIN_ID_KEPLER: i32 = 137;
+const CHAIN_ID_TESTNET: i32 = 80001;
+const CHAIN_NAME_MAINNET: &str = "";
+const CHAIN_NAME_KEPLER: &str = "Polygon";
+const CHAIN_NAME_TESTNET: &str = "Polygon Mumbai";
+
+const RPC_MAINNET1: &str = "";
+const RPC_MAINNET2: &str = "";
+const RPC_KEPLER1: &str = "https://polygon-rpc.com";
+const RPC_KEPLER2: &str = "https://polygon.api.onfinality.io/rpc";
+const RPC_TESTNET1: &str = "https://rpc.ankr.com/polygon_mumbai";
+const RPC_TESTNET2: &str = "https://polygon-mumbai.api.onfinality.io/rpc";
+
+const IPFS_MAINNET: &str = "";
+const IPFS_KEPLER: &str = "https://unauthipfs.subquery.network/ipfs/api/v0";
+const IPFS_TESTNET: &str = "https://unauthipfs.subquery.network/ipfs/api/v0";
+
+const SUBQL_MAINNET: &str = "";
+const SUBQL_KEPLER: &str = "https://api.subquery.network/sq/subquery/kepler-network";
+const SUBQL_TESTNET: &str = "https://api.subquery.network/sq/subquery/kepler-testnet";
+
+const EXPLORER_MAINNET: &str = "";
+const EXPLORER_KEPLER: &str = "https://kepler.subquery.network";
+const EXPLORER_TESTNET: &str = "https://kepler.thechaindata.com";
 
 /// Network types
 #[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
@@ -41,6 +76,12 @@ pub struct NetworkConfig {
     pub icon_urls: Vec<String>,
     /// Native currency config
     pub native_currency: NetworkCurrency,
+    /// Subql network graphql endpoints
+    pub subql_urls: Vec<String>,
+    /// IPFS endpoints
+    pub ipfs_urls: Vec<String>,
+    /// Explorer endpoints
+    pub explorer_urls: Vec<String>,
 }
 
 impl Network {
@@ -65,70 +106,51 @@ impl Network {
     /// Get the network config
     pub fn config(&self) -> NetworkConfig {
         match self {
-            Network::Mainnet => {
-                NetworkConfig {
-                    chain_id: 137,
-                    chain_name: "Polygon".to_owned(),
-                    rpc_urls: vec![
-                        "https://polygon.api.onfinality.io/rpc?apikey=e7acc294-c859-48ed-a742-5aadf0a084b9".to_owned(),
-                        "https://polygon-rpc.com/".to_owned()
-                    ],
-                    icon_urls: vec![
-                        "https://icons.llamao.fi/icons/chains/rsz_polygon.jpg".to_owned()
-                    ],
-                    block_explorer_urls: vec![
-                        "https://polygonscan.com/".to_owned()
-                    ],
-                    native_currency: NetworkCurrency {
-                        name: "Matic Token".to_owned(),
-                        symbol: "MATIC".to_owned(),
-                        decimals: 18
-                    }
-                }
-            }
-            Network::Kepler => {
-                NetworkConfig {
-                    chain_id: 137,
-                    chain_name: "Polygon".to_owned(),
-                    rpc_urls: vec![
-                        "https://polygon.api.onfinality.io/rpc?apikey=e7acc294-c859-48ed-a742-5aadf0a084b9".to_owned(),
-                        "https://polygon-rpc.com/".to_owned()
-                    ],
-                    icon_urls: vec![
-                        "https://icons.llamao.fi/icons/chains/rsz_polygon.jpg".to_owned()
-                    ],
-                    block_explorer_urls: vec![
-                        "https://polygonscan.com/".to_owned()
-                    ],
-                    native_currency: NetworkCurrency {
-                        name: "Matic Token".to_owned(),
-                        symbol: "MATIC".to_owned(),
-                        decimals: 18
-                    }
-                }
-            }
-            Network::Testnet => {
-                NetworkConfig {
-                    chain_id: 80001,
-                    chain_name: "Mumbai".to_owned(),
-                    rpc_urls: vec![
-                        "https://polygon-mumbai.api.onfinality.io/rpc?apikey=6b43efc3-a13c-4250-9203-e097fb9f239".to_owned(),
-                        "https://rpc.ankr.com/polygon_mumbai".to_owned(),
-                        "https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78".to_owned()
-                    ],
-                    icon_urls: vec![
-                        "https://icons.llamao.fi/icons/chains/rsz_polygon.jpg".to_owned()
-                    ],
-                    block_explorer_urls: vec![
-                        "https://mumbai.polygonscan.com/".to_owned()
-                    ],
-                    native_currency: NetworkCurrency {
-                        name: "Matic Token".to_owned(),
-                        symbol: "MATIC".to_owned(),
-                        decimals: 18
-                    }
-                }
-            }
+            Network::Mainnet => NetworkConfig {
+                chain_id: CHAIN_ID_MAINNET,
+                chain_name: CHAIN_NAME_MAINNET.to_owned(),
+                rpc_urls: vec![RPC_MAINNET1.to_owned(), RPC_MAINNET2.to_owned()],
+                icon_urls: vec![CHAIN_ICON_URL.to_owned()],
+                block_explorer_urls: vec![BLOCK_EXPLORER_MAINNET.to_owned()],
+                native_currency: NetworkCurrency {
+                    name: CHAIN_TOKEN_NAME.to_owned(),
+                    symbol: CHAIN_TOKEN_SYMBOL.to_owned(),
+                    decimals: CHAIN_TOKEN_DECIMALS.to_owned(),
+                },
+                subql_urls: vec![SUBQL_MAINNET.to_owned()],
+                ipfs_urls: vec![IPFS_MAINNET.to_owned()],
+                explorer_urls: vec![EXPLORER_MAINNET.to_owned()],
+            },
+            Network::Kepler => NetworkConfig {
+                chain_id: CHAIN_ID_KEPLER,
+                chain_name: CHAIN_NAME_KEPLER.to_owned(),
+                rpc_urls: vec![RPC_KEPLER1.to_owned(), RPC_KEPLER2.to_owned()],
+                icon_urls: vec![CHAIN_ICON_URL.to_owned()],
+                block_explorer_urls: vec![BLOCK_EXPLORER_KEPLER.to_owned()],
+                native_currency: NetworkCurrency {
+                    name: CHAIN_TOKEN_NAME.to_owned(),
+                    symbol: CHAIN_TOKEN_SYMBOL.to_owned(),
+                    decimals: CHAIN_TOKEN_DECIMALS.to_owned(),
+                },
+                subql_urls: vec![SUBQL_KEPLER.to_owned()],
+                ipfs_urls: vec![IPFS_KEPLER.to_owned()],
+                explorer_urls: vec![EXPLORER_KEPLER.to_owned()],
+            },
+            Network::Testnet => NetworkConfig {
+                chain_id: CHAIN_ID_TESTNET,
+                chain_name: CHAIN_NAME_TESTNET.to_owned(),
+                rpc_urls: vec![RPC_TESTNET1.to_owned(), RPC_TESTNET2.to_owned()],
+                icon_urls: vec![CHAIN_ICON_URL.to_owned()],
+                block_explorer_urls: vec![BLOCK_EXPLORER_TESTNET.to_owned()],
+                native_currency: NetworkCurrency {
+                    name: CHAIN_TOKEN_NAME.to_owned(),
+                    symbol: CHAIN_TOKEN_SYMBOL.to_owned(),
+                    decimals: CHAIN_TOKEN_DECIMALS.to_owned(),
+                },
+                subql_urls: vec![SUBQL_TESTNET.to_owned()],
+                ipfs_urls: vec![IPFS_TESTNET.to_owned()],
+                explorer_urls: vec![EXPLORER_TESTNET.to_owned()],
+            },
         }
     }
 }
@@ -142,8 +164,7 @@ fn contract_parse(name: &str, file: &str, network: Network) -> Result<(Abi, Addr
         .parse()
         .map_err(|_| ())?;
 
-    let abi_str = serde_json::from_str::<Value>(file).map_err(|_| ())?["abi"].to_string();
-    let abi: Abi = serde_json::from_str(&abi_str).map_err(|_| ())?;
+    let abi: Abi = serde_json::from_str(file).map_err(|_| ())?;
     Ok((abi, contract_address))
 }
 
@@ -168,145 +189,143 @@ macro_rules! contract {
 contract!(
     settings,
     "Settings",
-    include_str!("../artifacts/contracts/Settings.sol/Settings.json")
+    include_str!("../publish/ABI/Settings.json")
 );
 
 contract!(
     sqtoken,
     "SQToken",
-    include_str!("../artifacts/contracts/SQToken.sol/SQToken.json")
+    include_str!("../publish/ABI/SQToken.json")
 );
 
 contract!(
     vsqtoken,
     "VSQToken",
-    include_str!("../artifacts/contracts/VSQToken.sol/VSQToken.json")
+    include_str!("../publish/ABI/VSQToken.json")
 );
 
 contract!(
     staking,
     "Staking",
-    include_str!("../artifacts/contracts/Staking.sol/Staking.json")
+    include_str!("../publish/ABI/Staking.json")
 );
 
 contract!(
     staking_manager,
     "StakingManager",
-    include_str!("../artifacts/contracts/StakingManager.sol/StakingManager.json")
+    include_str!("../publish/ABI/StakingManager.json")
 );
 
 contract!(
     indexer_registry,
     "IndexerRegistry",
-    include_str!("../artifacts/contracts/IndexerRegistry.sol/IndexerRegistry.json")
+    include_str!("../publish/ABI/IndexerRegistry.json")
 );
 
 contract!(
     query_registry,
     "QueryRegistry",
-    include_str!("../artifacts/contracts/QueryRegistry.sol/QueryRegistry.json")
+    include_str!("../publish/ABI/QueryRegistry.json")
 );
 
 contract!(
     inflation_controller,
     "InflationController",
-    include_str!("../artifacts/contracts/InflationController.sol/InflationController.json")
+    include_str!("../publish/ABI/InflationController.json")
 );
 
 contract!(
     service_agreement_registry,
     "ServiceAgreementRegistry",
-    include_str!(
-        "../artifacts/contracts/ServiceAgreementRegistry.sol/ServiceAgreementRegistry.json"
-    )
+    include_str!("../publish/ABI/ServiceAgreementRegistry.json")
 );
 
 contract!(
     plan_manager,
     "PlanManager",
-    include_str!("../artifacts/contracts/PlanManager.sol/PlanManager.json")
+    include_str!("../publish/ABI/PlanManager.json")
 );
 
 contract!(
     purchase_offer_market,
     "PurchaseOfferMarket",
-    include_str!("../artifacts/contracts/PurchaseOfferMarket.sol/PurchaseOfferMarket.json")
+    include_str!("../publish/ABI/PurchaseOfferMarket.json")
 );
 
 contract!(
     era_manager,
     "EraManager",
-    include_str!("../artifacts/contracts/EraManager.sol/EraManager.json")
+    include_str!("../publish/ABI/EraManager.json")
 );
 
 contract!(
     rewards_distributer,
     "RewardsDistributer",
-    include_str!("../artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json")
+    include_str!("../publish/ABI/RewardsDistributer.json")
 );
 
 contract!(
     rewards_pool,
     "RewardsPool",
-    include_str!("../artifacts/contracts/RewardsPool.sol/RewardsPool.json")
+    include_str!("../publish/ABI/RewardsPool.json")
 );
 
 contract!(
     rewards_staking,
     "RewardsStaking",
-    include_str!("../artifacts/contracts/RewardsStaking.sol/RewardsStaking.json")
+    include_str!("../publish/ABI/RewardsStaking.json")
 );
 
 contract!(
     rewards_helper,
     "RewardsHelper",
-    include_str!("../artifacts/contracts/RewardsHelper.sol/RewardsHelper.json")
+    include_str!("../publish/ABI/RewardsHelper.json")
 );
 
 contract!(
     proxy_admin,
     "ProxyAdmin",
-    include_str!("../artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json")
+    include_str!("../publish/ABI/ProxyAdmin.json")
 );
 
 contract!(
     state_channel,
     "StateChannel",
-    include_str!("../artifacts/contracts/StateChannel.sol/StateChannel.json")
+    include_str!("../publish/ABI/StateChannel.json")
 );
 
 contract!(
     airdropper,
     "Airdropper",
-    include_str!("../artifacts/contracts/Airdropper.sol/Airdropper.json")
+    include_str!("../publish/ABI/Airdropper.json")
 );
 
 contract!(
     permissioned_exchange,
     "PermissionedExchange",
-    include_str!("../artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json")
+    include_str!("../publish/ABI/PermissionedExchange.json")
 );
 
 contract!(
     vesting,
     "Vesting",
-    include_str!("../artifacts/contracts/Vesting.sol/Vesting.json")
+    include_str!("../publish/ABI/Vesting.json")
 );
 
 contract!(
     consumer_host,
     "ConsumerHost",
-    include_str!("../artifacts/contracts/ConsumerHost.sol/ConsumerHost.json")
+    include_str!("../publish/ABI/ConsumerHost.json")
 );
 
 contract!(
     dispute_manager,
     "DisputeManager",
-    include_str!("../artifacts/contracts/DisputeManager.sol/DisputeManager.json")
+    include_str!("../publish/ABI/DisputeManager.json")
 );
 
 contract!(
     consumer_registry,
     "ConsumerRegistry",
-    include_str!("../artifacts/contracts/ConsumerRegistry.sol/ConsumerRegistry.json")
+    include_str!("../publish/ABI/ConsumerRegistry.json")
 );

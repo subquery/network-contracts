@@ -1,0 +1,347 @@
+[
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "disputeId",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "enum DisputeManager.DisputeState",
+                "name": "state",
+                "type": "uint8"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "slashAmount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "returnAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "DisputeFinalized",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "disputeId",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "fisherman",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "indexer",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "enum DisputeManager.DisputeType",
+                "name": "_type",
+                "type": "uint8"
+            }
+        ],
+        "name": "DisputeOpen",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "previousOwner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "OwnershipTransferred",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_indexer",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_deposit",
+                "type": "uint256"
+            },
+            {
+                "internalType": "enum DisputeManager.DisputeType",
+                "name": "_type",
+                "type": "uint8"
+            }
+        ],
+        "name": "createDispute",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "disputeIdByIndexer",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "disputes",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "disputeId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "indexer",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "fisherman",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "depositAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "enum DisputeManager.DisputeType",
+                "name": "dtype",
+                "type": "uint8"
+            },
+            {
+                "internalType": "enum DisputeManager.DisputeState",
+                "name": "state",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "disputeId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "enum DisputeManager.DisputeState",
+                "name": "state",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint256",
+                "name": "indexerSlashAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "newDeposit",
+                "type": "uint256"
+            }
+        ],
+        "name": "finalizeDispute",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract ISettings",
+                "name": "_settings",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_minimumDeposit",
+                "type": "uint256"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "indexer",
+                "type": "address"
+            }
+        ],
+        "name": "isOnDispute",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "minimumDeposit",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "nextDisputeId",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_minimumDeposit",
+                "type": "uint256"
+            }
+        ],
+        "name": "setMinimumDeposit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract ISettings",
+                "name": "_settings",
+                "type": "address"
+            }
+        ],
+        "name": "setSettings",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "settings",
+        "outputs": [
+            {
+                "internalType": "contract ISettings",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "transferOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]

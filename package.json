@@ -6,7 +6,7 @@
     "scripts": {
         "build:contract": "hardhat compile",
         "build:ts": "scripts/build.sh",
-        "build": "yarn build:contract && yarn build:ts",
+        "build": "yarn build:contract && yarn build:ts && yarn abi",
         "lint": "solhint contracts/**/*.sol",
         "test": "hardhat test",
         "test:coverage": "hardhat coverage",
@@ -18,7 +18,8 @@
         "upgrade": "ts-node --transpileOnly scripts/upgrade.ts",
         "setup": "ts-node --transpileOnly scripts/startup.ts",
         "verify": "ts-node --transpileOnly scripts/verify.ts",
-        "kepler-e2e-test": "node -r ts-node/register/transpile-only test/e2e/kepler.e2e.ts"
+        "kepler-e2e-test": "node -r ts-node/register/transpile-only test/e2e/kepler.e2e.ts",
+        "abi": "hardhat compile && ts-node --transpileOnly scripts/abi.ts"
     },
     "devDependencies": {
         "@ethersproject/abstract-provider": "~5.5.1",
