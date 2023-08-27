@@ -329,3 +329,9 @@ contract!(
     "ConsumerRegistry",
     include_str!("../publish/ABI/ConsumerRegistry.json")
 );
+
+contract!(
+    price_oracle,
+    "PriceOracle",
+    include_str!("../publish/ABI/PriceOracle.json")
+);
