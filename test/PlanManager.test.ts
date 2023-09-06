@@ -277,7 +277,7 @@ describe('PlanManger Contract', () => {
             await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).not.to.reverted;
         });
 
-        it.only('renew agreement skip threshold', async () => {
+        it('renew agreement skip threshold', async () => {
             // Preconditions
             const planDays = 3;
             const indexerStake = 2000;
