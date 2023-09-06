@@ -1,7 +1,6 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {ServiceAgreementRegistry} from './../src/typechain/ServiceAgreementRegistry';
 import {ethers} from 'ethers';
 
 import {MockProvider} from 'ethereum-waffle';
@@ -9,7 +8,6 @@ import {BaseContract, BigNumber, Wallet, ContractTransaction, utils, Contract} f
 import {IndexerRegistry, EraManager, PlanManager} from '../src';
 import {METADATA_HASH} from './constants';
 const {constants, time} = require('@openzeppelin/test-helpers');
-import web3 from 'web3';
 import {StaticJsonRpcProvider} from '@ethersproject/providers';
 import {SQToken} from 'build';
 
@@ -64,7 +62,7 @@ export async function registerIndexer(
     await token.connect(wallet).increaseAllowance(staking.address, etherParse(amount));
     const tx = await indexerRegistry
         .connect(wallet)
-        .registerIndexer(etherParse(amount).div(2), METADATA_HASH, 0, {gasLimit: '2000000'});
+        .registerIndexer(etherParse(amount), METADATA_HASH, 0, {gasLimit: '2000000'});
     return tx;
 }
 
@@ -128,7 +126,7 @@ export async function acceptPlan(
 }
 
 export function etherParse(etherNum: string) {
-    return BigNumber.from(web3.utils.toWei(etherNum, 'ether'));
+    return ethers.utils.parseEther(etherNum)
 }
 
 type Event = utils.Result;

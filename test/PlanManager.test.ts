@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { BigNumber } from 'ethers';
+import { BigNumber, utils } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 import {
     EraManager,
@@ -14,6 +14,7 @@ import {
     RewardsHelper,
     SQToken,
     ServiceAgreementRegistry,
+    StakingManager,
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, metadatas } from './constants';
@@ -26,6 +27,7 @@ describe('PlanManger Contract', () => {
 
     let token: SQToken;
     let staking: Staking;
+    let stakingManager: StakingManager;
     let queryRegistry: QueryRegistry;
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
@@ -49,6 +51,7 @@ describe('PlanManger Contract', () => {
         rewardsHelper = deployment.rewardsHelper;
         eraManager = deployment.eraManager;
         priceOracle = deployment.priceOracle;
+        stakingManager = deployment.stakingManager;
     });
 
     describe('Plan Manager Config', () => {
@@ -207,14 +210,14 @@ describe('PlanManger Contract', () => {
             // create plan template
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
             // default plan -> planId: 1
-            await planManager.createPlan(etherParse('2'), 0, constants.ZERO_BYTES32); // plan id = 1;
+            await planManager.createPlan(etherParse('6'), 0, constants.ZERO_BYTES32); // plan id = 1;
         });
 
         const checkAcceptPlan = async (planId: number, deploymentId: string) => {
             const balance = await token.balanceOf(consumer.address);
             const plan = await planManager.getPlan(planId);
             const rewardsDistrBalance = await token.balanceOf(rewardsDistributor.address);
-            await token.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, plan.price);
+            await token.connect(consumer).increaseAllowance(planManager.address, plan.price);
             const tx = await planManager.connect(consumer).acceptPlan(planId, deploymentId);
             const agreementId = (
                 await eventFrom(tx, serviceAgreementRegistry, 'ClosedAgreementCreated(address,address,bytes32,uint256)')
@@ -230,6 +233,72 @@ describe('PlanManger Contract', () => {
             const agreementId = await checkAcceptPlan(1, DEPLOYMENT_ID);
             const agreement = await serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
             expect(agreement.lockedAmount).to.be.eq(etherParse('2'));
+        });
+
+        it('threshold work for accept plan', async () => {
+            // Preconditions
+            const planDays = 3;
+            const indexerStake = 2000;
+            const planPrice = 6;
+            let threshold = BigNumber.from(indexerStake/(planPrice/planDays))
+                .mul(1e6).add(1)
+            // ---
+
+            await serviceAgreementRegistry.setThreshold(threshold)
+            const plan = await planManager.getPlan(1);
+            expect(Number(utils.formatEther(plan.price))).to.eq(6);
+            await token.connect(consumer).increaseAllowance(planManager.address, plan.price);
+            await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith('SA006');
+            const newStake = plan.price.div(planDays).div(1e6).toString();
+            await token.connect(indexer).increaseAllowance(staking.address, newStake);
+            await stakingManager.connect(indexer).stake(indexer.address, newStake);
+
+            await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).to.revertedWith('SA006');
+            const era = await startNewEra(mockProvider, eraManager);
+            await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).not.to.reverted;
+        });
+
+        it('threshold work for accept plan #2', async () => {
+            // Preconditions
+            const planDays = 3;
+            const indexerStake = 2000;
+            const planPrice = 6;
+            let threshold = BigNumber.from(indexerStake/(planPrice/planDays))
+                .mul(1e6).add(1)
+            // ---
+
+            await serviceAgreementRegistry.setThreshold(threshold)
+            const plan = await planManager.getPlan(1);
+            expect(Number(utils.formatEther(plan.price))).to.eq(6);
+            await token.connect(consumer).increaseAllowance(planManager.address, plan.price);
+            await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith('SA006');
+
+            await serviceAgreementRegistry.setThreshold(threshold.sub(1));
+            await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).not.to.reverted;
+        });
+
+        it.only('renew agreement skip threshold', async () => {
+            // Preconditions
+            const planDays = 3;
+            const indexerStake = 2000;
+            const planPrice = 6;
+            let threshold = BigNumber.from(indexerStake/(planPrice/planDays))
+                .mul(1e6)
+            await serviceAgreementRegistry.setThreshold(threshold);
+            // ---
+            const plan = await planManager.getPlan(1);
+            expect(Number(utils.formatEther(plan.price))).to.eq(6);
+            await token.connect(consumer).increaseAllowance(planManager.address, plan.price.mul(2));
+            const tx = await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)
+            const agreementId = (
+                await eventFrom(tx, serviceAgreementRegistry, 'ClosedAgreementCreated(address,address,bytes32,uint256)')
+            ).serviceAgreementId;
+            await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith('SA006');
+
+            await token.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, plan.price);
+            await serviceAgreementRegistry.connect(consumer).renewAgreement(agreementId);
+            const sum = await serviceAgreementRegistry.sumDailyReward(indexer.address);
+            expect(Number(utils.formatEther(sum))).to.eq(planPrice/planDays*2);
         });
 
         it('claim and distribute rewards by an indexer should work', async () => {

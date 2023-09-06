@@ -176,6 +176,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
      * it temporary hold the SQT Token from these agreements, approve and nodify reward distributor contract to take and
      * distribute these Token.
      * All agreements register to this contract through this method.
+     * SQT need to be transfered before calling this function.
      * When new agreement come we need to track the sumDailyReward of Indexer. In our design there is an upper limit
      * on the rewards indexer can earn every day, and the limit will increase with the increase of the total staked
      * amount of that indexer. This design can ensure our Customer to obtain high quality of service from Indexer，
@@ -187,6 +188,10 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
             require(establisherWhitelist[msg.sender], 'SA004');
         }
 
+        _establishServiceAgreement(agreementId, true);
+    }
+
+    function _establishServiceAgreement(uint256 agreementId, bool checkThreshold) internal {
         //for now only support closed service agreement
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(agreement.consumer != address(0), 'SA001');
@@ -207,7 +212,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         uint256 period = periodInDay(agreement.period);
         sumDailyReward[indexer] += lockedAmount / period;
         require(
-            totalStake >= MathUtil.mulDiv(sumDailyReward[indexer], threshold, PER_MILL),
+            !checkThreshold || totalStake >= MathUtil.mulDiv(sumDailyReward[indexer], threshold, PER_MILL),
             'SA006'
         );
 
@@ -261,7 +266,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
 
         // deposit SQToken into service agreement registry contract
         IERC20(settings.getSQToken()).transferFrom(msg.sender, address(this), agreement.lockedAmount);
-        this.establishServiceAgreement(newAgreementId);
+        _establishServiceAgreement(newAgreementId, false);
     }
 
     function clearEndedAgreement(address indexer, uint256 id) public {
