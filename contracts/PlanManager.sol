@@ -194,6 +194,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         if (plan.deploymentId != bytes32(0)) {
             require(plan.deploymentId == deploymentId, 'PM010');
         } else {
+            require(limits[plan.indexer][deploymentId] == 0, 'PM012');
             require(deploymentId != bytes32(0), 'PM011');
         }
 
