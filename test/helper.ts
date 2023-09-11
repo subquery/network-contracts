@@ -1,17 +1,16 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ethers } from 'ethers';
-
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { constants, time } from '@openzeppelin/test-helpers';
 import { SQToken } from 'build';
 import { MockProvider } from 'ethereum-waffle';
 import { BaseContract, BigNumber, Contract, ContractTransaction, Wallet as EthWallet, utils } from 'ethers';
+import { ethers } from "hardhat";
 import web3 from 'web3';
 import { EraManager, IndexerRegistry, PlanManager } from '../src';
 import { METADATA_HASH } from './constants';
-const { constants, time } = require('@openzeppelin/test-helpers');
 
 export { constants, time };
 
@@ -140,4 +139,11 @@ export async function eventFrom(tx: ContractTransaction, contract: BaseContract,
 
     const eventName = event.split('(')[0];
     return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data);
+}
+
+export async function deploySUSD(siger: SignerWithAddress) {
+    const MockSUSD = await ethers.getContractFactory("SUSD", siger);
+    const USDC = await MockSUSD.deploy(ethers.utils.parseUnits("1000000000", 6));
+
+    return USDC;
 }

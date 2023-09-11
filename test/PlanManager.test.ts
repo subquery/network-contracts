@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { BigNumber } from 'ethers';
+import { BigNumber, Contract } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 import {
     EraManager,
@@ -17,7 +17,7 @@ import {
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, metadatas } from './constants';
-import { Wallet, constants, etherParse, eventFrom, registerIndexer, startNewEra, time } from './helper';
+import { Wallet, constants, deploySUSD, etherParse, eventFrom, registerIndexer, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
 
 describe('PlanManger Contract', () => {
@@ -36,10 +36,11 @@ describe('PlanManger Contract', () => {
     let rewardsDistributor: RewardsDistributer;
     let rewardsHelper: RewardsHelper;
     let priceOracle: PriceOracle;
-    let usdc = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
+    let SUSD: Contract;
 
     beforeEach(async () => {
         [indexer, consumer] = await ethers.getSigners();
+        SUSD = await deploySUSD(consumer);
         const deployment = await deployContracts(indexer, consumer);
         indexerRegistry = deployment.indexerRegistry;
         queryRegistry = deployment.queryRegistry;
@@ -52,6 +53,17 @@ describe('PlanManger Contract', () => {
         eraManager = deployment.eraManager;
         priceOracle = deployment.priceOracle;
     });
+
+    const indexerAndProjectReady = async () => {
+        await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '2000');
+        await token.transfer(consumer.address, etherParse('100'));
+        await token.connect(consumer).increaseAllowance(planManager.address, etherParse('100'));
+        // create query project
+        await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+        // wallet_0 start project
+        await queryRegistry.startIndexing(DEPLOYMENT_ID);
+        await queryRegistry.updateIndexingStatusToReady(DEPLOYMENT_ID);
+    }
 
     describe('Plan Manager Config', () => {
         it('set indexer plan limit should work', async () => {
@@ -211,14 +223,7 @@ describe('PlanManger Contract', () => {
 
     describe('Accept Plan', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '2000');
-            await token.transfer(consumer.address, etherParse('10'));
-            await token.connect(consumer).increaseAllowance(planManager.address, etherParse('10'));
-            // create query project
-            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
-            // wallet_0 start project
-            await queryRegistry.startIndexing(DEPLOYMENT_ID);
-            await queryRegistry.updateIndexingStatusToReady(DEPLOYMENT_ID);
+            await indexerAndProjectReady();
             // create plan template
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
             // default plan -> planId: 1
@@ -258,18 +263,18 @@ describe('PlanManger Contract', () => {
             await expect(planManager.acceptPlan(2, DEPLOYMENT_ID)).to.be.revertedWith(
                 'PM009'
             );
+            // require no empty deployment_id for default plan
+            await expect(planManager.acceptPlan(1, constants.ZERO_BYTES32)).to.be.revertedWith(
+                'PM011'
+            );
             // require same deployment_id with specific plan
-            await expect(planManager.acceptPlan(1, deploymentIds[1])).to.be.revertedWith(
+            await planManager.createPlan(planPrice, 0, DEPLOYMENT_ID);
+            await expect(planManager.acceptPlan(2, deploymentIds[1])).to.be.revertedWith(
                 'PM010'
             );
-            // require to use specific plan
-            await planManager.createPlan(planPrice, 0, DEPLOYMENT_ID);
-            await expect(planManager.acceptPlan(1, constants.DEPLOYMENT_ID)).to.be.revertedWith(
+            // require to use specific plan when indexer have both default plan and specific plan for the same deployment
+            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
                 'PM012'
-            );
-            // require no empty deployment_id for default plan
-            await expect(planManager.acceptPlan(2, constants.ZERO_BYTES32)).to.be.revertedWith(
-                'PM011'
             );
             // can not accept plan during maintenance mode
             await eraManager.enableMaintenance();
@@ -316,43 +321,35 @@ describe('PlanManger Contract', () => {
 
     describe('Stable priced Plan', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '2000');
-            await token.transfer(consumer.address, etherParse('100'));
-            await token.connect(consumer).increaseAllowance(planManager.address, etherParse('100'));
-            // create query project
-            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
-            // wallet_0 start project
-            await queryRegistry.startIndexing(DEPLOYMENT_ID);
-            await queryRegistry.updateIndexingStatusToReady(DEPLOYMENT_ID);
-
+            await indexerAndProjectReady();
             //set oracle
             //1 USDC(ether) = 13 SQT(ether), <> 1 USDC = 13e12
-            await priceOracle.setAssetPrice(usdc, token.address, 1, 13e12);
+            await priceOracle.setAssetPrice(SUSD.address, token.address, 1, 13e12);
             // create plan template
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
+            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, SUSD.address, METADATA_HASH);
             // default plan -> planId: 1
             //price: 2.73 usdc
             await planManager.createPlan(BigNumber.from("2730000"), 0, constants.ZERO_BYTES32); // plan id = 1;
         });
 
-        it('create a plan with allowed stable price should work', async () => {
-            await planManager.createPlan(BigNumber.from("2730000"), 0, constants.ZERO_BYTES32);
-            // FIXME:
-            // expect(await planManager.pricedToken(2)).to.eq(usdc);
-        });
-
         it('accept the plan with allowed stable price should work', async () => {
+            // check balances before accept plan
             const balance = await token.balanceOf(consumer.address);
             const rewardsDistrBalance = await token.balanceOf(rewardsDistributor.address);
-            // FIXME:
-            // let price = await planManager.getPrice(1);
-            // expect(price).to.equal(etherParse("35.49"));
-            // await token.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, price);
-            // await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
+            // accept plan
+            const plan = await planManager.getPlan(1);
+            const planSqtPrice = BigNumber.from(13e12).mul(plan.price);
+            await token.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, planSqtPrice);
+            const tx = await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
+            const agreementId = (
+                await eventFrom(tx, serviceAgreementRegistry, 'ClosedAgreementCreated(address,address,bytes32,uint256)')
+            ).serviceAgreementId;
 
-            // // check balances
-            // expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(price));
-            // expect(await token.balanceOf(consumer.address)).to.equal(balance.sub(price));
+            // check balances after accept plan
+            expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(planSqtPrice));
+            expect(await token.balanceOf(consumer.address)).to.equal(balance.sub(planSqtPrice));
+            const agreement = await serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
+            expect(agreement.lockedAmount).to.be.eq(planSqtPrice);
         });
     });
 });

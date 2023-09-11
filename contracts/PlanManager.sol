@@ -194,8 +194,8 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         if (plan.deploymentId != bytes32(0)) {
             require(plan.deploymentId == deploymentId, 'PM010');
         } else {
-            require(limits[plan.indexer][deploymentId] == 0, 'PM012');
             require(deploymentId != bytes32(0), 'PM011');
+            require(limits[plan.indexer][deploymentId] == 0, 'PM012');
         }
 
         //stable price mode
@@ -215,7 +215,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         );
 
         // deposit SQToken into serviceAgreementRegistry contract
-        IERC20(settings.getSQToken()).transferFrom(msg.sender, settings.getServiceAgreementRegistry(), plan.price);
+        IERC20(settings.getSQToken()).transferFrom(msg.sender, settings.getServiceAgreementRegistry(), sqtPrice);
 
         // register the agreement to service agreement registry contract
         IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
