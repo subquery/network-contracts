@@ -244,15 +244,12 @@ describe('PlanManger Contract', () => {
         };
 
         it('accept plan with default plan should work', async () => {
-            await token.connect(consumer).approve(serviceAgreementRegistry.address, planPrice);
-            await planManager.acceptPlan(1, DEPLOYMENT_ID);
-            await checkAcceptPlan(1, deploymentIds[1]);
+            await checkAcceptPlan(1, DEPLOYMENT_ID);
         });
 
         it('accept plan with specific deployment plan should work', async () => {
             // specific plan -> planId: 2
             await planManager.createPlan(planPrice, 0, DEPLOYMENT_ID);
-            await token.connect(consumer).approve(serviceAgreementRegistry.address, planPrice);
             await checkAcceptPlan(2, DEPLOYMENT_ID);
         });
 
