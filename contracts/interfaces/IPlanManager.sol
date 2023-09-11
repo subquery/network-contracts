@@ -40,6 +40,7 @@ struct PlanTemplateV2 {
 interface IPlanManager {
     function getPlan(uint256 planId) external view returns (Plan memory);
 
-    function getPlanTemplate(uint256 templateId) external view returns (PlanTemplateV2 memory);
+    function getLimits(address indexer, bytes32 deploymentId) external view returns (uint256);
 
+    function getPlanTemplate(uint256 templateId) external view returns (PlanTemplateV2 memory);
 }

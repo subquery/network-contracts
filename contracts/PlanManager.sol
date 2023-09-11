@@ -231,6 +231,10 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         return plans[planId];
     }
 
+    function getLimits(address indexer, bytes32 deploymentId) external view returns (uint256) {
+        return limits[indexer][deploymentId];
+    }
+
     /**
      * @notice Get a specific plan templates
      * @param templateId plan template id
