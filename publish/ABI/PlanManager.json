@@ -196,6 +196,30 @@
     {
         "inputs": [
             {
+                "internalType": "address",
+                "name": "indexer",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "deploymentId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getLimits",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "planId",
                 "type": "uint256"

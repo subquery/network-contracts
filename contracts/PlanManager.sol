@@ -195,6 +195,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
             require(plan.deploymentId == deploymentId, 'PM010');
         } else {
             require(deploymentId != bytes32(0), 'PM011');
+            require(limits[plan.indexer][deploymentId] == 0, 'PM012');
         }
 
         //stable price mode
@@ -214,7 +215,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         );
 
         // deposit SQToken into serviceAgreementRegistry contract
-        IERC20(settings.getSQToken()).transferFrom(msg.sender, settings.getServiceAgreementRegistry(), plan.price);
+        IERC20(settings.getSQToken()).transferFrom(msg.sender, settings.getServiceAgreementRegistry(), sqtPrice);
 
         // register the agreement to service agreement registry contract
         IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
@@ -228,6 +229,10 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      */
     function getPlan(uint256 planId) external view returns (Plan memory) {
         return plans[planId];
+    }
+
+    function getLimits(address indexer, bytes32 deploymentId) external view returns (uint256) {
+        return limits[indexer][deploymentId];
     }
 
     /**
