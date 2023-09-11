@@ -1,21 +1,23 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {ServiceAgreementRegistry} from './../src/typechain/ServiceAgreementRegistry';
-import {ethers} from 'ethers';
+import { ethers } from 'ethers';
 
-import {MockProvider} from 'ethereum-waffle';
-import {BaseContract, BigNumber, Wallet, ContractTransaction, utils, Contract} from 'ethers';
-import {IndexerRegistry, EraManager, PlanManager} from '../src';
-import {METADATA_HASH} from './constants';
-const {constants, time} = require('@openzeppelin/test-helpers');
+import { StaticJsonRpcProvider } from '@ethersproject/providers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { SQToken } from 'build';
+import { MockProvider } from 'ethereum-waffle';
+import { BaseContract, BigNumber, Contract, ContractTransaction, Wallet as EthWallet, utils } from 'ethers';
 import web3 from 'web3';
-import {StaticJsonRpcProvider} from '@ethersproject/providers';
-import {SQToken} from 'build';
+import { EraManager, IndexerRegistry, PlanManager } from '../src';
+import { METADATA_HASH } from './constants';
+const { constants, time } = require('@openzeppelin/test-helpers');
 
-export {constants, time};
+export { constants, time };
 
 export type Provider = MockProvider | StaticJsonRpcProvider;
+
+export type Wallet = EthWallet | SignerWithAddress;
 
 export function createProvider(url: string, chain: number): StaticJsonRpcProvider {
     return new ethers.providers.StaticJsonRpcProvider(url, chain);
@@ -64,7 +66,7 @@ export async function registerIndexer(
     await token.connect(wallet).increaseAllowance(staking.address, etherParse(amount));
     const tx = await indexerRegistry
         .connect(wallet)
-        .registerIndexer(etherParse(amount).div(2), METADATA_HASH, 0, {gasLimit: '2000000'});
+        .registerIndexer(etherParse(amount).div(2), METADATA_HASH, 0, { gasLimit: '2000000' });
     return tx;
 }
 

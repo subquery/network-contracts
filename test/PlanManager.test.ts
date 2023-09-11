@@ -17,12 +17,12 @@ import {
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, metadatas } from './constants';
-import { constants, etherParse, eventFrom, registerIndexer, startNewEra, time } from './helper';
+import { Wallet, constants, etherParse, eventFrom, registerIndexer, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
 
 describe('PlanManger Contract', () => {
     const mockProvider = waffle.provider;
-    let indexer, consumer;
+    let indexer: Wallet, consumer: Wallet;
 
     let token: SQToken;
     let staking: Staking;

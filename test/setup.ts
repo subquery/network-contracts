@@ -1,19 +1,20 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {Wallet} from '@ethersproject/wallet';
+import { Wallet as EthWallet } from 'ethers';
 import moduleAlias from 'module-alias';
-import {ZERO_ADDRESS} from './constants';
-import {etherParse} from './helper';
+import { ZERO_ADDRESS } from './constants';
+import { Wallet, etherParse } from './helper';
 
 moduleAlias.addAlias('./publish', '../publish');
 moduleAlias.addAlias('./artifacts', '../artifacts');
 
-import {deployContracts as deploy} from '../scripts/deployContracts';
+import { deployContracts as deploy } from '../scripts/deployContracts';
 
 export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
+    const signer = wallet as EthWallet;
     const [_, contracts] = await deploy(
-        wallet,
+        signer,
         {
             InflationController: [1000, wallet1.address],
             SQToken: [etherParse("10000000000")],
