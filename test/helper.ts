@@ -8,7 +8,6 @@ import { SQToken } from 'build';
 import { MockProvider } from 'ethereum-waffle';
 import { BaseContract, BigNumber, Contract, ContractTransaction, Wallet as EthWallet, utils } from 'ethers';
 import { ethers } from "hardhat";
-import web3 from 'web3';
 import { EraManager, IndexerRegistry, PlanManager } from '../src';
 import { METADATA_HASH } from './constants';
 
@@ -65,7 +64,7 @@ export async function registerIndexer(
     await token.connect(wallet).increaseAllowance(staking.address, etherParse(amount));
     const tx = await indexerRegistry
         .connect(wallet)
-        .registerIndexer(etherParse(amount).div(2), METADATA_HASH, 0, { gasLimit: '2000000' });
+        .registerIndexer(etherParse(amount), METADATA_HASH, 0, { gasLimit: '2000000' });
     return tx;
 }
 
@@ -129,7 +128,7 @@ export async function acceptPlan(
 }
 
 export function etherParse(etherNum: string) {
-    return BigNumber.from(web3.utils.toWei(etherNum, 'ether'));
+    return ethers.utils.parseEther(etherNum)
 }
 
 type Event = utils.Result;
