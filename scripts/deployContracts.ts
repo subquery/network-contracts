@@ -418,12 +418,15 @@ export const upgradeContract = async (
     return [contract.address, contract];
 };
 
-export async function upgradeContracts(
-    _wallet: Wallet,
+export async function upgradeContracts(configs: {
+    wallet: Wallet,
     deployment: ContractDeployment,
-    confirms: number
-): Promise<ContractDeployment> {
-    wallet = _wallet;
+    confirms: number,
+    checkOnly: boolean,
+}): Promise<ContractDeployment> {
+    const { deployment, confirms, checkOnly } = configs;
+    wallet = configs.wallet;
+
     const logger = getLogger('Upgrade Contract');
     logger.info(`Upgrade contrqact with wallet ${wallet.address}`);
 
@@ -445,15 +448,16 @@ export async function upgradeContracts(
     }
 
     logger.info(`Contract Changed: ${changed.join(',')}`);
-    for (const contractName of changed) {
-        logger.info(`Upgrading ${contractName}`);
+    if (checkOnly) return deployment;
 
+    for (const contractName of changed) {
         const [_, factory] = UPGRADEBAL_CONTRACTS[contractName];
         if (!deployment[contractName]) {
             console.warn(`contract ${contractName} not deployed`);
             continue;
         }
 
+        logger.info(`Upgrading ${contractName}`);
         const { address } = deployment[contractName];
         const [innerAddr] = await upgradeContract(proxyAdmin, address, factory, wallet, confirms);
         deployment[contractName] = {
