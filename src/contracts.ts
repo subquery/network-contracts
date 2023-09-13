@@ -1,6 +1,3 @@
-import moduleAlias from 'module-alias';
-moduleAlias.addAlias('./artifacts', '../artifacts');
-
 import Airdropper from './artifacts/contracts/Airdropper.sol/Airdropper.json';
 import ConsumerHost from './artifacts/contracts/ConsumerHost.sol/ConsumerHost.json';
 import ConsumerRegistry from './artifacts/contracts/ConsumerRegistry.sol/ConsumerRegistry.json';

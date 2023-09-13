@@ -2,8 +2,8 @@
 
 import { ContractDeployment, SubqueryNetwork } from './types';
 
-import moduleAlias from 'module-alias';
-moduleAlias.addAlias('./publish', '../publish');
+// import moduleAlias from 'module-alias';
+// moduleAlias.addAlias('./publish', '../publish');
 
 import keplerDeployment from './publish/kepler.json';
 import mainnetDeployment from './publish/mainnet.json';

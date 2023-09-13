@@ -1,15 +1,15 @@
 import assert from 'assert';
 import dotenv from 'dotenv';
 import { providers, utils, Wallet } from 'ethers';
+
 import moduleAlias from 'module-alias';
+moduleAlias.addAlias('./publish', '../publish');
+moduleAlias.addAlias('./artifacts', '../artifacts');
 
 import { DeploymentConfig, networks, SubqueryNetwork } from '../src';
 import contractsConfig from './config/contracts.config';
 
 dotenv.config();
-// nodejs doesn't understand rootDirs in tsconfig, use moduleAlias to workaround
-moduleAlias.addAlias('./publish', '../publish');
-moduleAlias.addAlias('./artifacts', '../artifacts');
 
 const seed = process.env.SEED;
 
