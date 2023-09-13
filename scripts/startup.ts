@@ -191,6 +191,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
         sdk.vesting,
         sdk.consumerRegistry,
         sdk.priceOracle,
+        sdk.vSQToken,
     ];
 
     for (const contract of contracts) {
