@@ -6,10 +6,10 @@
         "lastUpdate": "Thu, 06 Apr 2023 06:07:56 GMT"
     },
     "Settings": {
-        "innerAddress": "0xEd9937b84B2fc99B42Dd7100dAdAC1909044Dd37",
-        "address": "0x9D9D3CE24A61a7671ee645710790fDD9B891a324",
+        "innerAddress": "0xe014933c6c448425Da3840C80828e1B0f82a8E71",
+        "address": "0x5a9f055ef9c0139cAB6DDfc53D2a082345c9190B",
         "bytecodeHash": "22e95eb1b6dda7712b7aa3ab9ee30b645e446f2670536e3116c8f024c1b83e6d",
-        "lastUpdate": "Wed, 13 Sep 2023 00:58:10 GMT"
+        "lastUpdate": "Wed, 13 Sep 2023 05:42:35 GMT"
     },
     "InflationController": {
         "innerAddress": "0xCe324eBb6bAaFDB477Eceb41ceE4F39821D4ba80",
@@ -24,10 +24,10 @@
         "lastUpdate": "Thu, 06 Apr 2023 06:09:20 GMT"
     },
     "VSQToken": {
-        "innerAddress": "",
-        "address": "0x11bEf44e07479E445f40ec79a7bf8497dCc6c5C3",
-        "bytecodeHash": "16df6d167a4ae72780a8b91523027ec287901295ffdbb57685b76f0e54514cca",
-        "lastUpdate": "Wed, 16 Aug 2023 05:25:38 GMT"
+        "innerAddress": "0x02de43d66d95a0313e31A3ff20aF49c08ec12a71",
+        "address": "0xE9d619F439e5c0cE42b54c51AE37b15488e914E8",
+        "bytecodeHash": "4a1151b032a17ca9657083fdd859bf1c4de0171eeb3ce1fa021b96edb2eada2c",
+        "lastUpdate": "Wed, 13 Sep 2023 05:45:14 GMT"
     },
     "Airdropper": {
         "innerAddress": "",
