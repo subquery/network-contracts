@@ -30,6 +30,7 @@ const setup = async (argv) => {
     let name: SubqueryNetwork;
     let history = false;
     let checkOnly = false;
+    let implementationOnly = false;
 
     switch (argv[2]) {
         case '--mainnet':
@@ -55,6 +56,7 @@ const setup = async (argv) => {
 
     if (argv[3] === '--history') history = true;
     if (argv[3] === '--check-only') checkOnly = true;
+    if (argv[3] === '--implementation-only') implementationOnly = true;
 
     if (process.env.ENDPOINT) {
         console.log(`use overridden endpoint ${process.env.ENDPOINT}`);
@@ -64,11 +66,11 @@ const setup = async (argv) => {
     if (['Mumbai', 'Hardaht', 'Moonbase-alpha'].includes(config.network.chainName)) {
         const { wallet, provider, overrides } = await setupCommon(config.network);
         const confirms = 1;
-        return { name, config, wallet, provider, overrides, confirms, history, checkOnly }
+        return { name, config, wallet, provider, overrides, confirms, history, checkOnly, implementationOnly }
     } else if (['Polygon'].includes(config.network.chainName)) {
         const { wallet, provider, overrides } = await setupCommon(config.network);
         const confirms = 20
-        return { name, config, wallet, provider, overrides, confirms, history, checkOnly }
+        return { name, config, wallet, provider, overrides, confirms, history, checkOnly, implementationOnly }
     }
     else {
         throw new Error(`Network ${config.network.chainName} not supported`);

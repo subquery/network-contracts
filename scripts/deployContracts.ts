@@ -405,15 +405,18 @@ export const upgradeContract = async (
     proxyAddress: string,
     ContractFactory: FactoryContstructor,
     _wallet: Wallet,
-    confirms: number
+    confirms: number,
+    implementationOnly: boolean
 ): Promise<[string, Contract]> => {
     wallet = _wallet;
     const contractFactory = new ContractFactory(wallet);
     const contract = await contractFactory.deploy(await getOverrides());
     await contract.deployTransaction.wait(confirms);
 
-    const tx = await proxyAdmin.upgrade(proxyAddress, contract.address);
-    await tx.wait(confirms);
+    if (!implementationOnly) {
+        const tx = await proxyAdmin.upgrade(proxyAddress, contract.address);
+        await tx.wait(confirms);
+    }
 
     return [contract.address, contract];
 };
@@ -423,8 +426,9 @@ export async function upgradeContracts(configs: {
     deployment: ContractDeployment,
     confirms: number,
     checkOnly: boolean,
+    implementationOnly: boolean
 }): Promise<ContractDeployment> {
-    const { deployment, confirms, checkOnly } = configs;
+    const { deployment, confirms, checkOnly, implementationOnly } = configs;
     wallet = configs.wallet;
 
     const logger = getLogger('Upgrade Contract');
@@ -450,7 +454,9 @@ export async function upgradeContracts(configs: {
     logger.info(`Contract Changed: ${changed.join(',')}`);
     if (checkOnly) return deployment;
 
-    for (const contractName of changed) {
+    const changedContracts = ['PlanManager', 'ServiceAgreementRegistry']
+
+    for (const contractName of changedContracts) {
         const [_, factory] = UPGRADEBAL_CONTRACTS[contractName];
         if (!deployment[contractName]) {
             console.warn(`contract ${contractName} not deployed`);
@@ -459,7 +465,14 @@ export async function upgradeContracts(configs: {
 
         logger.info(`Upgrading ${contractName}`);
         const { address } = deployment[contractName];
-        const [innerAddr] = await upgradeContract(proxyAdmin, address, factory, wallet, confirms);
+        const [innerAddr] = await upgradeContract(
+            proxyAdmin,
+            address,
+            factory,
+            wallet,
+            confirms,
+            implementationOnly
+        );
         deployment[contractName] = {
             innerAddress: innerAddr,
             address,
