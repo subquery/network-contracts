@@ -72,10 +72,10 @@
         "lastUpdate": "Thu, 06 Apr 2023 06:30:35 GMT"
     },
     "PlanManager": {
-        "innerAddress": "0xf7Cf7cE23e653138F8760E2a4A1FC99e2aA10728",
+        "innerAddress": "0xBe0372A03C606ec7E7ed36176E42c7d808e676AD",
         "address": "0x3ce376aaCA549e7AcaBFC882A5cA752a1B8F4B27",
-        "bytecodeHash": "bb80b55633f93b4bee02a1f77b274e321610773ad430639b82690da8ba2bbbdb",
-        "lastUpdate": "Wed, 16 Aug 2023 05:38:52 GMT"
+        "bytecodeHash": "496dc11b51b66870c5ea71e65d2131d50bd0c2318c0b9681d7e3dccd54aea9f8",
+        "lastUpdate": "Wed, 13 Sep 2023 01:18:55 GMT"
     },
     "PurchaseOfferMarket": {
         "innerAddress": "0x209aC3C6FCf7591971c5C6486CeaB4afcd980a9C",
@@ -84,10 +84,10 @@
         "lastUpdate": "Wed, 16 Aug 2023 05:39:46 GMT"
     },
     "ServiceAgreementRegistry": {
-        "innerAddress": "0xBF6069cD98780047B9940614085F6617D44314Cb",
+        "innerAddress": "0x9bF081b3635c79432730d88042086793b382Ff19",
         "address": "0x8d29A0671c563Cf216BBea3440d6D93CAc9ce583",
-        "bytecodeHash": "6c55ad26b1eb0e3efb9b5d74c40a8db71329ed9f86b4f62f43696baf46b67ffd",
-        "lastUpdate": "Thu, 06 Apr 2023 07:18:58 GMT"
+        "bytecodeHash": "639c88fb63668b8062bb165767652628e4a8372e753e74fa36f2fade4a566a6d",
+        "lastUpdate": "Wed, 13 Sep 2023 01:19:50 GMT"
     },
     "RewardsDistributer": {
         "innerAddress": "0x0BdC4838C523587444F9E30048d193311a911751",
