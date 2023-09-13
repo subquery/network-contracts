@@ -90,12 +90,11 @@ describe('Dispute Manager Contract', () => {
     describe('finalizeDispute', () => {
         beforeEach(async () => {
             await token.connect(root).transfer(fisherman.address, etherParse("1000"));
+            await token.connect(fisherman).increaseAllowance(disputeManager.address, etherParse('1000'));
             await disputeManager.connect(fisherman).createDispute(indexer.address, DEPLOYMENT_ID, etherParse('1000'), 0);
-            await stakingManager.connect(indexer).stake(indexer.address, etherParse("1000"));
             await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.collectAndDistributeRewards(indexer.address);
-            await rewardsStaking.applyStakeChange(indexer.address, indexer.address);
-            
+
         });
 
         it('accept dispute with indexer has 0 unbonding amount should work', async () => {
