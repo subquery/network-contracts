@@ -190,6 +190,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
         sdk.stateChannel,
         sdk.vesting,
         sdk.consumerRegistry,
+        sdk.priceOracle,
     ];
 
     for (const contract of contracts) {
@@ -198,7 +199,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
             logger.info(`Transfer Ownership: ${contract.address}`);
             await sendTx((overrides) => contract.transferOwnership(startupConfig.multiSign, overrides));
         } else {
-            console.info(`${contract.contractName} ownership has already transfered`);
+            console.info(`${contract.address} ownership has already transfered`);
         }
     }
 
@@ -260,10 +261,10 @@ const main = async () => {
         case '--kepler':
             confirms = 20;
             startupConfig = startupKeplerConfig;
-            await airdrop(sdk);
-            await createProjects(sdk);
+            // await airdrop(sdk);
+            // await createProjects(sdk);
             // await createPlanTemplates(sdk);
-            await balanceTransfer(sdk, wallet);
+            // await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
         case '--testnet':
