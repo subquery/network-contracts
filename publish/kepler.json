@@ -6,10 +6,10 @@
         "lastUpdate": "Thu, 06 Apr 2023 06:07:56 GMT"
     },
     "Settings": {
-        "innerAddress": "",
-        "address": "0x679f878B4b5AAF24bB95029c2552558D26dCB6d1",
-        "bytecodeHash": "5001873e97ecbeb963fd32d6c97c65b2cc81a38af6c98299e4eac2b53de4e9c4",
-        "lastUpdate": "Wed, 16 Aug 2023 04:33:30 GMT"
+        "innerAddress": "0xEd9937b84B2fc99B42Dd7100dAdAC1909044Dd37",
+        "address": "0x9D9D3CE24A61a7671ee645710790fDD9B891a324",
+        "bytecodeHash": "22e95eb1b6dda7712b7aa3ab9ee30b645e446f2670536e3116c8f024c1b83e6d",
+        "lastUpdate": "Wed, 13 Sep 2023 00:58:10 GMT"
     },
     "InflationController": {
         "innerAddress": "0xCe324eBb6bAaFDB477Eceb41ceE4F39821D4ba80",
@@ -142,5 +142,11 @@
         "address": "0x2c871909c692b640C28EDBC6Ef5BC0F68565C464",
         "bytecodeHash": "1b51ca8446a48c6022b81bf868a0a0db85b98ddf3cd26c11f5a4e9b8089372c9",
         "lastUpdate": "Wed, 16 Aug 2023 04:16:18 GMT"
+    },
+    "PriceOracle": {
+        "innerAddress": "0xD46cDB412a70731532A9eb4ea4e8806F0e48F505",
+        "address": "0x6545061e147a7Fa065eD9d9DB648d42b558650dB",
+        "bytecodeHash": "d95aa2638edb0b1ce643f883a60435b44390ac9e78035b6c0579ba1b50b54a33",
+        "lastUpdate": "Wed, 13 Sep 2023 01:00:41 GMT"
     }
 }
