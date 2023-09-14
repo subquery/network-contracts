@@ -1,22 +1,22 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {PER_MILL} from './constants';
-import {expect} from 'chai';
-import {BigNumber} from 'ethers';
-import {ethers, waffle} from 'hardhat';
+import { expect } from 'chai';
+import { BigNumber } from 'ethers';
+import { ethers, waffle } from 'hardhat';
+import { PER_MILL } from './constants';
 
 import {
-    IndexerRegistry,
     EraManager,
+    IndexerRegistry,
+    RewardsDistributer,
+    RewardsStaking,
     SQToken,
     Staking,
     StakingManager,
-    RewardsDistributer,
-    RewardsStaking,
 } from '../src';
-import {deployContracts} from './setup';
-import {lastestTime, registerIndexer, startNewEra, timeTravel, etherParse} from './helper';
+import { etherParse, lastestTime, registerIndexer, startNewEra, timeTravel } from './helper';
+import { deployContracts } from './setup';
 
 describe('Staking Contract', () => {
     const mockProvider = waffle.provider;
@@ -29,7 +29,7 @@ describe('Staking Contract', () => {
     let rewardsDistributer: RewardsDistributer;
     let rewardsStaking: RewardsStaking;
 
-    const amount = etherParse('1001');
+    const amount = etherParse('2002');
 
     const checkDelegation = async (_delegator: string, indexerAddress: string, valueAfter: BigNumber, era: number) => {
         const stakingAmount = await staking.delegation(_delegator, indexerAddress);
@@ -48,7 +48,7 @@ describe('Staking Contract', () => {
         const burnAmount = unbondFeeRateBP.mul(unbondAmount).div(PER_MILL);
         const availableAmount = unbondAmount.sub(burnAmount);
 
-        return {availableAmount, burnAmount};
+        return { availableAmount, burnAmount };
     };
 
     const configWallet = async () => {
@@ -123,20 +123,20 @@ describe('Staking Contract', () => {
         });
 
         it('staking by indexer should work', async () => {
-            await token.connect(indexer).increaseAllowance(staking.address, etherParse('1'));
-            await stakingManager.connect(indexer).stake(indexer.address, etherParse('1'));
+            const moreStakingAmount = etherParse('1');
+            await token.connect(indexer).increaseAllowance(staking.address, moreStakingAmount);
+            await stakingManager.connect(indexer).stake(indexer.address, moreStakingAmount);
             // check staking changes
             expect(await stakingManager.getAfterDelegationAmount(indexer.address, indexer.address)).to.equal(
-                etherParse('1002')
+                amount.add(moreStakingAmount)
             );
         });
 
         it('unstaking by indexer should work', async () => {
-            await stakingManager.connect(indexer).unstake(indexer.address, etherParse('0.5'));
+            const unstakeAmount = etherParse('0.5');
+            await stakingManager.connect(indexer).unstake(indexer.address, unstakeAmount);
             // check staking changes
-            expect(await stakingManager.getAfterDelegationAmount(indexer.address, indexer.address)).to.equal(
-                etherParse('1000.5')
-            );
+            expect(await stakingManager.getAfterDelegationAmount(indexer.address, indexer.address)).to.equal(amount.sub(unstakeAmount));
         });
 
         it('staking by indexer with invalid caller should fail', async () => {
@@ -264,7 +264,7 @@ describe('Staking Contract', () => {
         };
 
         it('request unbond by indexer registry should work', async () => {
-            await stakingManager.connect(indexer).unstake(indexer.address, etherParse('0.5'), {gasLimit: '1000000'});
+            await stakingManager.connect(indexer).unstake(indexer.address, etherParse('0.5'), { gasLimit: '1000000' });
             const startTime = await lastestTime(mockProvider);
 
             // check changes of staking storage
@@ -280,7 +280,7 @@ describe('Staking Contract', () => {
         });
 
         it('request unregister to unstaking all by indexer registry should work', async () => {
-            await indexerRegistry.unregisterIndexer({gasLimit: '1000000'});
+            await indexerRegistry.unregisterIndexer({ gasLimit: '1000000' });
 
             // check changes of indexer storage
             await startNewEra(mockProvider, eraManager);
@@ -321,7 +321,7 @@ describe('Staking Contract', () => {
             // check all unbondingAmounts
             const unbondingAmounts = await stakingManager.getUnbondingAmounts(delegator.address);
             expect(unbondingAmounts.length).to.equal(3);
-            unbondingAmounts.forEach(async ({amount, startTime}, index) => {
+            unbondingAmounts.forEach(async ({ amount, startTime }, index) => {
                 await checkUnbondingAmount(delegator.address, index, startTime, amount);
             });
 
@@ -353,6 +353,8 @@ describe('Staking Contract', () => {
 
     describe('Request cancel unbond', () => {
         beforeEach(async () => {
+            await token.connect(delegator).increaseAllowance(staking.address, etherParse('2'));
+            await token.connect(indexer).increaseAllowance(staking.address, etherParse('2'));
             await stakingManager.connect(delegator).delegate(indexer.address, etherParse('2'));
             await stakingManager.connect(indexer).stake(indexer.address, etherParse('2'));
         });
@@ -503,7 +505,7 @@ describe('Staking Contract', () => {
 
             // withdraw an undelegate
             const unbondingAmount = await staking.unbondingAmount(delegator.address, 0);
-            const {availableAmount} = await availableWidthdraw(unbondingAmount.amount);
+            const { availableAmount } = await availableWidthdraw(unbondingAmount.amount);
             await stakingManager.connect(delegator).widthdraw();
 
             // check balances
@@ -532,7 +534,7 @@ describe('Staking Contract', () => {
 
             // widthdraw the fist 3 requests
             await stakingManager.connect(delegator).widthdraw();
-            const {availableAmount} = await availableWidthdraw(BigNumber.from(etherParse('0.1')));
+            const { availableAmount } = await availableWidthdraw(BigNumber.from(etherParse('0.1')));
             delegatorBalance = delegatorBalance.add(availableAmount.mul(3));
             await checkUnbondingChanges(delegatorBalance, 5, 3);
 
@@ -562,7 +564,7 @@ describe('Staking Contract', () => {
             // first withdraw only claim the first 10 requests
             await stakingManager.connect(delegator).widthdraw();
             // check balance and unbonding storage
-            const {availableAmount} = await availableWidthdraw(BigNumber.from(etherParse('0.1')));
+            const { availableAmount } = await availableWidthdraw(BigNumber.from(etherParse('0.1')));
             delegatorBalance = delegatorBalance.add(availableAmount.mul(12));
             await checkUnbondingChanges(delegatorBalance, 15, 12);
 

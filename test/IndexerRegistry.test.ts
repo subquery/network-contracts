@@ -1,14 +1,14 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers} from 'hardhat';
-import {deployContracts} from './setup';
-import {METADATA_HASH, METADATA_1_HASH, VERSION, DEPLOYMENT_ID} from './constants';
-import {IndexerRegistry, SQToken, QueryRegistry, Staking, RewardsStaking, StakingManager} from '../src';
-import {etherParse, registerIndexer} from './helper';
+import { expect } from 'chai';
+import { ethers } from 'hardhat';
+import { IndexerRegistry, QueryRegistry, RewardsStaking, SQToken, Staking, StakingManager } from '../src';
+import { DEPLOYMENT_ID, METADATA_1_HASH, METADATA_HASH, VERSION } from './constants';
+import { etherParse, registerIndexer } from './helper';
+import { deployContracts } from './setup';
 
-const {constants} = require('@openzeppelin/test-helpers');
+const { constants } = require('@openzeppelin/test-helpers');
 
 describe('IndexerRegistry Contract', () => {
     let wallet_0, wallet_1, wallet_2;
@@ -19,6 +19,7 @@ describe('IndexerRegistry Contract', () => {
     let queryRegistry: QueryRegistry;
     let indexerRegistry: IndexerRegistry;
     let rewardsStaking: RewardsStaking;
+    const amount = '2000';
 
     const checkControllerIsEmpty = async () => {
         expect(await indexerRegistry.getController(wallet_0.address)).to.equal(constants.ZERO_ADDRESS);
@@ -33,14 +34,14 @@ describe('IndexerRegistry Contract', () => {
         queryRegistry = deployment.queryRegistry;
         indexerRegistry = deployment.indexerRegistry;
         rewardsStaking = deployment.rewardsStaking;
-        await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '2000');
+        await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, amount);
     });
 
     describe('Indexer Registry', () => {
         it('register indexer should work', async () => {
-            await expect(registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '2000'))
+            await expect(registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, amount))
                 .to.be.emit(indexerRegistry, 'RegisterIndexer')
-                .withArgs(wallet_1.address, etherParse('1000'), METADATA_HASH)
+                .withArgs(wallet_1.address, etherParse(amount), METADATA_HASH)
                 .to.be.emit(indexerRegistry, 'SetCommissionRate')
                 .withArgs(wallet_1.address, 0);
 
@@ -48,17 +49,17 @@ describe('IndexerRegistry Contract', () => {
             expect(await indexerRegistry.isIndexer(wallet_1.address)).to.equal(true);
             expect(await indexerRegistry.metadata(wallet_1.address)).to.equal(METADATA_HASH);
             expect(await stakingManager.getAfterDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
-                etherParse('1000')
+                etherParse(amount)
             );
             expect(await indexerRegistry.getCommissionRate(wallet_1.address)).to.equal(0);
             expect(await rewardsStaking.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
-                etherParse('1000')
+                etherParse(amount)
             );
             expect(await rewardsStaking.getCommissionRate(wallet_1.address)).to.equal(0);
         });
 
         it('registered indexer reregister should fail', async () => {
-            await expect(indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0)).to.be.revertedWith(
+            await expect(indexerRegistry.registerIndexer(etherParse(amount), METADATA_HASH, 0)).to.be.revertedWith(
                 'IR001'
             );
         });
@@ -130,7 +131,7 @@ describe('IndexerRegistry Contract', () => {
     describe('Indexer Unregistry', () => {
         it('indexer deregister should work', async () => {
             // deregister from network
-            await expect(indexerRegistry.unregisterIndexer({gasLimit: '1000000'}))
+            await expect(indexerRegistry.unregisterIndexer({ gasLimit: '1000000' }))
                 .to.be.emit(indexerRegistry, 'UnregisterIndexer')
                 .withArgs(wallet_0.address);
 

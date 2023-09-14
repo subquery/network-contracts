@@ -1,33 +1,34 @@
-import {DEPLOYMENT_DETAILS} from './deployments';
-import {Signer} from 'ethers';
-import type {Provider as AbstractProvider} from '@ethersproject/abstract-provider';
-import {ContractDeployment, ContractName, SdkOptions} from './types';
+import type { Provider as AbstractProvider } from '@ethersproject/abstract-provider';
+import { Signer } from 'ethers';
+import { DEPLOYMENT_DETAILS } from './deployments';
 import {
+    Airdropper,
+    ConsumerHost,
+    ConsumerRegistry,
+    DisputeManager,
+    EraManager,
+    IndexerRegistry,
+    InflationController,
+    PermissionedExchange,
+    PlanManager,
+    PriceOracle,
+    ProxyAdmin,
+    PurchaseOfferMarket,
+    QueryRegistry,
+    RewardsDistributer,
+    RewardsHelper,
+    RewardsPool,
+    RewardsStaking,
     SQToken,
+    ServiceAgreementRegistry,
     Settings,
     Staking,
     StakingManager,
-    IndexerRegistry,
-    InflationController,
-    QueryRegistry,
-    ServiceAgreementRegistry,
-    EraManager,
-    PlanManager,
-    RewardsDistributer,
-    RewardsPool,
-    RewardsStaking,
-    RewardsHelper,
-    PurchaseOfferMarket,
     StateChannel,
-    Airdropper,
-    PermissionedExchange,
-    ConsumerHost,
-    DisputeManager,
-    ProxyAdmin,
+    VSQToken,
     Vesting,
-    ConsumerRegistry,
 } from './typechain';
-import {CONTRACT_FACTORY, FactoryContstructor} from './types';
+import { CONTRACT_FACTORY, ContractDeployment, ContractName, FactoryContstructor, SdkOptions } from './types';
 
 // HOTFIX: Contract names are not consistent between deployments and privous var names
 const contractNameConversion: Record<string, string> = {
@@ -61,6 +62,8 @@ export class ContractSDK {
     readonly proxyAdmin!: ProxyAdmin;
     readonly vesting!: Vesting;
     readonly consumerRegistry!: ConsumerRegistry;
+    readonly priceOracle!: PriceOracle;
+    readonly vSQToken!: VSQToken;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options: SdkOptions) {
         this._contractDeployments = this.options.deploymentDetails ?? DEPLOYMENT_DETAILS[options.network];
@@ -78,7 +81,7 @@ export class ContractSDK {
             name: name as ContractName,
         }));
 
-        for (const {name, factory, address} of contracts) {
+        for (const { name, factory, address } of contracts) {
             const contractInstance = factory.connect(address, this.signerOrProvider);
             if (contractInstance) {
                 const key = name.charAt(0).toLowerCase() + name.slice(1);

@@ -1,13 +1,13 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Wallet as EthWallet } from 'ethers';
 import moduleAlias from 'module-alias';
-import { ZERO_ADDRESS } from './constants';
-import { Wallet, etherParse } from './helper';
-
 moduleAlias.addAlias('./publish', '../publish');
 moduleAlias.addAlias('./artifacts', '../artifacts');
+
+import { Wallet as EthWallet } from 'ethers';
+import { ZERO_ADDRESS } from './constants';
+import { Wallet, etherParse } from './helper';
 
 import { deployContracts as deploy } from '../scripts/deployContracts';
 

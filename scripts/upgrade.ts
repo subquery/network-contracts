@@ -1,13 +1,19 @@
-import fs, {writeFileSync} from 'fs';
+import fs, { writeFileSync } from 'fs';
+import { upgradeContracts } from './deployContracts';
 import setup from './setup';
-import {upgradeContracts} from './deployContracts';
 
 const main = async () => {
-    const {name, wallet, confirms} = await setup(process.argv);
+    const { name, wallet, confirms, checkOnly, implementationOnly } = await setup(process.argv);
     const filePath = `${__dirname}/../publish/${name}.json`;
-    let deployment = JSON.parse(fs.readFileSync(filePath, {encoding: 'utf8'}));
+    let deployment = JSON.parse(fs.readFileSync(filePath, { encoding: 'utf8' }));
 
-    deployment = await upgradeContracts(wallet, deployment, confirms);
+    deployment = await upgradeContracts({
+        wallet,
+        deployment,
+        confirms,
+        checkOnly,
+        implementationOnly,
+    });
 
     writeFileSync(filePath, JSON.stringify(deployment, null, 4));
     console.log('Exported the deployment result to ', filePath);
