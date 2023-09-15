@@ -271,8 +271,8 @@ const main = async () => {
             startupConfig = startupTestnetConfig;
             // await createProjects(sdk);
             // await createPlanTemplates(sdk);
-            // await airdrop(sdk);
-            await transferTokenToIndexers(sdk);
+            await airdrop(sdk);
+            // await transferTokenToIndexers(sdk);
             // await setupPermissionExchange(sdk, wallet);
             // await balanceTransfer(sdk, wallet);
             // await ownerTransfer(sdk);
