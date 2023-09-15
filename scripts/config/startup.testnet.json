@@ -1,119 +1,130 @@
 {
-  "airdrops": [
-    "0xEEd36C3DFEefB2D45372d72337CC48Bc97D119d4",
-    "0x592C6A31df20DD24a7d33f5fe526730358337189",
-    "0x9184cFF04fD32123db66329Ab50Bf176ece2e211",
-    "0xFf60C1Efa7f0F10594229D8A68c312d7020E3478",
-    "0xBDB9D4dC13c5E3E59B7fd69230c7F44f7170Ce02",
-    "0x0421700EE1890d461353A54eAA481488f440A68f",
-    "0x4306908d323748Bd627aec4a91660Ad03DB4e29C",
-    "0xD6dFF314C7f87fC2705935350644262160F23905",
-    "0x917289E62Bdc2c322412a39Ad977861b13c3b508"
-  ],
-  "amounts": [100, 200, 300, 400, 500, 600, 900, 900, 1200],
-  "planTemplates": [
-    {"period": 604800, "dailyReqCap": 50000, "rateLimit": 3000, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"},
-    {"period": 129600, "dailyReqCap": 100000, "rateLimit": 6000, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"},
-    {"period": 43200, "dailyReqCap": 10000, "rateLimit": 1200, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"},
-    {"period": 21600, "dailyReqCap": 2000, "rateLimit": 600, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"},
-    {"period": 7200, "dailyReqCap": 100, "rateLimit": 300, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"}
-  ],
-  "exchange": {
-    "usdcAddress": "0xE097d6B3100777DC31B34dC2c58fB524C2e76921",
-    "amountGive": "1000000",
-    "amountGet": "5000000000000000000",
-    "expireDate": 1683147171,
-    "tokenGiveBalance": "50000000"
-  },
-  "QRCreator": [
-    "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77"
-  ],
-  "AirdropController": [
-    "0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f",
-    "0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe"
-  ],
-  "indexers": [
-    "0x6971c53e0d1c4Bb4Fd507A377C97B456eDEAb6D2",
-    "0x5Ef51c9f449DB7Be2f0c636C6C137e65B8B96B9B",
-    "0x1175ee9739368c93BfcB3ca0a8cbd5782D9F55B4",
-    "0x577A9fA78b74E0a6575D7D5384AB0edfDb69aabE"
-  ],
-  "multiSign": "0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f",
-  "projects": [
-    {
-      "metadataCid": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE",
-      "versionCid": "QmYmUdTTaiKY5WPeCiSu3Lh8XbWK72hSncdtbkzfFHq5zA",
-      "deploymentId": "QmZGAZQ7e1oZgfuK4V29Fa5gveYK3G2zEwvUzTZKNvSBsm"
+    "airdrops": [
+        "0x7601D5876dC1f95a2d897B9C603B84F866FEeA18",
+        "0xceC71d3620773e6669223f0e4e5A5C27712560d5",
+        "0xD0af1919aF890CfDd8d12be5CF1B1421224fc29a",
+        "0xE389a01b1D025dbb94E19FDEcF1801D99FD3f617",
+        "0x21E86cF290992a0773107e63cBC1f609f772e931",
+        "0xa10af672BcDd1DD61B6a63A18295e55E5F3eA842",
+        "0x5e15cE35a3821e15d36988D9E0DD181c7c371A07",
+        "0x142811C55F47e6e5FDa281a522D42308527f7262",
+        "0x6604aBf2E71C4d407C853e0AD62D9366D7Fe593A",
+        "0x1175ee9739368c93BfcB3ca0a8cbd5782D9F55B4"
+    ],
+    "amounts": [10000, 20000, 30000, 40000, 10000, 20000, 30000, 40000, 10000, 40000],
+    "planTemplates": [
+        {
+            "period": 604800,
+            "dailyReqCap": 50000,
+            "rateLimit": 3000,
+            "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"
+        },
+        {
+            "period": 129600,
+            "dailyReqCap": 100000,
+            "rateLimit": 6000,
+            "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"
+        },
+        {
+            "period": 43200,
+            "dailyReqCap": 10000,
+            "rateLimit": 1200,
+            "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"
+        },
+        {"period": 21600, "dailyReqCap": 2000, "rateLimit": 600, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"},
+        {"period": 7200, "dailyReqCap": 100, "rateLimit": 300, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"}
+    ],
+    "exchange": {
+        "usdcAddress": "0xE097d6B3100777DC31B34dC2c58fB524C2e76921",
+        "amountGive": "1000000",
+        "amountGet": "5000000000000000000",
+        "expireDate": 1683147171,
+        "tokenGiveBalance": "50000000"
     },
-    {
-      "metadataCid": "QmdSV6BkPcgEgh27Sb7mtr7ozy8t5ifXoxpctCoSasUbnN",
-      "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-      "deploymentId": "Qmarrhgrpqw5VK71rMtb4GARpPvq8ajMjAqnjnWZFLV61N"
-    },
-    {
-      "metadataCid": "QmPjDY5LobMy2yJ5q3WLQF3vstzipNKJPKivHXvFvJ14sV",
-      "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-      "deploymentId": "QmPuHdLxTQHEAitgLe9Sg1Jnr1WwJASDRSL5RUzBe3NywV"
-    },
-    {
-      "metadataCid": "QmW2AFuU1T7W3qwBT8BwC8vtsLzSbQcYGGggRY3pvFn6KR",
-      "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-      "deploymentId": "QmPKMkqTe7UMRPZWxuD8dFgufjKzWQEeW84Qo1x1X8VVLR"
-    },
-    {
-      "metadataCid": "QmSVtXAxrnKNHYw6aFQsyyvS7mPVTmQ6AMvSmACnV8mzAf",
-      "versionCid": "QmU1yzJ13ejf61uBRqq9t6RmYB64shdBEENYiFZcGTq6jr",
-      "deploymentId": "QmQtmsHoJEYUcxKE4tBqr9Z8kudcgkczQPfhkAxVExQX5y"
-    },
-    {
-      "metadataCid": "QmQVqXHFeppVZk3aiNCSejqWT87nFSmVePGA4mj8j9zyMW",
-      "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-      "deploymentId": "QmWumrabg4k6t4EUMhQg19xWwcxGq1hWbcmfmRYiy2Bod5"
-    },
-    {
-      "metadataCid": "QmR13QM4u4Kg3f8qx7Tq55rwXE8aDb3bwxBpt4DFUdrKBa",
-      "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-      "deploymentId": "QmUmnKPhcE6JwGMYvY3Yitb5j8qxbQBMxgpkHpVQuXqxDH"
-    },
-    {
-      "metadataCid": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj",
-      "versionCid": "QmcGoNtw98BmQNUy8X8DhnDMPiK2MqJASysVwpJua8Rv9d",
-      "deploymentId": "QmRwisx41SRrR8fhNTRpKetNdpP7SaNkRAVrRgcdwoEtCH"
-    },
-    {
-      "metadataCid": "QmbxHDwk2D7ZiAzb6Qh6pP6cCi4KdeBc14CKjQykWADga6",
-      "versionCid": "QmS2itCAeMRtozMfQQZgdDPRq43NCcFrvKBRLiEZSEfqLV",
-      "deploymentId": "QmUVXKjcsYkS6WfJQfeD7juDbnMWCuo5qKgRRo893LajE2"
-    },
-    {
-      "metadataCid": "QmPg4D5QfbXYvKmyaq3NwE3B51oo8bB5Q28wAVdpaPEHLb",
-      "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-      "deploymentId": "QmUwTD5dqQRRFcMCihJ4HHnMPfEvRpKpcFvGcTJjBpGg9T"
-    },
-    {
-      "metadataCid": "QmaDZ6AK2Vdf9EZ4xujuhQVEv6CEF47GyiTA7oqNXRbEjP",
-      "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-      "deploymentId": "QmYCAns2cunZKJFU85KNK8CvL2ATAmCFVZRdBf963GqWYs"
-    },
-    {
-      "metadataCid": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX",
-      "versionCid": "QmZnFNWoRk4LPQ4wZKr2RzZwjq2T7rkyufQ5XbD9kjTsjM",
-      "deploymentId": "QmXwfCF8858YY924VHgNLsxRQfBLosVbB31mygRLhgJbWn"
-    },
-    {
-      "metadataCid": "QmXWq1vnukGD2TqfPoC4KYH7qP6pipEsYgrMBUpDaRAsHY",
-      "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-      "deploymentId": "Qma6BeSQGHrhP5aydmkQcJCR25TEwuNMogS5boovBBwoeW"
-    },
-    {
-      "metadataCid": "QmfLCxhB8P8JraM14CqKaWX7Wh5Lb8WFLJt1dmDYN1QGhn",
-      "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-      "deploymentId": "QmXCr6uZFdY1YcGTa4u6ZieQPXK4VHE1Pjy7CBr7ubFwKR"
-    },
-    {
-      "metadataCid": "QmWH14imJQoSWF5cdWWaB9u4BivGLQCpJZkwQKH5VAQN9i",
-      "versionCid": "QmdugqUUYZcq12SLdKQ3xKw9XruyA6yHiFiqhBqjicTHgS",
-      "deploymentId": "QmV6sbiPyTDUjcQNJs2eGcAQp2SMXL2BU6qdv5aKrRr7Hg"
-    }
-  ]
+    "QRCreator": ["0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77"],
+    "AirdropController": ["0xD3c54c8F8B993dD99440bb27862472016794255C"],
+    "indexers": [
+        "0x6971c53e0d1c4Bb4Fd507A377C97B456eDEAb6D2",
+        "0x5Ef51c9f449DB7Be2f0c636C6C137e65B8B96B9B",
+        "0x1175ee9739368c93BfcB3ca0a8cbd5782D9F55B4",
+        "0x577A9fA78b74E0a6575D7D5384AB0edfDb69aabE"
+    ],
+    "multiSign": "0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f",
+    "projects": [
+        {
+            "metadataCid": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE",
+            "versionCid": "QmYmUdTTaiKY5WPeCiSu3Lh8XbWK72hSncdtbkzfFHq5zA",
+            "deploymentId": "QmZGAZQ7e1oZgfuK4V29Fa5gveYK3G2zEwvUzTZKNvSBsm"
+        },
+        {
+            "metadataCid": "QmdSV6BkPcgEgh27Sb7mtr7ozy8t5ifXoxpctCoSasUbnN",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "deploymentId": "Qmarrhgrpqw5VK71rMtb4GARpPvq8ajMjAqnjnWZFLV61N"
+        },
+        {
+            "metadataCid": "QmPjDY5LobMy2yJ5q3WLQF3vstzipNKJPKivHXvFvJ14sV",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "deploymentId": "QmPuHdLxTQHEAitgLe9Sg1Jnr1WwJASDRSL5RUzBe3NywV"
+        },
+        {
+            "metadataCid": "QmW2AFuU1T7W3qwBT8BwC8vtsLzSbQcYGGggRY3pvFn6KR",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "deploymentId": "QmPKMkqTe7UMRPZWxuD8dFgufjKzWQEeW84Qo1x1X8VVLR"
+        },
+        {
+            "metadataCid": "QmSVtXAxrnKNHYw6aFQsyyvS7mPVTmQ6AMvSmACnV8mzAf",
+            "versionCid": "QmU1yzJ13ejf61uBRqq9t6RmYB64shdBEENYiFZcGTq6jr",
+            "deploymentId": "QmQtmsHoJEYUcxKE4tBqr9Z8kudcgkczQPfhkAxVExQX5y"
+        },
+        {
+            "metadataCid": "QmQVqXHFeppVZk3aiNCSejqWT87nFSmVePGA4mj8j9zyMW",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "deploymentId": "QmWumrabg4k6t4EUMhQg19xWwcxGq1hWbcmfmRYiy2Bod5"
+        },
+        {
+            "metadataCid": "QmR13QM4u4Kg3f8qx7Tq55rwXE8aDb3bwxBpt4DFUdrKBa",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "deploymentId": "QmUmnKPhcE6JwGMYvY3Yitb5j8qxbQBMxgpkHpVQuXqxDH"
+        },
+        {
+            "metadataCid": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj",
+            "versionCid": "QmcGoNtw98BmQNUy8X8DhnDMPiK2MqJASysVwpJua8Rv9d",
+            "deploymentId": "QmRwisx41SRrR8fhNTRpKetNdpP7SaNkRAVrRgcdwoEtCH"
+        },
+        {
+            "metadataCid": "QmbxHDwk2D7ZiAzb6Qh6pP6cCi4KdeBc14CKjQykWADga6",
+            "versionCid": "QmS2itCAeMRtozMfQQZgdDPRq43NCcFrvKBRLiEZSEfqLV",
+            "deploymentId": "QmUVXKjcsYkS6WfJQfeD7juDbnMWCuo5qKgRRo893LajE2"
+        },
+        {
+            "metadataCid": "QmPg4D5QfbXYvKmyaq3NwE3B51oo8bB5Q28wAVdpaPEHLb",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "deploymentId": "QmUwTD5dqQRRFcMCihJ4HHnMPfEvRpKpcFvGcTJjBpGg9T"
+        },
+        {
+            "metadataCid": "QmaDZ6AK2Vdf9EZ4xujuhQVEv6CEF47GyiTA7oqNXRbEjP",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "deploymentId": "QmYCAns2cunZKJFU85KNK8CvL2ATAmCFVZRdBf963GqWYs"
+        },
+        {
+            "metadataCid": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX",
+            "versionCid": "QmZnFNWoRk4LPQ4wZKr2RzZwjq2T7rkyufQ5XbD9kjTsjM",
+            "deploymentId": "QmXwfCF8858YY924VHgNLsxRQfBLosVbB31mygRLhgJbWn"
+        },
+        {
+            "metadataCid": "QmXWq1vnukGD2TqfPoC4KYH7qP6pipEsYgrMBUpDaRAsHY",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "deploymentId": "Qma6BeSQGHrhP5aydmkQcJCR25TEwuNMogS5boovBBwoeW"
+        },
+        {
+            "metadataCid": "QmfLCxhB8P8JraM14CqKaWX7Wh5Lb8WFLJt1dmDYN1QGhn",
+            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "deploymentId": "QmXCr6uZFdY1YcGTa4u6ZieQPXK4VHE1Pjy7CBr7ubFwKR"
+        },
+        {
+            "metadataCid": "QmWH14imJQoSWF5cdWWaB9u4BivGLQCpJZkwQKH5VAQN9i",
+            "versionCid": "QmdugqUUYZcq12SLdKQ3xKw9XruyA6yHiFiqhBqjicTHgS",
+            "deploymentId": "QmV6sbiPyTDUjcQNJs2eGcAQp2SMXL2BU6qdv5aKrRr7Hg"
+        }
+    ]
 }
