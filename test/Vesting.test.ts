@@ -1,10 +1,10 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
-import {Vesting, SQToken} from '../src';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
+import { SQToken, Vesting } from '../src';
+import { deployContracts } from './setup';
 
 describe('Vesting Contract', () => {
     const mockProvider = waffle.provider;
@@ -194,7 +194,11 @@ describe('Vesting Contract', () => {
         it('start vesting should work', async () => {
             const latestBlock = await mockProvider.getBlock('latest');
             await vestingContract.depositByAdmin(units(4000));
-            await vestingContract.startVesting(latestBlock.timestamp + 1000);
+
+            const startDate = latestBlock.timestamp + 1000;
+            await vestingContract.startVesting(startDate);
+            expect(await vestingContract.vestingStartDate()).to.equal(startDate);
+            expect(await vestingContract.owner()).to.equal(vestingContract.address);
 
             await expect(vestingContract.withdrawAllByAdmin()).to.be.revertedWith(ownableRevert);
             await expect(vestingContract.depositByAdmin(1000)).to.be.revertedWith(ownableRevert);
