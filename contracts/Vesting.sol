@@ -27,7 +27,7 @@ contract Vesting is Ownable {
     mapping(address => uint256) public claimed;
 
     event AddVestingPlan(uint256 indexed planId, uint256 lockPeriod, uint256 vestingPeriod, uint256 initialUnlockPercent);
-    event AllocateVesting(address indexed user, uint256 planId, uint256 allocation);
+    event VestingAllocated(address indexed user, uint256 planId, uint256 allocation);
     event VestingClaimed(address indexed user, uint256 amount);
 
     constructor(address _token) Ownable() {
@@ -58,7 +58,7 @@ contract Vesting is Ownable {
         allocations[addr] = allocation;
         totalAllocation += allocation;
 
-        emit AllocateVesting(addr, planId, allocation);
+        emit VestingAllocated(addr, planId, allocation);
     }
 
     function batchAllocateVesting(uint256 planId, address[] memory addrs, uint256[] memory _allocations) external onlyOwner {
