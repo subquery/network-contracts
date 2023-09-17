@@ -26,7 +26,9 @@ contract Vesting is Ownable {
     mapping(address => uint256) public allocations;
     mapping(address => uint256) public claimed;
 
-    event AddVestingPlan(uint256 planId, uint256 lockPeriod, uint256 vestingPeriod, uint256 initialUnlockPercent);
+    event AddVestingPlan(uint256 indexed planId, uint256 lockPeriod, uint256 vestingPeriod, uint256 initialUnlockPercent);
+    event AllocateVesting(address indexed user, uint256 planId, uint256 allocation);
+    event VestingClaimed(address indexed user, uint256 amount);
 
     constructor(address _token) Ownable() {
         require(_token != address(0x0), "G009");
@@ -46,15 +48,17 @@ contract Vesting is Ownable {
         );
     }
 
-    function allocateVesting(address addr, uint256 _planId, uint256 _allocation) public onlyOwner {
+    function allocateVesting(address addr, uint256 planId, uint256 allocation) public onlyOwner {
         require(addr != address(0x0), "V002");
         require(allocations[addr] == 0, "V003");
-        require(_allocation > 0, "V004");
-        require(_planId < plans.length, "PM012");
+        require(allocation > 0, "V004");
+        require(planId < plans.length, "PM012");
 
-        userPlanId[addr] = _planId;
-        allocations[addr] = _allocation;
-        totalAllocation += _allocation;
+        userPlanId[addr] = planId;
+        allocations[addr] = allocation;
+        totalAllocation += allocation;
+
+        emit AllocateVesting(addr, planId, allocation);
     }
 
     function batchAllocateVesting(uint256 planId, address[] memory addrs, uint256[] memory _allocations) external onlyOwner {
@@ -95,6 +99,7 @@ contract Vesting is Ownable {
         totalClaimed += claimAmount;
 
         require(IERC20(token).transfer(msg.sender, claimAmount), "V008");
+        emit VestingClaimed(msg.sender, claimAmount);
     }
 
     function claimableAmount(address user) public view returns (uint256) {

@@ -14,7 +14,7 @@
         "anonymous": false,
         "inputs": [
             {
-                "indexed": false,
+                "indexed": true,
                 "internalType": "uint256",
                 "name": "planId",
                 "type": "uint256"
@@ -39,6 +39,50 @@
             }
         ],
         "name": "AddVestingPlan",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "planId",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "allocation",
+                "type": "uint256"
+            }
+        ],
+        "name": "AllocateVesting",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "Claim",
         "type": "event"
     },
     {
@@ -92,12 +136,12 @@
             },
             {
                 "internalType": "uint256",
-                "name": "_planId",
+                "name": "planId",
                 "type": "uint256"
             },
             {
                 "internalType": "uint256",
-                "name": "_allocation",
+                "name": "allocation",
                 "type": "uint256"
             }
         ],
