@@ -18,41 +18,29 @@ contract Vesting is Ownable {
 
     address public token;
     uint256 public vestingStartDate;
+    uint256 public totalAllocation;
+    uint256 public totalClaimed;
     VestingPlan[] public plans;
 
     mapping(address => uint256) public userPlanId;
     mapping(address => uint256) public allocations;
     mapping(address => uint256) public claimed;
-    uint256 public totalAllocation;
-    uint256 public totalClaimed;
 
-    event AddVestingPlan(
-        uint256 planId,
-        uint256 lockPeriod,
-        uint256 vestingPeriod,
-        uint256 initialUnlockPercent
-    );
+    event VestingPlanAdded(uint256 planId, uint256 lockPeriod, uint256 vestingPeriod, uint256 initialUnlockPercent);
+    event VestingAllocated(address indexed user, uint256 planId, uint256 allocation);
+    event VestingClaimed(address indexed user, uint256 amount);
 
     constructor(address _token) Ownable() {
         require(_token != address(0x0), "G009");
         token = _token;
     }
 
-    function addVestingPlan(
-        uint256 _lockPeriod,
-        uint256 _vestingPeriod,
-        uint256 _initialUnlockPercent
-    ) public onlyOwner {
-        require(
-            _initialUnlockPercent <= 100,
-            "V001"
-        );
-        plans.push(
-            VestingPlan(_lockPeriod, _vestingPeriod, _initialUnlockPercent)
-        );
+    function addVestingPlan(uint256 _lockPeriod, uint256 _vestingPeriod, uint256 _initialUnlockPercent) public onlyOwner {
+        require(_initialUnlockPercent <= 100, "V001");
+        plans.push(VestingPlan(_lockPeriod, _vestingPeriod, _initialUnlockPercent));
 
         // emit event for vesting plan addition
-        emit AddVestingPlan(
+        emit VestingPlanAdded(
             plans.length - 1,
             _lockPeriod,
             _vestingPeriod,
@@ -60,34 +48,22 @@ contract Vesting is Ownable {
         );
     }
 
-    function allocateVesting(
-        address addr,
-        uint256 _planId,
-        uint256 _allocation
-    ) public onlyOwner {
+    function allocateVesting(address addr, uint256 planId, uint256 allocation) public onlyOwner {
         require(addr != address(0x0), "V002");
-        require(
-            allocations[addr] == 0,
-            "V003"
-        );
-        require(_allocation > 0, "V004");
-        require(_planId < plans.length, "PM012");
+        require(allocations[addr] == 0, "V003");
+        require(allocation > 0, "V004");
+        require(planId < plans.length, "PM012");
 
-        userPlanId[addr] = _planId;
-        allocations[addr] = _allocation;
-        totalAllocation += _allocation;
+        userPlanId[addr] = planId;
+        allocations[addr] = allocation;
+        totalAllocation += allocation;
+
+        emit VestingAllocated(addr, planId, allocation);
     }
 
-    function batchAllocateVesting(
-        uint256 planId,
-        address[] memory addrs,
-        uint256[] memory _allocations
-    ) external onlyOwner {
+    function batchAllocateVesting(uint256 planId, address[] memory addrs, uint256[] memory _allocations) external onlyOwner {
         require(addrs.length > 0, "V005");
-        require(
-            addrs.length == _allocations.length,
-            "V006"
-        );
+        require(addrs.length == _allocations.length, "V006");
 
         for (uint256 i = 0; i < addrs.length; i++) {
             allocateVesting(addrs[i], planId, _allocations[i]);
@@ -96,25 +72,16 @@ contract Vesting is Ownable {
 
     function depositByAdmin(uint256 amount) external onlyOwner {
         require(amount > 0, "V007");
-        require(
-            IERC20(token).transferFrom(msg.sender, address(this), amount),
-            "V008"
-        );
+        require(IERC20(token).transferFrom(msg.sender, address(this), amount), "V008");
     }
 
     function withdrawAllByAdmin() external onlyOwner {
         uint256 amount = IERC20(token).balanceOf(address(this));
-        require(
-            IERC20(token).transfer(msg.sender, amount),
-            "V008"
-        );
+        require(IERC20(token).transfer(msg.sender, amount), "V008");
     }
 
     function startVesting(uint256 _vestingStartDate) external onlyOwner {
-        require(
-            block.timestamp < _vestingStartDate,
-            "V009"
-        );
+        require(block.timestamp < _vestingStartDate, "V009");
 
         vestingStartDate = _vestingStartDate;
 
@@ -125,19 +92,14 @@ contract Vesting is Ownable {
     }
 
     function claim() external {
-        require(
-            allocations[msg.sender] != 0,
-            "V011"
-        );
+        require(allocations[msg.sender] != 0, "V011");
 
         uint256 claimAmount = claimableAmount(msg.sender);
         claimed[msg.sender] += claimAmount;
         totalClaimed += claimAmount;
 
-        require(
-            IERC20(token).transfer(msg.sender, claimAmount),
-            "V008"
-        );
+        require(IERC20(token).transfer(msg.sender, claimAmount), "V008");
+        emit VestingClaimed(msg.sender, claimAmount);
     }
 
     function claimableAmount(address user) public view returns (uint256) {
