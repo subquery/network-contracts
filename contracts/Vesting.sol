@@ -26,7 +26,7 @@ contract Vesting is Ownable {
     mapping(address => uint256) public allocations;
     mapping(address => uint256) public claimed;
 
-    event AddVestingPlan(uint256 indexed planId, uint256 lockPeriod, uint256 vestingPeriod, uint256 initialUnlockPercent);
+    event VestingPlanAdded(uint256 planId, uint256 lockPeriod, uint256 vestingPeriod, uint256 initialUnlockPercent);
     event VestingAllocated(address indexed user, uint256 planId, uint256 allocation);
     event VestingClaimed(address indexed user, uint256 amount);
 
@@ -40,7 +40,7 @@ contract Vesting is Ownable {
         plans.push(VestingPlan(_lockPeriod, _vestingPeriod, _initialUnlockPercent));
 
         // emit event for vesting plan addition
-        emit AddVestingPlan(
+        emit VestingPlanAdded(
             plans.length - 1,
             _lockPeriod,
             _vestingPeriod,
