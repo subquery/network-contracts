@@ -251,9 +251,10 @@ async function setupVesting(sdk: ContractSDK) {
         if (!allocation.eq(0)) continue;
 
         const amount = amounts[index];
-        planId = planId > maxPlanId ? 0 : planId + 1;
+        planId = planId > maxPlanId ? 0 : planId;
         logger.info(`Allocate ${amount.toString()} to ${account} with Plan: ${planId}`);
         await sendTx((overrides) => sdk.vesting.allocateVesting(account, planId, amount, overrides));
+        planId++;
     }
     logger.info('Vesting plans allocated');
 
