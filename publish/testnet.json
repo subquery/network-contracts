@@ -35,12 +35,6 @@
         "bytecodeHash": "2d01addedd2d46acc3bfe9be2ae6c9cb2e25852cefcdf052193676bae17b8bef",
         "lastUpdate": "Thu, 17 Aug 2023 21:13:46 GMT"
     },
-    "Vesting": {
-        "innerAddress": "",
-        "address": "0xF7cec3B18B01Fc7Cacab478BD3037C24Ce21239f",
-        "bytecodeHash": "f9aac2d2e6ab5d2dc1e84db8d18b1a663566847638e4d64d3faebfbb9142f0ca",
-        "lastUpdate": "Mon, 18 Sep 2023 02:59:16 GMT"
-    },
     "Staking": {
         "innerAddress": "0xFB7f130Bd91b279680fDCF076446c7059184f785",
         "address": "0x967eAA8968AAA080b7Ab83E1e57ecaD53d2901E1",
@@ -148,5 +142,11 @@
         "address": "0x03Bf8E450f8a85Cb0F3F7c0a9b2d72A3c74da924",
         "bytecodeHash": "d95aa2638edb0b1ce643f883a60435b44390ac9e78035b6c0579ba1b50b54a33",
         "lastUpdate": "Thu, 24 Aug 2023 04:39:06 GMT"
+    },
+    "Vesting": {
+        "innerAddress": "",
+        "address": "0x4D1d1d932388E5d3015BEf071FC994A370892DEb",
+        "bytecodeHash": "96e3088b293f3a8c88f79ea34029310cf4fe0aaf5f1ef2d3838b90842adcedf5",
+        "lastUpdate": "Tue, 19 Sep 2023 04:30:13 GMT"
     }
 }

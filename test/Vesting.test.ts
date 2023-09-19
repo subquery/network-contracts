@@ -63,15 +63,15 @@ describe('Vesting Contract', () => {
         it('add vesting plan should work', async () => {
             // 0 initial unlock
             await expect(vestingContract.addVestingPlan(lockPeriod, vestingPeriod, 0))
-                .to.be.emit(vestingContract, 'AddVestingPlan')
+                .to.be.emit(vestingContract, 'VestingPlanAdded')
                 .withArgs(0, lockPeriod, vestingPeriod, 0);
             // 100% initial unlock
             await expect(vestingContract.addVestingPlan(lockPeriod, vestingPeriod, 100))
-                .to.be.emit(vestingContract, 'AddVestingPlan')
+                .to.be.emit(vestingContract, 'VestingPlanAdded')
                 .withArgs(1, lockPeriod, vestingPeriod, 100);
             // 30% initial unlock
             await expect(vestingContract.addVestingPlan(lockPeriod, vestingPeriod, 30))
-                .to.be.emit(vestingContract, 'AddVestingPlan')
+                .to.be.emit(vestingContract, 'VestingPlanAdded')
                 .withArgs(2, lockPeriod, vestingPeriod, 30);
 
             await checkVestingPlan(0, 0);

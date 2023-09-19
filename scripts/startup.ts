@@ -228,6 +228,48 @@ export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
     }
 }
 
+async function setupVesting(sdk: ContractSDK) {
+    logger = getLogger('Vesting');
+    logger.info('Creating vesting plans');
+
+    const vestingPlans = startupConfig.vestingPlans;
+    for (const plan of vestingPlans) {
+        const { initPercentage, vestingPeriod, lockPeriod } = plan;
+        logger.info(`Create vesting plan: ${initPercentage} | ${vestingPeriod} | ${lockPeriod}`);
+        await sendTx((overrides) => sdk.vesting.addVestingPlan(lockPeriod, vestingPeriod, initPercentage, overrides));
+    }
+    logger.info('Vesting plans created');
+
+    const accounts = startupConfig.airdrops;
+    const amounts = startupConfig.amounts.map((a: number) => parseEther(a.toString()));
+
+    logger.info('Allocate vesting plans');
+    let planId = 0;
+    const maxPlanId = vestingPlans.length - 1;
+    for (const [index, account] of accounts.entries()) {
+        const allocation = await sdk.vesting.allocations(account);
+        if (!allocation.eq(0)) continue;
+
+        const amount = amounts[index];
+        planId = planId > maxPlanId ? 0 : planId;
+        logger.info(`Allocate ${amount.toString()} to ${account} with Plan: ${planId}`);
+        await sendTx((overrides) => sdk.vesting.allocateVesting(account, planId, amount, overrides));
+        planId++;
+    }
+    logger.info('Vesting plans allocated');
+
+    logger.info('Deposit vesting token');
+    const totalAmount = parseEther(eval(startupConfig.amounts.join('+')).toString());
+    await sendTx((overrides) => sdk.sqToken.increaseAllowance(sdk.vesting.address, totalAmount, overrides));
+    await sendTx((overrides) => sdk.vesting.depositByAdmin(totalAmount, overrides));
+    logger.info(`Total ${totalAmount.toString()} deposited`);
+    logger.info('Vesting token deposited');
+
+    const startTime = Math.round(new Date().getTime() / 1000) + 21600;
+    await sendTx((overrides) => sdk.vesting.startVesting(startTime, overrides));
+    logger.info('Vesting started');
+}
+
 const main = async () => {
     const { wallet } = await setup(process.argv);
     const networkType = process.argv[2];
@@ -273,11 +315,12 @@ const main = async () => {
             startupConfig = startupTestnetConfig;
             // await createProjects(sdk);
             // await createPlanTemplates(sdk);
-            await airdrop(sdk);
+            // await airdrop(sdk);
             // await transferTokenToIndexers(sdk);
             // await setupPermissionExchange(sdk, wallet);
             // await balanceTransfer(sdk, wallet);
             // await ownerTransfer(sdk);
+            await setupVesting(sdk);
             break;
         default:
             throw new Error(`Please provide correct network ${networkType}`);

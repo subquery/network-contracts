@@ -12,6 +12,14 @@
         "0x1175ee9739368c93BfcB3ca0a8cbd5782D9F55B4"
     ],
     "amounts": [10000, 20000, 30000, 40000, 10000, 20000, 30000, 40000, 10000, 40000],
+    "vestingPlans": [
+        {"initPercentage": 20, "vestingPeriod": 604800, "lockPeriod": 86400},
+        {"initPercentage": 30, "vestingPeriod": 7776000, "lockPeriod": 86400},
+        {"initPercentage": 0, "vestingPeriod": 7776000, "lockPeriod": 86400},
+        {"initPercentage": 30, "vestingPeriod": 7776000, "lockPeriod": 0},
+        {"initPercentage": 30, "vestingPeriod": 0, "lockPeriod": 86400},
+        {"initPercentage": 100, "vestingPeriod": 7776000, "lockPeriod": 86400}
+    ],
     "planTemplates": [
         {
             "period": 604800,
