@@ -241,16 +241,19 @@ async function setupVesting(sdk: ContractSDK) {
     logger.info('Vesting plans created');
 
     const accounts = startupConfig.airdrops;
-    const amounts = startupConfig.amounts.map((a: string) => parseEther(a));
+    const amounts = startupConfig.amounts.map((a: number) => parseEther(a.toString()));
 
     logger.info('Allocate vesting plans');
     let planId = 0;
     const maxPlanId = vestingPlans.length - 1;
     for (const [index, account] of accounts.entries()) {
+        const allocation = await sdk.vesting.allocations(account);
+        if (!allocation.eq(0)) continue;
+
         const amount = amounts[index];
-        planId = planId > maxPlanId ? 0 : planId++;
+        planId = planId > maxPlanId ? 0 : planId + 1;
         logger.info(`Allocate ${amount.toString()} to ${account} with Plan: ${planId}`);
-        await sendTx((overrides) => sdk.vesting.allocateVesting(account, index, amount, overrides));
+        await sendTx((overrides) => sdk.vesting.allocateVesting(account, planId, amount, overrides));
     }
     logger.info('Vesting plans allocated');
 
@@ -258,9 +261,10 @@ async function setupVesting(sdk: ContractSDK) {
     const totalAmount = parseEther(eval(startupConfig.amounts.join('+')).toString());
     await sendTx((overrides) => sdk.sqToken.increaseAllowance(sdk.vesting.address, totalAmount, overrides));
     await sendTx((overrides) => sdk.vesting.depositByAdmin(totalAmount, overrides));
+    logger.info(`Total ${totalAmount.toString()} deposited`);
     logger.info('Vesting token deposited');
 
-    const startTime = new Date().getTime() / 1000 + 21600;
+    const startTime = Math.round(new Date().getTime() / 1000) + 21600;
     await sendTx((overrides) => sdk.vesting.startVesting(startTime, overrides));
     logger.info('Vesting started');
 }
