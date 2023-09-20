@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2022 SubProject Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 pragma solidity 0.8.15;
@@ -13,7 +13,7 @@ import './interfaces/IProjectRegistry.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 
 /**
- * @title Query Registry Contract
+ * @title Project Registry Contract
  * @notice ### Overview
  * This contract tracks all projects and their deployments. At the beginning of the network,
  * we will start with the restrict mode which only allow permissioned account to create and update project.
@@ -40,11 +40,11 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry 
     }
 
     /// @dev ### STATES
-    /// @notice ISettings contract which stores SubQuery network contracts address
+    /// @notice ISettings contract which stores SubProject network contracts address
     ISettings public settings;
 
     /// @notice next project id
-    uint256 public nextQueryId;
+    uint256 public nextProjectId;
 
     /// @notice is the contract run in creator restrict mode. If in creator restrict mode, only permissioned account allowed to create and update project
     bool public creatorRestricted;
@@ -69,13 +69,13 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry 
 
     /// @dev EVENTS
     /// @notice Emitted when project created.
-    event CreateQuery(uint256 indexed projectId, address indexed creator, bytes32 metadata, bytes32 deploymentId, bytes32 version, ProjectType projectType);
+    event CreateProject(uint256 indexed projectId, address indexed creator, bytes32 metadata, bytes32 deploymentId, bytes32 version, ProjectType projectType);
 
     /// @notice Emitted when the metadata of the project updated.
-    event UpdateQueryMetadata(address indexed owner, uint256 indexed projectId, bytes32 metadata);
+    event UpdateProjectMetadata(address indexed owner, uint256 indexed projectId, bytes32 metadata);
 
     /// @notice Emitted when the latestDeploymentId of the project updated.
-    event UpdateQueryDeployment(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 version);
+    event UpdateProjectDeployment(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 version);
 
     /// @notice Emitted when indexers start indexing.
     event StartIndexing(address indexed indexer, bytes32 indexed deploymentId);
@@ -165,27 +165,27 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry 
     /**
      * @notice create a project, if in the restrict mode, only creator allowed to call this function
      */
-    function createproject(bytes32 metadata, bytes32 version, bytes32 deploymentId, ProjectType projectType) external onlyCreator {
+    function createProject(bytes32 metadata, bytes32 version, bytes32 deploymentId, ProjectType projectType) external onlyCreator {
         require(!deploymentIds[deploymentId], 'QR006');
 
-        uint256 projectId = nextQueryId;
+        uint256 projectId = nextProjectId;
         projectInfos[projectId] = ProjectInfo(projectId, msg.sender, version, deploymentId, metadata, projectType);
-        nextQueryId++;
+        nextProjectId++;
         deploymentIds[deploymentId] = true;
 
-        emit CreateQuery(projectId, msg.sender, metadata, deploymentId, version, projectType);
+        emit CreateProject(projectId, msg.sender, metadata, deploymentId, version, projectType);
     }
 
     /**
      * @notice update the Metadata of a project, if in the restrict mode, only creator allowed call this function
      */
-    function updateprojectMetadata(uint256 projectId, bytes32 metadata) external onlyCreator {
+    function updateProjectMetadata(uint256 projectId, bytes32 metadata) external onlyCreator {
         address projectOwner = projectInfos[projectId].owner;
         require(projectOwner == msg.sender, 'QR007');
 
         projectInfos[projectId].metadata = metadata;
 
-        emit UpdateQueryMetadata(projectOwner, projectId, metadata);
+        emit UpdateProjectMetadata(projectOwner, projectId, metadata);
     }
 
     /**
@@ -200,7 +200,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry 
         projectInfos[projectId].latestVersion = version;
         deploymentIds[deploymentId] = true;
 
-        emit UpdateQueryDeployment(projectOwner, projectId, deploymentId, version);
+        emit UpdateProjectDeployment(projectOwner, projectId, deploymentId, version);
     }
 
     /**

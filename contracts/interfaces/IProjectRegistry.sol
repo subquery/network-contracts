@@ -11,7 +11,7 @@ enum IndexingServiceStatus {
 
 enum ProjectType {
     SUBQUERY,
-    RPC,
+    RPC
 }
 
 interface IProjectRegistry {
@@ -20,17 +20,17 @@ interface IProjectRegistry {
 
     function isIndexingAvailable(bytes32 deploymentId, address indexer) external view returns (bool);
 
-    function createQueryProject(
+    function createProject(
         bytes32 metadata,
         bytes32 version,
         bytes32 deploymentId,
         ProjectType projectType
     ) external;
 
-    function updateQueryProjectMetadata(uint256 queryId, bytes32 metadata) external;
+    function updateProjectMetadata(uint256 projectId, bytes32 metadata) external;
 
     function updateDeployment(
-        uint256 queryId,
+        uint256 projectId,
         bytes32 deploymentId,
         bytes32 version
     ) external;
