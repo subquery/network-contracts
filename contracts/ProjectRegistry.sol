@@ -81,9 +81,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /// @notice Emitted when indexers start indexing.
     event StartIndexing(address indexed indexer, bytes32 indexed deploymentId);
 
-    /// @notice Emitted when indexers report their indexing Status
-    event UpdateDeploymentStatus(address indexed indexer, bytes32 indexed deploymentId, uint256 blockheight, bytes32 mmrRoot, uint256 timestamp);
-
     /// @notice Emitted when indexers update their indexing Status to ready
     event UpdateIndexingStatusToReady(address indexed indexer, bytes32 indexed deploymentId);
 
@@ -253,22 +250,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     }
 
     /**
-     * @notice Indexer report its indexing status with a specific deploymentId
-     */
-    function reportIndexingStatus(address indexer, bytes32 deploymentId, uint256 blockheight, bytes32 mmrRoot, uint256 timestamp) external {
-        require(indexer == msg.sender || IIndexerRegistry(settings.getIndexerRegistry()).getController(indexer) == msg.sender, 'IR007');
-
-        IndexingStatus storage currentStatus = deploymentStatusByIndexer[deploymentId][indexer];
-        canModifyStatus(currentStatus, timestamp);
-        canModifyBlockHeight(currentStatus, blockheight);
-
-        currentStatus.timestamp = timestamp;
-        currentStatus.blockHeight = blockheight;
-
-        emit UpdateDeploymentStatus(indexer, deploymentId, blockheight, mmrRoot, timestamp);
-    }
-
-    /**
      * @notice Indexer stop indexing with a specific deploymentId
      */
     function stopIndexing(bytes32 deploymentId) external onlyIndexer {
@@ -293,17 +274,5 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      */
     function isIndexingAvailable(bytes32 deploymentId, address indexer) external view returns (bool) {
         return deploymentStatusByIndexer[deploymentId][indexer].status == IndexingServiceStatus.READY;
-    }
-
-    /**
-     * @notice is the indexer offline on a specific deploymentId
-     */
-    function isOffline(bytes32 deploymentId, address indexer) external view returns (bool) {
-        IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][indexer].status;
-        if (currentStatus == IndexingServiceStatus.NOTINDEXING) {
-            return false;
-        }
-
-        return deploymentStatusByIndexer[deploymentId][indexer].timestamp + offlineCalcThreshold < block.timestamp;
     }
 }

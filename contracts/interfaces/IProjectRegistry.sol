@@ -39,15 +39,5 @@ interface IProjectRegistry {
 
     function updateIndexingStatusToReady(bytes32 deploymentId) external;
 
-    function reportIndexingStatus(
-        address indexer,
-        bytes32 deploymentId,
-        uint256 _blockheight,
-        bytes32 _mmrRoot,
-        uint256 _timestamp
-    ) external;
-
     function stopIndexing(bytes32 deploymentId) external;
-
-    function isOffline(bytes32 deploymentId, address indexer) external view returns (bool);
 }
