@@ -4,6 +4,7 @@
 pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 import './interfaces/IIndexerRegistry.sol';
@@ -20,7 +21,7 @@ import './interfaces/IServiceAgreementRegistry.sol';
  * Indexers are able to start and stop indexing with a specific deployment from this conttact. Also Indexers can update and report
  * their indexing status from this contarct.
  */
-contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry {
+contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, IProjectRegistry {
     /// @notice project information
     struct ProjectInfo {
         uint256 projectId;
@@ -111,6 +112,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry 
      */
     function initialize(ISettings _settings) external initializer {
         __Ownable_init();
+        __ERC721_init("ProjectToken", "PT");
 
         settings = _settings;
         offlineCalcThreshold = 1 days;
@@ -173,6 +175,9 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry 
         nextProjectId++;
         deploymentIds[deploymentId] = true;
 
+        // Mint the corresponding NFT
+        _safeMint(msg.sender, projectId);
+
         emit CreateProject(projectId, msg.sender, metadata, deploymentId, version, projectType);
     }
 
@@ -201,6 +206,15 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry 
         deploymentIds[deploymentId] = true;
 
         emit UpdateProjectDeployment(projectOwner, projectId, deploymentId, version);
+    }
+
+     function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual override(ERC721Upgradeable) {
+        super._beforeTokenTransfer(from, to, tokenId);
+
+        require(from == address(0) || from == projectInfos[tokenId].owner, 'QR012');
+
+        // Update project owner whenever the NFT is transferred
+        projectInfos[tokenId].owner = to;
     }
 
     /**
