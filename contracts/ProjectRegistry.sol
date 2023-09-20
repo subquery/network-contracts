@@ -112,7 +112,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      */
     function initialize(ISettings _settings) external initializer {
         __Ownable_init();
-        __ERC721_init("ProjectToken", "PT");
+        __ERC721_init("SuqueryProject", "SP");
 
         settings = _settings;
         offlineCalcThreshold = 1 days;
