@@ -144,12 +144,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         require(currentStatus.timestamp < _timestamp, 'QR003');
         require(_timestamp <= block.timestamp, 'QR004');
     }
-    /**
-     * @notice check if the IndexingStatus available to update BlockHeight
-     */
-    function canModifyBlockHeight(IndexingStatus memory currentStatus, uint256 blockheight) private pure {
-        require(blockheight >= currentStatus.blockHeight, 'QR005');
-    }
 
     /**
      * @notice create a project, if in the restrict mode, only creator allowed to call this function
