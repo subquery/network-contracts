@@ -49,9 +49,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /// @notice is the contract run in creator restrict mode. If in creator restrict mode, only permissioned account allowed to create and update project
     bool public creatorRestricted;
 
-    /// @notice Threshold to calculate is indexer offline
-    uint256 private offlineCalcThreshold;
-
     /// @notice project ids -> ProjectInfo
     mapping(uint256 => ProjectInfo) public projectInfos;
 
@@ -111,7 +108,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         __ERC721_init("SuqueryProject", "SP");
 
         settings = _settings;
-        offlineCalcThreshold = 1 days;
         creatorRestricted = true;
         creatorWhitelist[msg.sender] = true;
     }
@@ -138,12 +134,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     function removeCreator(address creator) external onlyOwner {
         creatorWhitelist[creator] = false;
     }
-    /**
-     * @notice set the threshold to calculate whether the indexer is offline
-     */
-    function setOfflineCalcThreshold(uint256 _offlineCalcThreshold) external onlyOwner {
-        offlineCalcThreshold = _offlineCalcThreshold;
-    }
 
     /**
      * @notice check if the IndexingStatus available to update ststus
@@ -152,12 +142,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         require(currentStatus.status != IndexingServiceStatus.NOTINDEXING, 'QR002');
         require(currentStatus.timestamp < _timestamp, 'QR003');
         require(_timestamp <= block.timestamp, 'QR004');
-    }
-    /**
-     * @notice check if the IndexingStatus available to update BlockHeight
-     */
-    function canModifyBlockHeight(IndexingStatus memory currentStatus, uint256 blockheight) private pure {
-        require(blockheight >= currentStatus.blockHeight, 'QR005');
     }
 
     /**
