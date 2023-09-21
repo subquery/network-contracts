@@ -165,7 +165,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      * @notice update the Metadata of a project, if in the restrict mode, only creator allowed call this function
      */
     function updateProjectMetadata(uint256 projectId, bytes32 metadata) external onlyCreator {
-        address projectOwner = ownerof(projectId);
+        address projectOwner = ownerOf(projectId);
         require(projectOwner == msg.sender, 'QR007');
 
         projectInfos[projectId].metadata = metadata;
@@ -177,7 +177,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      * @notice update the deployment of a project, if in the restrict mode, only creator allowed call this function
      */
     function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 version) external onlyCreator {
-        address projectOwner = ownerof(projectId);
+        address projectOwner = ownerOf(projectId);
         require(projectOwner == msg.sender, 'QR008');
         require(!deploymentIds[deploymentId], 'QR006');
 
