@@ -25,7 +25,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /// @notice project information
     struct ProjectInfo {
         uint256 projectId;
-        address owner;
         bytes32 latestVersion;
         bytes32 latestDeploymentId;
         bytes32 metadata;
@@ -168,7 +167,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         require(!deploymentIds[deploymentId], 'QR006');
 
         uint256 projectId = nextProjectId;
-        projectInfos[projectId] = ProjectInfo(projectId, msg.sender, version, deploymentId, metadata, projectType);
+        projectInfos[projectId] = ProjectInfo(projectId, version, deploymentId, metadata, projectType);
         nextProjectId++;
         deploymentIds[deploymentId] = true;
 
@@ -182,7 +181,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      * @notice update the Metadata of a project, if in the restrict mode, only creator allowed call this function
      */
     function updateProjectMetadata(uint256 projectId, bytes32 metadata) external onlyCreator {
-        address projectOwner = projectInfos[projectId].owner;
+        address projectOwner = ownerof(projectId);
         require(projectOwner == msg.sender, 'QR007');
 
         projectInfos[projectId].metadata = metadata;
@@ -194,7 +193,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      * @notice update the deployment of a project, if in the restrict mode, only creator allowed call this function
      */
     function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 version) external onlyCreator {
-        address projectOwner = projectInfos[projectId].owner;
+        address projectOwner = ownerof(projectId);
         require(projectOwner == msg.sender, 'QR008');
         require(!deploymentIds[deploymentId], 'QR006');
 
@@ -203,15 +202,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         deploymentIds[deploymentId] = true;
 
         emit UpdateProjectDeployment(projectOwner, projectId, deploymentId, version);
-    }
-
-     function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual override(ERC721Upgradeable) {
-        super._beforeTokenTransfer(from, to, tokenId);
-
-        require(from == address(0) || from == projectInfos[tokenId].owner, 'QR012');
-
-        // Update project owner whenever the NFT is transferred
-        projectInfos[tokenId].owner = to;
     }
 
     /**
