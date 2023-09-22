@@ -21,18 +21,18 @@ interface IProjectRegistry {
     function isIndexingAvailable(bytes32 deploymentId, address indexer) external view returns (bool);
 
     function createProject(
-        bytes32 metadata,
-        bytes32 version,
         bytes32 deploymentId,
+        bytes32 deploymentMetdata,
+        string memory projectMetadataUri,
         ProjectType projectType
     ) external;
 
-    function updateProjectMetadata(uint256 projectId, bytes32 metadata) external;
+    function updateProjectMetadata(uint256 projectId, string memory metadataUri) external;
 
     function updateDeployment(
         uint256 projectId,
         bytes32 deploymentId,
-        bytes32 version
+        bytes32 metadata
     ) external;
 
     function startIndexing(bytes32 deploymentId) external;

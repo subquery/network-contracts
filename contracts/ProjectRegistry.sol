@@ -34,14 +34,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
         bytes32 metadata;
     }
 
-    /// @notice indexing status for an indexer
-    struct IndexingStatus {
-        bytes32 deploymentId;
-        uint256 timestamp;
-        uint256 blockHeight;
-        IndexingServiceStatus status;
-    }
-
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubProject network contracts address
     ISettings public settings;
@@ -61,8 +53,8 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
     /// @notice deployment id -> deployment info
     mapping(bytes32 => DeploymentInfo) private deploymentInfos;
 
-    /// @notice deployment id -> indexer -> IndexingStatus
-    mapping(bytes32 => mapping(address => IndexingStatus)) public deploymentStatusByIndexer;
+    /// @notice deployment id -> indexer -> IndexingServiceStatus
+    mapping(bytes32 => mapping(address => IndexingServiceStatus)) public deploymentStatusByIndexer;
 
     /// @notice indexer -> deployment numbers
     mapping(address => uint256) public numberOfIndexingDeployments;
@@ -139,15 +131,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
     }
 
     /**
-     * @notice check if the IndexingStatus available to update ststus
-     */
-    function canModifyStatus(IndexingStatus memory currentStatus, uint256 _timestamp) private view {
-        require(currentStatus.status != IndexingServiceStatus.NOTINDEXING, 'QR002');
-        require(currentStatus.timestamp < _timestamp, 'QR003');
-        require(_timestamp <= block.timestamp, 'QR004');
-    }
-
-    /**
      * @notice create a project, if in the restrict mode, only creator allowed to call this function
      */
     function createProject(bytes32 deploymentId, bytes32 deploymentMetdata, string memory projectMetadataUri, ProjectType projectType) external onlyCreator {
@@ -199,12 +182,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
         require(currentStatus == IndexingServiceStatus.NOTINDEXING, 'QR009');
         require(deploymentInfos[deploymentId], 'QR006');
 
-        deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingStatus(
-            deploymentId,
-            0,
-            0,
-            IndexingServiceStatus.INDEXING
-        );
+        deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingServiceStatus.INDEXING;
         numberOfIndexingDeployments[msg.sender]++;
 
         emit StartIndexing(msg.sender, deploymentId);
@@ -215,13 +193,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
      */
     function updateIndexingStatusToReady(bytes32 deploymentId) external onlyIndexer {
         address indexer = msg.sender;
-        uint256 timestamp = block.timestamp;
-
-        IndexingStatus storage currentStatus = deploymentStatusByIndexer[deploymentId][indexer];
-        canModifyStatus(currentStatus, timestamp);
-
-        currentStatus.status = IndexingServiceStatus.READY;
-        currentStatus.timestamp = timestamp;
+        deploymentStatusByIndexer[deploymentId][indexer] = IndexingServiceStatus.INDEXING;
 
         emit UpdateIndexingStatusToReady(indexer, deploymentId);
     }
