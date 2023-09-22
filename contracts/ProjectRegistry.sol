@@ -3,8 +3,11 @@
 
 pragma solidity 0.8.15;
 
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 import './interfaces/IIndexerRegistry.sol';
@@ -21,7 +24,7 @@ import './interfaces/IServiceAgreementRegistry.sol';
  * Indexers are able to start and stop indexing with a specific deployment from this conttact. Also Indexers can update and report
  * their indexing status from this contarct.
  */
-contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry, ERC721Enumerable, ERC721URIStorage {
+contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry, ERC721, ERC721URIStorage, ERC721Enumerable {
     /// @notice project information
     struct ProjectInfo {
         bytes32 latestDeploymentId;
@@ -44,6 +47,9 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
     /// @notice is the contract run in creator restrict mode. If in creator restrict mode, only permissioned account allowed to create and update project
     bool public creatorRestricted;
 
+    /// @notice base URI for tokenURI
+    string private baseURI;
+
     /// @notice account address -> is creator
     mapping(address => bool) public creatorWhitelist;
 
@@ -51,7 +57,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
     mapping(uint256 => ProjectInfo) public projectInfos;
 
     /// @notice deployment id -> deployment info
-    mapping(bytes32 => DeploymentInfo) private deploymentInfos;
+    mapping(bytes32 => DeploymentInfo) public deploymentInfos;
 
     /// @notice deployment id -> indexer -> IndexingServiceStatus
     mapping(bytes32 => mapping(address => IndexingServiceStatus)) public deploymentStatusByIndexer;
@@ -61,10 +67,10 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
 
     /// @dev EVENTS
     /// @notice Emitted when project created.
-    event CreateProject(uint256 indexed projectId, address indexed creator, bytes32 projectMetadata, bytes32 deploymentId, bytes32 deploymentMetadata, ProjectType projectType);
+    event CreateProject(uint256 indexed projectId, address indexed creator, string projectMetadata, bytes32 deploymentId, bytes32 deploymentMetadata, ProjectType projectType);
 
     /// @notice Emitted when the metadata of the project updated.
-    event UpdateProjectMetadata(address indexed owner, uint256 indexed projectId, bytes32 metadata);
+    event UpdateProjectMetadata(address indexed owner, uint256 indexed projectId, string metadata);
 
     /// @notice Emitted when the latestDeploymentId of the project updated.
     event UpdateProjectDeployment(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 metadata);
@@ -105,6 +111,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
         settings = _settings;
         creatorRestricted = true;
         creatorWhitelist[msg.sender] = true;
+        nextProjectId = 1;
     }
 
     function setSettings(ISettings _settings) external onlyOwner {
@@ -130,11 +137,31 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
         creatorWhitelist[creator] = false;
     }
 
+    function setBaseURI(string memory baseURI_) external onlyOwner() {
+        baseURI = baseURI_;
+    }
+
+    function _baseURI() internal view virtual override returns (string memory) {
+        return baseURI;
+    }
+
+    function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
+        return super.tokenURI(tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721, ERC721Enumerable) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
+
+    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+        super._burn(tokenId);
+    }
+
     /**
      * @notice create a project, if in the restrict mode, only creator allowed to call this function
      */
     function createProject(bytes32 deploymentId, bytes32 deploymentMetdata, string memory projectMetadataUri, ProjectType projectType) external onlyCreator {
-        require(!deploymentInfos[deploymentId], 'QR006');
+        require(deploymentInfos[deploymentId].projectId != 0, 'QR006');
 
         uint256 projectId = nextProjectId;
         projectInfos[projectId] = ProjectInfo(deploymentId, projectType);
@@ -157,7 +184,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
 
         _setTokenURI(projectId, metadataUri);
 
-        emit UpdateProjectMetadata(projectOwner, projectId, metadata);
+        emit UpdateProjectMetadata(msg.sender, projectId, metadataUri);
     }
 
     /**
@@ -166,7 +193,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
     function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata) external onlyCreator {
         address projectOwner = ownerOf(projectId);
         require(projectOwner == msg.sender, 'QR008');
-        require(!deploymentInfos[deploymentId], 'QR006');
+        require(deploymentInfos[deploymentId].projectId != 0, 'QR006');
 
         projectInfos[projectId].latestDeploymentId = deploymentId;
         deploymentInfos[deploymentId] = DeploymentInfo(projectId, metadata);
@@ -178,9 +205,9 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
      * @notice Indexer start indexing with a specific deploymentId
      */
     function startIndexing(bytes32 deploymentId) external onlyIndexer {
-        IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender].status;
+        IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
         require(currentStatus == IndexingServiceStatus.NOTINDEXING, 'QR009');
-        require(deploymentInfos[deploymentId], 'QR006');
+        require(deploymentInfos[deploymentId].projectId != 0, 'QR006');
 
         deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingServiceStatus.INDEXING;
         numberOfIndexingDeployments[msg.sender]++;
@@ -202,7 +229,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
      * @notice Indexer stop indexing with a specific deploymentId
      */
     function stopIndexing(bytes32 deploymentId) external onlyIndexer {
-        IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender].status;
+        IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
 
         require(currentStatus != IndexingServiceStatus.NOTINDEXING, 'QR010');
         require(
@@ -213,7 +240,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
             'QR011'
         );
 
-        deploymentStatusByIndexer[deploymentId][msg.sender].status = IndexingServiceStatus.NOTINDEXING;
+        deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingServiceStatus.NOTINDEXING;
         numberOfIndexingDeployments[msg.sender]--;
         emit StopIndexing(msg.sender, deploymentId);
     }
@@ -222,6 +249,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
      * @notice is the indexer available to indexing with a specific deploymentId
      */
     function isIndexingAvailable(bytes32 deploymentId, address indexer) external view returns (bool) {
-        return deploymentStatusByIndexer[deploymentId][indexer].status == IndexingServiceStatus.READY;
+        return deploymentStatusByIndexer[deploymentId][indexer] == IndexingServiceStatus.READY;
     }
 }
