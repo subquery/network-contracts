@@ -21,14 +21,17 @@ import './interfaces/IServiceAgreementRegistry.sol';
  * Indexers are able to start and stop indexing with a specific deployment from this conttact. Also Indexers can update and report
  * their indexing status from this contarct.
  */
-contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, IProjectRegistry {
+contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry, ERC721Enumerable, ERC721URIStorage {
     /// @notice project information
     struct ProjectInfo {
-        uint256 projectId;
-        bytes32 latestVersion;
         bytes32 latestDeploymentId;
-        bytes32 metadata;
         ProjectType projectType;
+    }
+
+    /// @notice deployment information
+    struct DeploymentInfo {
+        uint256 projectId;
+        bytes32 metadata;
     }
 
     /// @notice indexing status for an indexer
@@ -49,11 +52,14 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /// @notice is the contract run in creator restrict mode. If in creator restrict mode, only permissioned account allowed to create and update project
     bool public creatorRestricted;
 
+    /// @notice account address -> is creator
+    mapping(address => bool) public creatorWhitelist;
+
     /// @notice project ids -> ProjectInfo
     mapping(uint256 => ProjectInfo) public projectInfos;
 
-    /// @notice account address -> is creator
-    mapping(address => bool) public creatorWhitelist;
+    /// @notice deployment id -> deployment info
+    mapping(bytes32 => DeploymentInfo) private deploymentInfos;
 
     /// @notice deployment id -> indexer -> IndexingStatus
     mapping(bytes32 => mapping(address => IndexingStatus)) public deploymentStatusByIndexer;
@@ -61,18 +67,15 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /// @notice indexer -> deployment numbers
     mapping(address => uint256) public numberOfIndexingDeployments;
 
-    /// @notice is the id a deployment
-    mapping(bytes32 => bool) private deploymentIds;
-
     /// @dev EVENTS
     /// @notice Emitted when project created.
-    event CreateProject(uint256 indexed projectId, address indexed creator, bytes32 metadata, bytes32 deploymentId, bytes32 version, ProjectType projectType);
+    event CreateProject(uint256 indexed projectId, address indexed creator, bytes32 projectMetadata, bytes32 deploymentId, bytes32 deploymentMetadata, ProjectType projectType);
 
     /// @notice Emitted when the metadata of the project updated.
     event UpdateProjectMetadata(address indexed owner, uint256 indexed projectId, bytes32 metadata);
 
     /// @notice Emitted when the latestDeploymentId of the project updated.
-    event UpdateProjectDeployment(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 version);
+    event UpdateProjectDeployment(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 metadata);
 
     /// @notice Emitted when indexers start indexing.
     event StartIndexing(address indexed indexer, bytes32 indexed deploymentId);
@@ -147,28 +150,29 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice create a project, if in the restrict mode, only creator allowed to call this function
      */
-    function createProject(bytes32 metadata, bytes32 version, bytes32 deploymentId, ProjectType projectType) external onlyCreator {
-        require(!deploymentIds[deploymentId], 'QR006');
+    function createProject(bytes32 deploymentId, bytes32 deploymentMetdata, string memory projectMetadataUri, ProjectType projectType) external onlyCreator {
+        require(!deploymentInfos[deploymentId], 'QR006');
 
         uint256 projectId = nextProjectId;
-        projectInfos[projectId] = ProjectInfo(projectId, version, deploymentId, metadata, projectType);
+        projectInfos[projectId] = ProjectInfo(deploymentId, projectType);
         nextProjectId++;
-        deploymentIds[deploymentId] = true;
+
+        deploymentInfos[deploymentId] = DeploymentInfo(projectId, deploymentMetdata);
 
         // Mint the corresponding NFT
         _safeMint(msg.sender, projectId);
+        _setTokenURI(projectId, projectMetadataUri);
 
-        emit CreateProject(projectId, msg.sender, metadata, deploymentId, version, projectType);
+        emit CreateProject(projectId, msg.sender, projectMetadataUri, deploymentId, deploymentMetdata, projectType);
     }
 
     /**
      * @notice update the Metadata of a project, if in the restrict mode, only creator allowed call this function
      */
-    function updateProjectMetadata(uint256 projectId, bytes32 metadata) external onlyCreator {
-        address projectOwner = ownerOf(projectId);
-        require(projectOwner == msg.sender, 'QR007');
+    function updateProjectMetadata(uint256 projectId, string memory metadataUri) external onlyCreator {
+        require(ownerOf(projectId) == msg.sender, 'QR007');
 
-        projectInfos[projectId].metadata = metadata;
+        _setTokenURI(projectId, metadataUri);
 
         emit UpdateProjectMetadata(projectOwner, projectId, metadata);
     }
@@ -176,16 +180,15 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice update the deployment of a project, if in the restrict mode, only creator allowed call this function
      */
-    function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 version) external onlyCreator {
+    function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata) external onlyCreator {
         address projectOwner = ownerOf(projectId);
         require(projectOwner == msg.sender, 'QR008');
-        require(!deploymentIds[deploymentId], 'QR006');
+        require(!deploymentInfos[deploymentId], 'QR006');
 
         projectInfos[projectId].latestDeploymentId = deploymentId;
-        projectInfos[projectId].latestVersion = version;
-        deploymentIds[deploymentId] = true;
+        deploymentInfos[deploymentId] = DeploymentInfo(projectId, metadata);
 
-        emit UpdateProjectDeployment(projectOwner, projectId, deploymentId, version);
+        emit UpdateProjectDeployment(projectOwner, projectId, deploymentId, metadata);
     }
 
     /**
@@ -194,7 +197,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     function startIndexing(bytes32 deploymentId) external onlyIndexer {
         IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender].status;
         require(currentStatus == IndexingServiceStatus.NOTINDEXING, 'QR009');
-        require(deploymentIds[deploymentId], 'QR006');
+        require(deploymentInfos[deploymentId], 'QR006');
 
         deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingStatus(
             deploymentId,
