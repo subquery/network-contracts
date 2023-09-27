@@ -460,9 +460,8 @@ export async function upgradeContracts(configs: {
     logger.info(`Contract Changed: ${changed.join(',')}`);
     if (checkOnly) return deployment;
 
-    const changedContracts = ['PlanManager', 'ServiceAgreementRegistry']
 
-    for (const contractName of changedContracts) {
+    for (const contractName of changed) {
         const [_, factory] = UPGRADEBAL_CONTRACTS[contractName];
         if (!deployment[contractName]) {
             console.warn(`contract ${contractName} not deployed`);
