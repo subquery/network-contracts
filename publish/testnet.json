@@ -114,10 +114,10 @@
         "lastUpdate": "Thu, 17 Aug 2023 21:20:27 GMT"
     },
     "PermissionedExchange": {
-        "innerAddress": "0xADCB823C6CbCBCFAEa1f9041982C8720B91e711C",
+        "innerAddress": "0xDd440C0E3D0Af8b4731bD10288c23f94B1c1d116",
         "address": "0x2f6CcFEB92Df62c928c40f9535958426CE37C06D",
-        "bytecodeHash": "f16cf49a5ccddb4491f5e8487bcbf5021d7eeab1359f8c189b86cd3804d99962",
-        "lastUpdate": "Thu, 17 Aug 2023 21:20:54 GMT"
+        "bytecodeHash": "bd692650e77b19f4d9318c12c2351b30c8240ac56a051cbca659992e4775d6a2",
+        "lastUpdate": "Wed, 27 Sep 2023 12:25:22 GMT"
     },
     "ConsumerHost": {
         "innerAddress": "0xFb4831C3B532291062B026Cd943B01fc56CA0e92",
