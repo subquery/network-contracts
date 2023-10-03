@@ -3,7 +3,7 @@
 
 pragma solidity 0.8.15;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
++import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
@@ -24,7 +24,7 @@ import './interfaces/IServiceAgreementRegistry.sol';
  * Indexers are able to start and stop indexing with a specific deployment from this conttact. Also Indexers can update and report
  * their indexing status from this contarct.
  */
-contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry, ERC721, ERC721URIStorage, ERC721Enumerable {
+contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721URIStorage, ERC721Enumerable, IProjectRegistry {
     /// @notice project information
     struct ProjectInfo {
         bytes32 latestDeploymentId;
@@ -111,6 +111,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
     function setSettings(ISettings _settings) external onlyOwner {
         settings = _settings;
     }
+
     /**
      * @notice set the mode to restrict or not
      * restrict mode -- only permissioned accounts allowed to create project
@@ -118,12 +119,14 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
     function setCreatorRestricted(bool _creatorRestricted) external onlyOwner {
         creatorRestricted = _creatorRestricted;
     }
+
     /**
      * @notice set account to creator account that allow to create project
      */
     function addCreator(address creator) external onlyOwner {
         creatorWhitelist[creator] = true;
     }
+
     /**
      * @notice remove creator account
      */
@@ -137,6 +140,10 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
 
     function _baseURI() internal view virtual override returns (string memory) {
         return baseURI;
+    }
+
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721, ERC721Enumerable) {
+        super._beforeTokenTransfer(from, to, tokenId);
     }
 
     function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
