@@ -75,14 +75,8 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
     /// @notice Emitted when the latestDeploymentId of the project updated.
     event UpdateProjectDeployment(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 metadata);
 
-    /// @notice Emitted when indexers start indexing.
-    event StartIndexing(address indexed indexer, bytes32 indexed deploymentId);
-
-    /// @notice Emitted when indexers update their indexing Status to ready
-    event UpdateIndexingStatusToReady(address indexed indexer, bytes32 indexed deploymentId);
-
-    /// @notice Emitted when indexers stop indexing
-    event StopIndexing(address indexed indexer, bytes32 indexed deploymentId);
+    /// @notice Emitted when indexing status changed with a specific deploymentId.
+    event IndexingStatusChanged(address indexed indexer, bytes32 indexed deploymentId, IndexingServiceStatus status);
 
     /// @dev MODIFIER
     /// @notice only indexer can call
@@ -202,27 +196,15 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
     }
 
     /**
-     * @notice Indexer start indexing with a specific deploymentId
-     */
-    function startIndexing(bytes32 deploymentId) external onlyIndexer {
-        IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
-        require(currentStatus == IndexingServiceStatus.NOTINDEXING, 'QR009');
-        require(deploymentInfos[deploymentId].projectId != 0, 'QR006');
-
-        deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingServiceStatus.INDEXING;
-        numberOfIndexingDeployments[msg.sender]++;
-
-        emit StartIndexing(msg.sender, deploymentId);
-    }
-
-    /**
      * @notice Indexer update its indexing status to ready with a specific deploymentId
      */
     function updateIndexingStatusToReady(bytes32 deploymentId) external onlyIndexer {
-        address indexer = msg.sender;
-        deploymentStatusByIndexer[deploymentId][indexer] = IndexingServiceStatus.INDEXING;
+        IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
+        require(currentStatus == IndexingServiceStatus.NOTINDEXING, 'QR002');
 
-        emit UpdateIndexingStatusToReady(indexer, deploymentId);
+        deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingServiceStatus.READY;
+
+        emit IndexingStatusChanged(msg.sender, deploymentId, IndexingServiceStatus.READY);
     }
 
     /**
@@ -242,7 +224,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, IProjectRegistry,
 
         deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingServiceStatus.NOTINDEXING;
         numberOfIndexingDeployments[msg.sender]--;
-        emit StopIndexing(msg.sender, deploymentId);
+        emit IndexingStatusChanged(msg.sender, deploymentId, IndexingServiceStatus.NOTINDEXING);
     }
 
     /**
