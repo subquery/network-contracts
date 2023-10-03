@@ -145,10 +145,10 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      */
     function createProject(bytes32 deploymentId, bytes32 deploymentMetdata, string memory projectMetadataUri, ProjectType projectType) external {
         if (creatorRestricted) {
-            require(creatorWhitelist[msg.sender], 'QR001');
+            require(creatorWhitelist[msg.sender], 'PR001');
         }
 
-        require(deploymentInfos[deploymentId].projectId == 0, 'QR006');
+        require(deploymentInfos[deploymentId].projectId == 0, 'PR003');
 
         uint256 projectId = nextProjectId;
         projectInfos[projectId] = ProjectInfo(deploymentId, projectType);
@@ -167,7 +167,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      * @notice update the Metadata of a project, if in the restrict mode, only creator allowed call this function
      */
     function updateProjectMetadata(uint256 projectId, string memory metadataUri) external {
-        require(ownerOf(projectId) == msg.sender, 'QR007');
+        require(ownerOf(projectId) == msg.sender, 'PR004');
 
         _setTokenURI(projectId, metadataUri);
 
@@ -178,8 +178,8 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      * @notice update the deployment of a project, if in the restrict mode, only creator allowed call this function
      */
     function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata) external {
-        require(ownerOf(projectId) == msg.sender, 'QR008');
-        require(deploymentInfos[deploymentId].projectId != 0, 'QR006');
+        require(ownerOf(projectId) == msg.sender, 'PR004');
+        require(deploymentInfos[deploymentId].projectId == projectId, 'PR007');
 
         projectInfos[projectId].latestDeploymentId = deploymentId;
         deploymentInfos[deploymentId] = DeploymentInfo(projectId, metadata);
@@ -192,7 +192,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      */
     function updateIndexingStatusToReady(bytes32 deploymentId) external onlyIndexer {
         IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
-        require(currentStatus == IndexingServiceStatus.NOTINDEXING, 'QR002');
+        require(currentStatus == IndexingServiceStatus.NOTINDEXING, 'PR002');
 
         deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingServiceStatus.READY;
 
@@ -205,13 +205,13 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     function stopIndexing(bytes32 deploymentId) external onlyIndexer {
         IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
 
-        require(currentStatus != IndexingServiceStatus.NOTINDEXING, 'QR010');
+        require(currentStatus != IndexingServiceStatus.NOTINDEXING, 'PR005');
         require(
             !IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).hasOngoingClosedServiceAgreement(
                 msg.sender,
                 deploymentId
             ),
-            'QR011'
+            'PR006'
         );
 
         deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingServiceStatus.NOTINDEXING;
