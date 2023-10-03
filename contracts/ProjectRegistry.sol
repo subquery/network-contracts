@@ -3,9 +3,9 @@
 
 pragma solidity 0.8.15;
 
-+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
@@ -24,7 +24,7 @@ import './interfaces/IServiceAgreementRegistry.sol';
  * Indexers are able to start and stop indexing with a specific deployment from this conttact. Also Indexers can update and report
  * their indexing status from this contarct.
  */
-contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721URIStorage, ERC721Enumerable, IProjectRegistry {
+contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721URIStorageUpgradeable, ERC721EnumerableUpgradeable, IProjectRegistry {
     /// @notice project information
     struct ProjectInfo {
         bytes32 latestDeploymentId;
@@ -142,19 +142,19 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         return baseURI;
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721, ERC721Enumerable) {
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
         super._beforeTokenTransfer(from, to, tokenId);
     }
 
-    function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
+    function tokenURI(uint256 tokenId) public view override(ERC721Upgradeable, ERC721URIStorageUpgradeable) returns (string memory) {
         return super.tokenURI(tokenId);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721, ERC721Enumerable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721Upgradeable, ERC721EnumerableUpgradeable) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+    function _burn(uint256 tokenId) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
         super._burn(tokenId);
     }
 

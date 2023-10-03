@@ -34,8 +34,6 @@ interface IProjectRegistry {
         bytes32 metadata
     ) external;
 
-    function startIndexing(bytes32 deploymentId) external;
-
     function updateIndexingStatusToReady(bytes32 deploymentId) external;
 
     function stopIndexing(bytes32 deploymentId) external;
