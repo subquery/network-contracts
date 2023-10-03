@@ -13,6 +13,16 @@ enum ProjectType {
     RPC
 }
 
+struct ProjectInfo {
+    bytes32 latestDeploymentId;
+    ProjectType projectType;
+}
+
+struct DeploymentInfo {
+    uint256 projectId;
+    bytes32 metadata;
+}
+
 interface IProjectRegistry {
 
     function numberOfIndexingDeployments(address _address) external view returns (uint256);

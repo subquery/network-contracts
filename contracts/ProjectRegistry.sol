@@ -25,18 +25,6 @@ import './interfaces/IServiceAgreementRegistry.sol';
  * their indexing status from this contarct.
  */
 contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721URIStorageUpgradeable, ERC721EnumerableUpgradeable, IProjectRegistry {
-    /// @notice project information
-    struct ProjectInfo {
-        bytes32 latestDeploymentId;
-        ProjectType projectType;
-    }
-
-    /// @notice deployment information
-    struct DeploymentInfo {
-        uint256 projectId;
-        bytes32 metadata;
-    }
-
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubProject network contracts address
     ISettings public settings;
@@ -67,7 +55,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
 
     /// @dev EVENTS
     /// @notice Emitted when project created.
-    event CreateProject(uint256 indexed projectId, address indexed creator, string projectMetadata, bytes32 deploymentId, bytes32 deploymentMetadata, ProjectType projectType);
+    event CreateProject(address indexed creator, uint256 indexed projectId, string projectMetadata, ProjectType projectType, bytes32 deploymentId, bytes32 deploymentMetadata);
 
     /// @notice Emitted when the metadata of the project updated.
     event UpdateProjectMetadata(address indexed owner, uint256 indexed projectId, string metadata);
@@ -82,14 +70,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /// @notice only indexer can call
     modifier onlyIndexer() {
         require(IIndexerRegistry(settings.getIndexerRegistry()).isIndexer(msg.sender), 'G002');
-        _;
-    }
-
-    /// @notice only creator can call if it is creatorRestricted
-    modifier onlyCreator() {
-        if (creatorRestricted) {
-            require(creatorWhitelist[msg.sender], 'QR001');
-        }
         _;
     }
 
@@ -163,8 +143,12 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice create a project, if in the restrict mode, only creator allowed to call this function
      */
-    function createProject(bytes32 deploymentId, bytes32 deploymentMetdata, string memory projectMetadataUri, ProjectType projectType) external onlyCreator {
-        require(deploymentInfos[deploymentId].projectId != 0, 'QR006');
+    function createProject(bytes32 deploymentId, bytes32 deploymentMetdata, string memory projectMetadataUri, ProjectType projectType) external {
+        if (creatorRestricted) {
+            require(creatorWhitelist[msg.sender], 'QR001');
+        }
+
+        require(deploymentInfos[deploymentId].projectId == 0, 'QR006');
 
         uint256 projectId = nextProjectId;
         projectInfos[projectId] = ProjectInfo(deploymentId, projectType);
@@ -176,13 +160,13 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         _safeMint(msg.sender, projectId);
         _setTokenURI(projectId, projectMetadataUri);
 
-        emit CreateProject(projectId, msg.sender, projectMetadataUri, deploymentId, deploymentMetdata, projectType);
+        emit CreateProject(msg.sender, projectId, projectMetadataUri, projectType, deploymentId, deploymentMetdata);
     }
 
     /**
      * @notice update the Metadata of a project, if in the restrict mode, only creator allowed call this function
      */
-    function updateProjectMetadata(uint256 projectId, string memory metadataUri) external onlyCreator {
+    function updateProjectMetadata(uint256 projectId, string memory metadataUri) external {
         require(ownerOf(projectId) == msg.sender, 'QR007');
 
         _setTokenURI(projectId, metadataUri);
@@ -193,15 +177,14 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice update the deployment of a project, if in the restrict mode, only creator allowed call this function
      */
-    function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata) external onlyCreator {
-        address projectOwner = ownerOf(projectId);
-        require(projectOwner == msg.sender, 'QR008');
+    function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata) external {
+        require(ownerOf(projectId) == msg.sender, 'QR008');
         require(deploymentInfos[deploymentId].projectId != 0, 'QR006');
 
         projectInfos[projectId].latestDeploymentId = deploymentId;
         deploymentInfos[deploymentId] = DeploymentInfo(projectId, metadata);
 
-        emit UpdateProjectDeployment(projectOwner, projectId, deploymentId, metadata);
+        emit UpdateProjectDeployment(msg.sender, projectId, deploymentId, metadata);
     }
 
     /**
