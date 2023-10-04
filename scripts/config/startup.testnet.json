@@ -13,12 +13,12 @@
     ],
     "amounts": [10000, 20000, 30000, 40000, 10000, 20000, 30000, 40000, 10000, 40000],
     "vestingPlans": [
-        {"initPercentage": 20, "vestingPeriod": 604800, "lockPeriod": 86400},
-        {"initPercentage": 30, "vestingPeriod": 7776000, "lockPeriod": 86400},
-        {"initPercentage": 0, "vestingPeriod": 7776000, "lockPeriod": 86400},
+        {"initPercentage": 20, "vestingPeriod": 604800, "lockPeriod": 8640000},
+        {"initPercentage": 30, "vestingPeriod": 7776000, "lockPeriod": 8640000},
+        {"initPercentage": 0, "vestingPeriod": 7776000, "lockPeriod": 8640000},
         {"initPercentage": 30, "vestingPeriod": 7776000, "lockPeriod": 0},
-        {"initPercentage": 30, "vestingPeriod": 0, "lockPeriod": 86400},
-        {"initPercentage": 100, "vestingPeriod": 7776000, "lockPeriod": 86400}
+        {"initPercentage": 30, "vestingPeriod": 0, "lockPeriod": 8640000},
+        {"initPercentage": 100, "vestingPeriod": 7776000, "lockPeriod": 8640000}
     ],
     "planTemplates": [
         {
@@ -43,10 +43,10 @@
         {"period": 7200, "dailyReqCap": 100, "rateLimit": 300, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"}
     ],
     "exchange": {
-        "usdcAddress": "0xE097d6B3100777DC31B34dC2c58fB524C2e76921",
+        "usdcAddress": "0x7E65A71046170A5b1AaB5C5cC64242EDF95CaBEA",
         "amountGive": "1000000",
         "amountGet": "5000000000000000000",
-        "expireDate": 1683147171,
+        "expireDate": 1703681276,
         "tokenGiveBalance": "50000000"
     },
     "QRCreator": ["0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77"],

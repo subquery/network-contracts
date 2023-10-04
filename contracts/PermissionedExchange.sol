@@ -43,6 +43,10 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     mapping(uint256 => ExchangeOrder) public orders;
     /// @notice stable coin trade limitation
     uint256 public tradeLimitation;
+    /// @notice accumulated stable coin trades per account
+    mapping(address => uint256) public accumulatedTrades;
+    /// @notice stable coin trade limitation per account
+    uint256 public tradeLimitationPerAccount;
 
     /// @dev ### EVENTS
     /// @notice Emitted when exchange order sent.
@@ -108,6 +112,23 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      */
     function setTradeLimitation(uint256 _limit) external onlyOwner {
         tradeLimitation = _limit;
+    }
+
+    /**
+     * @notice Set the stable coin trading limitation in single transaction.
+     * @param _limit New limitation.
+     */
+    function setTradeLimitationPerAccount(uint256 _limit) external onlyOwner {
+        tradeLimitationPerAccount = _limit;
+    }
+
+    /**
+     * @notice Override accumulatedTrades for given user
+     * @param user user address
+     * @param newValue new accumulatedTrades value
+     */
+    function setAccumulatedTrades(address user, uint256 newValue) external onlyOwner {
+        accumulatedTrades[user] = newValue;
     }
 
     /**
@@ -214,6 +235,8 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         }
         if (order.tokenGive == settings.getSQToken()) {
             require(_amount <= tradeLimitation, 'PE012');
+            accumulatedTrades[msg.sender] = accumulatedTrades[msg.sender] + _amount;
+            require(accumulatedTrades[msg.sender] <= tradeLimitationPerAccount, 'PE013');
         }
         require(order.expireDate > block.timestamp, 'PE006');
         uint256 amount = (order.amountGive * _amount) / order.amountGet;

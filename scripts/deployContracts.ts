@@ -1,13 +1,19 @@
+import moduleAlias from 'module-alias';
+moduleAlias.addAlias('./artifacts', '../artifacts');
+moduleAlias.addAlias('./publish', '../publish');
+
 import { Wallet } from '@ethersproject/wallet';
 import { BaseContract, Contract, Overrides } from 'ethers';
 import { readFileSync, writeFileSync } from 'fs';
 import Pino from 'pino';
 import sha256 from 'sha256';
+
 import CONTRACTS from '../src/contracts';
 import { ContractDeployment, ContractName } from '../src/types';
 import { TextColor, colorText, getLogger } from './logger';
 
 import { SubqueryNetwork } from '@subql/contract-sdk';
+
 import {
     AdminUpgradeabilityProxy__factory,
     Airdropper,
@@ -432,7 +438,7 @@ export async function upgradeContracts(configs: {
     wallet = configs.wallet;
 
     const logger = getLogger('Upgrade Contract');
-    logger.info(`Upgrade contrqact with wallet ${wallet.address}`);
+    logger.info(`Upgrade contract with wallet ${wallet.address}`);
 
     const proxyAdmin = ProxyAdmin__factory.connect(deployment.ProxyAdmin.address, wallet);
 
@@ -454,9 +460,8 @@ export async function upgradeContracts(configs: {
     logger.info(`Contract Changed: ${changed.join(',')}`);
     if (checkOnly) return deployment;
 
-    const changedContracts = ['PlanManager', 'ServiceAgreementRegistry']
 
-    for (const contractName of changedContracts) {
+    for (const contractName of changed) {
         const [_, factory] = UPGRADEBAL_CONTRACTS[contractName];
         if (!deployment[contractName]) {
             console.warn(`contract ${contractName} not deployed`);
