@@ -25,9 +25,9 @@ struct DeploymentInfo {
 
 interface IProjectRegistry {
 
-    function numberOfIndexingDeployments(address _address) external view returns (uint256);
+    function numberOfDeployments(address _address) external view returns (uint256);
 
-    function isIndexingAvailable(bytes32 deploymentId, address indexer) external view returns (bool);
+    function isServiceAvailable(bytes32 deploymentId, address indexer) external view returns (bool);
 
     function createProject(
         bytes32 deploymentId,
@@ -44,7 +44,7 @@ interface IProjectRegistry {
         bytes32 metadata
     ) external;
 
-    function updateIndexingStatusToReady(bytes32 deploymentId) external;
+    function updateServiceStatusToReady(bytes32 deploymentId) external;
 
-    function stopIndexing(bytes32 deploymentId) external;
+    function stopService(bytes32 deploymentId) external;
 }

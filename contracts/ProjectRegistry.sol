@@ -63,7 +63,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /// @notice Emitted when the latestDeploymentId of the project updated.
     event UpdateProjectDeployment(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 metadata);
 
-    /// @notice Emitted when indexing status changed with a specific deploymentId.
+    /// @notice Emitted when service status changed with a specific deploymentId.
     event ServiceStatusChanged(address indexed indexer, bytes32 indexed deploymentId, ServiceStatus status);
 
     /// @dev MODIFIER
@@ -200,7 +200,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     }
 
     /**
-     * @notice Indexer stop indexing with a specific deploymentId
+     * @notice Indexer stop service with a specific deploymentId
      */
     function stopService(bytes32 deploymentId) external onlyIndexer {
         ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
@@ -220,9 +220,9 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     }
 
     /**
-     * @notice is the indexer available to indexing with a specific deploymentId
+     * @notice is the indexer available to provide service with a specific deploymentId
      */
-    function isIndexingAvailable(bytes32 deploymentId, address indexer) external view returns (bool) {
+    function isServiceAvailable(bytes32 deploymentId, address indexer) external view returns (bool) {
         return deploymentStatusByIndexer[deploymentId][indexer] == ServiceStatus.READY;
     }
 }
