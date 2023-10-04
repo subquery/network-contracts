@@ -21,8 +21,8 @@ import './interfaces/IServiceAgreementRegistry.sol';
  * @notice ### Overview
  * This contract tracks all projects and their deployments. At the beginning of the network,
  * we will start with the restrict mode which only allow permissioned account to create and update project.
- * Indexers are able to start and stop indexing with a specific deployment from this conttact. Also Indexers can update and report
- * their indexing status from this contarct.
+ * Indexers are able to start and stop service with a specific deployment from this conttact. Also Indexers can update and report
+ * their service status from this contarct.
  */
 contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721URIStorageUpgradeable, ERC721EnumerableUpgradeable, IProjectRegistry {
     /// @dev ### STATES
@@ -47,11 +47,11 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /// @notice deployment id -> deployment info
     mapping(bytes32 => DeploymentInfo) public deploymentInfos;
 
-    /// @notice deployment id -> indexer -> IndexingServiceStatus
-    mapping(bytes32 => mapping(address => IndexingServiceStatus)) public deploymentStatusByIndexer;
+    /// @notice deployment id -> indexer -> ServiceStatus
+    mapping(bytes32 => mapping(address => ServiceStatus)) public deploymentStatusByIndexer;
 
     /// @notice indexer -> deployment numbers
-    mapping(address => uint256) public numberOfIndexingDeployments;
+    mapping(address => uint256) public numberOfDeployments;
 
     /// @dev EVENTS
     /// @notice Emitted when project created.
@@ -64,7 +64,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     event UpdateProjectDeployment(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 metadata);
 
     /// @notice Emitted when indexing status changed with a specific deploymentId.
-    event IndexingStatusChanged(address indexed indexer, bytes32 indexed deploymentId, IndexingServiceStatus status);
+    event ServiceStatusChanged(address indexed indexer, bytes32 indexed deploymentId, ServiceStatus status);
 
     /// @dev MODIFIER
     /// @notice only indexer can call
@@ -188,24 +188,24 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     }
 
     /**
-     * @notice Indexer update its indexing status to ready with a specific deploymentId
+     * @notice Indexer update its service status to ready with a specific deploymentId
      */
-    function updateIndexingStatusToReady(bytes32 deploymentId) external onlyIndexer {
-        IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
-        require(currentStatus == IndexingServiceStatus.NOTINDEXING, 'PR002');
+    function updateServiceStatusToReady(bytes32 deploymentId) external onlyIndexer {
+        ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
+        require(currentStatus == ServiceStatus.TERMINATED, 'PR002');
 
-        deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingServiceStatus.READY;
+        deploymentStatusByIndexer[deploymentId][msg.sender] = ServiceStatus.READY;
 
-        emit IndexingStatusChanged(msg.sender, deploymentId, IndexingServiceStatus.READY);
+        emit ServiceStatusChanged(msg.sender, deploymentId, ServiceStatus.READY);
     }
 
     /**
      * @notice Indexer stop indexing with a specific deploymentId
      */
-    function stopIndexing(bytes32 deploymentId) external onlyIndexer {
-        IndexingServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
+    function stopService(bytes32 deploymentId) external onlyIndexer {
+        ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
 
-        require(currentStatus != IndexingServiceStatus.NOTINDEXING, 'PR005');
+        require(currentStatus != ServiceStatus.TERMINATED, 'PR005');
         require(
             !IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).hasOngoingClosedServiceAgreement(
                 msg.sender,
@@ -214,15 +214,15 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
             'PR006'
         );
 
-        deploymentStatusByIndexer[deploymentId][msg.sender] = IndexingServiceStatus.NOTINDEXING;
-        numberOfIndexingDeployments[msg.sender]--;
-        emit IndexingStatusChanged(msg.sender, deploymentId, IndexingServiceStatus.NOTINDEXING);
+        deploymentStatusByIndexer[deploymentId][msg.sender] = ServiceStatus.TERMINATED;
+        numberOfDeployments[msg.sender]--;
+        emit ServiceStatusChanged(msg.sender, deploymentId, ServiceStatus.TERMINATED);
     }
 
     /**
      * @notice is the indexer available to indexing with a specific deploymentId
      */
     function isIndexingAvailable(bytes32 deploymentId, address indexer) external view returns (bool) {
-        return deploymentStatusByIndexer[deploymentId][indexer] == IndexingServiceStatus.READY;
+        return deploymentStatusByIndexer[deploymentId][indexer] == ServiceStatus.READY;
     }
 }
