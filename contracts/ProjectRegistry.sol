@@ -35,9 +35,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /// @notice is the contract run in creator restrict mode. If in creator restrict mode, only permissioned account allowed to create and update project
     bool public creatorRestricted;
 
-    /// @notice base URI for tokenURI
-    string private baseURI;
-
     /// @notice account address -> is creator
     mapping(address => bool) public creatorWhitelist;
 
@@ -116,12 +113,8 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         creatorWhitelist[creator] = false;
     }
 
-    function setBaseURI(string memory baseURI_) external onlyOwner() {
-        baseURI = baseURI_;
-    }
-
     function _baseURI() internal view virtual override returns (string memory) {
-        return baseURI;
+         return "ipfs://";
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
