@@ -296,7 +296,6 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         // register the agreement to service agreement registry contract
         IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
         uint256 agreementId = registry.createClosedServiceAgreement(agreement);
-        registry.establishServiceAgreement(agreementId);
 
         offerMmrRoot[_offerId][msg.sender] = _mmrRoot;
 
