@@ -20,8 +20,6 @@ struct ClosedServiceAgreementInfo {
 }
 
 interface IServiceAgreementRegistry {
-    function establishServiceAgreement(uint256 agreementId) external;
-
     function hasOngoingClosedServiceAgreement(address indexer, bytes32 deploymentId) external view returns (bool);
 
     function addUser(address consumer, address user) external;

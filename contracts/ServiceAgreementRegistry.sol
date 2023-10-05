@@ -5,7 +5,11 @@ pragma solidity 0.8.15;
 
 pragma experimental ABIEncoderV2;
 
+
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
@@ -28,7 +32,7 @@ import './utils/MathUtil.sol';
  * All generated service agreement need to register in this contract by calling establishServiceAgreement(). After this all SQT Toaken
  * from agreements will be temporary hold in this contract, and approve reward distributor contract to take and distribute these Token.
  */
-contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IServiceAgreementRegistry, Constants {
+contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721EnumerableUpgradeable, IServiceAgreementRegistry, Constants {
     using MathUtil for uint256;
 
     /// @dev ### STATES
@@ -101,16 +105,25 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
      */
     function initialize(ISettings _settings, address[] calldata _whitelist, uint256 _threshold) external initializer {
         __Ownable_init();
+        __ERC721_init("SuqueryAgreement", "SA");
+        __ERC721Enumerable_init();
 
         settings = _settings;
-
         threshold = _threshold;
-
         nextServiceAgreementId = 1;
 
         for (uint256 i; i < _whitelist.length; i++) {
             establisherWhitelist[_whitelist[i]] = true;
         }
+    }
+
+
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
+        super._beforeTokenTransfer(from, to, tokenId);
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721Upgradeable, ERC721EnumerableUpgradeable) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 
     function setSettings(ISettings _settings) external onlyOwner {
@@ -163,8 +176,13 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         if (msg.sender != address(this)) {
             require(establisherWhitelist[msg.sender], 'SA004');
         }
-        closedServiceAgreements[nextServiceAgreementId] = agreement;
+
         uint256 agreementId = nextServiceAgreementId;
+        closedServiceAgreements[agreementId] = agreement;
+
+        _safeMint(agreement.consumer, agreementId);
+        _establishServiceAgreement(agreementId, true);
+
         nextServiceAgreementId += 1;
         return agreementId;
     }
@@ -183,14 +201,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
      * at the same time, it also encourages Indexer to provide better more stable services.
      *
      */
-    function establishServiceAgreement(uint256 agreementId) external {
-        if (msg.sender != address(this)) {
-            require(establisherWhitelist[msg.sender], 'SA004');
-        }
-
-        _establishServiceAgreement(agreementId, true);
-    }
-
     function _establishServiceAgreement(uint256 agreementId, bool checkThreshold) internal {
         //for now only support closed service agreement
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
