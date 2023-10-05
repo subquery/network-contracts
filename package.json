@@ -7,7 +7,7 @@
         "build:contract": "hardhat compile",
         "build:ts": "scripts/build.sh",
         "build": "yarn build:contract && yarn build:ts && yarn abi",
-        "lint": "solhint contracts/**/*.sol",
+        "lint": "solhint contracts/**/*.sol --fix",
         "test": "hardhat test",
         "test:coverage": "hardhat coverage",
         "prepare": "husky install",
