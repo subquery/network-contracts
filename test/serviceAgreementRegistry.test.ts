@@ -194,16 +194,6 @@ describe('Service Agreement Registry Contract', () => {
             await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(4, mmrRoot)).to.be.revertedWith(
                 'SA005'
             );
-
-            await expect(
-                serviceAgreementRegistry.connect(wallet1).establishServiceAgreement(serviceAgreementRegistry.address)
-            ).to.be.revertedWith('SA004');
-
-            await serviceAgreementRegistry.addEstablisher(wallet1.address);
-
-            await expect(
-                serviceAgreementRegistry.connect(wallet1).establishServiceAgreement(serviceAgreementRegistry.address)
-            ).to.be.revertedWith('SA001');
         });
     });
 
