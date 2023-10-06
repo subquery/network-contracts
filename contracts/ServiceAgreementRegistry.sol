@@ -236,7 +236,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         _establishServiceAgreement(newAgreementId, false);
     }
 
-    function clearEndedAgreement(address indexer, uint256 id) public {
+    function clearEndedAgreement(address indexer, uint256 id) external {
         require(id < indexerCsaLength[indexer], 'SA001');
 
         uint256 agreementId = closedServiceAgreementIds[indexer][id];
@@ -254,21 +254,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         indexerDeploymentCsaLength[indexer][agreement.deploymentId] -= 1;
 
         emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
-    }
-
-    function clearAllEndedAgreements(address indexer) public {
-        uint256 count = 0;
-        for (uint256 i = indexerCsaLength[indexer]; i >= 1; i--) {
-            uint256 agreementId = closedServiceAgreementIds[indexer][i - 1];
-            ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
-            if (block.timestamp > (agreement.startDate + agreement.period)) {
-                clearEndedAgreement(indexer, i - 1);
-                count++;
-                if (count >= 10) {
-                    break;
-                }
-            }
-        }
     }
 
     function closedServiceAgreementExpired(uint256 agreementId) public view returns (bool) {
