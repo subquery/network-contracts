@@ -65,11 +65,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
     /// @notice calculated sum daily reward: Indexer address => sumDailyReward
     mapping(address => uint256) public sumDailyReward;
 
-    /// @notice users authorised by consumer that can request access token from indexer, for closed agreements only.
-    /// consumer address => user address => bool
-    /// We are using the statu `consumerAuthAllows` offchain.
-    mapping(address => mapping(address => bool)) public consumerAuthAllows;
-
     // -- Events --
 
     /**
