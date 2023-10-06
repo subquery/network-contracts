@@ -10,6 +10,7 @@ interface ISettings {
         address _eraManager,
         address _planManager,
         address _serviceAgreementRegistry,
+        address _indexerServiceAgreement,
         address _disputeManager,
         address _stateChannel,
         address _consumerRegistry
@@ -59,7 +60,11 @@ interface ISettings {
 
     function setServiceAgreementRegistry(address _serviceAgreementRegistry) external;
 
+    function setIndexerServiceAgreement(address _indexerServiceAgreement) external;
+
     function getServiceAgreementRegistry() external view returns (address);
+
+    function getIndexerServiceAgreement() external view returns (address);
 
     function setRewardsDistributer(address _rewardsDistributer) external;
 

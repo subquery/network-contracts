@@ -13,6 +13,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
+import './IndexerServiceAgreement.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IQueryRegistry.sol';
@@ -49,15 +50,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
 
     /// @notice ServiceAgreementId => AgreementInfo
     mapping(uint256 => ClosedServiceAgreementInfo) private closedServiceAgreements;
-
-    /// @notice serviceAgreement address: Indexer address => index number => serviceAgreement address
-    mapping(address => mapping(uint256 => uint256)) public closedServiceAgreementIds;
-
-    /// @notice number of service agreements: Indexer address =>  number of service agreements
-    mapping(address => uint256) public indexerCsaLength;
-
-    /// @notice number of service agreements: Indexer address => DeploymentId => number of service agreements
-    mapping(address => mapping(bytes32 => uint256)) public indexerDeploymentCsaLength;
 
     /// @notice address can establishServiceAgreement, for now only PurchaceOfferMarket and PlanManager addresses
     mapping(address => bool) public establisherWhitelist;
@@ -183,9 +175,8 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
             'SA006'
         );
 
-        closedServiceAgreementIds[indexer][indexerCsaLength[indexer]] = agreementId;
-        indexerCsaLength[indexer] += 1;
-        indexerDeploymentCsaLength[indexer][deploymentId] += 1;
+        IndexerServiceAgreement indexerServiceAgreement = IndexerServiceAgreement(settings.getIndexerServiceAgreement());
+        indexerServiceAgreement.addServiceAgreement(indexer, agreementId, deploymentId);
 
         // approve token to reward distributor contract
         address SQToken = settings.getSQToken();
@@ -237,9 +228,10 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
     }
 
     function clearEndedAgreement(address indexer, uint256 id) external {
-        require(id < indexerCsaLength[indexer], 'SA001');
+        IndexerServiceAgreement indexerServiceAgreement = IndexerServiceAgreement(settings.getIndexerServiceAgreement());
+        require(id < indexerServiceAgreement.getIndexerServiceAgreementLengh(indexer), 'SA001');
 
-        uint256 agreementId = closedServiceAgreementIds[indexer][id];
+        uint256 agreementId = indexerServiceAgreement.getIndexerAgreementId(indexer, id);
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(agreement.consumer != address(0), 'SA001');
         require(block.timestamp > (agreement.startDate + agreement.period), 'SA010');
@@ -248,10 +240,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         uint256 period = periodInDay(agreement.period);
         sumDailyReward[indexer] = MathUtil.sub(sumDailyReward[indexer], (lockedAmount / period));
 
-        closedServiceAgreementIds[indexer][id] = closedServiceAgreementIds[indexer][indexerCsaLength[indexer] - 1];
-        delete closedServiceAgreementIds[indexer][indexerCsaLength[indexer] - 1];
-        indexerCsaLength[indexer] -= 1;
-        indexerDeploymentCsaLength[indexer][agreement.deploymentId] -= 1;
+        indexerServiceAgreement.removeEndedServiceAgreement(id, indexer, agreement.deploymentId);
 
         emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
     }
@@ -259,10 +248,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
     function closedServiceAgreementExpired(uint256 agreementId) public view returns (bool) {
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         return block.timestamp > (agreement.startDate + agreement.period);
-    }
-
-    function hasOngoingClosedServiceAgreement(address indexer, bytes32 deploymentId) external view returns (bool) {
-        return indexerDeploymentCsaLength[indexer][deploymentId] > 0;
     }
 
     function getClosedServiceAgreement(uint256 agreementId) external view returns (ClosedServiceAgreementInfo memory) {

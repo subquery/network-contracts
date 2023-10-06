@@ -17,6 +17,7 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
     address public eraManager;
     address public planManager;
     address public serviceAgreementRegistry;
+    address public indexerServiceAreement;
     address public rewardsDistributer;
     address public rewardsPool;
     address public rewardsStaking;
@@ -39,6 +40,7 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         address _eraManager,
         address _planManager,
         address _serviceAgreementRegistry,
+        address _indexerServiceAgreement,
         address _disputeManager,
         address _stateChannel,
         address _consumerRegistry
@@ -48,6 +50,7 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         require(_eraManager != ZERO_ADDRESS);
         require(_planManager != ZERO_ADDRESS);
         require(_serviceAgreementRegistry != ZERO_ADDRESS);
+        require(_indexerServiceAgreement != ZERO_ADDRESS);
         require(_disputeManager != ZERO_ADDRESS);
         require(_stateChannel != ZERO_ADDRESS);
         require(_consumerRegistry != ZERO_ADDRESS);
@@ -57,6 +60,7 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         eraManager = _eraManager;
         planManager = _planManager;
         serviceAgreementRegistry = _serviceAgreementRegistry;
+        indexerServiceAreement = _indexerServiceAgreement;
         disputeManager = _disputeManager;
         stateChannel = _stateChannel;
         consumerRegistry = _consumerRegistry;
@@ -169,8 +173,17 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         serviceAgreementRegistry = _serviceAgreementRegistry;
     }
 
+    function setIndexerServiceAgreement(address _indexerAgreement) external override onlyOwner {
+        require(_indexerAgreement != ZERO_ADDRESS);
+        indexerServiceAreement = _indexerAgreement;
+    }
+
     function getServiceAgreementRegistry() external view override returns (address) {
         return serviceAgreementRegistry;
+    }
+
+    function getIndexerServiceAgreement() external view override returns (address) {
+        return indexerServiceAreement;
     }
 
     function setRewardsDistributer(address _rewardsDistributer) external override onlyOwner {
