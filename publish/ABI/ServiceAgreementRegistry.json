@@ -156,44 +156,6 @@
         "type": "event"
     },
     {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "consumer",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "address",
-                "name": "user",
-                "type": "address"
-            }
-        ],
-        "name": "UserAdded",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "consumer",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "address",
-                "name": "user",
-                "type": "address"
-            }
-        ],
-        "name": "UserRemoved",
-        "type": "event"
-    },
-    {
         "inputs": [],
         "name": "PER_BILL",
         "outputs": [
@@ -254,24 +216,6 @@
             }
         ],
         "name": "addEstablisher",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "consumer",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "user",
-                "type": "address"
-            }
-        ],
-        "name": "addUser",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -752,24 +696,6 @@
             }
         ],
         "name": "removeEstablisher",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "consumer",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "user",
-                "type": "address"
-            }
-        ],
-        "name": "removeUser",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

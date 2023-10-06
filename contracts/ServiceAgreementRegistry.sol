@@ -90,14 +90,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         bytes32 indexed deploymentId,
         uint256 serviceAgreementId
     );
-    /**
-     * @dev Emitted when consumer add new user
-     */
-    event UserAdded(address indexed consumer, address user);
-    /**
-     * @dev Emitted when consumer remove user
-     */
-    event UserRemoved(address indexed consumer, address user);
 
     /**
      * @dev Initialize this contract. Load establisherWhitelist.
@@ -128,25 +120,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
      */
     function setThreshold(uint256 _threshold) external onlyOwner {
         threshold = _threshold >= PER_MILL ? _threshold : 0;
-    }
-
-    /**
-     * @dev Consumer add users can request access token from indexer.
-     * We are using the statu `consumerAuthAllows` offchain.
-     */
-    function addUser(address consumer, address user) external {
-        require(msg.sender == consumer, 'SA002');
-        consumerAuthAllows[consumer][user] = true;
-        emit UserAdded(consumer, user);
-    }
-
-    /**
-     * @dev Consumer remove users can request access token from indexer.
-     */
-    function removeUser(address consumer, address user) external {
-        require(msg.sender == consumer, 'SA003');
-        delete consumerAuthAllows[consumer][user];
-        emit UserRemoved(consumer, user);
     }
 
     function addEstablisher(address establisher) external onlyOwner {
