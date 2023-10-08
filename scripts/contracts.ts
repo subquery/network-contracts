@@ -4,6 +4,7 @@ import { BaseContract, BigNumber, ContractFactory, Signer } from 'ethers';
 
 import CONTRACTS from '../src/contracts';
 
+import { IndexerServiceAgreement__factory } from 'build';
 import {
     Airdropper,
     Airdropper__factory,
@@ -26,12 +27,12 @@ import {
     PlanManager__factory,
     PriceOracle,
     PriceOracle__factory,
+    ProjectRegistry,
+    ProjectRegistry__factory,
     ProxyAdmin,
     ProxyAdmin__factory,
     PurchaseOfferMarket,
     PurchaseOfferMarket__factory,
-    QueryRegistry,
-    QueryRegistry__factory,
     RewardsDistributer,
     RewardsDistributer__factory,
     RewardsHelper,
@@ -74,7 +75,7 @@ export type Contracts = {
     stakingManager: StakingManager;
     eraManager: EraManager;
     indexerRegistry: IndexerRegistry;
-    queryRegistry: QueryRegistry;
+    projectRegistry: ProjectRegistry;
     planManager: PlanManager;
     purchaseOfferMarket: PurchaseOfferMarket;
     serviceAgreementRegistry: ServiceAgreementRegistry;
@@ -97,7 +98,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ byt
     InflationController: [CONTRACTS.InflationController, InflationController__factory],
     IndexerRegistry: [CONTRACTS.IndexerRegistry, IndexerRegistry__factory],
     PlanManager: [CONTRACTS.PlanManager, PlanManager__factory],
-    QueryRegistry: [CONTRACTS.QueryRegistry, QueryRegistry__factory],
+    ProjectRegistry: [CONTRACTS.ProjectRegistry, ProjectRegistry__factory],
     RewardsDistributer: [CONTRACTS.RewardsDistributer, RewardsDistributer__factory],
     RewardsPool: [CONTRACTS.RewardsPool, RewardsPool__factory],
     RewardsStaking: [CONTRACTS.RewardsStaking, RewardsStaking__factory],
@@ -129,10 +130,11 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     StakingManager: StakingManager__factory,
     EraManager: EraManager__factory,
     IndexerRegistry: IndexerRegistry__factory,
-    QueryRegistry: QueryRegistry__factory,
+    ProjectRegistry: ProjectRegistry__factory,
     PlanManager: PlanManager__factory,
     PurchaseOfferMarket: PurchaseOfferMarket__factory,
     ServiceAgreementRegistry: ServiceAgreementRegistry__factory,
+    IndexerServiceAgreement: IndexerServiceAgreement__factory,
     RewardsDistributer: RewardsDistributer__factory,
     RewardsPool: RewardsPool__factory,
     RewardsStaking: RewardsStaking__factory,

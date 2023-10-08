@@ -1,4 +1,5 @@
 import moduleAlias from 'module-alias';
+import { ProjectRegistry } from './../src/typechain/ProjectRegistry';
 moduleAlias.addAlias('./artifacts', '../artifacts');
 moduleAlias.addAlias('./publish', '../publish');
 
@@ -22,6 +23,7 @@ import {
     DisputeManager,
     EraManager,
     IndexerRegistry,
+    IndexerServiceAgreement,
     InflationController,
     PermissionedExchange,
     PlanManager,
@@ -29,7 +31,6 @@ import {
     ProxyAdmin,
     ProxyAdmin__factory,
     PurchaseOfferMarket,
-    QueryRegistry,
     RewardsDistributer,
     RewardsHelper,
     RewardsPool,
@@ -41,7 +42,7 @@ import {
     StakingManager,
     StateChannel,
     VSQToken,
-    Vesting,
+    Vesting
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -250,8 +251,8 @@ export async function deployContracts(
             initConfig: [settingsAddress],
         });
 
-        // deploy QueryRegistry contract
-        const queryRegistry = await deployContract<QueryRegistry>('QueryRegistry', {
+        // deploy ProjectRegistry contract
+        const projectRegistry = await deployContract<ProjectRegistry>('ProjectRegistry', {
             proxyAdmin,
             initConfig: [settingsAddress],
         });
@@ -272,6 +273,12 @@ export async function deployContracts(
         const serviceAgreementRegistry = await deployContract<ServiceAgreementRegistry>('ServiceAgreementRegistry', {
             proxyAdmin,
             initConfig: [settingsAddress, [planManager.address, purchaseOfferMarket.address]],
+        });
+
+        // deploy IndexerServiceAgreement contract
+        const indexerServiceAgreement = await deployContract<IndexerServiceAgreement>('IndexerServiceAgreement', {
+            proxyAdmin,
+            initConfig: [settingsAddress, 10e6],
         });
 
         // deploy RewardsDistributer contract
@@ -357,10 +364,11 @@ export async function deployContracts(
         getLogger('SettingContract').info('🤞 Set project addresses');
         const txProject = await settings.setProjectAddresses(
             deployment.IndexerRegistry.address,
-            deployment.QueryRegistry.address,
+            deployment.ProjectRegistry.address,
             deployment.EraManager.address,
             deployment.PlanManager.address,
             deployment.ServiceAgreementRegistry.address,
+            deployment.IndexerServiceAgreement.address,
             deployment.DisputeManager.address,
             deployment.StateChannel.address,
             deployment.ConsumerRegistry.address,
@@ -381,7 +389,7 @@ export async function deployContracts(
                 stakingManager,
                 eraManager,
                 indexerRegistry,
-                queryRegistry,
+                projectRegistry,
                 planManager,
                 purchaseOfferMarket,
                 serviceAgreementRegistry,

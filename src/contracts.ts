@@ -4,13 +4,14 @@ import ConsumerRegistry from './artifacts/contracts/ConsumerRegistry.sol/Consume
 import DisputeManager from './artifacts/contracts/DisputeManager.sol/DisputeManager.json';
 import EraManager from './artifacts/contracts/EraManager.sol/EraManager.json';
 import IndexerRegistry from './artifacts/contracts/IndexerRegistry.sol/IndexerRegistry.json';
+import IndexerServiceAgreement from './artifacts/contracts/IndexerServiceAgreement.sol/IndexerServiceAgreement.json';
 import InflationController from './artifacts/contracts/InflationController.sol/InflationController.json';
 import PermissionedExchange from './artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json';
 import PlanManager from './artifacts/contracts/PlanManager.sol/PlanManager.json';
 import PriceOracle from './artifacts/contracts/PriceOracle.sol/PriceOracle.json';
+import ProjectRegistry from './artifacts/contracts/ProjectRegistry.sol/ProjectRegistry.json';
 import ProxyAdmin from './artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json';
 import PurchaseOfferMarket from './artifacts/contracts/PurchaseOfferMarket.sol/PurchaseOfferMarket.json';
-import QueryRegistry from './artifacts/contracts/QueryRegistry.sol/QueryRegistry.json';
 import RewardsDistributer from './artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json';
 import RewardsHelper from './artifacts/contracts/RewardsHelper.sol/RewardsHelper.json';
 import RewardsPool from './artifacts/contracts/RewardsPool.sol/RewardsPool.json';
@@ -32,9 +33,10 @@ export default {
     Staking,
     StakingManager,
     IndexerRegistry,
-    QueryRegistry,
+    ProjectRegistry,
     InflationController,
     ServiceAgreementRegistry,
+    IndexerServiceAgreement,
     PlanManager,
     PurchaseOfferMarket,
     EraManager,
