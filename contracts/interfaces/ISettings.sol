@@ -6,7 +6,7 @@ pragma solidity 0.8.15;
 interface ISettings {
     function setProjectAddresses(
         address _indexerRegistry,
-        address _queryRegistry,
+        address _projectRegistry,
         address _eraManager,
         address _planManager,
         address _serviceAgreementRegistry,
@@ -46,9 +46,9 @@ interface ISettings {
 
     function getIndexerRegistry() external view returns (address);
 
-    function setQueryRegistry(address _queryRegistry) external;
+    function setProjectRegistry(address _projectRegistry) external;
 
-    function getQueryRegistry() external view returns (address);
+    function getProjectRegistry() external view returns (address);
 
     function setEraManager(address _eraManager) external;
 

@@ -7,9 +7,9 @@ import './IServiceAgreement.sol';
 
 interface IIndexerServiceAgreement {
 
-    function addServiceAgreement(uint256 agreementId, ClosedServiceAgreementInfo memory agreement) external returns (uint256);
+    function addAgreement(uint256 agreementId, ClosedServiceAgreementInfo memory agreement, bool checkThreshold) external;
 
-    function removeEndedServiceAgreement(uint256 id, ClosedServiceAgreementInfo memory agreement) external;
+    function removeEndedAgreement(uint256 id, ClosedServiceAgreementInfo memory agreement) external;
 
     function getIndexerServiceAgreementLengh(address indexer) external view returns (uint256);
 

@@ -16,9 +16,7 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import './interfaces/IIndexerServiceAgreement.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
-import './interfaces/IQueryRegistry.sol';
 import './interfaces/IRewardsDistributer.sol';
-import './interfaces/IStakingManager.sol';
 import './interfaces/IPlanManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
@@ -41,9 +39,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
 
     /// @notice the id for next ServiceAgreement
     uint256 public nextServiceAgreementId;
-
-    /// @notice Multipler used to calculate Indexer reward limit
-    uint256 public threshold;
 
     /// @notice ServiceAgreementId => AgreementInfo
     mapping(uint256 => ClosedServiceAgreementInfo) private closedServiceAgreements;
@@ -75,12 +70,11 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
     /**
      * @dev Initialize this contract. Load establisherWhitelist.
      */
-    function initialize(ISettings _settings, address[] calldata _whitelist, uint256 _threshold) external initializer {
+    function initialize(ISettings _settings, address[] calldata _whitelist) external initializer {
         __Ownable_init();
         __ERC721_init("SuqueryAgreement", "SA");
 
         settings = _settings;
-        threshold = _threshold;
         nextServiceAgreementId = 1;
 
         for (uint256 i; i < _whitelist.length; i++) {
@@ -90,17 +84,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
 
     function setSettings(ISettings _settings) external onlyOwner {
         settings = _settings;
-    }
-
-    /**
-     * @dev We adjust the ratio of Indexer‘s totalStakedAmount and sumDailyRewards by
-     * setting the value of threshold.
-     * A smaller threshold value means that the Indexer can get higher sumDailyRewards with
-     * a smaller totalStakedAmount，vice versa.
-     * If the threshold is less than PER_MILL, we will not limit the indexer's sumDailyRewards.
-     */
-    function setThreshold(uint256 _threshold) external onlyOwner {
-        threshold = _threshold >= PER_MILL ? _threshold : 0;
     }
 
     function addEstablisher(address establisher) external onlyOwner {
@@ -145,20 +128,8 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(agreement.consumer != address(0), 'SA001');
 
-        require(
-            IQueryRegistry(settings.getQueryRegistry()).isIndexingAvailable(agreement.deploymentId, agreement.indexer),
-            'SA005'
-        );
-
-        IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
-        uint256 totalStake = stakingManager.getTotalStakingAmount(agreement.indexer);
-
         IIndexerServiceAgreement indexerServiceAgreement = IIndexerServiceAgreement(settings.getIndexerServiceAgreement());
-        uint256 sumDailyReward =  indexerServiceAgreement.addServiceAgreement(agreementId, agreement);
-        require(
-            !checkThreshold || totalStake >= MathUtil.mulDiv(sumDailyReward, threshold, PER_MILL),
-            'SA006'
-        );
+        indexerServiceAgreement.addAgreement(agreementId, agreement, checkThreshold);
 
         // approve token to reward distributor contract
         address SQToken = settings.getSQToken();
@@ -218,7 +189,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         require(agreement.consumer != address(0), 'SA001');
         require(block.timestamp > (agreement.startDate + agreement.period), 'SA010');
 
-        indexerServiceAgreement.removeEndedServiceAgreement(id, agreement);
+        indexerServiceAgreement.removeEndedAgreement(id, agreement);
 
         emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
     }

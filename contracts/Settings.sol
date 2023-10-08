@@ -13,7 +13,7 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
     address public staking;
     address public stakingManager;
     address public indexerRegistry;
-    address public queryRegistry;
+    address public projectRegistry;
     address public eraManager;
     address public planManager;
     address public serviceAgreementRegistry;
@@ -36,7 +36,7 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
 
     function setProjectAddresses(
         address _indexerRegistry,
-        address _queryRegistry,
+        address _projectRegistry,
         address _eraManager,
         address _planManager,
         address _serviceAgreementRegistry,
@@ -46,7 +46,7 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         address _consumerRegistry
     ) external override onlyOwner {
         require(_indexerRegistry != ZERO_ADDRESS);
-        require(_queryRegistry != ZERO_ADDRESS);
+        require(_projectRegistry != ZERO_ADDRESS);
         require(_eraManager != ZERO_ADDRESS);
         require(_planManager != ZERO_ADDRESS);
         require(_serviceAgreementRegistry != ZERO_ADDRESS);
@@ -56,7 +56,7 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         require(_consumerRegistry != ZERO_ADDRESS);
 
         indexerRegistry = _indexerRegistry;
-        queryRegistry = _queryRegistry;
+        projectRegistry = _projectRegistry;
         eraManager = _eraManager;
         planManager = _planManager;
         serviceAgreementRegistry = _serviceAgreementRegistry;
@@ -141,13 +141,13 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         return indexerRegistry;
     }
 
-    function setQueryRegistry(address _queryRegistry) external override onlyOwner {
-        require(_queryRegistry != ZERO_ADDRESS);
-        queryRegistry = _queryRegistry;
+    function setProjectRegistry(address _projectRegistry) external override onlyOwner {
+        require(_projectRegistry != ZERO_ADDRESS);
+        projectRegistry = _projectRegistry;
     }
 
-    function getQueryRegistry() external view override returns (address) {
-        return queryRegistry;
+    function getProjectRegistry() external view override returns (address) {
+        return projectRegistry;
     }
 
     function setEraManager(address _eraManager) external override onlyOwner {
