@@ -8,13 +8,14 @@ import {
     DisputeManager,
     EraManager,
     IndexerRegistry,
+    IndexerServiceAgreement,
     InflationController,
     PermissionedExchange,
     PlanManager,
     PriceOracle,
+    ProjectRegistry,
     ProxyAdmin,
     PurchaseOfferMarket,
-    QueryRegistry,
     RewardsDistributer,
     RewardsHelper,
     RewardsPool,
@@ -44,9 +45,10 @@ export class ContractSDK {
     readonly staking!: Staking;
     readonly stakingManager!: StakingManager;
     readonly indexerRegistry!: IndexerRegistry;
-    readonly queryRegistry!: QueryRegistry;
+    readonly projectRegistry!: ProjectRegistry;
     readonly inflationController!: InflationController;
     readonly serviceAgreementRegistry!: ServiceAgreementRegistry;
+    readonly indexerServiceAgreement!: IndexerServiceAgreement;
     readonly eraManager!: EraManager;
     readonly planManager!: PlanManager;
     readonly rewardsDistributor!: RewardsDistributer;
