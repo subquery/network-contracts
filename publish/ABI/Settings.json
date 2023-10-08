@@ -163,6 +163,19 @@
     },
     {
         "inputs": [],
+        "name": "getIndexerServiceAgreement",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "getInflationController",
         "outputs": [
             {
@@ -359,6 +372,19 @@
     {
         "inputs": [],
         "name": "indexerRegistry",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "indexerServiceAreement",
         "outputs": [
             {
                 "internalType": "address",
@@ -582,6 +608,19 @@
         "inputs": [
             {
                 "internalType": "address",
+                "name": "_indexerAgreement",
+                "type": "address"
+            }
+        ],
+        "name": "setIndexerServiceAgreement",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
                 "name": "_inflationController",
                 "type": "address"
             }
@@ -655,6 +694,11 @@
             {
                 "internalType": "address",
                 "name": "_serviceAgreementRegistry",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_indexerServiceAgreement",
                 "type": "address"
             },
             {

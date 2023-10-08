@@ -3,21 +3,7 @@
 
 pragma solidity 0.8.15;
 
-// -- Data --
-
-/**
- * @dev closed service agreement information
- */
-struct ClosedServiceAgreementInfo {
-    address consumer;
-    address indexer;
-    bytes32 deploymentId;
-    uint256 lockedAmount;
-    uint256 startDate;
-    uint256 period;
-    uint256 planId;
-    uint256 planTemplateId;
-}
+import './IServiceAgreement.sol';
 
 interface IServiceAgreementRegistry {
     function getClosedServiceAgreement(uint256 agreementId) external view returns (ClosedServiceAgreementInfo memory);

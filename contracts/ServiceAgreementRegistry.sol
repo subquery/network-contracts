@@ -13,7 +13,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
-import './IndexerServiceAgreement.sol';
+import './interfaces/IIndexerServiceAgreement.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IQueryRegistry.sol';
@@ -45,17 +45,11 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
     /// @notice Multipler used to calculate Indexer reward limit
     uint256 public threshold;
 
-    /// @notice second in a day
-    uint256 private constant SECONDS_IN_DAY = 86400;
-
     /// @notice ServiceAgreementId => AgreementInfo
     mapping(uint256 => ClosedServiceAgreementInfo) private closedServiceAgreements;
 
     /// @notice address can establishServiceAgreement, for now only PurchaceOfferMarket and PlanManager addresses
     mapping(address => bool) public establisherWhitelist;
-
-    /// @notice calculated sum daily reward: Indexer address => sumDailyReward
-    mapping(address => uint256) public sumDailyReward;
 
     // -- Events --
 
@@ -117,10 +111,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         establisherWhitelist[establisher] = false;
     }
 
-    function periodInDay(uint256 period) private pure returns (uint256) {
-        return period > SECONDS_IN_DAY ? period / SECONDS_IN_DAY : 1;
-    }
-
     function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement) external returns (uint256) {
         if (msg.sender != address(this)) {
             require(establisherWhitelist[msg.sender], 'SA004');
@@ -155,38 +145,30 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(agreement.consumer != address(0), 'SA001');
 
-        address indexer = agreement.indexer;
-        address consumer = agreement.consumer;
-        bytes32 deploymentId = agreement.deploymentId;
-
         require(
-            IQueryRegistry(settings.getQueryRegistry()).isIndexingAvailable(deploymentId, indexer),
+            IQueryRegistry(settings.getQueryRegistry()).isIndexingAvailable(agreement.deploymentId, agreement.indexer),
             'SA005'
         );
 
         IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
-        uint256 totalStake = stakingManager.getTotalStakingAmount(indexer);
+        uint256 totalStake = stakingManager.getTotalStakingAmount(agreement.indexer);
 
-        uint256 lockedAmount = agreement.lockedAmount;
-        uint256 period = periodInDay(agreement.period);
-        sumDailyReward[indexer] += lockedAmount / period;
+        IIndexerServiceAgreement indexerServiceAgreement = IIndexerServiceAgreement(settings.getIndexerServiceAgreement());
+        uint256 sumDailyReward =  indexerServiceAgreement.addServiceAgreement(agreementId, agreement);
         require(
-            !checkThreshold || totalStake >= MathUtil.mulDiv(sumDailyReward[indexer], threshold, PER_MILL),
+            !checkThreshold || totalStake >= MathUtil.mulDiv(sumDailyReward, threshold, PER_MILL),
             'SA006'
         );
 
-        IndexerServiceAgreement indexerServiceAgreement = IndexerServiceAgreement(settings.getIndexerServiceAgreement());
-        indexerServiceAgreement.addServiceAgreement(indexer, agreementId, deploymentId);
-
         // approve token to reward distributor contract
         address SQToken = settings.getSQToken();
-        IERC20(SQToken).approve(settings.getRewardsDistributer(), lockedAmount);
+        IERC20(SQToken).approve(settings.getRewardsDistributer(), agreement.lockedAmount);
 
         // increase agreement rewards
         IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getRewardsDistributer());
         rewardsDistributer.increaseAgreementRewards(agreementId);
 
-        emit ClosedAgreementCreated(consumer, indexer, deploymentId, agreementId);
+        emit ClosedAgreementCreated(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
     }
 
     /**
@@ -228,7 +210,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
     }
 
     function clearEndedAgreement(address indexer, uint256 id) external {
-        IndexerServiceAgreement indexerServiceAgreement = IndexerServiceAgreement(settings.getIndexerServiceAgreement());
+        IIndexerServiceAgreement indexerServiceAgreement = IIndexerServiceAgreement(settings.getIndexerServiceAgreement());
         require(id < indexerServiceAgreement.getIndexerServiceAgreementLengh(indexer), 'SA001');
 
         uint256 agreementId = indexerServiceAgreement.getIndexerAgreementId(indexer, id);
@@ -236,11 +218,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         require(agreement.consumer != address(0), 'SA001');
         require(block.timestamp > (agreement.startDate + agreement.period), 'SA010');
 
-        uint256 lockedAmount = agreement.lockedAmount;
-        uint256 period = periodInDay(agreement.period);
-        sumDailyReward[indexer] = MathUtil.sub(sumDailyReward[indexer], (lockedAmount / period));
-
-        indexerServiceAgreement.removeEndedServiceAgreement(id, indexer, agreement.deploymentId);
+        indexerServiceAgreement.removeEndedServiceAgreement(id, agreement);
 
         emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
     }

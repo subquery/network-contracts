@@ -131,6 +131,7 @@
     "RS003": "Need apply pending",
     "RS004": "Too early",
     "RS005": "No pending",
+    "ISA001": "Only ServiceAgreementRegistry can call this function",
     "RS006": "Rewards not collected",
     "SA001": "Invalid agreement",
     "SA002": "Only consumer can add user",
