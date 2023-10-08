@@ -156,58 +156,6 @@
         "type": "event"
     },
     {
-        "inputs": [],
-        "name": "PER_BILL",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "PER_MILL",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "PER_TRILL",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "ZERO_ADDRESS",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
         "inputs": [
             {
                 "internalType": "address",
@@ -465,11 +413,6 @@
                 "internalType": "address[]",
                 "name": "_whitelist",
                 "type": "address[]"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_threshold",
-                "type": "uint256"
             }
         ],
         "name": "initialize",
@@ -675,19 +618,6 @@
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_threshold",
-                "type": "uint256"
-            }
-        ],
-        "name": "setThreshold",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [],
         "name": "settings",
         "outputs": [
@@ -727,19 +657,6 @@
                 "internalType": "string",
                 "name": "",
                 "type": "string"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "threshold",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
             }
         ],
         "stateMutability": "view",

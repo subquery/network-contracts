@@ -18,9 +18,6 @@ import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IPlanManager.sol';
-import './Constants.sol';
-import './utils/MathUtil.sol';
-
 /**
  * @title Service Agreement Registry Contract
  * @notice ### Overview
@@ -30,9 +27,7 @@ import './utils/MathUtil.sol';
  * All generated service agreement need to register in this contract by calling establishServiceAgreement(). After this all SQT Toaken
  * from agreements will be temporary hold in this contract, and approve reward distributor contract to take and distribute these Token.
  */
-contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, IServiceAgreementRegistry, Constants {
-    using MathUtil for uint256;
-
+contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, IServiceAgreementRegistry {
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;

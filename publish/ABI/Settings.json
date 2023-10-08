@@ -228,7 +228,7 @@
     },
     {
         "inputs": [],
-        "name": "getQueryRegistry",
+        "name": "getProjectRegistry",
         "outputs": [
             {
                 "internalType": "address",
@@ -469,7 +469,7 @@
     },
     {
         "inputs": [],
-        "name": "queryRegistry",
+        "name": "projectRegistry",
         "outputs": [
             {
                 "internalType": "address",
@@ -678,7 +678,7 @@
             },
             {
                 "internalType": "address",
-                "name": "_queryRegistry",
+                "name": "_projectRegistry",
                 "type": "address"
             },
             {
@@ -726,11 +726,11 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_queryRegistry",
+                "name": "_projectRegistry",
                 "type": "address"
             }
         ],
-        "name": "setQueryRegistry",
+        "name": "setProjectRegistry",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
