@@ -137,7 +137,7 @@ export async function eventFrom(tx: ContractTransaction, contract: BaseContract,
     const evt = receipt.events.find((log) => log.topics[0] === utils.id(event));
 
     const eventName = event.split('(')[0];
-    return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data);
+    return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics);
 }
 
 export async function deploySUSD(siger: SignerWithAddress) {
