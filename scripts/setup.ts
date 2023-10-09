@@ -12,12 +12,23 @@ import contractsConfig from './config/contracts.config';
 dotenv.config();
 
 const seed = process.env.SEED;
+const privateKey = process.env.PK;
 
 async function setupCommon({ rpcUrls, chainId, chainName }: DeploymentConfig["network"]) {
-    assert(seed, 'Not found SEED in env');
-    const hdNode = utils.HDNode.fromMnemonic(seed).derivePath("m/44'/60'/0'/0/0");
-    const provider = new providers.StaticJsonRpcProvider(rpcUrls[0], { chainId: parseInt(chainId, 16), name: chainName });
-    const wallet = new Wallet(hdNode, provider);
+    let wallet: Wallet;
+    const provider = new providers.StaticJsonRpcProvider(rpcUrls[0], {
+        chainId: parseInt(chainId, 16),
+        name: chainName
+    });
+    if (seed) {
+        const hdNode = utils.HDNode.fromMnemonic(seed).derivePath("m/44'/60'/0'/0/0");
+        wallet = new Wallet(hdNode, provider);
+    }else if (privateKey) {
+        wallet = new Wallet(privateKey, provider);
+    } else {
+        throw new Error('Not found SEED or PK in env');
+    }
+    console.log(`signer is ${wallet.address}`);
     return {
         wallet,
         provider,
