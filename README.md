@@ -103,7 +103,29 @@ Note: After contract upgrade, should run below again.
     ...
 ```
 
-#### Fuzz Test
+### Upgrade Contract
+```yarn upgrade <args> <matcher>```
+
+| Position | arg                            | desc                                                                                                       |
+|----------|--------------------------------|------------------------------------------------------------------------------------------------------------|
+| 1        | --testnet                      | use config for testnet ./scripts/config/contracts.config.ts                                                |
+| 1        | --kepler                       | use config for kepler                                                                                      |
+| 1        | --mainnet                      | use config for mainnet                                                                                     |
+| 2        | --check-only                   | dry run                                                                                                    |
+| 2        | --implementation-only          | deploy implementation contract without calling proxyAdmin to upgrade to, used for kepler & mainnet upgrade |
+| last     | <contract name prefix matcher> | used when only want to upgrade specific contract                                                           |
+
+Example
+```shell
+yarn upgrade --testnet PlanManager
+```
+
+### Debug Script
+```shell
+node --inspect-brk -r ts-node/register -r tsconfig-paths/register scripts/...
+```
+
+### Fuzz Test
 
 ##### Install Echidna
 

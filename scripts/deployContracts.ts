@@ -445,7 +445,7 @@ export async function upgradeContracts(configs: {
     const changed: (keyof typeof CONTRACTS)[] = [];
     for (const contract of Object.keys(UPGRADEBAL_CONTRACTS)) {
         const bytecodeHash = codeToHash(CONTRACTS[contract].bytecode);
-        if (bytecodeHash !== deployment[contract]?.bytecodeHash) {
+        if (deployment[contract] && bytecodeHash !== deployment[contract].bytecodeHash) {
             changed.push(contract as any);
         } else {
             logger.info(`Contract ${contract} not changed`);
