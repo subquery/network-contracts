@@ -15,5 +15,5 @@ interface IPurchaseOfferMarket {
 
     function cancelPurchaseOffer(uint256 _offerId) external;
 
-    function acceptPurchaseOffer(uint256 _offerId, bytes32 _mmrRoot) external;
+    function acceptPurchaseOffer(uint256 _offerId, bytes32 _poi) external;
 }

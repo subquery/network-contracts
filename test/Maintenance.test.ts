@@ -18,7 +18,7 @@ import {
     Staking,
     StakingManager
 } from '../src';
-import { DEPLOYMENT_ID, METADATA_HASH, mmrRoot } from './constants';
+import { DEPLOYMENT_ID, METADATA_HASH, poi } from './constants';
 import { etherParse, futureTimestamp, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
 
@@ -165,7 +165,7 @@ describe('Maintenance Mode Test', () => {
         });
 
         it('acceptPurchaseOffer should ban in maintenance mode', async () => {
-            await expect(purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot)).to.be.revertedWith('G019');
+            await expect(purchaseOfferMarket.acceptPurchaseOffer(0, poi)).to.be.revertedWith('G019');
         });
     });
 
