@@ -458,7 +458,7 @@ describe('Service Agreement Registry Contract', () => {
             );
         });
 
-        it.only('cannot renew upcoming agreement', async () => {
+        it('cannot renew upcoming agreement', async () => {
             const plan = await planManager.getPlan(1);
             await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             let balanceBefore = await token.balanceOf(wallet2.address);
@@ -472,11 +472,11 @@ describe('Service Agreement Registry Contract', () => {
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             const agreement = await serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
             await serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId);
-            // const upcomingAgreementId = await saExtra.getServiceAgreementId(wallet1.address, 1);
-            // await timeTravel(mockProvider, time.duration.days(1).toNumber());
-            // await expect(
-            //     serviceAgreementRegistry.connect(wallet2).renewAgreement(upcomingAgreementId)
-            // ).to.be.revertedWith('SA008');
+            const upcomingAgreementId = await saExtra.getServiceAgreementId(wallet1.address, 1);
+            await timeTravel(mockProvider, time.duration.days(1).toNumber());
+            await expect(
+                serviceAgreementRegistry.connect(wallet2).renewAgreement(upcomingAgreementId)
+            ).to.be.revertedWith('SA008');
         });
 
         it('renew agreement with inactive planTemplate should fail', async () => {
