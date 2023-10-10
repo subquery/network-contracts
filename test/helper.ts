@@ -4,11 +4,10 @@
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { constants, time } from '@openzeppelin/test-helpers';
-import { SQToken } from 'build';
 import { MockProvider } from 'ethereum-waffle';
 import { BaseContract, BigNumber, Contract, ContractTransaction, Wallet as EthWallet, utils } from 'ethers';
 import { ethers } from "hardhat";
-import { EraManager, IndexerRegistry, PlanManager, ServiceAgreementExtra, ServiceAgreementRegistry } from '../src';
+import { EraManager, IndexerRegistry, PlanManager, SQToken, ServiceAgreementExtra, ServiceAgreementRegistry } from '../src';
 import { METADATA_HASH } from './constants';
 
 export { constants, time };

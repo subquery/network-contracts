@@ -1,5 +1,4 @@
 import moduleAlias from 'module-alias';
-import { ProjectRegistry } from './../src/typechain/ProjectRegistry';
 moduleAlias.addAlias('./artifacts', '../artifacts');
 moduleAlias.addAlias('./publish', '../publish');
 
@@ -27,6 +26,7 @@ import {
     PermissionedExchange,
     PlanManager,
     PriceOracle,
+    ProjectRegistry,
     ProxyAdmin,
     ProxyAdmin__factory,
     PurchaseOfferMarket,
@@ -278,7 +278,7 @@ export async function deployContracts(
         // deploy ServiceAgreementExtra.sol.sol contract
         const serviceAgreementExtra = await deployContract<ServiceAgreementExtra>('ServiceAgreementExtra', {
             proxyAdmin,
-            initConfig: [settingsAddress, 10e6],
+            initConfig: [settingsAddress],
         });
 
         // deploy RewardsDistributer contract
