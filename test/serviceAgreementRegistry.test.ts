@@ -9,7 +9,7 @@ import {
     IndexerRegistry,
     PlanManager,
     PurchaseOfferMarket,
-    QueryRegistry,
+    ProjectRegistry,
     RewardsDistributer,
     RewardsHelper,
     RewardsStaking,
@@ -27,7 +27,7 @@ describe('Service Agreement Registry Contract', () => {
     let token: SQToken;
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
-    let queryRegistry: QueryRegistry;
+    let projectRegistry: ProjectRegistry;
     let planManager: PlanManager;
     let purchaseOfferMarket: PurchaseOfferMarket;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
@@ -68,7 +68,7 @@ describe('Service Agreement Registry Contract', () => {
         token = deployment.token;
         staking = deployment.staking;
         indexerRegistry = deployment.indexerRegistry;
-        queryRegistry = deployment.queryRegistry;
+        projectRegistry = deployment.projectRegistry;
         planManager = deployment.planManager;
         purchaseOfferMarket = deployment.purchaseOfferMarket;
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
@@ -77,7 +77,7 @@ describe('Service Agreement Registry Contract', () => {
         rewardsStaking = deployment.rewardsStaking;
         rewardsHelper = deployment.rewardsHelper;
 
-        await queryRegistry.setCreatorRestricted(false);
+        await projectRegistry.setCreatorRestricted(false);
 
         // period 1000 s
         // planTemplateId: 0
@@ -129,13 +129,13 @@ describe('Service Agreement Registry Contract', () => {
             await indexerRegistry.setControllerAccount(wallet2.address);
 
             // create 3 query projects
-            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, deploymentIds[0]);
-            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, deploymentIds[1]);
-            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, deploymentIds[2]);
+            await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[0]);
+            await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[1]);
+            await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[2]);
 
-            await queryRegistry.startIndexing(deploymentIds[0]);
-            await queryRegistry.updateIndexingStatusToReady(deploymentIds[0]);
-            await queryRegistry.startIndexing(deploymentIds[1]);
+            await projectRegistry.startIndexing(deploymentIds[0]);
+            await projectRegistry.updateServiceStatusToReady(deploymentIds[0]);
+            await projectRegistry.startIndexing(deploymentIds[1]);
 
             // create a purchase offer
             await createPurchaseOffer(
@@ -206,9 +206,9 @@ describe('Service Agreement Registry Contract', () => {
             await indexerRegistry.setControllerAccount(wallet2.address);
 
             // create query project and purchase offer
-            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
-            await queryRegistry.startIndexing(DEPLOYMENT_ID);
-            await queryRegistry.updateIndexingStatusToReady(DEPLOYMENT_ID);
+            await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+            await projectRegistry.startIndexing(DEPLOYMENT_ID);
+            await projectRegistry.updateServiceStatusToReady(DEPLOYMENT_ID);
         });
 
         it('should clear service agressment successfully', async () => {
@@ -362,9 +362,9 @@ describe('Service Agreement Registry Contract', () => {
                 .registerIndexer(etherParse('1000'), METADATA_HASH, 100, { gasLimit: '2000000' });
 
             // create query project
-            await queryRegistry.connect(wallet1).createQueryProject(METADATA_HASH, VERSION, deploymentIds[0]);
-            await queryRegistry.connect(wallet1).startIndexing(deploymentIds[0]);
-            await queryRegistry.connect(wallet1).updateIndexingStatusToReady(deploymentIds[0]);
+            await projectRegistry.connect(wallet1).createProject(METADATA_HASH, VERSION, deploymentIds[0]);
+            await projectRegistry.connect(wallet1).startIndexing(deploymentIds[0]);
+            await projectRegistry.connect(wallet1).updateServiceStatusToReady(deploymentIds[0]);
 
             // period 10 days
             // planTemplateId: 1

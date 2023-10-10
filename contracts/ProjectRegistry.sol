@@ -14,7 +14,7 @@ import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IProjectRegistry.sol';
-import './interfaces/IIndexerServiceAgreement.sol';
+import './interfaces/IServiceAgreementHelper.sol';
 
 /**
  * @title Project Registry Contract
@@ -200,7 +200,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
 
         require(currentStatus != ServiceStatus.TERMINATED, 'PR005');
         require(
-            !IIndexerServiceAgreement(settings.getIndexerServiceAgreement()).hasOngoingClosedServiceAgreement(
+            !IServiceAgreementHelper(settings.getServiceAgreementHelper()).hasOngoingClosedServiceAgreement(
                 msg.sender,
                 deploymentId
             ),

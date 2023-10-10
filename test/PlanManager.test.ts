@@ -9,7 +9,7 @@ import {
     IndexerRegistry,
     PlanManager,
     PriceOracle,
-    QueryRegistry,
+    ProjectRegistry,
     RewardsDistributer,
     RewardsHelper,
     SQToken,
@@ -30,7 +30,7 @@ describe('PlanManger Contract', () => {
     let token: SQToken;
     let staking: Staking;
     let stakingManager: StakingManager;
-    let queryRegistry: QueryRegistry;
+    let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
@@ -45,7 +45,7 @@ describe('PlanManger Contract', () => {
         SUSD = await deploySUSD(consumer);
         const deployment = await deployContracts(indexer, consumer);
         indexerRegistry = deployment.indexerRegistry;
-        queryRegistry = deployment.queryRegistry;
+        projectRegistry = deployment.projectRegistry;
         planManager = deployment.planManager;
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         staking = deployment.staking;
@@ -62,10 +62,9 @@ describe('PlanManger Contract', () => {
         await token.transfer(consumer.address, etherParse('100'));
         await token.connect(consumer).increaseAllowance(planManager.address, etherParse('100'));
         // create query project
-        await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+        await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
         // wallet_0 start project
-        await queryRegistry.startIndexing(DEPLOYMENT_ID);
-        await queryRegistry.updateIndexingStatusToReady(DEPLOYMENT_ID);
+        await projectRegistry.updateServiceStatusToReady(DEPLOYMENT_ID);
     }
 
     describe('Plan Manager Config', () => {

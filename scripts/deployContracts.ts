@@ -275,7 +275,7 @@ export async function deployContracts(
             initConfig: [settingsAddress, [planManager.address, purchaseOfferMarket.address]],
         });
 
-        // deploy IndexerServiceAgreement contract
+        // deploy ServiceAgreementHelper.sol contract
         const indexerServiceAgreement = await deployContract<IndexerServiceAgreement>('IndexerServiceAgreement', {
             proxyAdmin,
             initConfig: [settingsAddress, 10e6],

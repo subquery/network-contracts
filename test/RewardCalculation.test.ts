@@ -9,7 +9,7 @@ import {
   IndexerRegistry,
   InflationController,
   PlanManager,
-  QueryRegistry,
+  ProjectRegistry,
   RewardsDistributer,
   RewardsHelper,
   RewardsStaking,
@@ -33,7 +33,7 @@ describe.skip('RewardsDistributer Contract', () => {
   let token: SQToken;
   let staking: Staking;
   let stakingManager: StakingManager;
-  let queryRegistry: QueryRegistry;
+  let projectRegistry: ProjectRegistry;
   let indexerRegistry: IndexerRegistry;
   let planManager: PlanManager;
   let eraManager: EraManager;
@@ -75,7 +75,7 @@ describe.skip('RewardsDistributer Contract', () => {
       //contract deployed start at era 1
       const deployment = await deployContracts(root, delegator2);
       indexerRegistry = deployment.indexerRegistry;
-      queryRegistry = deployment.queryRegistry;
+      projectRegistry = deployment.projectRegistry;
       planManager = deployment.planManager;
       serviceAgreementRegistry = deployment.serviceAgreementRegistry;
       staking = deployment.staking;
@@ -102,10 +102,10 @@ describe.skip('RewardsDistributer Contract', () => {
       await startNewEra(mockProvider, eraManager);
 
       await registerIndexer(root, indexer, etherParse('1000'), 0);
-      await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+      await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
       // start indexing project
-      await queryRegistry.connect(indexer).startIndexing(DEPLOYMENT_ID);
-      await queryRegistry.connect(indexer).updateIndexingStatusToReady(DEPLOYMENT_ID);
+      await projectRegistry.connect(indexer).startIndexing(DEPLOYMENT_ID);
+      await projectRegistry.connect(indexer).updateServiceStatusToReady(DEPLOYMENT_ID);
       // create plan
       await planManager.createPlanTemplate(time.duration.days(7).toString(), 1000, 100, token.address, METADATA_HASH);
       await planManager.connect(indexer).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
@@ -185,7 +185,7 @@ describe.skip('RewardsDistributer Contract', () => {
       //contract deployed start at era 1
       const deployment = await deployContracts(root, delegator2);
       indexerRegistry = deployment.indexerRegistry;
-      queryRegistry = deployment.queryRegistry;
+      projectRegistry = deployment.projectRegistry;
       planManager = deployment.planManager;
       serviceAgreementRegistry = deployment.serviceAgreementRegistry;
       staking = deployment.staking;
@@ -211,10 +211,10 @@ describe.skip('RewardsDistributer Contract', () => {
       await eraManager.connect(root).updateEraPeriod(time.duration.days(7).toString());
 
       await registerIndexer(root, indexer, etherParse('1000'), 0);
-      await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+      await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
       // start indexing project
-      await queryRegistry.connect(indexer).startIndexing(DEPLOYMENT_ID);
-      await queryRegistry.connect(indexer).updateIndexingStatusToReady(DEPLOYMENT_ID);
+      await projectRegistry.connect(indexer).startIndexing(DEPLOYMENT_ID);
+      await projectRegistry.connect(indexer).updateServiceStatusToReady(DEPLOYMENT_ID);
       // create plan
       await planManager.createPlanTemplate(time.duration.days(35).toString(), 1000, 100, token.address, METADATA_HASH);
       await planManager.connect(indexer).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);

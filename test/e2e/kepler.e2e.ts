@@ -68,17 +68,17 @@ async function rootSetup() {
 
 async function queryProjectSetup() {
     console.log('\n====Setup query project =====\n');
-    const next = await sdk.queryRegistry.nextQueryId();
+    const next = await sdk.projectRegistry.nextQueryId();
     if (next.toNumber() == 0) {
         console.log('start create query project 0 ...');
-        await sendTx(() => sdk.queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID));
+        await sendTx(() => sdk.projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID));
     }
 
-    const info = await sdk.queryRegistry.queryInfos(0);
+    const info = await sdk.projectRegistry.queryInfos(0);
     if (info.latestDeploymentId != DEPLOYMENT_ID) {
         console.log('start update query project 0 ...');
-        await sendTx(() => sdk.queryRegistry.updateDeployment(0, DEPLOYMENT_ID, VERSION));
-        await sendTx(() => sdk.queryRegistry.updateQueryProjectMetadata(0, METADATA_HASH));
+        await sendTx(() => sdk.projectRegistry.updateDeployment(0, DEPLOYMENT_ID, VERSION));
+        await sendTx(() => sdk.projectRegistry.updateQueryProjectMetadata(0, METADATA_HASH));
     }
 
     console.log('QueryProject 0: ');
@@ -129,15 +129,15 @@ async function indexerSetup() {
     console.log('TotalStakingAmount: ' + (await sdk.stakingManager.getTotalStakingAmount(INDEXER_ADDR)));
 
     //Indexing start and update indxing status to ready
-    let indexingStatus = (await sdk.queryRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR)).status;
+    let indexingStatus = (await sdk.projectRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR)).status;
     if (indexingStatus != 2) {
         if (indexingStatus == 0) {
             console.log('start indexing ...');
-            await sendTx(() => sdk.queryRegistry.connect(indexer_wallet).startIndexing(DEPLOYMENT_ID));
+            await sendTx(() => sdk.projectRegistry.connect(indexer_wallet).startIndexing(DEPLOYMENT_ID));
         }
-        await sendTx(() => sdk.queryRegistry.connect(indexer_wallet).updateIndexingStatusToReady(DEPLOYMENT_ID));
+        await sendTx(() => sdk.projectRegistry.connect(indexer_wallet).updateServiceStatusToReady(DEPLOYMENT_ID));
     }
-    indexingStatus = (await sdk.queryRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR)).status;
+    indexingStatus = (await sdk.projectRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR)).status;
     console.log(`Indexing status: ${indexingStatus}`);
 }
 

@@ -7,7 +7,7 @@ import {
     IndexerRegistry,
     PlanManager,
     PurchaseOfferMarket,
-    QueryRegistry,
+    ProjectRegistry,
     RewardsDistributer,
     SQToken,
     ServiceAgreementRegistry,
@@ -23,7 +23,7 @@ describe('Purchase Offer Market Contract', () => {
     let purchaseOfferMarket: PurchaseOfferMarket;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
     let indexerRegistry: IndexerRegistry;
-    let queryRegistry: QueryRegistry;
+    let projectRegistry: ProjectRegistry;
     let staking: Staking;
     let token: SQToken;
     let rewardsDistributor: RewardsDistributer;
@@ -43,7 +43,7 @@ describe('Purchase Offer Market Contract', () => {
         purchaseOfferMarket = deployment.purchaseOfferMarket;
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         indexerRegistry = deployment.indexerRegistry;
-        queryRegistry = deployment.queryRegistry;
+        projectRegistry = deployment.projectRegistry;
         staking = deployment.staking;
         token = deployment.token;
         rewardsDistributor = deployment.rewardsDistributer;
@@ -181,10 +181,9 @@ describe('Purchase Offer Market Contract', () => {
                 await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '2000');
                 await indexerRegistry.connect(wallet_1).setControllerAccount(wallet_0.address);
                 // create query project
-                await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+                await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
                 // wallet_0 start project
-                await queryRegistry.startIndexing(DEPLOYMENT_ID);
-                await queryRegistry.updateIndexingStatusToReady(DEPLOYMENT_ID);
+                await projectRegistry.updateServiceStatusToReady(DEPLOYMENT_ID);
             });
 
             it('accept offer should work', async () => {

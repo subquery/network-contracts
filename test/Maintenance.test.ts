@@ -10,7 +10,7 @@ import {
     PermissionedExchange,
     PlanManager,
     PurchaseOfferMarket,
-    QueryRegistry,
+    ProjectRegistry,
     RewardsDistributer,
     SQToken,
     ServiceAgreementRegistry,
@@ -30,7 +30,7 @@ describe('Maintenance Mode Test', () => {
     let settings: Settings;
     let token: SQToken;
     let staking: Staking;
-    let queryRegistry: QueryRegistry;
+    let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
@@ -47,7 +47,7 @@ describe('Maintenance Mode Test', () => {
         token = deployment.token;
         settings = deployment.settings;
         staking = deployment.staking;
-        queryRegistry = deployment.queryRegistry;
+        projectRegistry = deployment.projectRegistry;
         indexerRegistry = deployment.indexerRegistry;
         planManager = deployment.planManager;
         eraManager = deployment.eraManager;

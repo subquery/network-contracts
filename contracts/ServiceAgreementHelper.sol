@@ -11,7 +11,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 
 import './interfaces/IServiceAgreementRegistry.sol';
-import './interfaces/IIndexerServiceAgreement.sol';
+import './interfaces/IServiceAgreementHelper.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/IProjectRegistry.sol';
 import './interfaces/ISettings.sol';
@@ -23,7 +23,7 @@ import './Constants.sol';
  * @notice ### Overview
  * This contract tracks all service Agreements for Indexers.
  */
-contract IndexerServiceAgreement is Initializable, OwnableUpgradeable, IIndexerServiceAgreement, Constants {
+contract ServiceAgreementHelper is Initializable, OwnableUpgradeable, IServiceAgreementHelper, Constants {
     using MathUtil for uint256;
 
     /// @dev ### STATES
@@ -40,10 +40,10 @@ contract IndexerServiceAgreement is Initializable, OwnableUpgradeable, IIndexerS
     mapping(address => mapping(uint256 => uint256)) private closedServiceAgreementIds;
 
     /// @notice number of service agreements: Indexer address =>  number of service agreements
-    mapping(address => uint256) private indexerCsaLength;
+    mapping(address => uint256) private saLength;
 
     /// @notice number of service agreements: Indexer address => DeploymentId => number of service agreements
-    mapping(address => mapping(bytes32 => uint256)) public indexerDeploymentCsaLength;
+    mapping(address => mapping(bytes32 => uint256)) public deploymentSaLength;
 
     /// @notice calculated sum daily reward: Indexer address => sumDailyReward
     mapping(address => uint256) public sumDailyReward;
@@ -96,9 +96,9 @@ contract IndexerServiceAgreement is Initializable, OwnableUpgradeable, IIndexerS
             'SA006'
         );
 
-        closedServiceAgreementIds[indexer][indexerCsaLength[indexer]] = agreementId;
-        indexerCsaLength[indexer] += 1;
-        indexerDeploymentCsaLength[indexer][agreement.deploymentId] += 1;
+        closedServiceAgreementIds[indexer][saLength[indexer]] = agreementId;
+        saLength[indexer] += 1;
+        deploymentSaLength[indexer][agreement.deploymentId] += 1;
     }
 
     function removeEndedAgreement(uint256 id, ClosedServiceAgreementInfo memory agreement) external {
@@ -109,21 +109,21 @@ contract IndexerServiceAgreement is Initializable, OwnableUpgradeable, IIndexerS
         uint256 period = periodInDay(agreement.period);
         sumDailyReward[indexer] = MathUtil.sub(sumDailyReward[indexer], (lockedAmount / period));
 
-        closedServiceAgreementIds[indexer][id] = closedServiceAgreementIds[indexer][indexerCsaLength[indexer] - 1];
-        delete closedServiceAgreementIds[indexer][indexerCsaLength[indexer] - 1];
-        indexerCsaLength[indexer] -= 1;
-        indexerDeploymentCsaLength[indexer][agreement.deploymentId] -= 1;
+        closedServiceAgreementIds[indexer][id] = closedServiceAgreementIds[indexer][saLength[indexer] - 1];
+        delete closedServiceAgreementIds[indexer][saLength[indexer] - 1];
+        saLength[indexer] -= 1;
+        deploymentSaLength[indexer][agreement.deploymentId] -= 1;
     }
 
-    function getIndexerServiceAgreementLengh(address indexer) external view returns (uint256) {
-        return indexerCsaLength[indexer];
+    function getServiceAgreementLength(address indexer) external view returns (uint256) {
+        return saLength[indexer];
     }
 
-    function getIndexerAgreementId(address indexer, uint256 id) external view returns (uint256) {
+    function getServiceAgreementId(address indexer, uint256 id) external view returns (uint256) {
         return closedServiceAgreementIds[indexer][id];
     }
 
     function hasOngoingClosedServiceAgreement(address indexer, bytes32 deploymentId) external view returns (bool) {
-        return indexerDeploymentCsaLength[indexer][deploymentId] > 0;
+        return deploymentSaLength[indexer][deploymentId] > 0;
     }
 }

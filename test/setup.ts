@@ -29,7 +29,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
             Settings: [],
             VSQToken: [],
             StakingManager: [],
-            QueryRegistry: [],
+            ProjectRegistry: [],
             PlanManager: [],
             RewardsDistributer: [],
             RewardsPool: [],
@@ -41,6 +41,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
             Vesting: [],
             ConsumerRegistry: [],
             PriceOracle: [],
+            IndexerServiceAgreement: [],
         }
     );
 
