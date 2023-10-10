@@ -220,7 +220,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
 
         // register the agreement to service agreement registry contract
         IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
-        registry.createClosedServiceAgreement(agreement);
+        registry.createClosedServiceAgreement(agreement, true);
     }
 
     /**
