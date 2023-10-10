@@ -29,12 +29,7 @@ interface IProjectRegistry {
 
     function isServiceAvailable(bytes32 deploymentId, address indexer) external view returns (bool);
 
-    function createProject(
-        bytes32 deploymentId,
-        bytes32 deploymentMetdata,
-        string memory projectMetadataUri,
-        ProjectType projectType
-    ) external;
+    function createProject(string memory projectMetadataUri,bytes32 deploymentMetdata, bytes32 deploymentId, ProjectType projectType) external;
 
     function updateProjectMetadata(uint256 projectId, string memory metadataUri) external;
 

@@ -136,7 +136,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice create a project, if in the restrict mode, only creator allowed to call this function
      */
-    function createProject(bytes32 deploymentId, bytes32 deploymentMetdata, string memory projectMetadataUri, ProjectType projectType) external {
+    function createProject(string memory projectMetadataUri,bytes32 deploymentMetdata, bytes32 deploymentId, ProjectType projectType) external {
         if (creatorRestricted) {
             require(creatorWhitelist[msg.sender], 'PR001');
         }
