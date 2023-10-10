@@ -184,7 +184,7 @@
             },
             {
                 "internalType": "bytes32",
-                "name": "_mmrRoot",
+                "name": "_poi",
                 "type": "bytes32"
             }
         ],
@@ -336,7 +336,7 @@
                 "type": "address"
             }
         ],
-        "name": "offerMmrRoot",
+        "name": "offerPoi",
         "outputs": [
             {
                 "internalType": "bytes32",

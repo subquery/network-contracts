@@ -13,9 +13,10 @@ import {
     ServiceAgreementRegistry,
     Staking,
 } from '../src';
-import { DEPLOYMENT_ID, METADATA_HASH, VERSION, mmrRoot } from './constants';
-import { createPurchaseOffer, etherParse, futureTimestamp, registerIndexer, time, timeTravel } from './helper';
+import { DEPLOYMENT_ID, METADATA_HASH, VERSION, poi } from './constants';
+import {createPurchaseOffer, etherParse, eventFrom, futureTimestamp, registerIndexer, time, timeTravel} from './helper';
 import { deployContracts } from './setup';
+import {BigNumber} from "ethers";
 
 describe('Purchase Offer Market Contract', () => {
     const mockProvider = waffle.provider;
@@ -35,6 +36,7 @@ describe('Purchase Offer Market Contract', () => {
     const limit = 1;
     const minimumAcceptHeight = 100;
     const planTemplateId = 0;
+    let offerId: BigNumber;
 
     beforeEach(async () => {
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
@@ -49,13 +51,13 @@ describe('Purchase Offer Market Contract', () => {
         rewardsDistributor = deployment.rewardsDistributer;
         planManager = deployment.planManager;
         await planManager.createPlanTemplate(contractPeriod, 1000, 100, token.address, METADATA_HASH);
-        await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
+        offerId = await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
     });
 
     describe('Purchase Offer Market', () => {
         describe('Create Purchase Offer', () => {
             it('create offer should work', async () => {
-                const offer = await purchaseOfferMarket.offers(0);
+                const offer = await purchaseOfferMarket.offers(offerId);
                 expect(offer.consumer).to.equal(wallet_0.address);
                 expect(offer.expireDate).to.equal(futureDate);
                 expect(offer.deploymentId).to.equal(DEPLOYMENT_ID);
@@ -105,6 +107,11 @@ describe('Purchase Offer Market Contract', () => {
                     )
                 ).to.be.revertedWith('PO004');
             });
+
+            it('create offer with inactive planTemplate should fail', async () => {
+                await planManager.updatePlanTemplateStatus(0, false);
+                await expect(createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate)).to.revertedWith("PO005");
+            });
         });
 
         describe('Cancel Purchase Offer', () => {
@@ -113,10 +120,10 @@ describe('Purchase Offer Market Contract', () => {
                 const consumerBalance = await token.balanceOf(wallet_0.address);
                 const offerMarketBalance = await token.balanceOf(purchaseOfferMarket.address);
 
-                expect(await purchaseOfferMarket.cancelPurchaseOffer(0))
+                expect(await purchaseOfferMarket.cancelPurchaseOffer(offerId))
                     .to.be.emit(purchaseOfferMarket, 'PurchaseOfferCancelled')
-                    .withArgs(wallet_0.address, 0);
-                const offer = await purchaseOfferMarket.offers(0);
+                    .withArgs(wallet_0.address, offerId);
+                const offer = await purchaseOfferMarket.offers(offerId);
                 expect(offer.active).to.equal(false);
 
                 // check balance changed
@@ -130,10 +137,10 @@ describe('Purchase Offer Market Contract', () => {
                 const offerMarketBalance = await token.balanceOf(purchaseOfferMarket.address);
                 const totalSupply = await token.totalSupply();
 
-                expect(await purchaseOfferMarket.cancelPurchaseOffer(0))
+                expect(await purchaseOfferMarket.cancelPurchaseOffer(offerId))
                     .to.be.emit(purchaseOfferMarket, 'PurchaseOfferCancelled')
-                    .withArgs(wallet_0.address, 0);
-                const offer = await purchaseOfferMarket.offers(0);
+                    .withArgs(wallet_0.address, offerId);
+                const offer = await purchaseOfferMarket.offers(offerId);
                 expect(offer.active).to.equal(false);
 
                 // check balance changed
@@ -165,7 +172,7 @@ describe('Purchase Offer Market Contract', () => {
             });
 
             it('cancel offer with invalid caller should fail', async () => {
-                await expect(purchaseOfferMarket.connect(wallet_1).cancelPurchaseOffer(0)).to.be.revertedWith(
+                await expect(purchaseOfferMarket.connect(wallet_1).cancelPurchaseOffer(offerId)).to.be.revertedWith(
                     'PO006'
                 );
             });
@@ -173,8 +180,6 @@ describe('Purchase Offer Market Contract', () => {
 
         describe('Accept Purchase Offer', () => {
             beforeEach(async () => {
-                // create second offer
-                await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
                 // register indexers
                 await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '2000');
                 await indexerRegistry.connect(wallet_0).setControllerAccount(wallet_1.address);
@@ -188,16 +193,17 @@ describe('Purchase Offer Market Contract', () => {
 
             it('accept offer should work', async () => {
                 const offerMarketBalance = await token.balanceOf(purchaseOfferMarket.address);
-                let offer = await purchaseOfferMarket.offers(0);
+                let offer = await purchaseOfferMarket.offers(offerId);
+                expect(offer).to.exist;
                 const rewardsDistrBalance = await token.balanceOf(rewardsDistributor.address);
 
                 // accept offer
-                await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
+                await purchaseOfferMarket.acceptPurchaseOffer(offerId, poi);
 
                 // check updates for the offer
-                offer = await purchaseOfferMarket.offers(0);
-                expect(await purchaseOfferMarket.offerMmrRoot(0, wallet_0.address)).to.equal(mmrRoot);
-                expect(await purchaseOfferMarket.acceptedOffer(0, wallet_0.address)).to.equal(true);
+                offer = await purchaseOfferMarket.offers(offerId);
+                expect(await purchaseOfferMarket.offerPoi(offerId, wallet_0.address)).to.equal(poi);
+                expect(await purchaseOfferMarket.acceptedOffer(offerId, wallet_0.address)).to.equal(true);
                 expect(offer.numAcceptedContracts).to.equal(1);
                 expect(await token.balanceOf(purchaseOfferMarket.address)).to.equal(offerMarketBalance.sub(deposit));
                 expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(deposit));
@@ -205,23 +211,35 @@ describe('Purchase Offer Market Contract', () => {
 
             it('accept offer with invalid params and caller should fail', async () => {
                 // invalid caller
-                await expect(purchaseOfferMarket.connect(wallet_2).acceptPurchaseOffer(0, mmrRoot)).to.be.revertedWith(
+                await expect(purchaseOfferMarket.connect(wallet_2).acceptPurchaseOffer(offerId, poi)).to.be.revertedWith(
                     'G002'
                 );
+                // create second offer
+                const offerId2 = await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
+
                 // invalid offerId
-                await expect(purchaseOfferMarket.acceptPurchaseOffer(2, mmrRoot)).to.be.revertedWith('PO007');
+                await expect(purchaseOfferMarket.acceptPurchaseOffer(10, poi)).to.be.revertedWith('PO007');
                 // offer already accepted
-                await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
-                await expect(purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot)).to.be.revertedWith(
+                await purchaseOfferMarket.acceptPurchaseOffer(offerId, poi);
+                await expect(purchaseOfferMarket.acceptPurchaseOffer(offerId, poi)).to.be.revertedWith(
                     'PO009'
                 );
                 // offer cancelled
-                await purchaseOfferMarket.cancelPurchaseOffer(1);
-                await expect(purchaseOfferMarket.acceptPurchaseOffer(1, mmrRoot)).to.be.revertedWith('PO007');
+                await purchaseOfferMarket.cancelPurchaseOffer(offerId2);
+                await expect(purchaseOfferMarket.acceptPurchaseOffer(offerId2, poi)).to.be.revertedWith('PO007');
                 // contracts reacheed limit
-                await expect(purchaseOfferMarket.connect(wallet_1).acceptPurchaseOffer(0, mmrRoot)).to.be.revertedWith(
+                await expect(purchaseOfferMarket.connect(wallet_1).acceptPurchaseOffer(offerId, poi)).to.be.revertedWith(
                     'PO010'
                 );
+            });
+
+            it('accept offer with inactive planTemplate should fail', async () => {
+                const offerId2 = await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
+                expect(offerId2).to.exist;
+                await planManager.updatePlanTemplateStatus(0, false);
+                await expect(createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate)).to.revertedWith("PO005");
+
+                await expect(purchaseOfferMarket.acceptPurchaseOffer(offerId2, poi)).to.revertedWith("PO005");
             });
         });
     });

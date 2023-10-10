@@ -18,7 +18,7 @@ import {
     ServiceAgreementExtra,
     Staking,
 } from '../src';
-import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, mmrRoot } from './constants';
+import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, poi } from './constants';
 import { createPurchaseOffer, etherParse, eventFrom, futureTimestamp, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
@@ -134,7 +134,7 @@ describe('Service Agreement Registry Contract', () => {
             await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[0],0);
             await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[1],0);
             await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[2],0);
-            
+
             await projectRegistry.updateServiceStatusToReady(deploymentIds[0]);
 
             // create a purchase offer
@@ -159,7 +159,7 @@ describe('Service Agreement Registry Contract', () => {
         });
 
         it('should estabish service agressment successfully', async () => {
-            await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
+            await purchaseOfferMarket.acceptPurchaseOffer(0, poi);
             const serviceAgreement = await saExtra.getServiceAgreementId(wallet.address, 0);
             expect(serviceAgreement).to.be.not.equal(0);
             expect(
@@ -168,7 +168,7 @@ describe('Service Agreement Registry Contract', () => {
         });
 
         it('estabish service agressment with wrong param should revert', async () => {
-            await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
+            await purchaseOfferMarket.acceptPurchaseOffer(0, poi);
             await token.increaseAllowance(purchaseOfferMarket.address, etherParse('4000'));
             await purchaseOfferMarket.createPurchaseOffer(
                 deploymentIds[0],
@@ -179,7 +179,7 @@ describe('Service Agreement Registry Contract', () => {
                 (await futureTimestamp(mockProvider)) + 86400
             );
 
-            await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(3, mmrRoot)).to.be.revertedWith(
+            await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(3, poi)).to.be.revertedWith(
                 'SA006'
             );
 
@@ -191,7 +191,7 @@ describe('Service Agreement Registry Contract', () => {
                 100,
                 (await futureTimestamp(mockProvider)) + 86400
             );
-            await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(4, mmrRoot)).to.be.revertedWith(
+            await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(4, poi)).to.be.revertedWith(
                 'SA005'
             );
         });
@@ -216,7 +216,7 @@ describe('Service Agreement Registry Contract', () => {
                 await saExtra.hasOngoingClosedServiceAgreement(wallet.address, DEPLOYMENT_ID)
             ).to.be.equal(false);
 
-            await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
+            await purchaseOfferMarket.acceptPurchaseOffer(0, poi);
             const serviceAgreement = await saExtra.getServiceAgreementId(wallet.address, 0);
             expect(serviceAgreement).to.be.not.equal(0);
             expect(
@@ -248,7 +248,7 @@ describe('Service Agreement Registry Contract', () => {
                     await futureTimestamp(mockProvider)
                 );
 
-                await purchaseOfferMarket.acceptPurchaseOffer(i, mmrRoot);
+                await purchaseOfferMarket.acceptPurchaseOffer(i, poi);
                 const agreementId = await saExtra.getServiceAgreementId(wallet.address, i);
                 const agreementInfo = {
                     value: etherParse('2'),
@@ -322,7 +322,7 @@ describe('Service Agreement Registry Contract', () => {
                     DEPLOYMENT_ID,
                     await futureTimestamp(mockProvider)
                 );
-                await purchaseOfferMarket.acceptPurchaseOffer(i, mmrRoot);
+                await purchaseOfferMarket.acceptPurchaseOffer(i, poi);
             }
 
             expect(await saExtra.getServiceAgreementLength(wallet.address)).to.equal(6);
@@ -384,7 +384,7 @@ describe('Service Agreement Registry Contract', () => {
         });
 
         it('renew agreement generated from purchaseOfferMarket should fail', async () => {
-            await purchaseOfferMarket.connect(wallet1).acceptPurchaseOffer(0, mmrRoot);
+            await purchaseOfferMarket.connect(wallet1).acceptPurchaseOffer(0, poi);
             const agreementId = await saExtra.getServiceAgreementId(wallet1.address, 0);
             await timeTravel(mockProvider, time.duration.days(3).toNumber());
             await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
@@ -465,5 +465,20 @@ describe('Service Agreement Registry Contract', () => {
                 serviceAgreementRegistry.connect(wallet2).renewAgreement(upcomingAgreementId)
             ).to.be.revertedWith('SA008');
         });
+
+        it('renew agreement with inactive planTemplate should fail', async () => {
+            const planId = 1;
+            const plan = await planManager.getPlan(planId);
+            const tx = await planManager.connect(wallet2).acceptPlan(planId, deploymentIds[0]);
+            const agreementId = (
+                await eventFrom(tx, serviceAgreementRegistry, 'ClosedAgreementCreated(address,address,bytes32,uint256)')
+            ).serviceAgreementId;
+            expect(
+                await saExtra.deploymentSaLength(wallet1.address, deploymentIds[0])
+            ).to.be.eq(1);
+            await timeTravel(mockProvider, time.duration.days(3).toNumber());
+            await planManager.updatePlanTemplateStatus(plan.templateId, false);
+            await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith('PM006');
+        })
     });
 });

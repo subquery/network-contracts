@@ -1,4 +1,4 @@
-import { ContractReceipt, ContractTransaction, Overrides, Wallet, ethers } from 'ethers';
+import {ContractReceipt, ContractTransaction, Overrides, Wallet, ethers, utils, BigNumber} from 'ethers';
 import Pino from 'pino';
 
 import setup from './setup';
@@ -6,7 +6,6 @@ import setup from './setup';
 import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
 import { ContractSDK, SubqueryNetwork } from '../build';
 import { METADATA_HASH } from '../test/constants';
-import { cidToBytes32, etherParse, lastestTime } from '../test/helper';
 import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
@@ -14,6 +13,7 @@ import startupTestnetConfig from './config/startup.testnet.json';
 import { Provider, StaticJsonRpcProvider } from '@ethersproject/providers';
 import { parseEther } from 'ethers/lib/utils';
 import { getLogger } from './logger';
+import {MockProvider} from "ethereum-waffle";
 
 let startupConfig: any = startupTestnetConfig;
 let logger: Pino.Logger;
@@ -33,6 +33,20 @@ async function sendTx(transaction: (overrides: Overrides) => Promise<ContractTra
     const receipt = await tx.wait(confirms);
     logger?.info('🚀 Transaction successful!');
     return receipt;
+}
+
+async function lastestBlock(provider: MockProvider | StaticJsonRpcProvider) {
+    const blockBefore = await provider.send('eth_getBlockByNumber', ['latest', false]);
+    return blockBefore;
+}
+
+async function lastestTime(provider: MockProvider | StaticJsonRpcProvider) {
+    const block = await lastestBlock(provider);
+    return BigNumber.from(block.timestamp).toNumber();
+}
+
+function cidToBytes32(cid: string): string {
+    return '0x' + Buffer.from(utils.base58.decode(cid)).slice(2).toString('hex');
 }
 
 async function getAirdropTimeConfig(provider) {
@@ -211,7 +225,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
 async function transferTokenToIndexers(sdk: ContractSDK) {
     logger = getLogger('Token');
     const { indexers } = startupConfig;
-    const amount = etherParse('1000000');
+    const amount = utils.parseEther('1000000');
     for (const indexer of indexers) {
         await sdk.sqToken.transfer(indexer, amount);
         logger.info(`Transfer 1_000_000 sqt to ${indexer}`);

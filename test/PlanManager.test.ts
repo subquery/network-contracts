@@ -214,6 +214,14 @@ describe('PlanManger Contract', () => {
             );
         });
 
+        it('create plan with inactive planTemplate should fail', async () => {
+            // inactive planTemplate
+            await planManager.updatePlanTemplateStatus(0, false);
+            await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID)).to.be.revertedWith(
+                'PM006'
+            );
+        });
+
         it('remove plan with invalid params should fail', async () => {
             // invalid sender
             await expect(planManager.removePlan(0)).to.be.revertedWith('PM008');
@@ -284,6 +292,19 @@ describe('PlanManger Contract', () => {
             await eraManager.enableMaintenance();
             await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
                 'G019'
+            );
+            // inactive planTemplate
+            await planManager.updatePlanTemplateStatus(0, false);
+            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
+                'PM006'
+            );
+        });
+
+        it('accept plan with inactive planTemplate should fail', async () => {
+            // inactive planTemplate
+            await planManager.updatePlanTemplateStatus(0, false);
+            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
+                'PM006'
             );
         });
 
