@@ -396,6 +396,12 @@ describe('Service Agreement Registry Contract', () => {
             );
         });
 
+        /**
+         * era: 1 day
+         * planTemplate 1, period 10 days
+         * consumer: wallet2
+         * indexer: wallet1
+         */
         it('renew agreement generated from planManager should work', async () => {
             await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             const addTable = await rewardsHelper.getRewardsAddTable(wallet1.address, 2, 10);
@@ -405,18 +411,15 @@ describe('Service Agreement Registry Contract', () => {
             expect(
                 await saExtra.deploymentSaLength(wallet1.address, deploymentIds[0])
             ).to.be.eq(1);
-            let agreement = await serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
+            const agreement = await serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
             const oldEndDate = (await agreement.startDate).toNumber() + (await agreement.period).toNumber();
             await timeTravel(mockProvider, time.duration.days(3).toNumber());
             await serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId);
             agreementId = await saExtra.getServiceAgreementId(wallet1.address, 1);
-            agreement = await serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
-            const period = await agreement.period;
-            expect(await agreement.lockedAmount).to.be.eq(100);
-            expect(await agreement.startDate).to.be.eq(oldEndDate);
-            expect((await agreement.startDate).toNumber() + (await agreement.period).toNumber()).to.be.eq(
-                Number(oldEndDate) + Number(period)
-            );
+            const newAgreement = await serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
+            expect(newAgreement.lockedAmount).to.be.eq(agreement.lockedAmount);
+            expect(newAgreement.startDate).to.be.eq(oldEndDate);
+            expect(newAgreement.period).to.be.eq(agreement.period);
             expect(
                 await saExtra.deploymentSaLength(wallet1.address, deploymentIds[0])
             ).to.be.eq(2);
@@ -425,6 +428,8 @@ describe('Service Agreement Registry Contract', () => {
             expect(await rewardsHelper.getRewardsAddTable(wallet1.address, 2, 10)).to.eql(addTable);
             expect(await rewardsHelper.getRewardsRemoveTable(wallet1.address, 2, 12)).to.eql(removeTable);
             expect(await rewardsHelper.getRewardsAddTable(wallet1.address, agreementStartEra, 10)).to.eql(addTable);
+            const newRemoveTable = await rewardsHelper.getRewardsRemoveTable(wallet1.address, agreementStartEra.add(2), 10);
+            expect(newRemoveTable).to.eql(removeTable.slice(2));
         });
 
         it('Indexers should be able to trun off renew', async () => {
