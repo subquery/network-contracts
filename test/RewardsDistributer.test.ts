@@ -102,8 +102,8 @@ describe('RewardsDistributer Contract', () => {
         await registerIndexer(root, root, etherParse('1000'), 1e5);
         await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
         // wallet_0 start project
-        await projectRegistry.connect(indexer).updateServiceStatusToReady(DEPLOYMENT_ID);
-        await projectRegistry.connect(root).updateServiceStatusToReady(DEPLOYMENT_ID);
+        await projectRegistry.connect(indexer).startService(DEPLOYMENT_ID);
+        await projectRegistry.connect(root).startService(DEPLOYMENT_ID);
     });
 
     describe('initialization', async () => {
@@ -677,7 +677,7 @@ describe('RewardsDistributer Contract', () => {
             );
             await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
             await stakingManager.connect(delegator2).delegate(indexer.address, etherParse('1'));
-            await projectRegistry.connect(indexer).updateServiceStatusToReady(DEPLOYMENT_ID);
+            await projectRegistry.connect(indexer).startService(DEPLOYMENT_ID);
             // 4. generate new agreement and check the reward distribution for 2 era
             await acceptPlan(
                 indexer,
@@ -725,7 +725,7 @@ describe('RewardsDistributer Contract', () => {
             await checkValues(etherParse('1.997002697'), etherParse('10.001697302697'), etherParse('1000'), 0);
             await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
             await stakingManager.connect(delegator2).delegate(indexer.address, etherParse('1'));
-            await projectRegistry.connect(indexer).updateServiceStatusToReady(DEPLOYMENT_ID);
+            await projectRegistry.connect(indexer).startService(DEPLOYMENT_ID);
             // 4. generate new agreement and check the reward distribution for 2 era
             await acceptPlan(
                 indexer,

@@ -206,7 +206,7 @@
 //
 //         it('update indexing status to ready should work', async () => {
 //             await projectRegistry.startIndexing(deploymentId);
-//             await expect(projectRegistry.updateServiceStatusToReady(deploymentId))
+//             await expect(projectRegistry.startService(deploymentId))
 //                 .to.be.emit(projectRegistry, 'UpdateIndexingStatusToReady')
 //                 .withArgs(wallet_0.address, deploymentId);
 //
@@ -227,7 +227,7 @@
 //
 //             // change status to ready
 //             await timeTravel(mockProvider, 6);
-//             await projectRegistry.updateServiceStatusToReady(deploymentId);
+//             await projectRegistry.startService(deploymentId);
 //             await timeTravel(mockProvider, 6);
 //             // report status
 //             const timestamp_1 = await lastestTime(mockProvider);
@@ -252,7 +252,7 @@
 //             expect(await projectRegistry.numberOfIndexingDeployments(wallet_0.address)).to.equal(1);
 //
 //             // can stop `READY` project
-//             await projectRegistry.updateServiceStatusToReady(deploymentId);
+//             await projectRegistry.startService(deploymentId);
 //             await projectRegistry.stopService(deploymentId);
 //         });
 //
@@ -271,7 +271,7 @@
 //             await timeTravel(mockProvider, 120);
 //             expect(await isOffline()).to.equal(true);
 //             // report status
-//             await projectRegistry.updateServiceStatusToReady(deploymentId);
+//             await projectRegistry.startService(deploymentId);
 //             expect(await isOffline()).to.equal(false);
 //             // stop project
 //             await projectRegistry.stopService(deploymentId);
@@ -285,21 +285,21 @@
 //             await projectRegistry.startIndexing(deploymentId);
 //             await expect(projectRegistry.startIndexing(deploymentId)).to.be.revertedWith('QR009');
 //             // update status to ready
-//             await projectRegistry.updateServiceStatusToReady(deploymentId);
+//             await projectRegistry.startService(deploymentId);
 //             await expect(projectRegistry.startIndexing(deploymentId)).to.be.revertedWith('QR009');
 //         });
 //
 //         it('update indexing to ready with invalid status should fail', async () => {
 //             // caller is not indexer
-//             await expect(projectRegistry.connect(wallet_1).updateServiceStatusToReady(deploymentId)).to.be.revertedWith(
+//             await expect(projectRegistry.connect(wallet_1).startService(deploymentId)).to.be.revertedWith(
 //                 'G002'
 //             );
 //             // current status is `NONSTARTED`
-//             await expect(projectRegistry.updateServiceStatusToReady(deploymentId)).to.be.revertedWith('QR002');
+//             await expect(projectRegistry.startService(deploymentId)).to.be.revertedWith('QR002');
 //             // current status `NOTINDEXING`
 //             await projectRegistry.startIndexing(deploymentId);
 //             await projectRegistry.stopService(deploymentId);
-//             await expect(projectRegistry.updateServiceStatusToReady(deploymentId)).to.be.revertedWith('QR002');
+//             await expect(projectRegistry.startService(deploymentId)).to.be.revertedWith('QR002');
 //         });
 //
 //         it('report status with invalid params should fail', async () => {
@@ -335,7 +335,7 @@
 //             await expect(projectRegistry.stopService(deploymentId)).to.be.revertedWith('QR010');
 //             // have ongoing service agreement
 //             await projectRegistry.startIndexing(deploymentId);
-//             await projectRegistry.updateServiceStatusToReady(deploymentId);
+//             await projectRegistry.startService(deploymentId);
 //             await token.increaseAllowance(purchaseOfferMarket.address, etherParse('5'));
 //             await planManager.createPlanTemplate(1000, 1000, 100, token.address, METADATA_HASH);
 //             await createPurchaseOffer(purchaseOfferMarket, token, deploymentId, await futureTimestamp(mockProvider));

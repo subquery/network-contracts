@@ -142,14 +142,14 @@ export const loaders = {
         assert(indexer, `can't find indexer account ${account}`);
         let tx;
         if (action === 'index') {
-            tx = await sdk.projectRegistry.connect(indexer).updateServiceStatusToReady(cidToBytes32(deploymentId));
+            tx = await sdk.projectRegistry.connect(indexer).startService(cidToBytes32(deploymentId));
         } else if (action === 'ready') {
             const status = await sdk.projectRegistry.deploymentStatusByIndexer(
                 cidToBytes32(deploymentId),
                 indexer.address
             );
             if (status === 1) {
-                tx = await sdk.projectRegistry.connect(indexer).updateServiceStatusToReady(cidToBytes32(deploymentId));
+                tx = await sdk.projectRegistry.connect(indexer).startService(cidToBytes32(deploymentId));
             } else {
                 console.log(`skip because the current status is ${status}`);
             }

@@ -39,7 +39,7 @@ interface IProjectRegistry {
         bytes32 metadata
     ) external;
 
-    function updateServiceStatusToReady(bytes32 deploymentId) external;
+    function startService(bytes32 deploymentId) external;
 
     function stopService(bytes32 deploymentId) external;
 }

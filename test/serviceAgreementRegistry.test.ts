@@ -136,7 +136,7 @@ describe('Service Agreement Registry Contract', () => {
             await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[1],0);
             await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[2],0);
 
-            await projectRegistry.updateServiceStatusToReady(deploymentIds[0]);
+            await projectRegistry.startService(deploymentIds[0]);
 
             // create a purchase offer
             await createPurchaseOffer(
@@ -208,7 +208,7 @@ describe('Service Agreement Registry Contract', () => {
 
             // create query project and purchase offer
             await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID,0);
-            await projectRegistry.updateServiceStatusToReady(DEPLOYMENT_ID);
+            await projectRegistry.startService(DEPLOYMENT_ID);
         });
 
         it('should clear service agressment successfully', async () => {
@@ -366,7 +366,7 @@ describe('Service Agreement Registry Contract', () => {
 
             // create query project
             await projectRegistry.connect(wallet1).createProject(METADATA_HASH, VERSION, deploymentIds[0],0);
-            await projectRegistry.connect(wallet1).updateServiceStatusToReady(deploymentIds[0]);
+            await projectRegistry.connect(wallet1).startService(deploymentIds[0]);
 
             // period 10 days
             // planTemplateId: 1

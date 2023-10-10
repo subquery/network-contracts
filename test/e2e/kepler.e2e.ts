@@ -135,7 +135,7 @@ async function indexerSetup() {
     let indexingStatus = await sdk.projectRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR);
     if (indexingStatus != 1) {
         console.log('start indexing ...');
-        await sendTx(() => sdk.projectRegistry.connect(indexer_wallet).updateServiceStatusToReady(DEPLOYMENT_ID));
+        await sendTx(() => sdk.projectRegistry.connect(indexer_wallet).startService(DEPLOYMENT_ID));
     }
     indexingStatus = await sdk.projectRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR);
     console.log(`Indexing status: ${indexingStatus}`);

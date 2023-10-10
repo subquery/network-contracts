@@ -104,7 +104,7 @@ describe.skip('RewardsDistributer Contract', () => {
       await registerIndexer(root, indexer, etherParse('1000'), 0);
       await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID,0);
       // start indexing project
-      await projectRegistry.connect(indexer).updateServiceStatusToReady(DEPLOYMENT_ID);
+      await projectRegistry.connect(indexer).startService(DEPLOYMENT_ID);
       // create plan
       await planManager.createPlanTemplate(time.duration.days(7).toString(), 1000, 100, token.address, METADATA_HASH);
       await planManager.connect(indexer).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
@@ -212,7 +212,7 @@ describe.skip('RewardsDistributer Contract', () => {
       await registerIndexer(root, indexer, etherParse('1000'), 0);
       await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID,0);
       // start indexing project
-      await projectRegistry.connect(indexer).updateServiceStatusToReady(DEPLOYMENT_ID);
+      await projectRegistry.connect(indexer).startService(DEPLOYMENT_ID);
       // create plan
       await planManager.createPlanTemplate(time.duration.days(35).toString(), 1000, 100, token.address, METADATA_HASH);
       await planManager.connect(indexer).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);

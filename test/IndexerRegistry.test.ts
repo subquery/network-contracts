@@ -147,7 +147,7 @@ describe('IndexerRegistry Contract', () => {
 
             // with running projects
             await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
-            await projectRegistry.updateServiceStatusToReady(DEPLOYMENT_ID);
+            await projectRegistry.startService(DEPLOYMENT_ID);
             await expect(indexerRegistry.unregisterIndexer()).to.be.revertedWith('IR004');
         });
     });

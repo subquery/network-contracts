@@ -183,7 +183,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice Indexer update its service status to ready with a specific deploymentId
      */
-    function updateServiceStatusToReady(bytes32 deploymentId) external onlyIndexer {
+    function startService(bytes32 deploymentId) external onlyIndexer {
         ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
         require(currentStatus == ServiceStatus.TERMINATED, 'PR002');
 

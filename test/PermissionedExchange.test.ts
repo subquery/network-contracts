@@ -120,7 +120,7 @@ describe('PermissionedExchange Contract', () => {
             // create query project
             await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID,0);
             // wallet_0 start project
-            await projectRegistry.connect(indexer).updateServiceStatusToReady(DEPLOYMENT_ID);
+            await projectRegistry.connect(indexer).startService(DEPLOYMENT_ID);
             // create plan template
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, sqToken.address, METADATA_HASH);
             // default plan -> planId: 1
