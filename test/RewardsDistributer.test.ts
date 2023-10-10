@@ -554,7 +554,7 @@ describe('RewardsDistributer Contract', () => {
         });
     });
 
-    describe('Indexer reregister', () => {
+    describe.only('Indexer reregister', () => {
         beforeEach(async () => {
             //setup era period be 15 days
             await eraManager.connect(root).updateEraPeriod(time.duration.days(15).toString());

@@ -50,6 +50,7 @@ describe('PlanManger Contract', () => {
         projectRegistry = deployment.projectRegistry;
         planManager = deployment.planManager;
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
+        saExtra = deployment.serviceAgreementExtra;
         staking = deployment.staking;
         token = deployment.token;
         rewardsDistributor = deployment.rewardsDistributer;
@@ -293,11 +294,6 @@ describe('PlanManger Contract', () => {
             await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
                 'G019'
             );
-            // inactive planTemplate
-            await planManager.updatePlanTemplateStatus(0, false);
-            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
-                'PM006'
-            );
         });
 
         it('accept plan with inactive planTemplate should fail', async () => {
@@ -317,7 +313,7 @@ describe('PlanManger Contract', () => {
                 .mul(1e6).add(1)
             // ---
 
-            await saExtra.setThreshold(threshold)
+            await saExtra.setThreshold(threshold);
             const plan = await planManager.getPlan(1);
             expect(Number(utils.formatEther(plan.price))).to.eq(6);
             await token.connect(consumer).increaseAllowance(planManager.address, plan.price);

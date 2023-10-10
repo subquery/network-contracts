@@ -188,6 +188,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         require(currentStatus == ServiceStatus.TERMINATED, 'PR002');
 
         deploymentStatusByIndexer[deploymentId][msg.sender] = ServiceStatus.READY;
+        numberOfDeployments[msg.sender]++;
 
         emit ServiceStatusChanged(msg.sender, deploymentId, ServiceStatus.READY);
     }

@@ -241,6 +241,11 @@
                 "internalType": "struct ClosedServiceAgreementInfo",
                 "name": "agreement",
                 "type": "tuple"
+            },
+            {
+                "internalType": "bool",
+                "name": "checkThreshold",
+                "type": "bool"
             }
         ],
         "name": "createClosedServiceAgreement",
