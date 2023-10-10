@@ -22,6 +22,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
             Airdropper: [ZERO_ADDRESS],
             EraManager: [60 * 60 * 24],
             ServiceAgreementRegistry: [0],
+            ServiceAgreementExtra: [],
             PurchaseOfferMarket: [1e5, ZERO_ADDRESS],
             IndexerRegistry: [etherParse("1000")],
             ConsumerHost: [1],
@@ -41,7 +42,6 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
             Vesting: [],
             ConsumerRegistry: [],
             PriceOracle: [],
-            IndexerServiceAgreement: [],
         }
     );
 

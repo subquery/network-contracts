@@ -8,7 +8,7 @@ import { SQToken } from 'build';
 import { MockProvider } from 'ethereum-waffle';
 import { BaseContract, BigNumber, Contract, ContractTransaction, Wallet as EthWallet, utils } from 'ethers';
 import { ethers } from "hardhat";
-import { EraManager, IndexerRegistry, PlanManager } from '../src';
+import { EraManager, IndexerRegistry, PlanManager, ServiceAgreementExtra, ServiceAgreementRegistry } from '../src';
 import { METADATA_HASH } from './constants';
 
 export { constants, time };

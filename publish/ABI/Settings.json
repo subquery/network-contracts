@@ -293,7 +293,7 @@
     },
     {
         "inputs": [],
-        "name": "getServiceAgreementHelper",
+        "name": "getServiceAgreementExtra",
         "outputs": [
             {
                 "internalType": "address",
@@ -528,7 +528,7 @@
     },
     {
         "inputs": [],
-        "name": "serviceAgreementHelper",
+        "name": "serviceAgreementExtra",
         "outputs": [
             {
                 "internalType": "address",
@@ -685,7 +685,7 @@
             },
             {
                 "internalType": "address",
-                "name": "_serviceAgreementHelper",
+                "name": "_serviceAgreementExtra",
                 "type": "address"
             },
             {
@@ -791,11 +791,11 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_serviceAgreementHelper",
+                "name": "_serviceAgreementExtra",
                 "type": "address"
             }
         ],
-        "name": "setServiceAgreementHelper",
+        "name": "setServiceAgreementExtra",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

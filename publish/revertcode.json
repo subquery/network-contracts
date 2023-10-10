@@ -143,6 +143,7 @@
     "SA008": "Cannot renew upcoming agreement",
     "SA009": "Agreement ended",
     "SA010": "Agreement not complete",
+    "SA011": "Only consumer can remove ended agreement",
     "SC001": "ChannelId already existed",
     "SC002": "Request is expired",
     "SC003": "Channel lost efficacy",

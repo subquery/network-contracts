@@ -17,7 +17,7 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
     address public eraManager;
     address public planManager;
     address public serviceAgreementRegistry;
-    address public serviceAgreementHelper;
+    address public serviceAgreementExtra;
     address public rewardsDistributer;
     address public rewardsPool;
     address public rewardsStaking;
@@ -40,7 +40,7 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         address _eraManager,
         address _planManager,
         address _serviceAgreementRegistry,
-        address _serviceAgreementHelper,
+        address _serviceAgreementExtra,
         address _disputeManager,
         address _stateChannel,
         address _consumerRegistry
@@ -50,7 +50,7 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         require(_eraManager != ZERO_ADDRESS);
         require(_planManager != ZERO_ADDRESS);
         require(_serviceAgreementRegistry != ZERO_ADDRESS);
-        require(_serviceAgreementHelper != ZERO_ADDRESS);
+        require(_serviceAgreementExtra != ZERO_ADDRESS);
         require(_disputeManager != ZERO_ADDRESS);
         require(_stateChannel != ZERO_ADDRESS);
         require(_consumerRegistry != ZERO_ADDRESS);
@@ -60,7 +60,7 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         eraManager = _eraManager;
         planManager = _planManager;
         serviceAgreementRegistry = _serviceAgreementRegistry;
-        serviceAgreementHelper = _serviceAgreementHelper;
+        serviceAgreementExtra = _serviceAgreementExtra;
         disputeManager = _disputeManager;
         stateChannel = _stateChannel;
         consumerRegistry = _consumerRegistry;
@@ -173,17 +173,17 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         serviceAgreementRegistry = _serviceAgreementRegistry;
     }
 
-    function setServiceAgreementHelper(address _serviceAgreementHelper) external override onlyOwner {
-        require(_serviceAgreementHelper != ZERO_ADDRESS);
-        serviceAgreementHelper = _serviceAgreementHelper;
+    function setServiceAgreementExtra(address _serviceAgreementExtra) external override onlyOwner {
+        require(_serviceAgreementExtra != ZERO_ADDRESS);
+        serviceAgreementExtra = _serviceAgreementExtra;
     }
 
     function getServiceAgreementRegistry() external view override returns (address) {
         return serviceAgreementRegistry;
     }
 
-    function getServiceAgreementHelper() external view override returns (address) {
-        return serviceAgreementHelper;
+    function getServiceAgreementExtra() external view override returns (address) {
+        return serviceAgreementExtra;
     }
 
     function setRewardsDistributer(address _rewardsDistributer) external override onlyOwner {

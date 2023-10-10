@@ -10,7 +10,7 @@ import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IQueryRegistry.sol';
-import './interfaces/IServiceAgreementHelper.sol';
+import './interfaces/IServiceAgreementExtra.sol';
 
 /**
  * @title Query Registry Contract
@@ -261,7 +261,7 @@ contract QueryRegistry is Initializable, OwnableUpgradeable, IQueryRegistry {
 
         require(currentStatus != IndexingServiceStatus.NOTINDEXING, 'QR010');
         require(
-            !IServiceAgreementHelper(settings.getServiceAgreementHelper()).hasOngoingClosedServiceAgreement(
+            !IServiceAgreementExtra(settings.getServiceAgreementExtra()).hasOngoingClosedServiceAgreement(
                 msg.sender,
                 deploymentId
             ),

@@ -23,7 +23,6 @@ import {
     DisputeManager,
     EraManager,
     IndexerRegistry,
-    IndexerServiceAgreement,
     InflationController,
     PermissionedExchange,
     PlanManager,
@@ -37,6 +36,7 @@ import {
     RewardsStaking,
     SQToken,
     ServiceAgreementRegistry,
+    ServiceAgreementExtra,
     Settings,
     Staking,
     StakingManager,
@@ -275,8 +275,8 @@ export async function deployContracts(
             initConfig: [settingsAddress, [planManager.address, purchaseOfferMarket.address]],
         });
 
-        // deploy ServiceAgreementHelper.sol contract
-        const indexerServiceAgreement = await deployContract<IndexerServiceAgreement>('IndexerServiceAgreement', {
+        // deploy ServiceAgreementExtra.sol.sol contract
+        const serviceAgreementExtra = await deployContract<ServiceAgreementExtra>('ServiceAgreementExtra', {
             proxyAdmin,
             initConfig: [settingsAddress, 10e6],
         });
@@ -368,7 +368,7 @@ export async function deployContracts(
             deployment.EraManager.address,
             deployment.PlanManager.address,
             deployment.ServiceAgreementRegistry.address,
-            deployment.IndexerServiceAgreement.address,
+            deployment.ServiceAgreementExtra.address,
             deployment.DisputeManager.address,
             deployment.StateChannel.address,
             deployment.ConsumerRegistry.address,
@@ -393,6 +393,7 @@ export async function deployContracts(
                 planManager,
                 purchaseOfferMarket,
                 serviceAgreementRegistry,
+                serviceAgreementExtra,
                 rewardsDistributer,
                 rewardsPool,
                 rewardsStaking,

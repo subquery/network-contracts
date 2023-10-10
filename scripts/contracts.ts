@@ -44,8 +44,8 @@ import {
     SQToken__factory,
     ServiceAgreementRegistry,
     ServiceAgreementRegistry__factory,
-    ServiceAgreementHelper,
-    ServiceAgreementHelper__factory,
+    ServiceAgreementExtra,
+    ServiceAgreementExtra__factory,
     Settings,
     Settings__factory,
     Staking,
@@ -80,7 +80,7 @@ export type Contracts = {
     planManager: PlanManager;
     purchaseOfferMarket: PurchaseOfferMarket;
     serviceAgreementRegistry: ServiceAgreementRegistry;
-    serviceAgreementHelper: ServiceAgreementHelper;
+    serviceAgreementExtra: ServiceAgreementExtra;
     rewardsDistributer: RewardsDistributer;
     rewardsPool: RewardsPool;
     rewardsStaking: RewardsStaking;
@@ -136,7 +136,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PlanManager: PlanManager__factory,
     PurchaseOfferMarket: PurchaseOfferMarket__factory,
     ServiceAgreementRegistry: ServiceAgreementRegistry__factory,
-    ServiceAgreementHelper: ServiceAgreementHelper__factory,
+    ServiceAgreementExtra: ServiceAgreementExtra__factory,
     RewardsDistributer: RewardsDistributer__factory,
     RewardsPool: RewardsPool__factory,
     RewardsStaking: RewardsStaking__factory,

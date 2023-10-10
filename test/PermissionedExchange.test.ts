@@ -364,7 +364,7 @@ describe('PermissionedExchange Contract', () => {
         });
     });
 
-    describe.only('pair orders test', () => {
+    describe('pair orders test', () => {
         it('create pair order should work', async () => {
             await permissionedExchange.createPairOrders(
                 usdAddress,

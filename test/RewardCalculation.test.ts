@@ -102,9 +102,8 @@ describe.skip('RewardsDistributer Contract', () => {
       await startNewEra(mockProvider, eraManager);
 
       await registerIndexer(root, indexer, etherParse('1000'), 0);
-      await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+      await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID,0);
       // start indexing project
-      await projectRegistry.connect(indexer).startIndexing(DEPLOYMENT_ID);
       await projectRegistry.connect(indexer).updateServiceStatusToReady(DEPLOYMENT_ID);
       // create plan
       await planManager.createPlanTemplate(time.duration.days(7).toString(), 1000, 100, token.address, METADATA_HASH);
@@ -211,9 +210,8 @@ describe.skip('RewardsDistributer Contract', () => {
       await eraManager.connect(root).updateEraPeriod(time.duration.days(7).toString());
 
       await registerIndexer(root, indexer, etherParse('1000'), 0);
-      await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+      await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID,0);
       // start indexing project
-      await projectRegistry.connect(indexer).startIndexing(DEPLOYMENT_ID);
       await projectRegistry.connect(indexer).updateServiceStatusToReady(DEPLOYMENT_ID);
       // create plan
       await planManager.createPlanTemplate(time.duration.days(35).toString(), 1000, 100, token.address, METADATA_HASH);

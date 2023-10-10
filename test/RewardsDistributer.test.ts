@@ -20,7 +20,7 @@ import {
     StakingManager,
     Settings,
     InflationController,
-    ServiceAgreementHelper,
+    ServiceAgreementExtra,
 } from '../src';
 import {startNewEra, time, acceptPlan, etherParse, timeTravel, eventFrom} from './helper';
 
@@ -38,7 +38,7 @@ describe('RewardsDistributer Contract', () => {
     let planManager: PlanManager;
     let eraManager: EraManager;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
-    let serviceAgreementHelper: ServiceAgreementHelper;
+    let serviceAgreementExtra: ServiceAgreementExtra;
     let rewardsDistributor: RewardsDistributer;
     let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
@@ -69,7 +69,7 @@ describe('RewardsDistributer Contract', () => {
         projectRegistry = deployment.projectRegistry;
         planManager = deployment.planManager;
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
-        serviceAgreementHelper = deployment.serviceAgreementHelper;
+        serviceAgreementExtra = deployment.serviceAgreementExtra;
         staking = deployment.staking;
         stakingManager = deployment.stakingManager;
         token = deployment.token;
@@ -335,7 +335,7 @@ describe('RewardsDistributer Contract', () => {
             await startNewEra(mockProvider, eraManager);
             await startNewEra(mockProvider, eraManager);
             await startNewEra(mockProvider, eraManager);
-            await serviceAgreementHelper.clearAllEndedAgreements(indexer.address);
+            await serviceAgreementExtra.clearAllEndedAgreements(indexer.address);
             await projectRegistry.connect(indexer).stopService(DEPLOYMENT_ID);
             await rewardsHelper.indexerCatchup(indexer.address);
             await indexerRegistry.connect(indexer).unregisterIndexer({gasLimit: '1000000'});
@@ -575,7 +575,7 @@ describe('RewardsDistributer Contract', () => {
             );
             await timeTravel(mockProvider, 6);
             await startNewEra(mockProvider, eraManager);
-            await serviceAgreementRegistry.clearAllEndedAgreements(indexer.address);
+            await serviceAgreementExtra.clearAllEndedAgreements(indexer.address);
             await projectRegistry.connect(indexer).stopService(DEPLOYMENT_ID);
             //unregister indexer
             await indexerRegistry.connect(indexer).unregisterIndexer({gasLimit: '1000000'});

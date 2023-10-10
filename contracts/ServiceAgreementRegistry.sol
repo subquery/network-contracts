@@ -13,7 +13,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
-import './interfaces/IServiceAgreementHelper.sol';
+import './interfaces/IServiceAgreementExtra.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IRewardsDistributer.sol';
@@ -47,15 +47,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
      * @dev Emitted when closed service agreement established
      */
     event ClosedAgreementCreated(
-        address indexed consumer,
-        address indexed indexer,
-        bytes32 indexed deploymentId,
-        uint256 serviceAgreementId
-    );
-    /**
-     * @dev Emitted when expired closed service agreement removed.
-     */
-    event ClosedAgreementRemoved(
         address indexed consumer,
         address indexed indexer,
         bytes32 indexed deploymentId,
@@ -123,7 +114,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(agreement.consumer != address(0), 'SA001');
 
-        IServiceAgreementHelper saHelper = IServiceAgreementHelper(settings.getServiceAgreementHelper());
+        IServiceAgreementExtra saHelper = IServiceAgreementExtra(settings.getServiceAgreementExtra());
         saHelper.addAgreement(agreementId, agreement, checkThreshold);
 
         // approve token to reward distributor contract
@@ -174,35 +165,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         IERC20(settings.getSQToken()).transferFrom(msg.sender, address(this), agreement.lockedAmount);
         _establishServiceAgreement(newAgreementId, false);
     }
-
-    function clearEndedAgreement(address indexer, uint256 id) external {
-        IServiceAgreementHelper saHelper = IServiceAgreementHelper(settings.getServiceAgreementHelper());
-        require(id < saHelper.getServiceAgreementLength(indexer), 'SA001');
-
-        uint256 agreementId = saHelper.getServiceAgreementId(indexer, id);
-        ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
-        require(agreement.consumer != address(0), 'SA001');
-        require(block.timestamp > (agreement.startDate + agreement.period), 'SA010');
-
-        saHelper.removeEndedAgreement(id, agreement);
-
-        emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
-    }
-
-//    function clearAllEndedAgreements(address indexer) public {
-//        uint256 count = 0;
-//        for (uint256 i = indexerCsaLength[indexer]; i >= 1; i--) {
-//            uint256 agreementId = closedServiceAgreementIds[indexer][i - 1];
-//            ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
-//            if (block.timestamp > (agreement.startDate + agreement.period)) {
-//                clearEndedAgreement(indexer, i - 1);
-//                count++;
-//                if (count >= 10) {
-//                    break;
-//                }
-//            }
-//        }
-//    }
 
     function closedServiceAgreementExpired(uint256 agreementId) public view returns (bool) {
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];

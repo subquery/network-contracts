@@ -5,11 +5,13 @@ pragma solidity 0.8.15;
 
 import './IServiceAgreement.sol';
 
-interface IServiceAgreementHelper {
+interface IServiceAgreementExtra {
 
     function addAgreement(uint256 agreementId, ClosedServiceAgreementInfo memory agreement, bool checkThreshold) external;
 
-    function removeEndedAgreement(uint256 id, ClosedServiceAgreementInfo memory agreement) external;
+    function clearEndedAgreement(address indexer, uint256 id) external;
+
+    function clearAllEndedAgreements(address indexer) external;
 
     function getServiceAgreementLength(address indexer) external view returns (uint256);
 
