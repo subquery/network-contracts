@@ -9,7 +9,7 @@ import {
     IndexerRegistry,
     InflationController,
     PlanManager,
-    QueryRegistry,
+    ProjectRegistry,
     RewardsDistributer,
     RewardsHelper,
     RewardsStaking,
@@ -30,7 +30,7 @@ describe.skip('Rewardflow tests', () => {
     let token: SQToken;
     let staking: Staking;
     let stakingManager: StakingManager;
-    let queryRegistry: QueryRegistry;
+    let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
@@ -48,8 +48,7 @@ describe.skip('Rewardflow tests', () => {
         await token.connect(wallet).increaseAllowance(staking.address, amount);
         await indexerRegistry.connect(wallet).registerIndexer(amount, METADATA_HASH, rate, { gasLimit: '2000000' });
         // start indexing project
-        await queryRegistry.connect(wallet).startIndexing(DEPLOYMENT_ID);
-        await queryRegistry.connect(wallet).updateIndexingStatusToReady(DEPLOYMENT_ID);
+        await projectRegistry.connect(wallet).startService(DEPLOYMENT_ID);
         // create plan
         await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
         await planManager.createPlanTemplate(time.duration.days(10).toString(), 1000, 100, token.address, METADATA_HASH);
@@ -88,7 +87,7 @@ describe.skip('Rewardflow tests', () => {
             //contract deployed start at era 1
             const deployment = await deployContracts(root, delegator2);
             indexerRegistry = deployment.indexerRegistry;
-            queryRegistry = deployment.queryRegistry;
+            projectRegistry = deployment.projectRegistry;
             planManager = deployment.planManager;
             serviceAgreementRegistry = deployment.serviceAgreementRegistry;
             staking = deployment.staking;

@@ -26,22 +26,23 @@ import {
     PermissionedExchange,
     PlanManager,
     PriceOracle,
+    ProjectRegistry,
     ProxyAdmin,
     ProxyAdmin__factory,
     PurchaseOfferMarket,
-    QueryRegistry,
     RewardsDistributer,
     RewardsHelper,
     RewardsPool,
     RewardsStaking,
     SQToken,
     ServiceAgreementRegistry,
+    ServiceAgreementExtra,
     Settings,
     Staking,
     StakingManager,
     StateChannel,
     VSQToken,
-    Vesting,
+    Vesting
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -250,8 +251,8 @@ export async function deployContracts(
             initConfig: [settingsAddress],
         });
 
-        // deploy QueryRegistry contract
-        const queryRegistry = await deployContract<QueryRegistry>('QueryRegistry', {
+        // deploy ProjectRegistry contract
+        const projectRegistry = await deployContract<ProjectRegistry>('ProjectRegistry', {
             proxyAdmin,
             initConfig: [settingsAddress],
         });
@@ -272,6 +273,12 @@ export async function deployContracts(
         const serviceAgreementRegistry = await deployContract<ServiceAgreementRegistry>('ServiceAgreementRegistry', {
             proxyAdmin,
             initConfig: [settingsAddress, [planManager.address, purchaseOfferMarket.address]],
+        });
+
+        // deploy ServiceAgreementExtra.sol.sol contract
+        const serviceAgreementExtra = await deployContract<ServiceAgreementExtra>('ServiceAgreementExtra', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
         });
 
         // deploy RewardsDistributer contract
@@ -357,10 +364,11 @@ export async function deployContracts(
         getLogger('SettingContract').info('🤞 Set project addresses');
         const txProject = await settings.setProjectAddresses(
             deployment.IndexerRegistry.address,
-            deployment.QueryRegistry.address,
+            deployment.ProjectRegistry.address,
             deployment.EraManager.address,
             deployment.PlanManager.address,
             deployment.ServiceAgreementRegistry.address,
+            deployment.ServiceAgreementExtra.address,
             deployment.DisputeManager.address,
             deployment.StateChannel.address,
             deployment.ConsumerRegistry.address,
@@ -381,10 +389,11 @@ export async function deployContracts(
                 stakingManager,
                 eraManager,
                 indexerRegistry,
-                queryRegistry,
+                projectRegistry,
                 planManager,
                 purchaseOfferMarket,
                 serviceAgreementRegistry,
+                serviceAgreementExtra,
                 rewardsDistributer,
                 rewardsPool,
                 rewardsStaking,
@@ -445,7 +454,7 @@ export async function upgradeContracts(configs: {
     const changed: (keyof typeof CONTRACTS)[] = [];
     for (const contract of Object.keys(UPGRADEBAL_CONTRACTS)) {
         const bytecodeHash = codeToHash(CONTRACTS[contract].bytecode);
-        if (bytecodeHash !== deployment[contract]?.bytecodeHash) {
+        if (deployment[contract] && bytecodeHash !== deployment[contract].bytecodeHash) {
             changed.push(contract as any);
         } else {
             logger.info(`Contract ${contract} not changed`);

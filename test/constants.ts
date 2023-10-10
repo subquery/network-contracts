@@ -26,7 +26,7 @@ export const deploymentIds = [
     '0xddc921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c57',
 ];
 
-export const mmrRoot = '0xab3921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c55';
+export const poi = '0xab3921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c55';
 
 export const PER_MILL = 1e6;
 

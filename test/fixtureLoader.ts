@@ -115,12 +115,13 @@ export const loaders = {
         const { cid: metadataCid } = await ipfs.add(JSON.stringify(metadata), { pin: true });
         const [firstDeploy, ...restDeploy] = deployments;
         const { cid: versionCid } = await ipfs.add(JSON.stringify(firstDeploy.version), { pin: true });
-        const tx = await sdk.queryRegistry
+        const tx = await sdk.projectRegistry
             .connect(author)
-            .createQueryProject(
+            .createProject(
                 cidToBytes32(metadataCid.toString()),
                 cidToBytes32(versionCid.toString()),
-                cidToBytes32(firstDeploy.deploymentId)
+                cidToBytes32(firstDeploy.deploymentId),
+                0,
             );
         const receipt = await tx.wait();
         const evt = receipt.events.find(
@@ -129,7 +130,7 @@ export const loaders = {
         const { queryId } = evt.args;
         for (const { deploymentId, version } of restDeploy) {
             const { cid } = await ipfs.add(JSON.stringify(version), { pin: true });
-            await sdk.queryRegistry
+            await sdk.projectRegistry
                 .connect(author)
                 .updateDeployment(queryId, cidToBytes32(deploymentId), cidToBytes32(cid.toString()));
         }
@@ -141,14 +142,14 @@ export const loaders = {
         assert(indexer, `can't find indexer account ${account}`);
         let tx;
         if (action === 'index') {
-            tx = await sdk.queryRegistry.connect(indexer).startIndexing(cidToBytes32(deploymentId));
+            tx = await sdk.projectRegistry.connect(indexer).startService(cidToBytes32(deploymentId));
         } else if (action === 'ready') {
-            const { status } = await sdk.queryRegistry.deploymentStatusByIndexer(
+            const status = await sdk.projectRegistry.deploymentStatusByIndexer(
                 cidToBytes32(deploymentId),
                 indexer.address
             );
             if (status === 1) {
-                tx = await sdk.queryRegistry.connect(indexer).updateIndexingStatusToReady(cidToBytes32(deploymentId));
+                tx = await sdk.projectRegistry.connect(indexer).startService(cidToBytes32(deploymentId));
             } else {
                 console.log(`skip because the current status is ${status}`);
             }

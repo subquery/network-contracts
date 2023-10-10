@@ -9,7 +9,7 @@ import {METADATA_HASH, DEPLOYMENT_ID, VERSION} from './constants';
 import {
     IndexerRegistry,
     PlanManager,
-    QueryRegistry,
+    ProjectRegistry,
     ServiceAgreementRegistry,
     RewardsDistributer,
     RewardsStaking,
@@ -20,6 +20,7 @@ import {
     StakingManager,
     Settings,
     InflationController,
+    ServiceAgreementExtra,
 } from '../src';
 import {startNewEra, time, acceptPlan, etherParse, timeTravel, eventFrom} from './helper';
 
@@ -32,11 +33,12 @@ describe('RewardsDistributer Contract', () => {
     let token: SQToken;
     let staking: Staking;
     let stakingManager: StakingManager;
-    let queryRegistry: QueryRegistry;
+    let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
+    let serviceAgreementExtra: ServiceAgreementExtra;
     let rewardsDistributor: RewardsDistributer;
     let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
@@ -64,9 +66,10 @@ describe('RewardsDistributer Contract', () => {
         //contract deployed start at era 1
         const deployment = await deployContracts(root, indexer);
         indexerRegistry = deployment.indexerRegistry;
-        queryRegistry = deployment.queryRegistry;
+        projectRegistry = deployment.projectRegistry;
         planManager = deployment.planManager;
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
+        serviceAgreementExtra = deployment.serviceAgreementExtra;
         staking = deployment.staking;
         stakingManager = deployment.stakingManager;
         token = deployment.token;
@@ -97,12 +100,10 @@ describe('RewardsDistributer Contract', () => {
         //moved to era 2
         await registerIndexer(root, indexer, etherParse('1000'), 1e5);
         await registerIndexer(root, root, etherParse('1000'), 1e5);
-        await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+        await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
         // wallet_0 start project
-        await queryRegistry.connect(indexer).startIndexing(DEPLOYMENT_ID);
-        await queryRegistry.connect(indexer).updateIndexingStatusToReady(DEPLOYMENT_ID);
-        await queryRegistry.connect(root).startIndexing(DEPLOYMENT_ID);
-        await queryRegistry.connect(root).updateIndexingStatusToReady(DEPLOYMENT_ID);
+        await projectRegistry.connect(indexer).startService(DEPLOYMENT_ID);
+        await projectRegistry.connect(root).startService(DEPLOYMENT_ID);
     });
 
     describe('initialization', async () => {
@@ -334,8 +335,8 @@ describe('RewardsDistributer Contract', () => {
             await startNewEra(mockProvider, eraManager);
             await startNewEra(mockProvider, eraManager);
             await startNewEra(mockProvider, eraManager);
-            await serviceAgreementRegistry.clearAllEndedAgreements(indexer.address);
-            await queryRegistry.connect(indexer).stopIndexing(DEPLOYMENT_ID);
+            await serviceAgreementExtra.clearAllEndedAgreements(indexer.address);
+            await projectRegistry.connect(indexer).stopService(DEPLOYMENT_ID);
             await rewardsHelper.indexerCatchup(indexer.address);
             await indexerRegistry.connect(indexer).unregisterIndexer({gasLimit: '1000000'});
             await startNewEra(mockProvider, eraManager);
@@ -574,8 +575,8 @@ describe('RewardsDistributer Contract', () => {
             );
             await timeTravel(mockProvider, 6);
             await startNewEra(mockProvider, eraManager);
-            await serviceAgreementRegistry.clearAllEndedAgreements(indexer.address);
-            await queryRegistry.connect(indexer).stopIndexing(DEPLOYMENT_ID);
+            await serviceAgreementExtra.clearAllEndedAgreements(indexer.address);
+            await projectRegistry.connect(indexer).stopService(DEPLOYMENT_ID);
             //unregister indexer
             await indexerRegistry.connect(indexer).unregisterIndexer({gasLimit: '1000000'});
         });
@@ -676,8 +677,7 @@ describe('RewardsDistributer Contract', () => {
             );
             await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
             await stakingManager.connect(delegator2).delegate(indexer.address, etherParse('1'));
-            await queryRegistry.connect(indexer).startIndexing(DEPLOYMENT_ID);
-            await queryRegistry.connect(indexer).updateIndexingStatusToReady(DEPLOYMENT_ID);
+            await projectRegistry.connect(indexer).startService(DEPLOYMENT_ID);
             // 4. generate new agreement and check the reward distribution for 2 era
             await acceptPlan(
                 indexer,
@@ -725,8 +725,7 @@ describe('RewardsDistributer Contract', () => {
             await checkValues(etherParse('1.997002697'), etherParse('10.001697302697'), etherParse('1000'), 0);
             await stakingManager.connect(delegator).delegate(indexer.address, etherParse('1'));
             await stakingManager.connect(delegator2).delegate(indexer.address, etherParse('1'));
-            await queryRegistry.connect(indexer).startIndexing(DEPLOYMENT_ID);
-            await queryRegistry.connect(indexer).updateIndexingStatusToReady(DEPLOYMENT_ID);
+            await projectRegistry.connect(indexer).startService(DEPLOYMENT_ID);
             // 4. generate new agreement and check the reward distribution for 2 era
             await acceptPlan(
                 indexer,

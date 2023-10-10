@@ -215,7 +215,7 @@
     },
     {
         "inputs": [],
-        "name": "getQueryRegistry",
+        "name": "getProjectRegistry",
         "outputs": [
             {
                 "internalType": "address",
@@ -281,6 +281,19 @@
     {
         "inputs": [],
         "name": "getSQToken",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getServiceAgreementExtra",
         "outputs": [
             {
                 "internalType": "address",
@@ -443,7 +456,7 @@
     },
     {
         "inputs": [],
-        "name": "queryRegistry",
+        "name": "projectRegistry",
         "outputs": [
             {
                 "internalType": "address",
@@ -503,6 +516,19 @@
     {
         "inputs": [],
         "name": "rewardsStaking",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "serviceAgreementExtra",
         "outputs": [
             {
                 "internalType": "address",
@@ -639,7 +665,7 @@
             },
             {
                 "internalType": "address",
-                "name": "_queryRegistry",
+                "name": "_projectRegistry",
                 "type": "address"
             },
             {
@@ -655,6 +681,11 @@
             {
                 "internalType": "address",
                 "name": "_serviceAgreementRegistry",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_serviceAgreementExtra",
                 "type": "address"
             },
             {
@@ -682,11 +713,11 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_queryRegistry",
+                "name": "_projectRegistry",
                 "type": "address"
             }
         ],
-        "name": "setQueryRegistry",
+        "name": "setProjectRegistry",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -752,6 +783,19 @@
             }
         ],
         "name": "setSQToken",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_serviceAgreementExtra",
+                "type": "address"
+            }
+        ],
+        "name": "setServiceAgreementExtra",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

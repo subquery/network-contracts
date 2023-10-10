@@ -12,15 +12,16 @@ import {
     PermissionedExchange,
     PlanManager,
     PriceOracle,
+    ProjectRegistry,
     ProxyAdmin,
     PurchaseOfferMarket,
-    QueryRegistry,
     RewardsDistributer,
     RewardsHelper,
     RewardsPool,
     RewardsStaking,
     SQToken,
     ServiceAgreementRegistry,
+    ServiceAgreementExtra,
     Settings,
     Staking,
     StakingManager,
@@ -44,9 +45,10 @@ export class ContractSDK {
     readonly staking!: Staking;
     readonly stakingManager!: StakingManager;
     readonly indexerRegistry!: IndexerRegistry;
-    readonly queryRegistry!: QueryRegistry;
+    readonly projectRegistry!: ProjectRegistry;
     readonly inflationController!: InflationController;
     readonly serviceAgreementRegistry!: ServiceAgreementRegistry;
+    readonly serviceAgreementExtra!: ServiceAgreementExtra;
     readonly eraManager!: EraManager;
     readonly planManager!: PlanManager;
     readonly rewardsDistributor!: RewardsDistributer;

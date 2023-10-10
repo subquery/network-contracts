@@ -1,4 +1,4 @@
-import { ContractReceipt, ContractTransaction, Overrides, Wallet, ethers } from 'ethers';
+import {ContractReceipt, ContractTransaction, Overrides, Wallet, ethers, utils, BigNumber} from 'ethers';
 import Pino from 'pino';
 
 import setup from './setup';
@@ -6,7 +6,6 @@ import setup from './setup';
 import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
 import { ContractSDK, SubqueryNetwork } from '../build';
 import { METADATA_HASH } from '../test/constants';
-import { cidToBytes32, etherParse, lastestTime } from '../test/helper';
 import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
@@ -14,6 +13,7 @@ import startupTestnetConfig from './config/startup.testnet.json';
 import { Provider, StaticJsonRpcProvider } from '@ethersproject/providers';
 import { parseEther } from 'ethers/lib/utils';
 import { getLogger } from './logger';
+import {MockProvider} from "ethereum-waffle";
 
 let startupConfig: any = startupTestnetConfig;
 let logger: Pino.Logger;
@@ -35,6 +35,20 @@ async function sendTx(transaction: (overrides: Overrides) => Promise<ContractTra
     return receipt;
 }
 
+async function lastestBlock(provider: MockProvider | StaticJsonRpcProvider) {
+    const blockBefore = await provider.send('eth_getBlockByNumber', ['latest', false]);
+    return blockBefore;
+}
+
+async function lastestTime(provider: MockProvider | StaticJsonRpcProvider) {
+    const block = await lastestBlock(provider);
+    return BigNumber.from(block.timestamp).toNumber();
+}
+
+function cidToBytes32(cid: string): string {
+    return '0x' + Buffer.from(utils.base58.decode(cid)).slice(2).toString('hex');
+}
+
 async function getAirdropTimeConfig(provider) {
     const startTime = (await lastestTime(provider)) + 600;
     const endTime = startTime + 864000;
@@ -46,37 +60,38 @@ export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpc
     if (_provider) provider = _provider;
     logger = getLogger('Projects');
     for (const creator of startupConfig.QRCreator) {
-        const result = await sdk.queryRegistry.creatorWhitelist(creator);
+        const result = await sdk.projectRegistry.creatorWhitelist(creator);
         if (!result) {
             logger.info(`Add project creator: ${creator}`);
-            await sendTx((overrides) => sdk.queryRegistry.addCreator(creator, overrides));
+            await sendTx((overrides) => sdk.projectRegistry.addCreator(creator, overrides));
         } else {
             logger.info(`${creator} has already exist`);
         }
     }
 
     logger.info('Create Query Projects');
-    const queryId = await sdk.queryRegistry.nextQueryId();
+    const queryId = await sdk.projectRegistry.nextProjectId();
     const projects = startupConfig.projects;
     for (var i = queryId.toNumber(); i < projects.length; i++) {
         const { name, metadataCid, versionCid, deploymentId } = projects[i];
         logger.info(`Create query project: ${name}`);
         await sendTx((overrides) =>
-            sdk.queryRegistry.createQueryProject(
+            sdk.projectRegistry.createProject(
                 cidToBytes32(metadataCid),
                 cidToBytes32(versionCid),
                 cidToBytes32(deploymentId),
+                0,
                 overrides
             )
         );
     }
 
     logger.info('Remove owner from creator whitelist');
-    const owner = await sdk.queryRegistry.owner();
-    await sendTx((overrides) => sdk.queryRegistry.removeCreator(owner, overrides));
+    const owner = await sdk.projectRegistry.owner();
+    await sendTx((overrides) => sdk.projectRegistry.removeCreator(owner, overrides));
 
     logger.info('Add mutli-sig wallet as creator');
-    await sendTx((overrides) => sdk.queryRegistry.addCreator(startupConfig.multiSign, overrides));
+    await sendTx((overrides) => sdk.projectRegistry.addCreator(startupConfig.multiSign, overrides));
 
     console.log('\n');
 }
@@ -177,7 +192,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
         sdk.planManager,
         sdk.proxyAdmin,
         sdk.purchaseOfferMarket,
-        sdk.queryRegistry,
+        sdk.projectRegistry,
         sdk.rewardsDistributor,
         sdk.rewardsHelper,
         sdk.rewardsPool,
@@ -210,7 +225,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
 async function transferTokenToIndexers(sdk: ContractSDK) {
     logger = getLogger('Token');
     const { indexers } = startupConfig;
-    const amount = etherParse('1000000');
+    const amount = utils.parseEther('1000000');
     for (const indexer of indexers) {
         await sdk.sqToken.transfer(indexer, amount);
         logger.info(`Transfer 1_000_000 sqt to ${indexer}`);

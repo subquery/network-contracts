@@ -6,7 +6,8 @@ import {createPlanTemplates, createProjects, airdrop, ownerTransfer, balanceTran
 import {cidToBytes32} from '../helper';
 import config from 'scripts/config/startup.testnet.json';
 
-describe('startup script', () => {
+// this test need to update once the new contracts are deployed to mumbai
+describe.skip('startup script', () => {
     let sdk;
     let wallet;
 
@@ -19,7 +20,7 @@ describe('startup script', () => {
             sqToken: deployment.token,
             airdropper: deployment.airdropper,
             planManager: deployment.planManager,
-            queryRegistry: deployment.queryRegistry,
+            projectRegistry: deployment.projectRegistry,
             permissionedExchange: deployment.permissionedExchange,
         };
 
@@ -42,10 +43,12 @@ describe('startup script', () => {
         it('dictionaries should be created', async () => {
             const {projects} = config;
             for (const [i, d] of projects.entries()) {
-                const info = await sdk.queryRegistry.queryInfos(i);
+                const info = await sdk.projectRegistry.projectInfos(i);
+                const version = await sdk.projectRegistry.deploymentInfos(info.latestDeploymentId);
+                const metadata = await sdk.projectRegistry.tokenURI(i+1);
                 expect(info.latestDeploymentId).to.be.equal(cidToBytes32(d.deploymentId));
-                expect(info.latestVersion).to.be.equal(cidToBytes32(d.versionCid));
-                expect(info.metadata).to.be.equal(cidToBytes32(d.metadataCid));
+                expect(version.metadata).to.be.equal(`ipfs://${d.versionCid}`);
+                expect(metadata).to.be.equal(`ipfs://${d.metadataCid}`);
             }
         });
     });

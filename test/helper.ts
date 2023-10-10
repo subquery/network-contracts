@@ -4,11 +4,10 @@
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { constants, time } from '@openzeppelin/test-helpers';
-import { SQToken } from 'build';
 import { MockProvider } from 'ethereum-waffle';
-import { BaseContract, BigNumber, Contract, ContractTransaction, Wallet as EthWallet, utils } from 'ethers';
+import {BaseContract, BigNumber, Contract, ContractTransaction, Wallet as EthWallet, utils} from 'ethers';
 import { ethers } from "hardhat";
-import { EraManager, IndexerRegistry, PlanManager } from '../src';
+import { EraManager, IndexerRegistry, PlanManager, SQToken, ServiceAgreementExtra, ServiceAgreementRegistry, PurchaseOfferMarket } from '../src';
 import { METADATA_HASH } from './constants';
 
 export { constants, time };
@@ -69,18 +68,17 @@ export async function registerIndexer(
 }
 
 export async function createPurchaseOffer(
-    purchaseOfferMarket: Contract,
+    purchaseOfferMarket: PurchaseOfferMarket,
     token: Contract,
     deploymentId: string,
-    expireDate
-) {
-    const deposit = etherParse('2');
-    const limit = 1;
-    const minimumAcceptHeight = 100;
-    const planTemplateId = 0;
-
-    await token.increaseAllowance(purchaseOfferMarket.address, etherParse('2'));
-    await purchaseOfferMarket.createPurchaseOffer(
+    expireDate,
+    planTemplateId = 0,
+    limit = 1,
+    deposit='2000000000000000000', // 2e18
+    minimumAcceptHeight=100,
+): Promise<BigNumber> {
+    await token.increaseAllowance(purchaseOfferMarket.address, deposit);
+    const tx = await purchaseOfferMarket.createPurchaseOffer(
         deploymentId,
         planTemplateId,
         deposit,
@@ -88,6 +86,8 @@ export async function createPurchaseOffer(
         minimumAcceptHeight,
         expireDate
     );
+    const evt = await eventFrom(tx, purchaseOfferMarket, 'PurchaseOfferCreated(address,uint256,bytes32,uint256,uint256,uint16,uint256,uint256)');
+    return evt.offerId;
 }
 
 export async function startNewEra(mockProvider: MockProvider, eraManager: EraManager): Promise<BigNumber> {
@@ -137,7 +137,7 @@ export async function eventFrom(tx: ContractTransaction, contract: BaseContract,
     const evt = receipt.events.find((log) => log.topics[0] === utils.id(event));
 
     const eventName = event.split('(')[0];
-    return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data);
+    return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics);
 }
 
 export async function deploySUSD(siger: SignerWithAddress) {

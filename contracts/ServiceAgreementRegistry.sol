@@ -5,20 +5,19 @@ pragma solidity 0.8.15;
 
 pragma experimental ABIEncoderV2;
 
+
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
+import './interfaces/IServiceAgreementExtra.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
-import './interfaces/IQueryRegistry.sol';
 import './interfaces/IRewardsDistributer.sol';
-import './interfaces/IStakingManager.sol';
 import './interfaces/IPlanManager.sol';
-import './Constants.sol';
-import './utils/MathUtil.sol';
-
 /**
  * @title Service Agreement Registry Contract
  * @notice ### Overview
@@ -28,9 +27,7 @@ import './utils/MathUtil.sol';
  * All generated service agreement need to register in this contract by calling establishServiceAgreement(). After this all SQT Toaken
  * from agreements will be temporary hold in this contract, and approve reward distributor contract to take and distribute these Token.
  */
-contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IServiceAgreementRegistry, Constants {
-    using MathUtil for uint256;
-
+contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, IServiceAgreementRegistry {
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
@@ -38,34 +35,11 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
     /// @notice the id for next ServiceAgreement
     uint256 public nextServiceAgreementId;
 
-    /// @notice Multipler used to calculate Indexer reward limit
-    uint256 public threshold;
-
-    /// @notice second in a day
-    uint256 private constant SECONDS_IN_DAY = 86400;
-
     /// @notice ServiceAgreementId => AgreementInfo
     mapping(uint256 => ClosedServiceAgreementInfo) private closedServiceAgreements;
 
-    /// @notice serviceAgreement address: Indexer address => index number => serviceAgreement address
-    mapping(address => mapping(uint256 => uint256)) public closedServiceAgreementIds;
-
-    /// @notice number of service agreements: Indexer address =>  number of service agreements
-    mapping(address => uint256) public indexerCsaLength;
-
-    /// @notice number of service agreements: Indexer address => DeploymentId => number of service agreements
-    mapping(address => mapping(bytes32 => uint256)) public indexerDeploymentCsaLength;
-
     /// @notice address can establishServiceAgreement, for now only PurchaceOfferMarket and PlanManager addresses
     mapping(address => bool) public establisherWhitelist;
-
-    /// @notice calculated sum daily reward: Indexer address => sumDailyReward
-    mapping(address => uint256) public sumDailyReward;
-
-    /// @notice users authorised by consumer that can request access token from indexer, for closed agreements only.
-    /// consumer address => user address => bool
-    /// We are using the statu `consumerAuthAllows` offchain.
-    mapping(address => mapping(address => bool)) public consumerAuthAllows;
 
     // -- Events --
 
@@ -78,34 +52,15 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         bytes32 indexed deploymentId,
         uint256 serviceAgreementId
     );
-    /**
-     * @dev Emitted when expired closed service agreement removed.
-     */
-    event ClosedAgreementRemoved(
-        address indexed consumer,
-        address indexed indexer,
-        bytes32 indexed deploymentId,
-        uint256 serviceAgreementId
-    );
-    /**
-     * @dev Emitted when consumer add new user
-     */
-    event UserAdded(address indexed consumer, address user);
-    /**
-     * @dev Emitted when consumer remove user
-     */
-    event UserRemoved(address indexed consumer, address user);
 
     /**
      * @dev Initialize this contract. Load establisherWhitelist.
      */
-    function initialize(ISettings _settings, address[] calldata _whitelist, uint256 _threshold) external initializer {
+    function initialize(ISettings _settings, address[] calldata _whitelist) external initializer {
         __Ownable_init();
+        __ERC721_init("SuqueryAgreement", "SA");
 
         settings = _settings;
-
-        threshold = _threshold;
-
         nextServiceAgreementId = 1;
 
         for (uint256 i; i < _whitelist.length; i++) {
@@ -117,36 +72,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         settings = _settings;
     }
 
-    /**
-     * @dev We adjust the ratio of Indexer‘s totalStakedAmount and sumDailyRewards by
-     * setting the value of threshold.
-     * A smaller threshold value means that the Indexer can get higher sumDailyRewards with
-     * a smaller totalStakedAmount，vice versa.
-     * If the threshold is less than PER_MILL, we will not limit the indexer's sumDailyRewards.
-     */
-    function setThreshold(uint256 _threshold) external onlyOwner {
-        threshold = _threshold >= PER_MILL ? _threshold : 0;
-    }
-
-    /**
-     * @dev Consumer add users can request access token from indexer.
-     * We are using the statu `consumerAuthAllows` offchain.
-     */
-    function addUser(address consumer, address user) external {
-        require(msg.sender == consumer, 'SA002');
-        consumerAuthAllows[consumer][user] = true;
-        emit UserAdded(consumer, user);
-    }
-
-    /**
-     * @dev Consumer remove users can request access token from indexer.
-     */
-    function removeUser(address consumer, address user) external {
-        require(msg.sender == consumer, 'SA003');
-        delete consumerAuthAllows[consumer][user];
-        emit UserRemoved(consumer, user);
-    }
-
     function addEstablisher(address establisher) external onlyOwner {
         establisherWhitelist[establisher] = true;
     }
@@ -155,16 +80,17 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         establisherWhitelist[establisher] = false;
     }
 
-    function periodInDay(uint256 period) private pure returns (uint256) {
-        return period > SECONDS_IN_DAY ? period / SECONDS_IN_DAY : 1;
-    }
-
-    function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement) external returns (uint256) {
+    function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement, bool checkThreshold) external returns (uint256) {
         if (msg.sender != address(this)) {
             require(establisherWhitelist[msg.sender], 'SA004');
         }
-        closedServiceAgreements[nextServiceAgreementId] = agreement;
+
         uint256 agreementId = nextServiceAgreementId;
+        closedServiceAgreements[agreementId] = agreement;
+
+        _safeMint(agreement.consumer, agreementId);
+        _establishServiceAgreement(agreementId, checkThreshold);
+
         nextServiceAgreementId += 1;
         return agreementId;
     }
@@ -183,52 +109,23 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
      * at the same time, it also encourages Indexer to provide better more stable services.
      *
      */
-    function establishServiceAgreement(uint256 agreementId) external {
-        if (msg.sender != address(this)) {
-            require(establisherWhitelist[msg.sender], 'SA004');
-        }
-
-        _establishServiceAgreement(agreementId, true);
-    }
-
     function _establishServiceAgreement(uint256 agreementId, bool checkThreshold) internal {
         //for now only support closed service agreement
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(agreement.consumer != address(0), 'SA001');
 
-        address indexer = agreement.indexer;
-        address consumer = agreement.consumer;
-        bytes32 deploymentId = agreement.deploymentId;
-
-        require(
-            IQueryRegistry(settings.getQueryRegistry()).isIndexingAvailable(deploymentId, indexer),
-            'SA005'
-        );
-
-        IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
-        uint256 totalStake = stakingManager.getTotalStakingAmount(indexer);
-
-        uint256 lockedAmount = agreement.lockedAmount;
-        uint256 period = periodInDay(agreement.period);
-        sumDailyReward[indexer] += lockedAmount / period;
-        require(
-            !checkThreshold || totalStake >= MathUtil.mulDiv(sumDailyReward[indexer], threshold, PER_MILL),
-            'SA006'
-        );
-
-        closedServiceAgreementIds[indexer][indexerCsaLength[indexer]] = agreementId;
-        indexerCsaLength[indexer] += 1;
-        indexerDeploymentCsaLength[indexer][deploymentId] += 1;
+        IServiceAgreementExtra saHelper = IServiceAgreementExtra(settings.getServiceAgreementExtra());
+        saHelper.addAgreement(agreementId, agreement, checkThreshold);
 
         // approve token to reward distributor contract
         address SQToken = settings.getSQToken();
-        IERC20(SQToken).approve(settings.getRewardsDistributer(), lockedAmount);
+        IERC20(SQToken).approve(settings.getRewardsDistributer(), agreement.lockedAmount);
 
         // increase agreement rewards
         IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getRewardsDistributer());
         rewardsDistributer.increaseAgreementRewards(agreementId);
 
-        emit ClosedAgreementCreated(consumer, indexer, deploymentId, agreementId);
+        emit ClosedAgreementCreated(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
     }
 
     /**
@@ -245,11 +142,13 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(msg.sender == agreement.consumer, 'SA007');
         require(agreement.startDate < block.timestamp, 'SA008');
+        require((agreement.startDate + agreement.period) > block.timestamp, 'SA009');
 
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         Plan memory plan = planManager.getPlan(agreement.planId);
         require(plan.active, 'PM009');
-        require((agreement.startDate + agreement.period) > block.timestamp, 'SA009');
+        PlanTemplateV2 memory template = planManager.getPlanTemplate(plan.templateId);
+        require(template.active, 'PM006');
 
         // create closed service agreement
         ClosedServiceAgreementInfo memory newAgreement = ClosedServiceAgreementInfo(
@@ -262,55 +161,14 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
             agreement.planId,
             agreement.planTemplateId
         );
-        uint256 newAgreementId = this.createClosedServiceAgreement(newAgreement);
-
         // deposit SQToken into service agreement registry contract
         IERC20(settings.getSQToken()).transferFrom(msg.sender, address(this), agreement.lockedAmount);
-        _establishServiceAgreement(newAgreementId, false);
-    }
-
-    function clearEndedAgreement(address indexer, uint256 id) public {
-        require(id < indexerCsaLength[indexer], 'SA001');
-
-        uint256 agreementId = closedServiceAgreementIds[indexer][id];
-        ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
-        require(agreement.consumer != address(0), 'SA001');
-        require(block.timestamp > (agreement.startDate + agreement.period), 'SA010');
-
-        uint256 lockedAmount = agreement.lockedAmount;
-        uint256 period = periodInDay(agreement.period);
-        sumDailyReward[indexer] = MathUtil.sub(sumDailyReward[indexer], (lockedAmount / period));
-
-        closedServiceAgreementIds[indexer][id] = closedServiceAgreementIds[indexer][indexerCsaLength[indexer] - 1];
-        delete closedServiceAgreementIds[indexer][indexerCsaLength[indexer] - 1];
-        indexerCsaLength[indexer] -= 1;
-        indexerDeploymentCsaLength[indexer][agreement.deploymentId] -= 1;
-
-        emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
-    }
-
-    function clearAllEndedAgreements(address indexer) public {
-        uint256 count = 0;
-        for (uint256 i = indexerCsaLength[indexer]; i >= 1; i--) {
-            uint256 agreementId = closedServiceAgreementIds[indexer][i - 1];
-            ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
-            if (block.timestamp > (agreement.startDate + agreement.period)) {
-                clearEndedAgreement(indexer, i - 1);
-                count++;
-                if (count >= 10) {
-                    break;
-                }
-            }
-        }
+        uint256 newAgreementId = this.createClosedServiceAgreement(newAgreement, false);
     }
 
     function closedServiceAgreementExpired(uint256 agreementId) public view returns (bool) {
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         return block.timestamp > (agreement.startDate + agreement.period);
-    }
-
-    function hasOngoingClosedServiceAgreement(address indexer, bytes32 deploymentId) external view returns (bool) {
-        return indexerDeploymentCsaLength[indexer][deploymentId] > 0;
     }
 
     function getClosedServiceAgreement(uint256 agreementId) external view returns (ClosedServiceAgreementInfo memory) {

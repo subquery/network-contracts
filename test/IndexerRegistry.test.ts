@@ -3,7 +3,7 @@
 
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { IndexerRegistry, QueryRegistry, RewardsStaking, SQToken, Staking, StakingManager } from '../src';
+import { IndexerRegistry, ProjectRegistry, RewardsStaking, SQToken, Staking, StakingManager } from '../src';
 import { DEPLOYMENT_ID, METADATA_1_HASH, METADATA_HASH, VERSION } from './constants';
 import { etherParse, registerIndexer } from './helper';
 import { deployContracts } from './setup';
@@ -16,7 +16,7 @@ describe('IndexerRegistry Contract', () => {
     let token: SQToken;
     let staking: Staking;
     let stakingManager: StakingManager;
-    let queryRegistry: QueryRegistry;
+    let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
     let rewardsStaking: RewardsStaking;
     const amount = '2000';
@@ -31,7 +31,7 @@ describe('IndexerRegistry Contract', () => {
         token = deployment.token;
         staking = deployment.staking;
         stakingManager = deployment.stakingManager;
-        queryRegistry = deployment.queryRegistry;
+        projectRegistry = deployment.projectRegistry;
         indexerRegistry = deployment.indexerRegistry;
         rewardsStaking = deployment.rewardsStaking;
         await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, amount);
@@ -146,8 +146,8 @@ describe('IndexerRegistry Contract', () => {
             await expect(indexerRegistry.connect(wallet_1).unregisterIndexer()).to.be.revertedWith('G002');
 
             // with running projects
-            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
-            await queryRegistry.startIndexing(DEPLOYMENT_ID);
+            await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
+            await projectRegistry.startService(DEPLOYMENT_ID);
             await expect(indexerRegistry.unregisterIndexer()).to.be.revertedWith('IR004');
         });
     });

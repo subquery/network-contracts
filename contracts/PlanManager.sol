@@ -200,6 +200,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
 
         //stable price mode
         PlanTemplateV2 memory template = getPlanTemplate(plan.templateId);
+        require(template.active, 'PM006');
         uint256 sqtPrice = IPriceOracle(settings.getPriceOracle()).convertPrice(template.priceToken, settings.getSQToken(), plan.price);
 
         // create closed service agreement contract
@@ -219,8 +220,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
 
         // register the agreement to service agreement registry contract
         IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
-        uint256 agreementId = registry.createClosedServiceAgreement(agreement);
-        registry.establishServiceAgreement(agreementId);
+        registry.createClosedServiceAgreement(agreement, true);
     }
 
     /**

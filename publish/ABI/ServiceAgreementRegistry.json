@@ -5,6 +5,56 @@
             {
                 "indexed": true,
                 "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "approved",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "Approval",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "operator",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bool",
+                "name": "approved",
+                "type": "bool"
+            }
+        ],
+        "name": "ApprovalForAll",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
                 "name": "consumer",
                 "type": "address"
             },
@@ -36,37 +86,6 @@
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "consumer",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "indexer",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "internalType": "bytes32",
-                "name": "deploymentId",
-                "type": "bytes32"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "serviceAgreementId",
-                "type": "uint256"
-            }
-        ],
-        "name": "ClosedAgreementRemoved",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
                 "name": "previousOwner",
                 "type": "address"
             },
@@ -86,89 +105,24 @@
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "consumer",
+                "name": "from",
                 "type": "address"
             },
-            {
-                "indexed": false,
-                "internalType": "address",
-                "name": "user",
-                "type": "address"
-            }
-        ],
-        "name": "UserAdded",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "consumer",
+                "name": "to",
                 "type": "address"
             },
             {
-                "indexed": false,
-                "internalType": "address",
-                "name": "user",
-                "type": "address"
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
             }
         ],
-        "name": "UserRemoved",
+        "name": "Transfer",
         "type": "event"
-    },
-    {
-        "inputs": [],
-        "name": "PER_BILL",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "PER_MILL",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "PER_TRILL",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "ZERO_ADDRESS",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
     },
     {
         "inputs": [
@@ -187,49 +141,37 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "consumer",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "user",
-                "type": "address"
-            }
-        ],
-        "name": "addUser",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "indexer",
-                "type": "address"
-            }
-        ],
-        "name": "clearAllEndedAgreements",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "indexer",
+                "name": "to",
                 "type": "address"
             },
             {
                 "internalType": "uint256",
-                "name": "id",
+                "name": "tokenId",
                 "type": "uint256"
             }
         ],
-        "name": "clearEndedAgreement",
+        "name": "approve",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            }
+        ],
+        "name": "balanceOf",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -241,54 +183,6 @@
             }
         ],
         "name": "closedServiceAgreementExpired",
-        "outputs": [
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            },
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "name": "closedServiceAgreementIds",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "name": "consumerAuthAllows",
         "outputs": [
             {
                 "internalType": "bool",
@@ -347,6 +241,11 @@
                 "internalType": "struct ClosedServiceAgreementInfo",
                 "name": "agreement",
                 "type": "tuple"
+            },
+            {
+                "internalType": "bool",
+                "name": "checkThreshold",
+                "type": "bool"
             }
         ],
         "name": "createClosedServiceAgreement",
@@ -357,19 +256,6 @@
                 "type": "uint256"
             }
         ],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "agreementId",
-                "type": "uint256"
-            }
-        ],
-        "name": "establishServiceAgreement",
-        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -387,6 +273,25 @@
                 "internalType": "bool",
                 "name": "",
                 "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "getApproved",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
             }
         ],
         "stateMutability": "view",
@@ -456,17 +361,35 @@
     {
         "inputs": [
             {
-                "internalType": "address",
-                "name": "indexer",
+                "internalType": "contract ISettings",
+                "name": "_settings",
                 "type": "address"
             },
             {
-                "internalType": "bytes32",
-                "name": "deploymentId",
-                "type": "bytes32"
+                "internalType": "address[]",
+                "name": "_whitelist",
+                "type": "address[]"
             }
         ],
-        "name": "hasOngoingClosedServiceAgreement",
+        "name": "initialize",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "operator",
+                "type": "address"
+            }
+        ],
+        "name": "isApprovedForAll",
         "outputs": [
             {
                 "internalType": "bool",
@@ -478,69 +401,16 @@
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "name": "indexerCsaLength",
+        "inputs": [],
+        "name": "name",
         "outputs": [
             {
-                "internalType": "uint256",
+                "internalType": "string",
                 "name": "",
-                "type": "uint256"
+                "type": "string"
             }
         ],
         "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "",
-                "type": "bytes32"
-            }
-        ],
-        "name": "indexerDeploymentCsaLength",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "contract ISettings",
-                "name": "_settings",
-                "type": "address"
-            },
-            {
-                "internalType": "address[]",
-                "name": "_whitelist",
-                "type": "address[]"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_threshold",
-                "type": "uint256"
-            }
-        ],
-        "name": "initialize",
-        "outputs": [],
-        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -572,30 +442,31 @@
     {
         "inputs": [
             {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "ownerOf",
+        "outputs": [
+            {
                 "internalType": "address",
-                "name": "establisher",
+                "name": "",
                 "type": "address"
             }
         ],
-        "name": "removeEstablisher",
-        "outputs": [],
-        "stateMutability": "nonpayable",
+        "stateMutability": "view",
         "type": "function"
     },
     {
         "inputs": [
             {
                 "internalType": "address",
-                "name": "consumer",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "user",
+                "name": "establisher",
                 "type": "address"
             }
         ],
-        "name": "removeUser",
+        "name": "removeEstablisher",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -623,12 +494,22 @@
     {
         "inputs": [
             {
-                "internalType": "contract ISettings",
-                "name": "_settings",
+                "internalType": "address",
+                "name": "from",
                 "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
             }
         ],
-        "name": "setSettings",
+        "name": "safeTransferFrom",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -636,12 +517,58 @@
     {
         "inputs": [
             {
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
                 "internalType": "uint256",
-                "name": "_threshold",
+                "name": "tokenId",
                 "type": "uint256"
+            },
+            {
+                "internalType": "bytes",
+                "name": "_data",
+                "type": "bytes"
             }
         ],
-        "name": "setThreshold",
+        "name": "safeTransferFrom",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "operator",
+                "type": "address"
+            },
+            {
+                "internalType": "bool",
+                "name": "approved",
+                "type": "bool"
+            }
+        ],
+        "name": "setApprovalForAll",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract ISettings",
+                "name": "_settings",
+                "type": "address"
+            }
+        ],
+        "name": "setSettings",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -662,17 +589,17 @@
     {
         "inputs": [
             {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
+                "internalType": "bytes4",
+                "name": "interfaceId",
+                "type": "bytes4"
             }
         ],
-        "name": "sumDailyReward",
+        "name": "supportsInterface",
         "outputs": [
             {
-                "internalType": "uint256",
+                "internalType": "bool",
                 "name": "",
-                "type": "uint256"
+                "type": "bool"
             }
         ],
         "stateMutability": "view",
@@ -680,15 +607,57 @@
     },
     {
         "inputs": [],
-        "name": "threshold",
+        "name": "symbol",
         "outputs": [
             {
-                "internalType": "uint256",
+                "internalType": "string",
                 "name": "",
-                "type": "uint256"
+                "type": "string"
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "tokenURI",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "transferFrom",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {

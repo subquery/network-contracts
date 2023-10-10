@@ -9,7 +9,7 @@ import {
     IndexerRegistry,
     PermissionedExchange,
     PlanManager,
-    QueryRegistry,
+    ProjectRegistry,
     RewardsDistributer,
     SQToken,
     SUSD__factory,
@@ -32,7 +32,7 @@ describe('PermissionedExchange Contract', () => {
     let usdToken: SUSD;
     let sqToken: SQToken;
     let staking: Staking;
-    let queryRegistry: QueryRegistry;
+    let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
@@ -47,7 +47,7 @@ describe('PermissionedExchange Contract', () => {
         settings = deployment.settings;
         sqtAddress = await settings.getSQToken();
         staking = deployment.staking;
-        queryRegistry = deployment.queryRegistry;
+        projectRegistry = deployment.projectRegistry;
         indexerRegistry = deployment.indexerRegistry;
         planManager = deployment.planManager;
         eraManager = deployment.eraManager;
@@ -118,10 +118,9 @@ describe('PermissionedExchange Contract', () => {
             await sqToken.transfer(consumer.address, etherParse('10'));
             await sqToken.connect(consumer).increaseAllowance(planManager.address, etherParse('10'));
             // create query project
-            await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+            await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID,0);
             // wallet_0 start project
-            await queryRegistry.connect(indexer).startIndexing(DEPLOYMENT_ID);
-            await queryRegistry.connect(indexer).updateIndexingStatusToReady(DEPLOYMENT_ID);
+            await projectRegistry.connect(indexer).startService(DEPLOYMENT_ID);
             // create plan template
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, sqToken.address, METADATA_HASH);
             // default plan -> planId: 1
@@ -365,7 +364,7 @@ describe('PermissionedExchange Contract', () => {
         });
     });
 
-    describe.only('pair orders test', () => {
+    describe('pair orders test', () => {
         it('create pair order should work', async () => {
             await permissionedExchange.createPairOrders(
                 usdAddress,

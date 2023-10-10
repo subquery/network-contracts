@@ -1,11 +1,11 @@
-import { ContractSDK } from '@subql/contract-sdk';
+import { ContractSDK } from '../../src';
 import Token from '@subql/contract-sdk/artifacts/contracts/SQToken.sol/SQToken.json';
 import deployment from '@subql/contract-sdk/publish/testnet.json';
 import assert from 'assert';
 import { BigNumber, ContractReceipt, ContractTransaction, Wallet, ethers, utils } from 'ethers';
 import web3 from 'web3';
 import setup from '../../scripts/setup';
-import { VERSION, mmrRoot } from '../constants';
+import { VERSION, poi } from '../constants';
 
 let INDEXER_ADDR;
 let CONSUMER_ADDR;
@@ -68,23 +68,26 @@ async function rootSetup() {
 
 async function queryProjectSetup() {
     console.log('\n====Setup query project =====\n');
-    const next = await sdk.queryRegistry.nextQueryId();
+    const next = await sdk.projectRegistry.nextProjectId();
     if (next.toNumber() == 0) {
         console.log('start create query project 0 ...');
-        await sendTx(() => sdk.queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID));
+        await sendTx(() => sdk.projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID,0));
     }
 
-    const info = await sdk.queryRegistry.queryInfos(0);
+    const info = await sdk.projectRegistry.projectInfos(0);
+    const deploymentInfo = await sdk.projectRegistry.deploymentInfos(info.latestDeploymentId)
+    const projectNft = await sdk.projectRegistry.tokenURI(0)
     if (info.latestDeploymentId != DEPLOYMENT_ID) {
         console.log('start update query project 0 ...');
-        await sendTx(() => sdk.queryRegistry.updateDeployment(0, DEPLOYMENT_ID, VERSION));
-        await sendTx(() => sdk.queryRegistry.updateQueryProjectMetadata(0, METADATA_HASH));
+        await sendTx(() => sdk.projectRegistry.updateDeployment(0, DEPLOYMENT_ID, VERSION));
+        await sendTx(() => sdk.projectRegistry.updateProjectMetadata(0, METADATA_HASH));
     }
 
     console.log('QueryProject 0: ');
-    console.log('latestVersion: ' + info.latestVersion);
     console.log('latestDeploymentId: ' + info.latestDeploymentId);
-    console.log('metadata: ' + info.metadata);
+
+    console.log('latestVersion: ' + deploymentInfo.metadata);
+    console.log('metadata: ' + projectNft);
 }
 
 async function planTemplateSetup() {
@@ -129,22 +132,19 @@ async function indexerSetup() {
     console.log('TotalStakingAmount: ' + (await sdk.stakingManager.getTotalStakingAmount(INDEXER_ADDR)));
 
     //Indexing start and update indxing status to ready
-    let indexingStatus = (await sdk.queryRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR)).status;
-    if (indexingStatus != 2) {
-        if (indexingStatus == 0) {
-            console.log('start indexing ...');
-            await sendTx(() => sdk.queryRegistry.connect(indexer_wallet).startIndexing(DEPLOYMENT_ID));
-        }
-        await sendTx(() => sdk.queryRegistry.connect(indexer_wallet).updateIndexingStatusToReady(DEPLOYMENT_ID));
+    let indexingStatus = await sdk.projectRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR);
+    if (indexingStatus != 1) {
+        console.log('start indexing ...');
+        await sendTx(() => sdk.projectRegistry.connect(indexer_wallet).startService(DEPLOYMENT_ID));
     }
-    indexingStatus = (await sdk.queryRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR)).status;
+    indexingStatus = await sdk.projectRegistry.deploymentStatusByIndexer(DEPLOYMENT_ID, INDEXER_ADDR);
     console.log(`Indexing status: ${indexingStatus}`);
 }
 
 async function clearEndedAgreements(indexer) {
     console.log('\n====Clear end agreements=====\n');
     //start clear ended agreements
-    const receipt = await sendTx(() => sdk.serviceAgreementRegistry.clearAllEndedAgreements(indexer));
+    const receipt = await sendTx(() => sdk.serviceAgreementExtra.clearAllEndedAgreements(indexer));
     const events = receipt.events;
     events.forEach((event) => {
         if (event.args) {
@@ -230,7 +230,7 @@ async function purchaseOfferTest() {
 
     //indexer accept the purchaseOffer
     console.log('indexer start accept the offer ...');
-    await sendTx(() => sdk.purchaseOfferMarket.connect(indexer_wallet).acceptPurchaseOffer(offerId, mmrRoot));
+    await sendTx(() => sdk.purchaseOfferMarket.connect(indexer_wallet).acceptPurchaseOffer(offerId, poi));
     const agreementId = (await sdk.serviceAgreementRegistry.nextServiceAgreementId()).toNumber() - 1;
     const agreement = await sdk.serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
     console.log(`created agreemnt: ${agreementId}`);
@@ -435,7 +435,7 @@ async function main() {
 
     const { wallet, provider } = await setup(process.argv);
     Provider = provider;
-    sdk = await ContractSDK.create(wallet, { deploymentDetails: deployment });
+    sdk = await ContractSDK.create(wallet, { deploymentDetails: deployment } as any);
     root_wallet = wallet;
     indexer_wallet = new Wallet(INDEXER_PK, provider);
     consumer_wallet = new Wallet(CONSUMER_PK, provider);

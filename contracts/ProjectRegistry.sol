@@ -14,7 +14,7 @@ import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IProjectRegistry.sol';
-import './interfaces/IServiceAgreementRegistry.sol';
+import './interfaces/IServiceAgreementExtra.sol';
 
 /**
  * @title Project Registry Contract
@@ -136,7 +136,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice create a project, if in the restrict mode, only creator allowed to call this function
      */
-    function createProject(bytes32 deploymentId, bytes32 deploymentMetdata, string memory projectMetadataUri, ProjectType projectType) external {
+    function createProject(string memory projectMetadataUri,bytes32 deploymentMetdata, bytes32 deploymentId, ProjectType projectType) external {
         if (creatorRestricted) {
             require(creatorWhitelist[msg.sender], 'PR001');
         }
@@ -183,11 +183,12 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice Indexer update its service status to ready with a specific deploymentId
      */
-    function updateServiceStatusToReady(bytes32 deploymentId) external onlyIndexer {
+    function startService(bytes32 deploymentId) external onlyIndexer {
         ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
         require(currentStatus == ServiceStatus.TERMINATED, 'PR002');
 
         deploymentStatusByIndexer[deploymentId][msg.sender] = ServiceStatus.READY;
+        numberOfDeployments[msg.sender]++;
 
         emit ServiceStatusChanged(msg.sender, deploymentId, ServiceStatus.READY);
     }
@@ -200,7 +201,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
 
         require(currentStatus != ServiceStatus.TERMINATED, 'PR005');
         require(
-            !IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).hasOngoingClosedServiceAgreement(
+            !IServiceAgreementExtra(settings.getServiceAgreementExtra()).hasOngoingClosedServiceAgreement(
                 msg.sender,
                 deploymentId
             ),

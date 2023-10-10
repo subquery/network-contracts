@@ -8,15 +8,16 @@ import InflationController from './artifacts/contracts/InflationController.sol/I
 import PermissionedExchange from './artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json';
 import PlanManager from './artifacts/contracts/PlanManager.sol/PlanManager.json';
 import PriceOracle from './artifacts/contracts/PriceOracle.sol/PriceOracle.json';
+import ProjectRegistry from './artifacts/contracts/ProjectRegistry.sol/ProjectRegistry.json';
 import ProxyAdmin from './artifacts/contracts/ProxyAdmin.sol/ProxyAdmin.json';
 import PurchaseOfferMarket from './artifacts/contracts/PurchaseOfferMarket.sol/PurchaseOfferMarket.json';
-import QueryRegistry from './artifacts/contracts/QueryRegistry.sol/QueryRegistry.json';
 import RewardsDistributer from './artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json';
 import RewardsHelper from './artifacts/contracts/RewardsHelper.sol/RewardsHelper.json';
 import RewardsPool from './artifacts/contracts/RewardsPool.sol/RewardsPool.json';
 import RewardsStaking from './artifacts/contracts/RewardsStaking.sol/RewardsStaking.json';
 import SQToken from './artifacts/contracts/SQToken.sol/SQToken.json';
 import ServiceAgreementRegistry from './artifacts/contracts/ServiceAgreementRegistry.sol/ServiceAgreementRegistry.json';
+import ServiceAgreementExtra from './artifacts/contracts/ServiceAgreementExtra.sol/ServiceAgreementExtra.json';
 import Settings from './artifacts/contracts/Settings.sol/Settings.json';
 import Staking from './artifacts/contracts/Staking.sol/Staking.json';
 import StakingManager from './artifacts/contracts/StakingManager.sol/StakingManager.json';
@@ -32,9 +33,10 @@ export default {
     Staking,
     StakingManager,
     IndexerRegistry,
-    QueryRegistry,
+    ProjectRegistry,
     InflationController,
     ServiceAgreementRegistry,
+    ServiceAgreementExtra,
     PlanManager,
     PurchaseOfferMarket,
     EraManager,

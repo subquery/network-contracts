@@ -13,10 +13,11 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
     address public staking;
     address public stakingManager;
     address public indexerRegistry;
-    address public queryRegistry;
+    address public projectRegistry;
     address public eraManager;
     address public planManager;
     address public serviceAgreementRegistry;
+    address public serviceAgreementExtra;
     address public rewardsDistributer;
     address public rewardsPool;
     address public rewardsStaking;
@@ -35,28 +36,31 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
 
     function setProjectAddresses(
         address _indexerRegistry,
-        address _queryRegistry,
+        address _projectRegistry,
         address _eraManager,
         address _planManager,
         address _serviceAgreementRegistry,
+        address _serviceAgreementExtra,
         address _disputeManager,
         address _stateChannel,
         address _consumerRegistry
     ) external override onlyOwner {
         require(_indexerRegistry != ZERO_ADDRESS);
-        require(_queryRegistry != ZERO_ADDRESS);
+        require(_projectRegistry != ZERO_ADDRESS);
         require(_eraManager != ZERO_ADDRESS);
         require(_planManager != ZERO_ADDRESS);
         require(_serviceAgreementRegistry != ZERO_ADDRESS);
+        require(_serviceAgreementExtra != ZERO_ADDRESS);
         require(_disputeManager != ZERO_ADDRESS);
         require(_stateChannel != ZERO_ADDRESS);
         require(_consumerRegistry != ZERO_ADDRESS);
 
         indexerRegistry = _indexerRegistry;
-        queryRegistry = _queryRegistry;
+        projectRegistry = _projectRegistry;
         eraManager = _eraManager;
         planManager = _planManager;
         serviceAgreementRegistry = _serviceAgreementRegistry;
+        serviceAgreementExtra = _serviceAgreementExtra;
         disputeManager = _disputeManager;
         stateChannel = _stateChannel;
         consumerRegistry = _consumerRegistry;
@@ -137,13 +141,13 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         return indexerRegistry;
     }
 
-    function setQueryRegistry(address _queryRegistry) external override onlyOwner {
-        require(_queryRegistry != ZERO_ADDRESS);
-        queryRegistry = _queryRegistry;
+    function setProjectRegistry(address _projectRegistry) external override onlyOwner {
+        require(_projectRegistry != ZERO_ADDRESS);
+        projectRegistry = _projectRegistry;
     }
 
-    function getQueryRegistry() external view override returns (address) {
-        return queryRegistry;
+    function getProjectRegistry() external view override returns (address) {
+        return projectRegistry;
     }
 
     function setEraManager(address _eraManager) external override onlyOwner {
@@ -169,8 +173,17 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
         serviceAgreementRegistry = _serviceAgreementRegistry;
     }
 
+    function setServiceAgreementExtra(address _serviceAgreementExtra) external override onlyOwner {
+        require(_serviceAgreementExtra != ZERO_ADDRESS);
+        serviceAgreementExtra = _serviceAgreementExtra;
+    }
+
     function getServiceAgreementRegistry() external view override returns (address) {
         return serviceAgreementRegistry;
+    }
+
+    function getServiceAgreementExtra() external view override returns (address) {
+        return serviceAgreementExtra;
     }
 
     function setRewardsDistributer(address _rewardsDistributer) external override onlyOwner {

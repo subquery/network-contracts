@@ -9,7 +9,7 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 import './interfaces/ISettings.sol';
-import './interfaces/IQueryRegistry.sol';
+import './interfaces/IProjectRegistry.sol';
 import './interfaces/IEraManager.sol';
 import './Constants.sol';
 import './interfaces/IRewardsStaking.sol';
@@ -149,7 +149,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
      *  This function will call unstake for Indexer to make sure indexer unstaking all staked SQT Token after unregister.
      */
     function unregisterIndexer() external onlyIndexer {
-        require(IQueryRegistry(settings.getQueryRegistry()).numberOfIndexingDeployments(msg.sender) == 0, 'IR004');
+        require(IProjectRegistry(settings.getProjectRegistry()).numberOfDeployments(msg.sender) == 0, 'IR004');
 
         delete metadata[msg.sender];
         delete controllers[msg.sender];
