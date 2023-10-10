@@ -5,7 +5,7 @@ import assert from 'assert';
 import { BigNumber, ContractReceipt, ContractTransaction, Wallet, ethers, utils } from 'ethers';
 import web3 from 'web3';
 import setup from '../../scripts/setup';
-import { VERSION, mmrRoot } from '../constants';
+import { VERSION, poi } from '../constants';
 
 let INDEXER_ADDR;
 let CONSUMER_ADDR;
@@ -230,7 +230,7 @@ async function purchaseOfferTest() {
 
     //indexer accept the purchaseOffer
     console.log('indexer start accept the offer ...');
-    await sendTx(() => sdk.purchaseOfferMarket.connect(indexer_wallet).acceptPurchaseOffer(offerId, mmrRoot));
+    await sendTx(() => sdk.purchaseOfferMarket.connect(indexer_wallet).acceptPurchaseOffer(offerId, poi));
     const agreementId = (await sdk.serviceAgreementRegistry.nextServiceAgreementId()).toNumber() - 1;
     const agreement = await sdk.serviceAgreementRegistry.getClosedServiceAgreement(agreementId);
     console.log(`created agreemnt: ${agreementId}`);

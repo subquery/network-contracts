@@ -6,7 +6,7 @@ import { Wallet } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 
 import { IndexerRegistry, PlanManager, PurchaseOfferMarket, QueryRegistry, SQToken, Staking } from '../src';
-import { METADATA_HASH, deploymentIds, metadatas, mmrRoot, versions } from './constants';
+import { METADATA_HASH, deploymentIds, metadatas, poi, versions } from './constants';
 import {
     constants,
     createPurchaseOffer,
@@ -50,7 +50,7 @@ describe('Query Registry Contract', () => {
     ) => {
         const tx = await queryRegistry
             .connect(wallet)
-            .reportIndexingStatus(indexer, deploymentId, height, mmrRoot, timestamp);
+            .reportIndexingStatus(indexer, deploymentId, height, poi, timestamp);
         return tx;
     };
 
@@ -222,7 +222,7 @@ describe('Query Registry Contract', () => {
             // report status
             await expect(reportStatus(timestamp_0))
                 .to.be.emit(queryRegistry, 'UpdateDeploymentStatus')
-                .withArgs(wallet_0.address, deploymentId, 10, mmrRoot, timestamp_0);
+                .withArgs(wallet_0.address, deploymentId, 10, poi, timestamp_0);
             await checkDeploymentStatus(deploymentId, IndexingServiceStatus.INDEXING, timestamp_0);
 
             // change status to ready
@@ -339,7 +339,7 @@ describe('Query Registry Contract', () => {
             await token.increaseAllowance(purchaseOfferMarket.address, etherParse('5'));
             await planManager.createPlanTemplate(1000, 1000, 100, token.address, METADATA_HASH);
             await createPurchaseOffer(purchaseOfferMarket, token, deploymentId, await futureTimestamp(mockProvider));
-            await purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot);
+            await purchaseOfferMarket.acceptPurchaseOffer(0, poi);
             await expect(queryRegistry.stopIndexing(deploymentId)).to.be.revertedWith('QR011');
         });
     });

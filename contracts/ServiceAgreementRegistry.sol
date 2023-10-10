@@ -245,11 +245,13 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, IService
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(msg.sender == agreement.consumer, 'SA007');
         require(agreement.startDate < block.timestamp, 'SA008');
+        require((agreement.startDate + agreement.period) > block.timestamp, 'SA009');
 
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         Plan memory plan = planManager.getPlan(agreement.planId);
         require(plan.active, 'PM009');
-        require((agreement.startDate + agreement.period) > block.timestamp, 'SA009');
+        PlanTemplateV2 memory template = planManager.getPlanTemplate(plan.templateId);
+        require(template.active, 'PM006');
 
         // create closed service agreement
         ClosedServiceAgreementInfo memory newAgreement = ClosedServiceAgreementInfo(

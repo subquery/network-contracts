@@ -4,9 +4,9 @@
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { constants, time } from '@openzeppelin/test-helpers';
-import { SQToken } from 'build';
+import {PurchaseOfferMarket, SQToken} from 'build';
 import { MockProvider } from 'ethereum-waffle';
-import { BaseContract, BigNumber, Contract, ContractTransaction, Wallet as EthWallet, utils } from 'ethers';
+import {BaseContract, BigNumber, Contract, ContractTransaction, Wallet as EthWallet, utils} from 'ethers';
 import { ethers } from "hardhat";
 import { EraManager, IndexerRegistry, PlanManager } from '../src';
 import { METADATA_HASH } from './constants';
@@ -69,18 +69,17 @@ export async function registerIndexer(
 }
 
 export async function createPurchaseOffer(
-    purchaseOfferMarket: Contract,
+    purchaseOfferMarket: PurchaseOfferMarket,
     token: Contract,
     deploymentId: string,
-    expireDate
-) {
-    const deposit = etherParse('2');
-    const limit = 1;
-    const minimumAcceptHeight = 100;
-    const planTemplateId = 0;
-
-    await token.increaseAllowance(purchaseOfferMarket.address, etherParse('2'));
-    await purchaseOfferMarket.createPurchaseOffer(
+    expireDate,
+    planTemplateId = 0,
+    limit = 1,
+    deposit='2000000000000000000', // 2e18
+    minimumAcceptHeight=100,
+): Promise<BigNumber> {
+    await token.increaseAllowance(purchaseOfferMarket.address, deposit);
+    const tx = await purchaseOfferMarket.createPurchaseOffer(
         deploymentId,
         planTemplateId,
         deposit,
@@ -88,6 +87,8 @@ export async function createPurchaseOffer(
         minimumAcceptHeight,
         expireDate
     );
+    const evt = await eventFrom(tx, purchaseOfferMarket, 'PurchaseOfferCreated(address,uint256,bytes32,uint256,uint256,uint16,uint256,uint256)');
+    return evt.offerId;
 }
 
 export async function startNewEra(mockProvider: MockProvider, eraManager: EraManager): Promise<BigNumber> {
