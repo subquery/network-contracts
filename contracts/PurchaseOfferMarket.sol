@@ -85,8 +85,8 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     /// @notice offerId => indexer => accepted
     mapping(uint256 => mapping(address => bool)) public acceptedOffer;
 
-    /// @notice offerId => Indexer => MmrRoot
-    mapping(uint256 => mapping(address => bytes32)) public offerMmrRoot;
+    /// @notice offerId => Indexer => _poi
+    mapping(uint256 => mapping(address => bytes32)) public offerPoi;
 
     /// @dev ### EVENTS
     /// @notice Emitted when Consumer create a purchase offer
@@ -252,30 +252,30 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * The corresponding part of the money will transfer to serviceAgrementRegistry contract
      * and wait rewardDistributer contract take and distribute as long as Indexer accept the offer.
      * When Indexer accept the offer we need to ensure Indexer's deployment reaches the minimumAcceptHeight,
-     * So we ask indexers to pass the latest mmr value when accepting the purchase offer,
-     * and save this mmr value when agreement create.
+     * So we ask indexers to pass the latest poi value when accepting the purchase offer,
+     * and save this poi value when agreement create.
      * @param _offerId purchase offer id to accept
-     * @param _mmrRoot mmrRoot to accept the purchase offer
+     * @param _poi proof of index (hash) to accept the purchase offer
      */
-    function acceptPurchaseOffer(uint256 _offerId, bytes32 _mmrRoot) external onlyIndexer {
+    function acceptPurchaseOffer(uint256 _offerId, bytes32 _poi) external onlyIndexer {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
-        require(offers[_offerId].active, 'PO007');
+        PurchaseOffer storage offer = offers[_offerId];
+        require(offer.active, 'PO007');
         require(!isExpired(_offerId), 'PO008');
         require(!acceptedOffer[_offerId][msg.sender], 'PO009');
         require(
-            offers[_offerId].limit > offers[_offerId].numAcceptedContracts,
+            offer.limit > offer.numAcceptedContracts,
             'PO010'
         );
-
-        // increate number of accepted contracts
-        offers[_offerId].numAcceptedContracts++;
-        // flag offer accept to avoid double accept
-        acceptedOffer[_offerId][msg.sender] = true;
-        PurchaseOffer memory offer = offers[_offerId];
-        offerMmrRoot[_offerId][msg.sender] = _mmrRoot;
-
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         PlanTemplateV2 memory template = planManager.getPlanTemplate(offer.planTemplateId);
+        require(template.active, 'PO005');
+
+        // increate number of accepted contracts
+        offer.numAcceptedContracts++;
+        // flag offer accept to avoid double accept
+        acceptedOffer[_offerId][msg.sender] = true;
+        offerPoi[_offerId][msg.sender] = _poi;
         // create closed service agreement contract
         ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
             offer.consumer,
@@ -297,7 +297,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
         uint256 agreementId = registry.createClosedServiceAgreement(agreement);
 
-        offerMmrRoot[_offerId][msg.sender] = _mmrRoot;
+        offerPoi[_offerId][msg.sender] = _poi;
 
         emit OfferAccepted(msg.sender, _offerId, agreementId);
     }

@@ -9,11 +9,12 @@ import {
     IndexerRegistry,
     PlanManager,
     PriceOracle,
-    QueryRegistry,
+    ProjectRegistry,
     RewardsDistributer,
     RewardsHelper,
     SQToken,
     ServiceAgreementRegistry,
+    ServiceAgreementExtra,
     Staking,
     StakingManager,
 } from '../src';
@@ -30,11 +31,12 @@ describe('PlanManger Contract', () => {
     let token: SQToken;
     let staking: Staking;
     let stakingManager: StakingManager;
-    let queryRegistry: QueryRegistry;
+    let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
+    let saExtra: ServiceAgreementExtra;
     let rewardsDistributor: RewardsDistributer;
     let rewardsHelper: RewardsHelper;
     let priceOracle: PriceOracle;
@@ -45,7 +47,7 @@ describe('PlanManger Contract', () => {
         SUSD = await deploySUSD(consumer);
         const deployment = await deployContracts(indexer, consumer);
         indexerRegistry = deployment.indexerRegistry;
-        queryRegistry = deployment.queryRegistry;
+        projectRegistry = deployment.projectRegistry;
         planManager = deployment.planManager;
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         staking = deployment.staking;
@@ -62,10 +64,9 @@ describe('PlanManger Contract', () => {
         await token.transfer(consumer.address, etherParse('100'));
         await token.connect(consumer).increaseAllowance(planManager.address, etherParse('100'));
         // create query project
-        await queryRegistry.createQueryProject(METADATA_HASH, VERSION, DEPLOYMENT_ID);
+        await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID,0);
         // wallet_0 start project
-        await queryRegistry.startIndexing(DEPLOYMENT_ID);
-        await queryRegistry.updateIndexingStatusToReady(DEPLOYMENT_ID);
+        await projectRegistry.updateServiceStatusToReady(DEPLOYMENT_ID);
     }
 
     describe('Plan Manager Config', () => {
@@ -213,6 +214,14 @@ describe('PlanManger Contract', () => {
             );
         });
 
+        it('create plan with inactive planTemplate should fail', async () => {
+            // inactive planTemplate
+            await planManager.updatePlanTemplateStatus(0, false);
+            await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID)).to.be.revertedWith(
+                'PM006'
+            );
+        });
+
         it('remove plan with invalid params should fail', async () => {
             // invalid sender
             await expect(planManager.removePlan(0)).to.be.revertedWith('PM008');
@@ -284,6 +293,19 @@ describe('PlanManger Contract', () => {
             await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
                 'G019'
             );
+            // inactive planTemplate
+            await planManager.updatePlanTemplateStatus(0, false);
+            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
+                'PM006'
+            );
+        });
+
+        it('accept plan with inactive planTemplate should fail', async () => {
+            // inactive planTemplate
+            await planManager.updatePlanTemplateStatus(0, false);
+            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
+                'PM006'
+            );
         });
 
         it('threshold work for accept plan', async () => {
@@ -295,7 +317,7 @@ describe('PlanManger Contract', () => {
                 .mul(1e6).add(1)
             // ---
 
-            await serviceAgreementRegistry.setThreshold(threshold)
+            await saExtra.setThreshold(threshold)
             const plan = await planManager.getPlan(1);
             expect(Number(utils.formatEther(plan.price))).to.eq(6);
             await token.connect(consumer).increaseAllowance(planManager.address, plan.price);
@@ -318,13 +340,13 @@ describe('PlanManger Contract', () => {
                 .mul(1e6).add(1)
             // ---
 
-            await serviceAgreementRegistry.setThreshold(threshold)
+            await saExtra.setThreshold(threshold)
             const plan = await planManager.getPlan(1);
             expect(Number(utils.formatEther(plan.price))).to.eq(6);
             await token.connect(consumer).increaseAllowance(planManager.address, plan.price);
             await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith('SA006');
 
-            await serviceAgreementRegistry.setThreshold(threshold.sub(1));
+            await saExtra.setThreshold(threshold.sub(1));
             await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).not.to.reverted;
         });
 
@@ -335,7 +357,7 @@ describe('PlanManger Contract', () => {
             const planPrice = 6;
             let threshold = BigNumber.from(indexerStake / (planPrice / planDays))
                 .mul(1e6)
-            await serviceAgreementRegistry.setThreshold(threshold);
+            await saExtra.setThreshold(threshold);
             // ---
             const plan = await planManager.getPlan(1);
             expect(Number(utils.formatEther(plan.price))).to.eq(6);
@@ -348,7 +370,7 @@ describe('PlanManger Contract', () => {
 
             await token.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, plan.price);
             await serviceAgreementRegistry.connect(consumer).renewAgreement(agreementId);
-            const sum = await serviceAgreementRegistry.sumDailyReward(indexer.address);
+            const sum = await saExtra.sumDailyReward(indexer.address);
             expect(Number(utils.formatEther(sum))).to.eq(planPrice / planDays * 2);
         });
 

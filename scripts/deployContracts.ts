@@ -1,5 +1,4 @@
 import moduleAlias from 'module-alias';
-import { ProjectRegistry } from './../src/typechain/ProjectRegistry';
 moduleAlias.addAlias('./artifacts', '../artifacts');
 moduleAlias.addAlias('./publish', '../publish');
 
@@ -23,11 +22,11 @@ import {
     DisputeManager,
     EraManager,
     IndexerRegistry,
-    IndexerServiceAgreement,
     InflationController,
     PermissionedExchange,
     PlanManager,
     PriceOracle,
+    ProjectRegistry,
     ProxyAdmin,
     ProxyAdmin__factory,
     PurchaseOfferMarket,
@@ -37,6 +36,7 @@ import {
     RewardsStaking,
     SQToken,
     ServiceAgreementRegistry,
+    ServiceAgreementExtra,
     Settings,
     Staking,
     StakingManager,
@@ -275,10 +275,10 @@ export async function deployContracts(
             initConfig: [settingsAddress, [planManager.address, purchaseOfferMarket.address]],
         });
 
-        // deploy IndexerServiceAgreement contract
-        const indexerServiceAgreement = await deployContract<IndexerServiceAgreement>('IndexerServiceAgreement', {
+        // deploy ServiceAgreementExtra.sol.sol contract
+        const serviceAgreementExtra = await deployContract<ServiceAgreementExtra>('ServiceAgreementExtra', {
             proxyAdmin,
-            initConfig: [settingsAddress, 10e6],
+            initConfig: [settingsAddress],
         });
 
         // deploy RewardsDistributer contract
@@ -368,7 +368,7 @@ export async function deployContracts(
             deployment.EraManager.address,
             deployment.PlanManager.address,
             deployment.ServiceAgreementRegistry.address,
-            deployment.IndexerServiceAgreement.address,
+            deployment.ServiceAgreementExtra.address,
             deployment.DisputeManager.address,
             deployment.StateChannel.address,
             deployment.ConsumerRegistry.address,
@@ -393,6 +393,7 @@ export async function deployContracts(
                 planManager,
                 purchaseOfferMarket,
                 serviceAgreementRegistry,
+                serviceAgreementExtra,
                 rewardsDistributer,
                 rewardsPool,
                 rewardsStaking,
@@ -453,7 +454,7 @@ export async function upgradeContracts(configs: {
     const changed: (keyof typeof CONTRACTS)[] = [];
     for (const contract of Object.keys(UPGRADEBAL_CONTRACTS)) {
         const bytecodeHash = codeToHash(CONTRACTS[contract].bytecode);
-        if (bytecodeHash !== deployment[contract]?.bytecodeHash) {
+        if (deployment[contract] && bytecodeHash !== deployment[contract].bytecodeHash) {
             changed.push(contract as any);
         } else {
             logger.info(`Contract ${contract} not changed`);

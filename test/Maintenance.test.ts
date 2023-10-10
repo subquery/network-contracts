@@ -10,7 +10,7 @@ import {
     PermissionedExchange,
     PlanManager,
     PurchaseOfferMarket,
-    QueryRegistry,
+    ProjectRegistry,
     RewardsDistributer,
     SQToken,
     ServiceAgreementRegistry,
@@ -18,7 +18,7 @@ import {
     Staking,
     StakingManager
 } from '../src';
-import { DEPLOYMENT_ID, METADATA_HASH, mmrRoot } from './constants';
+import { DEPLOYMENT_ID, METADATA_HASH, poi } from './constants';
 import { etherParse, futureTimestamp, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
 
@@ -30,7 +30,7 @@ describe('Maintenance Mode Test', () => {
     let settings: Settings;
     let token: SQToken;
     let staking: Staking;
-    let queryRegistry: QueryRegistry;
+    let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
@@ -47,7 +47,7 @@ describe('Maintenance Mode Test', () => {
         token = deployment.token;
         settings = deployment.settings;
         staking = deployment.staking;
-        queryRegistry = deployment.queryRegistry;
+        projectRegistry = deployment.projectRegistry;
         indexerRegistry = deployment.indexerRegistry;
         planManager = deployment.planManager;
         eraManager = deployment.eraManager;
@@ -165,7 +165,7 @@ describe('Maintenance Mode Test', () => {
         });
 
         it('acceptPurchaseOffer should ban in maintenance mode', async () => {
-            await expect(purchaseOfferMarket.acceptPurchaseOffer(0, mmrRoot)).to.be.revertedWith('G019');
+            await expect(purchaseOfferMarket.acceptPurchaseOffer(0, poi)).to.be.revertedWith('G019');
         });
     });
 

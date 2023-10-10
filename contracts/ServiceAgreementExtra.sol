@@ -11,7 +11,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 
 import './interfaces/IServiceAgreementRegistry.sol';
-import './interfaces/IIndexerServiceAgreement.sol';
+import './interfaces/IServiceAgreementExtra.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/IProjectRegistry.sol';
 import './interfaces/ISettings.sol';
@@ -23,7 +23,7 @@ import './Constants.sol';
  * @notice ### Overview
  * This contract tracks all service Agreements for Indexers.
  */
-contract IndexerServiceAgreement is Initializable, OwnableUpgradeable, IIndexerServiceAgreement, Constants {
+contract ServiceAgreementExtra is Initializable, OwnableUpgradeable, IServiceAgreementExtra, Constants {
     using MathUtil for uint256;
 
     /// @dev ### STATES
@@ -40,13 +40,23 @@ contract IndexerServiceAgreement is Initializable, OwnableUpgradeable, IIndexerS
     mapping(address => mapping(uint256 => uint256)) private closedServiceAgreementIds;
 
     /// @notice number of service agreements: Indexer address =>  number of service agreements
-    mapping(address => uint256) private indexerCsaLength;
+    mapping(address => uint256) private saLength;
 
     /// @notice number of service agreements: Indexer address => DeploymentId => number of service agreements
-    mapping(address => mapping(bytes32 => uint256)) public indexerDeploymentCsaLength;
+    mapping(address => mapping(bytes32 => uint256)) public deploymentSaLength;
 
     /// @notice calculated sum daily reward: Indexer address => sumDailyReward
     mapping(address => uint256) public sumDailyReward;
+
+    /**
+     * @dev Emitted when expired closed service agreement removed.
+     */
+    event ClosedAgreementRemoved(
+        address indexed consumer,
+        address indexed indexer,
+        bytes32 indexed deploymentId,
+        uint256 serviceAgreementId
+    );
 
     /**
      * @dev Initialize this contract. Load establisherWhitelist.
@@ -96,34 +106,65 @@ contract IndexerServiceAgreement is Initializable, OwnableUpgradeable, IIndexerS
             'SA006'
         );
 
-        closedServiceAgreementIds[indexer][indexerCsaLength[indexer]] = agreementId;
-        indexerCsaLength[indexer] += 1;
-        indexerDeploymentCsaLength[indexer][agreement.deploymentId] += 1;
+        closedServiceAgreementIds[indexer][saLength[indexer]] = agreementId;
+        saLength[indexer] += 1;
+        deploymentSaLength[indexer][agreement.deploymentId] += 1;
     }
 
-    function removeEndedAgreement(uint256 id, ClosedServiceAgreementInfo memory agreement) external {
-        require(msg.sender == settings.getServiceAgreementRegistry(), 'ISA001');
+    function clearEndedAgreement(address indexer, uint256 id) external {
+        IServiceAgreementRegistry sar = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
+        require(id < saLength[indexer], 'SA001');
 
+        uint256 agreementId = closedServiceAgreementIds[indexer][id];
+        ClosedServiceAgreementInfo memory agreement = sar.getClosedServiceAgreement(agreementId);
+        require(agreement.consumer != address(0), 'SA001');
+        require(block.timestamp > (agreement.startDate + agreement.period), 'SA010');
+
+        _removeEndedAgreement(id, agreement);
+
+        emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
+    }
+
+    function clearAllEndedAgreements(address indexer) external {
+        require(saLength[indexer]>0, 'SA001');
+        IServiceAgreementRegistry sar = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
+        uint256 count = 0;
+        for (uint256 i = saLength[indexer]-1; i >= 0; i--) {
+            uint256 agreementId = closedServiceAgreementIds[indexer][i];
+            ClosedServiceAgreementInfo memory agreement = sar.getClosedServiceAgreement(agreementId);
+            require(agreement.consumer != address(0), 'SA011');
+            if (block.timestamp > (agreement.startDate + agreement.period)) {
+                _removeEndedAgreement(i, agreement);
+                emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
+                count++;
+                if (count >= 10) {
+                    break;
+                }
+            }
+        }
+    }
+
+    function _removeEndedAgreement(uint256 id, ClosedServiceAgreementInfo memory agreement) private {
         address indexer = agreement.indexer;
         uint256 lockedAmount = agreement.lockedAmount;
         uint256 period = periodInDay(agreement.period);
         sumDailyReward[indexer] = MathUtil.sub(sumDailyReward[indexer], (lockedAmount / period));
 
-        closedServiceAgreementIds[indexer][id] = closedServiceAgreementIds[indexer][indexerCsaLength[indexer] - 1];
-        delete closedServiceAgreementIds[indexer][indexerCsaLength[indexer] - 1];
-        indexerCsaLength[indexer] -= 1;
-        indexerDeploymentCsaLength[indexer][agreement.deploymentId] -= 1;
+        closedServiceAgreementIds[indexer][id] = closedServiceAgreementIds[indexer][saLength[indexer] - 1];
+        delete closedServiceAgreementIds[indexer][saLength[indexer] - 1];
+        saLength[indexer] -= 1;
+        deploymentSaLength[indexer][agreement.deploymentId] -= 1;
     }
 
-    function getIndexerServiceAgreementLengh(address indexer) external view returns (uint256) {
-        return indexerCsaLength[indexer];
+    function getServiceAgreementLength(address indexer) external view returns (uint256) {
+        return saLength[indexer];
     }
 
-    function getIndexerAgreementId(address indexer, uint256 id) external view returns (uint256) {
+    function getServiceAgreementId(address indexer, uint256 id) external view returns (uint256) {
         return closedServiceAgreementIds[indexer][id];
     }
 
     function hasOngoingClosedServiceAgreement(address indexer, bytes32 deploymentId) external view returns (bool) {
-        return indexerDeploymentCsaLength[indexer][deploymentId] > 0;
+        return deploymentSaLength[indexer][deploymentId] > 0;
     }
 }

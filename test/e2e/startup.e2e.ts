@@ -19,7 +19,7 @@ describe('startup script', () => {
             sqToken: deployment.token,
             airdropper: deployment.airdropper,
             planManager: deployment.planManager,
-            queryRegistry: deployment.queryRegistry,
+            projectRegistry: deployment.projectRegistry,
             permissionedExchange: deployment.permissionedExchange,
         };
 
@@ -42,7 +42,7 @@ describe('startup script', () => {
         it('dictionaries should be created', async () => {
             const {projects} = config;
             for (const [i, d] of projects.entries()) {
-                const info = await sdk.queryRegistry.queryInfos(i);
+                const info = await sdk.projectRegistry.queryInfos(i);
                 expect(info.latestDeploymentId).to.be.equal(cidToBytes32(d.deploymentId));
                 expect(info.latestVersion).to.be.equal(cidToBytes32(d.versionCid));
                 expect(info.metadata).to.be.equal(cidToBytes32(d.metadataCid));

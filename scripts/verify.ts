@@ -1,4 +1,4 @@
-import {BigNumber} from 'ethers';
+import {BigNumber, utils} from 'ethers';
 import {expect} from 'chai';
 import Pino from 'pino';
 
@@ -8,11 +8,14 @@ import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
 import {getLogger} from './logger';
-import {cidToBytes32} from '../test/helper';
 
 let logger: Pino.Logger;
 
 const BN = (value: string | number): BigNumber => BigNumber.from(value);
+
+function cidToBytes32(cid: string): string {
+    return '0x' + Buffer.from(utils.base58.decode(cid)).slice(2).toString('hex');
+}
 
 async function checkInitialisation(sdk: ContractSDK, config, startupConfig, caller: string) {
     try {

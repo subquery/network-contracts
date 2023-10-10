@@ -13,7 +13,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
-import './interfaces/IIndexerServiceAgreement.sol';
+import './interfaces/IServiceAgreementExtra.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IRewardsDistributer.sol';
@@ -47,15 +47,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
      * @dev Emitted when closed service agreement established
      */
     event ClosedAgreementCreated(
-        address indexed consumer,
-        address indexed indexer,
-        bytes32 indexed deploymentId,
-        uint256 serviceAgreementId
-    );
-    /**
-     * @dev Emitted when expired closed service agreement removed.
-     */
-    event ClosedAgreementRemoved(
         address indexed consumer,
         address indexed indexer,
         bytes32 indexed deploymentId,
@@ -123,8 +114,8 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(agreement.consumer != address(0), 'SA001');
 
-        IIndexerServiceAgreement indexerServiceAgreement = IIndexerServiceAgreement(settings.getIndexerServiceAgreement());
-        indexerServiceAgreement.addAgreement(agreementId, agreement, checkThreshold);
+        IServiceAgreementExtra saHelper = IServiceAgreementExtra(settings.getServiceAgreementExtra());
+        saHelper.addAgreement(agreementId, agreement, checkThreshold);
 
         // approve token to reward distributor contract
         address SQToken = settings.getSQToken();
@@ -151,11 +142,13 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(msg.sender == agreement.consumer, 'SA007');
         require(agreement.startDate < block.timestamp, 'SA008');
+        require((agreement.startDate + agreement.period) > block.timestamp, 'SA009');
 
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         Plan memory plan = planManager.getPlan(agreement.planId);
         require(plan.active, 'PM009');
-        require((agreement.startDate + agreement.period) > block.timestamp, 'SA009');
+        PlanTemplateV2 memory template = planManager.getPlanTemplate(plan.templateId);
+        require(template.active, 'PM006');
 
         // create closed service agreement
         ClosedServiceAgreementInfo memory newAgreement = ClosedServiceAgreementInfo(
@@ -173,20 +166,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         // deposit SQToken into service agreement registry contract
         IERC20(settings.getSQToken()).transferFrom(msg.sender, address(this), agreement.lockedAmount);
         _establishServiceAgreement(newAgreementId, false);
-    }
-
-    function clearEndedAgreement(address indexer, uint256 id) external {
-        IIndexerServiceAgreement indexerServiceAgreement = IIndexerServiceAgreement(settings.getIndexerServiceAgreement());
-        require(id < indexerServiceAgreement.getIndexerServiceAgreementLengh(indexer), 'SA001');
-
-        uint256 agreementId = indexerServiceAgreement.getIndexerAgreementId(indexer, id);
-        ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
-        require(agreement.consumer != address(0), 'SA001');
-        require(block.timestamp > (agreement.startDate + agreement.period), 'SA010');
-
-        indexerServiceAgreement.removeEndedAgreement(id, agreement);
-
-        emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
     }
 
     function closedServiceAgreementExpired(uint256 agreementId) public view returns (bool) {

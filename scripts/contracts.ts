@@ -4,7 +4,6 @@ import { BaseContract, BigNumber, ContractFactory, Signer } from 'ethers';
 
 import CONTRACTS from '../src/contracts';
 
-import { IndexerServiceAgreement__factory } from 'build';
 import {
     Airdropper,
     Airdropper__factory,
@@ -45,6 +44,8 @@ import {
     SQToken__factory,
     ServiceAgreementRegistry,
     ServiceAgreementRegistry__factory,
+    ServiceAgreementExtra,
+    ServiceAgreementExtra__factory,
     Settings,
     Settings__factory,
     Staking,
@@ -79,6 +80,7 @@ export type Contracts = {
     planManager: PlanManager;
     purchaseOfferMarket: PurchaseOfferMarket;
     serviceAgreementRegistry: ServiceAgreementRegistry;
+    serviceAgreementExtra: ServiceAgreementExtra;
     rewardsDistributer: RewardsDistributer;
     rewardsPool: RewardsPool;
     rewardsStaking: RewardsStaking;
@@ -134,7 +136,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PlanManager: PlanManager__factory,
     PurchaseOfferMarket: PurchaseOfferMarket__factory,
     ServiceAgreementRegistry: ServiceAgreementRegistry__factory,
-    IndexerServiceAgreement: IndexerServiceAgreement__factory,
+    ServiceAgreementExtra: ServiceAgreementExtra__factory,
     RewardsDistributer: RewardsDistributer__factory,
     RewardsPool: RewardsPool__factory,
     RewardsStaking: RewardsStaking__factory,
