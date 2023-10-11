@@ -1,11 +1,11 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
-import {timeTravel, lastestTime} from './helper';
-import {EraManager} from '../src';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
+import { EraManager } from '../src';
+import { lastestTime, timeTravel } from './helper';
+import { deployContracts } from './setup';
 const {time} = require('@openzeppelin/test-helpers');
 
 describe('Era Manager Contract', () => {

@@ -1,28 +1,28 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {BigNumber, providers, utils} from 'ethers';
-import {deployContracts} from './setup';
-import {METADATA_HASH, DEPLOYMENT_ID, VERSION} from './constants';
+import { expect } from 'chai';
+import { BigNumber } from 'ethers';
+import { ethers, waffle } from 'hardhat';
 import {
+    EraManager,
     IndexerRegistry,
+    InflationController,
     PlanManager,
     ProjectRegistry,
-    ServiceAgreementRegistry,
     RewardsDistributer,
-    RewardsStaking,
     RewardsHelper,
-    EraManager,
+    RewardsStaking,
     SQToken,
+    ServiceAgreementExtra,
+    ServiceAgreementRegistry,
+    Settings,
     Staking,
     StakingManager,
-    Settings,
-    InflationController,
-    ServiceAgreementExtra,
 } from '../src';
-import {startNewEra, time, acceptPlan, etherParse, timeTravel, eventFrom} from './helper';
+import { DEPLOYMENT_ID, METADATA_HASH, VERSION } from './constants';
+import { acceptPlan, etherParse, startNewEra, time, timeTravel } from './helper';
+import { deployContracts } from './setup';
 
 // FIXME: there are many values changed in the test, need to evalutate whether it is correct
 

@@ -1,22 +1,19 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers} from 'hardhat';
-import {deployContracts} from './setup';
-import {deploymentIds} from './constants';
+import { expect } from 'chai';
+import { BigNumber, BigNumberish, BytesLike, Wallet } from 'ethers';
+import { ethers } from 'hardhat';
 import {
     ConsumerHost,
     IndexerRegistry,
-    RewardsPool,
-    RewardsDistributer,
-    EraManager,
     SQToken,
     Staking,
-    StateChannel,
+    StateChannel
 } from '../src';
-import {registerIndexer, delay, etherParse} from './helper';
-import {Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
+import { deploymentIds } from './constants';
+import { delay, etherParse, registerIndexer } from './helper';
+import { deployContracts } from './setup';
 
 describe('ConsumerHost Contract', () => {
     const deploymentId = deploymentIds[0];

@@ -1,11 +1,11 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
-import {InflationController, SQToken} from '../src';
-import {etherParse} from './helper';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
+import { InflationController, SQToken } from '../src';
+import { etherParse } from './helper';
+import { deployContracts } from './setup';
 
 describe('SQToken Contract', () => {
     const mockProvider = waffle.provider;

@@ -1,23 +1,23 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
 import { BigNumber } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 import {
-  EraManager,
-  IndexerRegistry,
-  InflationController,
-  PlanManager,
-  ProjectRegistry,
-  RewardsDistributer,
-  RewardsHelper,
-  RewardsStaking,
-  SQToken,
-  ServiceAgreementRegistry,
-  Settings,
-  Staking,
-  StakingManager,
+    EraManager,
+    IndexerRegistry,
+    InflationController,
+    PlanManager,
+    ProjectRegistry,
+    RewardsDistributer,
+    RewardsHelper,
+    RewardsStaking,
+    SQToken,
+    ServiceAgreementRegistry,
+    Settings,
+    Staking,
+    StakingManager,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION } from './constants';
 import { etherParse, futureTimestamp, startNewEra, time } from './helper';
