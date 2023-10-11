@@ -1,6 +1,6 @@
 import { ContractSDK } from '../../src';
-import Token from '@subql/contract-sdk/artifacts/contracts/SQToken.sol/SQToken.json';
-import deployment from '@subql/contract-sdk/publish/testnet.json';
+import Token from '../../artifacts/contracts/SQToken.sol/SQToken.json';
+import deployment from '../../publish/testnet.json';
 import assert from 'assert';
 import { BigNumber, ContractReceipt, ContractTransaction, Wallet, ethers, utils } from 'ethers';
 import web3 from 'web3';
