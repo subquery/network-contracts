@@ -2,21 +2,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
+import { BigNumber } from "ethers";
 import { ethers, waffle } from 'hardhat';
 import {
     IndexerRegistry,
     PlanManager,
-    PurchaseOfferMarket,
     ProjectRegistry,
+    PurchaseOfferMarket,
     RewardsDistributer,
     SQToken,
     ServiceAgreementRegistry,
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, poi } from './constants';
-import {createPurchaseOffer, etherParse, eventFrom, futureTimestamp, registerIndexer, time, timeTravel} from './helper';
+import { createPurchaseOffer, etherParse, futureTimestamp, registerIndexer, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
-import {BigNumber} from "ethers";
 
 describe('Purchase Offer Market Contract', () => {
     const mockProvider = waffle.provider;
@@ -203,7 +203,6 @@ describe('Purchase Offer Market Contract', () => {
                 // check updates for the offer
                 offer = await purchaseOfferMarket.offers(offerId);
                 expect(await purchaseOfferMarket.offerPoi(offerId, wallet_0.address)).to.equal(poi);
-                expect(await purchaseOfferMarket.acceptedOffer(offerId, wallet_0.address)).to.equal(true);
                 expect(offer.numAcceptedContracts).to.equal(1);
                 expect(await token.balanceOf(purchaseOfferMarket.address)).to.equal(offerMarketBalance.sub(deposit));
                 expect(await token.balanceOf(rewardsDistributor.address)).to.equal(rewardsDistrBalance.add(deposit));

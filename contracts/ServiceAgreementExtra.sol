@@ -132,7 +132,7 @@ contract ServiceAgreementExtra is Initializable, OwnableUpgradeable, IServiceAgr
         for (uint256 i = saLength[indexer]; i > 0; i--) {
             uint256 agreementId = closedServiceAgreementIds[indexer][i - 1];
             ClosedServiceAgreementInfo memory agreement = sar.getClosedServiceAgreement(agreementId);
-            require(agreement.consumer != address(0), 'SA011');
+            require(agreement.consumer != address(0), 'SA001');
             if (block.timestamp > (agreement.startDate + agreement.period)) {
                 _removeEndedAgreement(i - 1, agreement);
                 emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);

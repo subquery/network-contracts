@@ -80,6 +80,11 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         establisherWhitelist[establisher] = false;
     }
 
+    function _afterTokenTransfer(address from, address to, uint256 tokenId) internal override {
+        super._afterTokenTransfer(from, to, tokenId);
+        closedServiceAgreements[tokenId].consumer = to;
+    } 
+
     function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement, bool checkThreshold) external returns (uint256) {
         if (msg.sender != address(this)) {
             require(establisherWhitelist[msg.sender], 'SA004');
@@ -163,7 +168,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         );
         // deposit SQToken into service agreement registry contract
         IERC20(settings.getSQToken()).transferFrom(msg.sender, address(this), agreement.lockedAmount);
-        uint256 newAgreementId = this.createClosedServiceAgreement(newAgreement, false);
+        this.createClosedServiceAgreement(newAgreement, false);
     }
 
     function closedServiceAgreementExpired(uint256 agreementId) public view returns (bool) {
