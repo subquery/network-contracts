@@ -114,7 +114,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     }
 
     function _baseURI() internal view virtual override returns (string memory) {
-         return "ipfs://";
+        return "ipfs://";
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
@@ -126,7 +126,11 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     }
 
     function supportsInterface(bytes4 interfaceId) public view override(ERC721Upgradeable, ERC721EnumerableUpgradeable) returns (bool) {
-        return super.supportsInterface(interfaceId);
+        return
+            interfaceId == type(IProjectRegistry).interfaceId ||
+            ERC721Upgradeable.supportsInterface(interfaceId) ||
+            ERC721EnumerableUpgradeable.supportsInterface(interfaceId) ||
+            ERC721URIStorageUpgradeable.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
@@ -136,7 +140,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice create a project, if in the restrict mode, only creator allowed to call this function
      */
-    function createProject(string memory projectMetadataUri,bytes32 deploymentMetdata, bytes32 deploymentId, ProjectType projectType) external {
+    function createProject(string memory projectMetadataUri, bytes32 deploymentMetdata, bytes32 deploymentId, ProjectType projectType) external {
         if (creatorRestricted) {
             require(creatorWhitelist[msg.sender], 'PR001');
         }

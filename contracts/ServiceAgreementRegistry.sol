@@ -68,6 +68,12 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         }
     }
 
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721Upgradeable) returns (bool) {
+        return
+            interfaceId == type(IServiceAgreementRegistry).interfaceId ||
+            ERC721Upgradeable.supportsInterface(interfaceId);
+    }
+
     function setSettings(ISettings _settings) external onlyOwner {
         settings = _settings;
     }
