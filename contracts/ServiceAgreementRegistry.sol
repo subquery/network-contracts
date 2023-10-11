@@ -80,8 +80,8 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         establisherWhitelist[establisher] = false;
     }
 
-    function _afterTokenTransfer(address from, address to, uint256 tokenId) internal override {
-        super._afterTokenTransfer(from, to, tokenId);
+    function _afterTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override {
+        super._afterTokenTransfer(from, to, tokenId, batchSize);
         closedServiceAgreements[tokenId].consumer = to;
     } 
 
