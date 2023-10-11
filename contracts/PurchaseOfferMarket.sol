@@ -268,7 +268,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         require(template.active, 'PO005');
 
         // increate number of accepted contracts
-        offers[_offerId].numAcceptedContracts++;
+        offer.numAcceptedContracts++;
         // flag offer accept to avoid double accept
         offerPoi[_offerId][msg.sender] = _poi;
         // create closed service agreement contract
