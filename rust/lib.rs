@@ -235,6 +235,12 @@ contract!(
 );
 
 contract!(
+    service_agreement_extra,
+    "ServiceAgreementExtra",
+    include_str!("../publish/ABI/ServiceAgreementExtra.json")
+);
+
+contract!(
     service_agreement_registry,
     "ServiceAgreementRegistry",
     include_str!("../publish/ABI/ServiceAgreementRegistry.json")
