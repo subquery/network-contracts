@@ -82,9 +82,6 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     /// @notice if penalty destination address is 0x00, then burn the penalty
     address public penaltyDestination;
 
-    /// @notice offerId => indexer => accepted
-    mapping(uint256 => mapping(address => bool)) public acceptedOffer;
-
     /// @notice offerId => Indexer => _poi
     mapping(uint256 => mapping(address => bytes32)) public offerPoi;
 
@@ -262,19 +259,17 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         PurchaseOffer storage offer = offers[_offerId];
         require(offer.active, 'PO007');
         require(!isExpired(_offerId), 'PO008');
-        require(!acceptedOffer[_offerId][msg.sender], 'PO009');
-        require(
-            offer.limit > offer.numAcceptedContracts,
-            'PO010'
-        );
+        require(_poi != bytes32(0), 'PO011');
+        require(offerPoi[_offerId][msg.sender] == bytes32(0), 'PO009');
+        require(offer.limit > offer.numAcceptedContracts, 'PO010');
+
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         PlanTemplateV2 memory template = planManager.getPlanTemplate(offer.planTemplateId);
         require(template.active, 'PO005');
 
         // increate number of accepted contracts
-        offer.numAcceptedContracts++;
+        offers[_offerId].numAcceptedContracts++;
         // flag offer accept to avoid double accept
-        acceptedOffer[_offerId][msg.sender] = true;
         offerPoi[_offerId][msg.sender] = _poi;
         // create closed service agreement contract
         ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
@@ -296,8 +291,6 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         // register the agreement to service agreement registry contract
         IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
         uint256 agreementId = registry.createClosedServiceAgreement(agreement, true);
-
-        offerPoi[_offerId][msg.sender] = _poi;
 
         emit OfferAccepted(msg.sender, _offerId, agreementId);
     }
