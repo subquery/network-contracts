@@ -4,8 +4,9 @@
 pragma solidity 0.8.15;
 
 import './IServiceAgreement.sol';
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-interface IServiceAgreementRegistry {
+interface IServiceAgreementRegistry is IERC721 {
     function getClosedServiceAgreement(uint256 agreementId) external view returns (ClosedServiceAgreementInfo memory);
 
     function nextServiceAgreementId() external view returns (uint256);

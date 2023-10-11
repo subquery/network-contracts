@@ -154,7 +154,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     function increaseAgreementRewards(uint256 agreementId) external {
         require(settings.getServiceAgreementRegistry() == msg.sender, 'G015');
         ClosedServiceAgreementInfo memory agreement = IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).getClosedServiceAgreement(agreementId);
-        require(agreement.consumer != address(0), 'SA001');
+        require(agreement.deploymentId != address(0), 'SA001');
         IEraManager eraManager = IEraManager(settings.getEraManager());
 
         address indexer = agreement.indexer;

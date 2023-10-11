@@ -3,6 +3,9 @@
 
 pragma solidity 0.8.15;
 
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+
 enum ServiceStatus {
     TERMINATED,
     READY
@@ -23,7 +26,7 @@ struct DeploymentInfo {
     bytes32 metadata;
 }
 
-interface IProjectRegistry {
+interface IProjectRegistry is IERC721, IERC721Enumerable {
 
     function numberOfDeployments(address _address) external view returns (uint256);
 
