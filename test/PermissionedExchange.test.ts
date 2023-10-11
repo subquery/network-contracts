@@ -1,9 +1,9 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
+import { BigNumber } from "ethers";
 import { ethers, waffle } from 'hardhat';
-import { deployContracts } from './setup';
 import {
     EraManager,
     IndexerRegistry,
@@ -12,15 +12,15 @@ import {
     ProjectRegistry,
     RewardsDistributer,
     SQToken,
-    SUSD__factory,
     SUSD,
+    SUSD__factory,
     ServiceAgreementRegistry,
     Settings,
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, ZERO_ADDRESS } from './constants';
 import { constants, etherParse, futureTimestamp, registerIndexer, startNewEra, time, timeTravel } from './helper';
-import {BigNumber} from "ethers";
+import { deployContracts } from './setup';
 
 describe('PermissionedExchange Contract', () => {
     const mockProvider = waffle.provider;
