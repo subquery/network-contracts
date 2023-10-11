@@ -139,6 +139,14 @@ export async function eventFrom(tx: ContractTransaction, contract: BaseContract,
     const eventName = event.split('(')[0];
     return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics);
 }
+export async function eventsFrom(tx: ContractTransaction, contract: BaseContract, event: string): Promise<Event[]> {
+    const receipt = await tx.wait();
+    const evts = receipt.events.filter((log) => log.topics[0] === utils.id(event));
+    const eventName = event.split('(')[0];
+    return evts.map(evt => contract.interface
+        .decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics)
+    );
+}
 
 export async function deploySUSD(siger: SignerWithAddress) {
     const MockSUSD = await ethers.getContractFactory("SUSD", siger);

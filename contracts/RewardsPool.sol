@@ -149,13 +149,16 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
             eraPool.unclaimDeployment += 1;
         }
 
+        uint256 laborAdd = amount;
         // indexer joined the deployment pool firstly.
         if (pool.labor[indexer] == 0) {
             IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
             uint256 myStake = stakingManager.getTotalStakingAmount(indexer);
-            require(myStake > 0, 'RP003');
             pool.stake[indexer] = myStake;
             pool.totalStake += myStake;
+            if (myStake == 0) {
+                laborAdd = 0;
+            }
         }
 
         // init deployments list
@@ -168,12 +171,12 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
             indexerDeployment.index[deploymentId] = indexerDeployment.unclaim;
         }
 
-        pool.labor[indexer] += amount;
+        pool.labor[indexer] += laborAdd;
         pool.totalReward += amount;
-        pool.unclaimTotalLabor += amount;
+        pool.unclaimTotalLabor += laborAdd;
         pool.unclaimReward += amount;
 
-        emit Labor(deploymentId, indexer, amount, pool.totalReward);
+        emit Labor(deploymentId, indexer, laborAdd, pool.totalReward);
     }
 
     /**
@@ -254,14 +257,18 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     function _collect(uint256 era, bytes32 deploymentId, address indexer) private {
         EraPool storage eraPool = pools[era];
         Pool storage pool = eraPool.pools[deploymentId];
-        require(pool.totalStake > 0 && pool.totalReward > 0 && pool.labor[indexer] > 0, 'RP005');
+        // when only one indexer in the pool and that indexer has unregistered, it's possible that
+        // totalReward > 0 while labor and stake = 0, in this case we burn the reward
+        require(pool.totalReward > 0, 'RP005');
 
         uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[indexer], pool.stake[indexer], pool.totalStake);
 
         address rewardDistributer = settings.getRewardsDistributer();
         IRewardsDistributer distributer = IRewardsDistributer(rewardDistributer);
         IERC20(settings.getSQToken()).approve(rewardDistributer, amount);
-        distributer.addInstantRewards(indexer, address(this), amount, era);
+        if (amount > 0) {
+            distributer.addInstantRewards(indexer, address(this), amount, era);
+        }
 
         IndexerDeployment storage indexerDeployment = eraPool.indexerUnclaimDeployments[indexer];
         uint index = indexerDeployment.index[deploymentId];
@@ -309,6 +316,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     /// @notice we will choose the following if `stakeRatio > feeRatio`:
     /// @notice `reward * stakeRatio / e^(alpha * (ln(stakeRatio / feeRatio)))`
     function _cobbDouglas(uint256 reward, uint256 myLabor, uint256 myStake, uint256 totalStake) private view returns (uint256) {
+        if (myLabor == 0 || myStake == 0) {
+            return 0;
+        }
         int256 feeRatio = FixedMath.toFixed(myLabor, reward);
         int256 stakeRatio = FixedMath.toFixed(myStake, totalStake);
         if (feeRatio == 0 || stakeRatio == 0) {
