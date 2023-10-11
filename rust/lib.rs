@@ -223,9 +223,9 @@ contract!(
 );
 
 contract!(
-    query_registry,
-    "QueryRegistry",
-    include_str!("../publish/ABI/QueryRegistry.json")
+    project_registry,
+    "ProjectRegistry",
+    include_str!("../publish/ABI/ProjectRegistry.json")
 );
 
 contract!(

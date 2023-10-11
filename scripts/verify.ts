@@ -1,13 +1,13 @@
-import {BigNumber, utils} from 'ethers';
-import {expect} from 'chai';
+import { expect } from 'chai';
+import { BigNumber, utils } from 'ethers';
 import Pino from 'pino';
 
-import setup from './setup';
-import {ContractSDK, SubqueryNetwork} from '../build';
+import { ContractSDK, SubqueryNetwork } from '../build';
 import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
-import {getLogger} from './logger';
+import { getLogger } from './logger';
+import setup from './setup';
 
 let logger: Pino.Logger;
 
@@ -99,14 +99,14 @@ async function checkInitialisation(sdk: ContractSDK, config, startupConfig, call
         expect(await sdk.indexerRegistry.minimumStakingAmount()).to.eql(BN(minimumStakingAmount));
         logger.info('🎉 IndexerRegistry Contract verified\n');
 
-        //QueryRegistry
-        logger = getLogger('QueryRegistry');
-        logger.info(`🧮 Verifying QueryRegistry Contract: ${sdk.queryRegistry.address}`);
+        //ProjectRegistry
+        logger = getLogger('ProjectRegistry');
+        logger.info(`🧮 Verifying ProjectRegistry Contract: ${sdk.projectRegistry.address}`);
         logger.info(`${caller} is not project creator`);
-        expect(await sdk.queryRegistry.creatorWhitelist(caller)).to.be.false;
+        expect(await sdk.projectRegistry.creatorWhitelist(caller)).to.be.false;
         logger.info(`${multiSig} is project creator`);
-        expect(await sdk.queryRegistry.creatorWhitelist(multiSig)).to.be.true;
-        logger.info('🎉 QueryRegistry Contract verified\n');
+        expect(await sdk.projectRegistry.creatorWhitelist(multiSig)).to.be.true;
+        logger.info('🎉 ProjectRegistry Contract verified\n');
 
         //PermissionExchange
         logger = getLogger('P');
@@ -155,7 +155,7 @@ async function checkConfiguration(sdk: ContractSDK, config) {
         let projects = config.projects;
         for (let i = 0; i < projects.length; i++) {
             let project = projects[i];
-            let p = await sdk.queryRegistry.queryInfos(i);
+            let p = await sdk.projectRegistry.queryInfos(i);
             expect(cidToBytes32(project.deploymentId)).to.eql(p.latestDeploymentId);
             expect(cidToBytes32(project.versionCid)).to.eql(p.latestVersion);
             expect(cidToBytes32(project.metadataCid)).to.eql(p.metadata);
@@ -167,7 +167,7 @@ async function checkConfiguration(sdk: ContractSDK, config) {
         let creators = config.QRCreator;
         for (let i = 0; i < creators.length; i++) {
             let creator = creators[i];
-            let isCreator = await sdk.queryRegistry.creatorWhitelist(creator);
+            let isCreator = await sdk.projectRegistry.creatorWhitelist(creator);
             expect(isCreator).to.be.false;
             logger.info(`🎉 QRCreator: ${creator} verified`);
         }
@@ -201,7 +201,7 @@ async function checkOwnership(sdk: ContractSDK, owner: string) {
         sdk.planManager,
         sdk.proxyAdmin,
         sdk.purchaseOfferMarket,
-        sdk.queryRegistry,
+        sdk.projectRegistry,
         sdk.rewardsDistributor,
         sdk.rewardsHelper,
         sdk.rewardsPool,
