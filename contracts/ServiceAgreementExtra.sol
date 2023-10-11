@@ -117,12 +117,12 @@ contract ServiceAgreementExtra is Initializable, OwnableUpgradeable, IServiceAgr
 
         uint256 agreementId = closedServiceAgreementIds[indexer][id];
         ClosedServiceAgreementInfo memory agreement = sar.getClosedServiceAgreement(agreementId);
-        require(agreement.deploymentId != address(0), 'SA001');
+        require(agreement.deploymentId != bytes32(0), 'SA001');
         require(block.timestamp > (agreement.startDate + agreement.period), 'SA010');
 
         _removeEndedAgreement(id, agreement);
 
-        emit ClosedAgreementRemoved(sar.ownerOf(agreementId), agreement.indexer, agreement.deploymentId, agreementId);
+        emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
     }
 
     function clearAllEndedAgreements(address indexer) external {
@@ -132,10 +132,10 @@ contract ServiceAgreementExtra is Initializable, OwnableUpgradeable, IServiceAgr
         for (uint256 i = saLength[indexer]; i > 0; i--) {
             uint256 agreementId = closedServiceAgreementIds[indexer][i - 1];
             ClosedServiceAgreementInfo memory agreement = sar.getClosedServiceAgreement(agreementId);
-            require(agreement.deploymentId != address(0), 'SA001');
+            require(agreement.deploymentId != bytes32(0), 'SA001');
             if (block.timestamp > (agreement.startDate + agreement.period)) {
                 _removeEndedAgreement(i - 1, agreement);
-                emit ClosedAgreementRemoved(sar.ownerOf(agreementId), agreement.indexer, agreement.deploymentId, agreementId);
+                emit ClosedAgreementRemoved(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
                 count++;
                 if (count >= 10) {
                     break;
