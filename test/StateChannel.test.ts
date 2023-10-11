@@ -267,9 +267,6 @@ describe('StateChannel Contract', () => {
             const state1 = await stateChannel.channel(channelId);
             expect(state1.spent).to.equal(etherParse('0.1'));
             expect(state1.status).to.equal(2); // Terminate
-            // const era = await eraManager.eraNumber();
-            // let unclaimed = await rewardsPool.getUnclaimDeployments(era.toNumber(), indexer.address);
-            // console.log(`unclaimed: ${unclaimed.join(',')}`)
 
             await expect(stateChannel.claim(channelId)).to.be.revertedWith('SC008');
 
