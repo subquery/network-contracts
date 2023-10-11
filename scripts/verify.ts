@@ -40,7 +40,7 @@ async function checkInitialisation(sdk: ContractSDK, config, startupConfig, call
         const amount = await sdk.sqToken.totalSupply();
         logger.info(`Initial supply to be equal ${amount.toString()}`);
         expect(totalSupply).to.eql(amount);
-        logger.info(`Multi-sig wallet: ${multiSig} own the total assets`);
+        logger.info(`Multi-sig walconst: ${multiSig} own the total assets`);
         expect(totalSupply).to.eql(await sdk.sqToken.balanceOf(multiSig));
         logger.info('🎉 SQToken Contract verified\n');
 
@@ -75,7 +75,7 @@ async function checkInitialisation(sdk: ContractSDK, config, startupConfig, call
         logger.info(`🧮 Verifying ServiceAgreementRegistry Contract: ${sdk.serviceAgreementRegistry.address}`);
         const [threshold] = config.contracts['ServiceAgreementRegistry'];
         logger.info(`threshold to be equal ${threshold}`);
-        expect(await sdk.serviceAgreementRegistry.threshold()).to.eql(BN(threshold));
+        expect(await sdk.serviceAgreementExtra.threshold()).to.eql(BN(threshold));
         logger.info('PlanMananger and PurchaseOfferContract are in the whitelist');
         expect(await sdk.serviceAgreementRegistry.establisherWhitelist(sdk.planManager.address)).to.be.true;
         expect(await sdk.serviceAgreementRegistry.establisherWhitelist(sdk.purchaseOfferMarket.address)).to.be.true;
@@ -140,10 +140,10 @@ async function checkConfiguration(sdk: ContractSDK, config) {
         // planTemplates
         let logger = getLogger('planTemplates');
         logger.info(`🧮 Verifying planTemplates`);
-        let planTemplates = config.planTemplates;
+        const planTemplates = config.planTemplates;
         for (let i = 0; i < planTemplates.length; i++) {
-            let planTemplate = planTemplates[i];
-            let pm = await sdk.planManager.getPlanTemplate(i);
+            const planTemplate = planTemplates[i];
+            const pm = await sdk.planManager.getPlanTemplate(i);
             expect(BN(planTemplate.period)).to.eql(pm.period);
             expect(BN(planTemplate.dailyReqCap)).to.eql(pm.dailyReqCap);
             expect(BN(planTemplate.rateLimit)).to.eql(pm.rateLimit);
@@ -152,32 +152,34 @@ async function checkConfiguration(sdk: ContractSDK, config) {
         //projects
         logger = getLogger('projects');
         logger.info(`🧮 Verifying projects`);
-        let projects = config.projects;
-        for (let i = 0; i < projects.length; i++) {
-            let project = projects[i];
-            let p = await sdk.projectRegistry.queryInfos(i);
+        const projects = config.projects;
+        for (let i = 1; i <= projects.length; i++) {
+            const project = projects[i];
+            const p = await sdk.projectRegistry.projectInfos(i);
+            const uri = await sdk.projectRegistry.tokenURI(i);
+            const deploymentInfo = await sdk.projectRegistry.deploymentInfos(p.latestDeploymentId);
             expect(cidToBytes32(project.deploymentId)).to.eql(p.latestDeploymentId);
-            expect(cidToBytes32(project.versionCid)).to.eql(p.latestVersion);
-            expect(cidToBytes32(project.metadataCid)).to.eql(p.metadata);
+            expect(cidToBytes32(project.versionCid)).to.eql(deploymentInfo.metadata);
+            expect(project.metadataCid).to.eql(`ipfs://${uri}`);
             logger.info(`🎉 project ${project.name} verified`);
         }
         //QRCreators
         logger = getLogger('QRCreators');
         logger.info(`🧮 Verifying QRCreators`);
-        let creators = config.QRCreator;
+        const creators = config.QRCreator;
         for (let i = 0; i < creators.length; i++) {
-            let creator = creators[i];
-            let isCreator = await sdk.projectRegistry.creatorWhitelist(creator);
+            const creator = creators[i];
+            const isCreator = await sdk.projectRegistry.creatorWhitelist(creator);
             expect(isCreator).to.be.false;
             logger.info(`🎉 QRCreator: ${creator} verified`);
         }
         //AirdropControllers
         logger = getLogger('AirdropControllers');
         logger.info(`🧮 Verifying AirdropControllers`);
-        let controllers = config.AirdropController;
+        const controllers = config.AirdropController;
         for (let i = 0; i < controllers.length; i++) {
-            let controller = controllers[i];
-            let isController = await sdk.airdropper.controllers(controller);
+            const controller = controllers[i];
+            const isController = await sdk.airdropper.controllers(controller);
             expect(isController).to.eql(false);
             logger.info(`🎉 AirdropController: ${controller} verified`);
         }
@@ -188,7 +190,7 @@ async function checkConfiguration(sdk: ContractSDK, config) {
 }
 
 async function checkOwnership(sdk: ContractSDK, owner: string) {
-    let logger = getLogger('ownership');
+    const logger = getLogger('ownership');
     logger.info(`🧮 Verifying ownership`);
     const contracts = [
         sdk.airdropper,
@@ -206,6 +208,7 @@ async function checkOwnership(sdk: ContractSDK, owner: string) {
         sdk.rewardsHelper,
         sdk.rewardsPool,
         sdk.rewardsStaking,
+        sdk.serviceAgreementExtra,
         sdk.serviceAgreementRegistry,
         sdk.settings,
         sdk.sqToken,
@@ -229,7 +232,7 @@ async function checkOwnership(sdk: ContractSDK, owner: string) {
 const main = async () => {
     let sdk: ContractSDK;
     let startupConfig: any = startupTestnetConfig;
-    const {wallet, config} = await setup(process.argv);
+    const {wallet , config} = await setup(process.argv);
     const caller = wallet.address;
 
     const networkType = process.argv[2];
