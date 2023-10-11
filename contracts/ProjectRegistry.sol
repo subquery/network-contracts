@@ -77,7 +77,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      */
     function initialize(ISettings _settings) external initializer {
         __Ownable_init();
-        __ERC721_init("SuqueryProject", "SP");
+        __ERC721_init("SubQueryProject", "SP");
         __ERC721URIStorage_init();
         __ERC721Enumerable_init();
 

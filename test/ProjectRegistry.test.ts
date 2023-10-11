@@ -4,13 +4,14 @@
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 
-import { IndexerRegistry, PlanManager, ProjectRegistry, PurchaseOfferMarket, SQToken, Staking } from '../src';
-import { METADATA_HASH, POI, PROJECT_METADATA, deploymentIds, metadatas, versions } from './constants';
+import { IndexerRegistry, PlanManager, ProjectRegistry, PurchaseOfferMarket, SQToken, Settings, Staking } from '../src';
+import { METADATA_HASH, POI, deploymentIds, deploymentMetadatas, metadatas, projectMetadatas } from './constants';
 import {
-  createPurchaseOffer,
-  etherParse,
-  futureTimestamp,
-  registerIndexer
+    Wallet,
+    createPurchaseOffer,
+    etherParse,
+    futureTimestamp,
+    registerIndexer
 } from './helper';
 import { deployContracts } from './setup';
 
@@ -26,52 +27,82 @@ enum ProjectType {
 
 describe('Project Registry Contract', () => {
     const mockProvider = waffle.provider;
-    let wallet_0, wallet_1, fake_controller;
-    let default_indexer;
-    const deploymentId = deploymentIds[0];
+    let wallet_0: Wallet;
+    let wallet_1: Wallet;
+
     let token: SQToken;
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
     let projectRegistry: ProjectRegistry;
     let purchaseOfferMarket: PurchaseOfferMarket;
     let planManager: PlanManager;
+    let setting: Settings;
+
+    const deploymentId = deploymentIds[0];
+    const projectMetadata = projectMetadatas[0];
+    const deploymentMetadata = deploymentMetadatas[0];
 
     // create query project
-    const createProject = async (wallet = wallet_0) => {
-        await projectRegistry.connect(wallet).createProject(PROJECT_METADATA, METADATA_HASH, deploymentId, ProjectType.SUBQUERY);
+    const createProject = (wallet = wallet_0) => {
+        return projectRegistry.connect(wallet).createProject(projectMetadata, deploymentMetadata, deploymentId, ProjectType.SUBQUERY);
     };
 
+    const checkTokenUri = async (tokenId: number, uri: string) => {
+        expect(await projectRegistry.tokenURI(tokenId)).to.equal(`ipfs://${uri}`);
+    }
+
     beforeEach(async () => {
-        [wallet_0, wallet_1, fake_controller] = await ethers.getSigners();
+        [wallet_0, wallet_1] = await ethers.getSigners();
         const deployment = await deployContracts(wallet_0, wallet_1);
-        default_indexer = wallet_0.address;
         token = deployment.token;
         staking = deployment.staking;
         indexerRegistry = deployment.indexerRegistry;
         projectRegistry = deployment.projectRegistry;
         purchaseOfferMarket = deployment.purchaseOfferMarket;
         planManager = deployment.planManager;
+        setting = deployment.settings;
+    });
 
-        await createProject();
+    describe.only('Initialisation', () => {
+        it('initialisation should work', async () =>  {
+            expect(await projectRegistry.name()).to.equal('SubQueryProject');
+            expect(await projectRegistry.symbol()).to.equal('SP');
+            expect(await projectRegistry.totalSupply()).to.equal(0);
+
+            expect(await projectRegistry.creatorRestricted()).to.equal(true);
+            expect(await projectRegistry.creatorWhitelist(wallet_0.address)).to.equal(true);
+            expect(await projectRegistry.creatorWhitelist(wallet_1.address)).to.equal(false);
+            expect(await projectRegistry.settings()).to.equal(setting.address);
+            expect(await projectRegistry.nextProjectId()).to.equal(1);
+        });
     });
 
     describe('Create Project Project', () => {
         it('create query project should work', async () => {
             // create project
-            await expect(createProject)
+            const projectId = 1;
+            await expect(createProject())
                 .to.be.emit(projectRegistry, 'CreateProject')
-                .withArgs(wallet_0.address, PROJECT_METADATA, ProjectType.SUBQUERY, deploymentId, METADATA_HASH);
+                .withArgs(wallet_0.address, projectId, projectMetadata, ProjectType.SUBQUERY, deploymentId, deploymentMetadata);
 
             // check state updates
-            const projectInfos = await projectRegistry.projectInfos(1);
+            const projectInfos = await projectRegistry.projectInfos(projectId);
             expect(projectInfos.latestDeploymentId).to.equal(deploymentId);
             expect(projectInfos.projectType).to.equal(ProjectType.SUBQUERY);
 
             const deploymentInfos = await projectRegistry.deploymentInfos(deploymentId);
-            expect(deploymentInfos.projectId).to.equal(1);
-            expect(deploymentInfos.metadata).to.equal(METADATA_HASH);
-
+            expect(deploymentInfos.projectId).to.equal(projectId);
+            expect(deploymentInfos.metadata).to.equal(deploymentMetadata);
             expect(await projectRegistry.nextProjectId()).to.equal(2);
+
+            // check nft features
+            expect(await projectRegistry.ownerOf(projectId)).to.equal(wallet_0.address);
+            expect(await projectRegistry.balanceOf(wallet_0.address)).to.equal(1);
+            expect(await projectRegistry.tokenOfOwnerByIndex(wallet_0.address, 0)).to.equal(projectId);
+            expect(await projectRegistry.tokenByIndex(0)).to.equal(projectId);
+            expect(await projectRegistry.totalSupply()).to.equal(1);
+            expect(await projectRegistry.tokenURI(projectId)).to.equal(`ipfs://${projectMetadata}`);
+            await checkTokenUri(projectId, projectMetadata);
         });
 
         it('cannot create a project with an existing deploymentId', async () => {
@@ -79,7 +110,7 @@ describe('Project Registry Contract', () => {
         });
 
         it('authorised account can create project in creatorRestricted mode', async () => {
-            const [metadata, version, deploymentId] = [metadatas[0], versions[0], deploymentIds[1]];
+            const [metadata, version, deploymentId] = [metadatas[0], deploymentMetadatas[0], deploymentIds[1]];
             expect(await projectRegistry.creatorWhitelist(wallet_1.address)).to.be.equal(false);
             await projectRegistry.addCreator(wallet_1.address);
             expect(await projectRegistry.creatorWhitelist(wallet_1.address)).to.be.equal(true);
@@ -89,12 +120,12 @@ describe('Project Registry Contract', () => {
         });
 
         it('cannot create a project with not authorised account in creatorRestrict mode', async () => {
-            const [metadata, version, deploymentId] = [metadatas[0], versions[0], deploymentIds[1]];
+            const [metadata, version, deploymentId] = [metadatas[0], deploymentMetadatas[0], deploymentIds[1]];
             await expect(createProject(wallet_1)).to.be.revertedWith('PR001');
         });
 
         it('any account can create a project not in creatorRestrict mode', async () => {
-            const [metadata, version, deploymentId] = [metadatas[0], versions[0], deploymentIds[1]];
+            const [metadata, version, deploymentId] = [metadatas[0], deploymentMetadatas[0], deploymentIds[1]];
             expect(await projectRegistry.creatorRestricted()).to.be.equal(true);
             await projectRegistry.setCreatorRestricted(false);
             expect(await projectRegistry.creatorRestricted()).to.be.equal(false);
@@ -106,17 +137,17 @@ describe('Project Registry Contract', () => {
 
     describe('Update Project Project', () => {
         it('update project metadata should work', async () => {
-            await expect(projectRegistry.updateProjectMetadata(1, PROJECT_METADATA))
+            await expect(projectRegistry.updateProjectMetadata(1, projectMetadata))
                 .to.be.emit(projectRegistry, 'UpdateProjectMetadata')
-                .withArgs(wallet_0.address, 1, PROJECT_METADATA);
+                .withArgs(wallet_0.address, 1, projectMetadata);
 
             // check state changes
             const tokenUri = await projectRegistry.tokenURI(1);
-            expect(tokenUri).to.equal(`ifps://${PROJECT_METADATA}`);
+            expect(tokenUri).to.equal(`ifps://${projectMetadata}`);
         });
 
         it('update project deploymenet should work', async () => {
-            const [version, deploymentId] = [versions[1], deploymentIds[1]];
+            const [version, deploymentId] = [deploymentMetadatas[1], deploymentIds[1]];
             await expect(projectRegistry.updateDeployment(1, deploymentId, version))
                 .to.be.emit(projectRegistry, 'UpdateProjectDeployment')
                 .withArgs(wallet_0.address, 1, deploymentId, version);
@@ -132,20 +163,20 @@ describe('Project Registry Contract', () => {
             await projectRegistry.addCreator(wallet_1.address);
             // no permission to update metadata
             await expect(
-                projectRegistry.connect(wallet_1).updateProjectMetadata(1, PROJECT_METADATA)
+                projectRegistry.connect(wallet_1).updateProjectMetadata(1, projectMetadata)
             ).to.be.revertedWith('PR004');
             // no permission to update deployment
             await expect(
-                projectRegistry.connect(wallet_1).updateDeployment(1, deploymentIds[1], versions[1])
+                projectRegistry.connect(wallet_1).updateDeployment(1, deploymentIds[1], deploymentMetadatas[1])
             ).to.be.revertedWith('PR004');
         });
 
         it('should fail to update deployment to one already used', async () => {
-            await expect(projectRegistry.updateDeployment(0, deploymentId, versions[0])).to.be.revertedWith('PR006');
+            await expect(projectRegistry.updateDeployment(0, deploymentId, deploymentMetadatas[0])).to.be.revertedWith('PR006');
         });
     });
 
-    describe('Indexing Project Project', () => {
+    describe('Managing Project Service', () => {
         beforeEach(async () => {
             await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '2000');
             await indexerRegistry.setControllerAccount(wallet_1.address);
