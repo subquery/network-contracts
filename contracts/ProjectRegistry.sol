@@ -199,7 +199,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     function stopService(bytes32 deploymentId) external onlyIndexer {
         ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
 
-        require(currentStatus != ServiceStatus.TERMINATED, 'PR005');
+        require(currentStatus == ServiceStatus.READY, 'PR005');
         require(
             !IServiceAgreementExtra(settings.getServiceAgreementExtra()).hasOngoingClosedServiceAgreement(
                 msg.sender,

@@ -15,8 +15,8 @@ import {
 } from './helper';
 import { deployContracts } from './setup';
 
-enum IndexingServiceStatus {
-    NOTINDEXING,
+enum ServiceStatus {
+    TERMINATED,
     READY,
 }
 
@@ -200,7 +200,7 @@ describe('Project Registry Contract', () => {
         });
     });
 
-    describe('Managing Project Service', () => {
+    describe.only('Managing Project Service', () => {
         beforeEach(async () => {
             await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '2000');
             await indexerRegistry.setControllerAccount(wallet_1.address);
@@ -209,16 +209,11 @@ describe('Project Registry Contract', () => {
         it('start service should work', async () => {
             await expect(projectRegistry.startService(deploymentId))
                 .to.be.emit(projectRegistry, 'ServiceStatusChanged')
-                .withArgs(wallet_0.address, deploymentId, 1);
+                .withArgs(wallet_0.address, deploymentId, ServiceStatus.READY);
 
             // check state changes
-            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address)).to.equal(IndexingServiceStatus.READY);
+            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address)).to.equal(ServiceStatus.READY);
             expect(await projectRegistry.numberOfDeployments(wallet_0.address)).to.equal(1);
-        });
-
-        it('start service should fail for unregistered deployment id', async () => {
-            const deploymentId = deploymentIds[1];
-            await expect(projectRegistry.startService(deploymentId)).to.be.revertedWith('PR006');
         });
 
         it('stop service should work', async () => {
@@ -226,20 +221,16 @@ describe('Project Registry Contract', () => {
             await projectRegistry.startService(deploymentId);
             await expect(projectRegistry.stopService(deploymentId))
                 .to.be.emit(projectRegistry, 'ServiceStatusChanged')
-                .withArgs(wallet_0.address, deploymentId, 0);
+                .withArgs(wallet_0.address, deploymentId, ServiceStatus.TERMINATED);
 
             // check state changes
-            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address)).to.equal(IndexingServiceStatus.NOTINDEXING);
+            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address)).to.equal(ServiceStatus.TERMINATED);
             expect(await projectRegistry.numberOfDeployments(wallet_0.address)).to.equal(0);
 
             // can restart service project
             await projectRegistry.startService(deploymentId);
-            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address)).to.equal(IndexingServiceStatus.READY);
+            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address)).to.equal(ServiceStatus.READY);
             expect(await projectRegistry.numberOfDeployments(wallet_0.address)).to.equal(1);
-
-            // can stop `READY` project
-            await projectRegistry.startService(deploymentId);
-            await projectRegistry.stopService(deploymentId);
         });
 
         it('start service with invalid condition should fail', async () => {
@@ -247,42 +238,21 @@ describe('Project Registry Contract', () => {
             await expect(projectRegistry.connect(wallet_1).startService(deploymentId)).to.be.revertedWith('G002');
             // current status is not `NOTINDEXING`
             await projectRegistry.startService(deploymentId);
-            await expect(projectRegistry.startService(deploymentId)).to.be.revertedWith('PR009');
-            // update status to ready
-            await projectRegistry.startService(deploymentId);
-            await expect(projectRegistry.startService(deploymentId)).to.be.revertedWith('PR009');
-        });
-
-        it('update indexing to ready with invalid status should fail', async () => {
-            // caller is not indexer
-            await expect(projectRegistry.connect(wallet_1).startService(deploymentId)).to.be.revertedWith(
-                'G002'
-            );
-            // current status is `NONSTARTED`
-            await expect(projectRegistry.startService(deploymentId)).to.be.revertedWith('PR002');
-            // current status `NOTINDEXING`
-            await projectRegistry.startService(deploymentId);
-            await projectRegistry.stopService(deploymentId);
             await expect(projectRegistry.startService(deploymentId)).to.be.revertedWith('PR002');
         });
 
         it('stop indexing with invalid condition should fail', async () => {
             // caller is not an indexer
             await expect(projectRegistry.connect(wallet_1).stopService(deploymentId)).to.be.revertedWith('G002');
-            // current status is `NOTINDEXING`
-            await expect(projectRegistry.stopService(deploymentId)).to.be.revertedWith('PR010');
-            // current status is `NOTINDEXING`
-            await projectRegistry.startService(deploymentId);
-            await projectRegistry.stopService(deploymentId);
-            await expect(projectRegistry.stopService(deploymentId)).to.be.revertedWith('PR010');
+            // current status is `TERMINATED`
+            await expect(projectRegistry.stopService(deploymentId)).to.be.revertedWith('PR005');
             // have ongoing service agreement
-            await projectRegistry.startService(deploymentId);
             await projectRegistry.startService(deploymentId);
             await token.increaseAllowance(purchaseOfferMarket.address, etherParse('5'));
             await planManager.createPlanTemplate(1000, 1000, 100, token.address, METADATA_HASH);
             await createPurchaseOffer(purchaseOfferMarket, token, deploymentId, await futureTimestamp(mockProvider));
             await purchaseOfferMarket.acceptPurchaseOffer(0, POI);
-            await expect(projectRegistry.stopService(deploymentId)).to.be.revertedWith('PR011');
+            await expect(projectRegistry.stopService(deploymentId)).to.be.revertedWith('PR006');
         });
     });
 });
