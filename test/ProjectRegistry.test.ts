@@ -184,6 +184,28 @@ describe('Project Registry Contract', () => {
             expect(deploymentInfo.metadata).to.equal(metadata);
         });
 
+        it.skip('can update project and deployment with new account after owner transferred', async () => {
+            const projectId = 1;
+            await projectRegistry.transferFrom(wallet_0.address, wallet_1.address, projectId);
+            expect(await projectRegistry.ownerOf(projectId)).to.equal(wallet_1.address);
+            expect(await projectRegistry.balanceOf(wallet_1.address)).to.equal(1);
+
+            const newProjectMetadata = projectMetadatas[1];
+            projectRegistry.connect(wallet_1).updateProjectMetadata(projectId, newProjectMetadata);
+            const [metadata, deploymentId] = [deploymentMetadatas[1], deploymentIds[1]];
+            projectRegistry.connect(wallet_1).updateDeployment(projectId, deploymentId, metadata)
+
+            // check state changes
+            // const tokenUri = await projectRegistry.tokenURI(projectId);
+            // expect(tokenUri).to.equal(`ipfs://${newProjectMetadata}`);
+            const projectInfo = await projectRegistry.projectInfos(projectId);
+            const deploymentInfo = await projectRegistry.deploymentInfos(deploymentId);
+            expect(projectInfo.latestDeploymentId).to.equal(deploymentId);
+            expect(projectInfo.projectType).to.equal(ProjectType.SUBQUERY);
+            expect(deploymentInfo.projectId).to.equal(projectId);
+            expect(deploymentInfo.metadata).to.equal(metadata);
+        });
+
         it('update project and deployment with invalid params should fail', async () => {
             // no permission to update project
             await expect(
@@ -200,7 +222,7 @@ describe('Project Registry Contract', () => {
         });
     });
 
-    describe.only('Managing Project Service', () => {
+    describe('Managing Project Service', () => {
         beforeEach(async () => {
             await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '2000');
             await indexerRegistry.setControllerAccount(wallet_1.address);
