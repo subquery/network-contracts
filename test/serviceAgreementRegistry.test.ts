@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
@@ -8,14 +8,14 @@ import {
     EraManager,
     IndexerRegistry,
     PlanManager,
-    PurchaseOfferMarket,
     ProjectRegistry,
+    PurchaseOfferMarket,
     RewardsDistributer,
     RewardsHelper,
     RewardsStaking,
     SQToken,
-    ServiceAgreementRegistry,
     ServiceAgreementExtra,
+    ServiceAgreementRegistry,
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, poi } from './constants';

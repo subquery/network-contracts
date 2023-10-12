@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2022 SubProject Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubProject Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 pragma solidity 0.8.15;
@@ -117,20 +117,16 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         return "ipfs://";
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
-        super._beforeTokenTransfer(from, to, tokenId);
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
+        super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
     function tokenURI(uint256 tokenId) public view override(ERC721Upgradeable, ERC721URIStorageUpgradeable) returns (string memory) {
         return super.tokenURI(tokenId);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721Upgradeable, ERC721EnumerableUpgradeable) returns (bool) {
-        return
-            interfaceId == type(IProjectRegistry).interfaceId ||
-            ERC721Upgradeable.supportsInterface(interfaceId) ||
-            ERC721EnumerableUpgradeable.supportsInterface(interfaceId) ||
-            ERC721URIStorageUpgradeable.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC721URIStorageUpgradeable) returns (bool) {
+        return interfaceId == type(IProjectRegistry).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {

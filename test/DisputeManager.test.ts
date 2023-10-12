@@ -1,12 +1,12 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
-import {etherParse, registerIndexer, startNewEra, time, eventFrom} from './helper';
-import {DEPLOYMENT_ID} from './constants';
-import {DisputeManager, SQToken, Staking, IndexerRegistry, EraManager, RewardsDistributer, RewardsStaking, RewardsHelper, StakingManager} from '../src';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
+import { DisputeManager, EraManager, IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsStaking, SQToken, Staking, StakingManager } from '../src';
+import { DEPLOYMENT_ID } from './constants';
+import { etherParse, registerIndexer, startNewEra, time } from './helper';
+import { deployContracts } from './setup';
 
 describe('Dispute Manager Contract', () => {
     const mockProvider = waffle.provider;

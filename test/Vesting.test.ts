@@ -1,13 +1,13 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { Wallet } from "@ethersproject/wallet";
 import { expect } from 'chai';
+import { BigNumber } from "ethers";
 import { ethers, waffle } from 'hardhat';
 import { SQToken, Vesting } from '../src';
+import { eventFrom } from "./helper";
 import { deployContracts } from './setup';
-import {Wallet} from "@ethersproject/wallet";
-import {BigNumber} from "ethers";
-import {eventFrom} from "./helper";
 
 describe('Vesting Contract', () => {
     const mockProvider = waffle.provider;

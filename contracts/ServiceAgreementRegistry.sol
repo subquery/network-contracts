@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 pragma solidity 0.8.15;
@@ -69,9 +69,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
     }
 
     function supportsInterface(bytes4 interfaceId) public view override(ERC721Upgradeable) returns (bool) {
-        return
-            interfaceId == type(IServiceAgreementRegistry).interfaceId ||
-            ERC721Upgradeable.supportsInterface(interfaceId);
+        return interfaceId == type(IServiceAgreementRegistry).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function setSettings(ISettings _settings) external onlyOwner {
@@ -86,8 +84,8 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         establisherWhitelist[establisher] = false;
     }
 
-    function _afterTokenTransfer(address from, address to, uint256 tokenId) internal override {
-        super._afterTokenTransfer(from, to, tokenId);
+    function _afterTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override {
+        super._afterTokenTransfer(from, to, tokenId, batchSize);
         closedServiceAgreements[tokenId].consumer = to;
     } 
 

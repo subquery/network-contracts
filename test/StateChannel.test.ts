@@ -1,13 +1,13 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers} from 'hardhat';
-import {deployContracts} from './setup';
-import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
-import {IndexerRegistry, RewardsPool, RewardsDistributer, EraManager, SQToken, Staking, StateChannel} from '../src';
-import {constants, registerIndexer, startNewEra, time, delay, etherParse} from './helper';
-import {utils, Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
+import { expect } from 'chai';
+import { BigNumber, BigNumberish, BytesLike, Wallet } from 'ethers';
+import { ethers } from 'hardhat';
+import { EraManager, IndexerRegistry, RewardsDistributer, RewardsPool, SQToken, Staking, StateChannel } from '../src';
+import { deploymentIds } from './constants';
+import { delay, etherParse, registerIndexer } from './helper';
+import { deployContracts } from './setup';
 
 describe('StateChannel Contract', () => {
     const deploymentId = deploymentIds[0];

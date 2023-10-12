@@ -1,13 +1,12 @@
-// Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {BigNumber} from 'ethers';
-import {deployContracts} from './setup';
-import {METADATA_HASH, deploymentIds} from './constants';
-import {IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsPool, EraManager, SQToken, Staking} from '../src';
-import {startNewEra, time, etherParse, timeTravel} from './helper';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
+import { EraManager, IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsPool, SQToken, Staking } from '../src';
+import { METADATA_HASH, deploymentIds } from './constants';
+import { etherParse, startNewEra, time, timeTravel } from './helper';
+import { deployContracts } from './setup';
 
 describe('RewardsPool Contract', () => {
     const deploymentId0 = deploymentIds[0];
