@@ -318,7 +318,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     /// @notice we will choose the following if `stakeRatio > feeRatio`:
     /// @notice `reward * stakeRatio / e^(alpha * (ln(stakeRatio / feeRatio)))`
     function _cobbDouglas(uint256 reward, uint256 myLabor, uint256 myStake, uint256 totalStake) private view returns (uint256) {
-        if (myLabor == 0 || myStake == 0) {
+        if (myLabor == 0 || myStake == 0 || totalStake == 0) {
             return 0;
         }
         int256 feeRatio = FixedMath.toFixed(myLabor, reward);
