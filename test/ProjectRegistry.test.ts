@@ -184,20 +184,22 @@ describe('Project Registry Contract', () => {
             expect(deploymentInfo.metadata).to.equal(metadata);
         });
 
-        it.skip('can update project and deployment with new account after owner transferred', async () => {
+        it('can update project and deployment with new account after owner transferred', async () => {
             const projectId = 1;
             await projectRegistry.transferFrom(wallet_0.address, wallet_1.address, projectId);
             expect(await projectRegistry.ownerOf(projectId)).to.equal(wallet_1.address);
             expect(await projectRegistry.balanceOf(wallet_1.address)).to.equal(1);
+            expect(await projectRegistry.balanceOf(wallet_0.address)).to.equal(0);
 
             const newProjectMetadata = projectMetadatas[1];
-            projectRegistry.connect(wallet_1).updateProjectMetadata(projectId, newProjectMetadata);
+            expect(await projectRegistry.ownerOf(projectId)).to.equal(wallet_1.address);
+            await projectRegistry.connect(wallet_1).updateProjectMetadata(projectId, newProjectMetadata);
             const [metadata, deploymentId] = [deploymentMetadatas[1], deploymentIds[1]];
-            projectRegistry.connect(wallet_1).updateDeployment(projectId, deploymentId, metadata)
+            await projectRegistry.connect(wallet_1).updateDeployment(projectId, deploymentId, metadata)
 
             // check state changes
-            // const tokenUri = await projectRegistry.tokenURI(projectId);
-            // expect(tokenUri).to.equal(`ipfs://${newProjectMetadata}`);
+            const tokenUri = await projectRegistry.tokenURI(projectId);
+            expect(tokenUri).to.equal(`ipfs://${newProjectMetadata}`);
             const projectInfo = await projectRegistry.projectInfos(projectId);
             const deploymentInfo = await projectRegistry.deploymentInfos(deploymentId);
             expect(projectInfo.latestDeploymentId).to.equal(deploymentId);
