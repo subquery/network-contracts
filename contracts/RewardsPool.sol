@@ -259,7 +259,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         Pool storage pool = eraPool.pools[deploymentId];
         // when only one indexer in the pool and that indexer has unregistered, it's possible that
         // totalReward > 0 while labor and stake = 0, in this case we burn the reward
-        require(pool.totalReward > 0, 'RP005');
+        if (pool.totalReward == 0) {
+            return;
+        }
 
         uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[indexer], pool.stake[indexer], pool.totalStake);
 
