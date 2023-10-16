@@ -223,15 +223,21 @@ contract!(
 );
 
 contract!(
-    query_registry,
-    "QueryRegistry",
-    include_str!("../publish/ABI/QueryRegistry.json")
+    project_registry,
+    "ProjectRegistry",
+    include_str!("../publish/ABI/ProjectRegistry.json")
 );
 
 contract!(
     inflation_controller,
     "InflationController",
     include_str!("../publish/ABI/InflationController.json")
+);
+
+contract!(
+    service_agreement_extra,
+    "ServiceAgreementExtra",
+    include_str!("../publish/ABI/ServiceAgreementExtra.json")
 );
 
 contract!(

@@ -108,9 +108,9 @@ task('publish', "verify and publish contracts on etherscan")
                 constructorArguments: [],
             });
 
-            //QueryRegistry
+            //ProjectRegistry
             await hre.run("verify:verify", {
-                address: deployment.QueryRegistry.innerAddress,
+                address: deployment.ProjectRegistry.innerAddress,
                 constructorArguments: [],
             });
 
