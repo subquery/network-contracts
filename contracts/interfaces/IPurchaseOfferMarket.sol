@@ -10,6 +10,7 @@ interface IPurchaseOfferMarket {
         uint256 _deposit,
         uint16 _limit,
         uint256 _minimumAcceptHeight,
+        uint256 _minimumStakingAmount,
         uint256 _expireDate
     ) external;
 

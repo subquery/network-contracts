@@ -71,11 +71,12 @@ export async function createPurchaseOffer(
     purchaseOfferMarket: PurchaseOfferMarket,
     token: Contract,
     deploymentId: string,
-    expireDate,
+    expireDate: number,
     planTemplateId = 0,
     limit = 1,
-    deposit='2000000000000000000', // 2e18
-    minimumAcceptHeight=100,
+    deposit = etherParse(2),
+    minimumAcceptHeight = 100,
+    minimumStakingAmount = etherParse('1000')
 ): Promise<BigNumber> {
     await token.increaseAllowance(purchaseOfferMarket.address, deposit);
     const tx = await purchaseOfferMarket.createPurchaseOffer(
@@ -84,9 +85,10 @@ export async function createPurchaseOffer(
         deposit,
         limit,
         minimumAcceptHeight,
+        minimumStakingAmount,
         expireDate
     );
-    const evt = await eventFrom(tx, purchaseOfferMarket, 'PurchaseOfferCreated(address,uint256,bytes32,uint256,uint256,uint16,uint256,uint256)');
+    const evt = await eventFrom(tx, purchaseOfferMarket, 'PurchaseOfferCreated(address,uint256,bytes32,uint256,uint256,uint16,uint256,uint256,uint256)');
     return evt.offerId;
 }
 
@@ -127,8 +129,9 @@ export async function acceptPlan(
     await planManager.connect(consumer).acceptPlan((await planManager.nextPlanId()).toNumber() - 1, DEPLOYMENT_ID);
 }
 
-export function etherParse(etherNum: string) {
-    return ethers.utils.parseEther(etherNum)
+export function etherParse(etherNum: string | number) {
+    const ether = typeof etherNum === 'string' ? etherNum : etherNum.toString();
+    return ethers.utils.parseEther(ether)
 }
 
 type Event = utils.Result;
