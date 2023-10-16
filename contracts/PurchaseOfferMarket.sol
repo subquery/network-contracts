@@ -188,9 +188,6 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         require(template.active, 'PO005');
         require(template.priceToken == settings.getSQToken());
 
-        IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
-        require(_minimumStakingAmount >= indexerRegistry.minimumStakingAmount(), 'PO012');
-
         offers[numOffers] = PurchaseOffer(
             _deposit,
             _minimumAcceptHeight,

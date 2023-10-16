@@ -111,18 +111,6 @@ describe('Purchase Offer Market Contract', () => {
                         futureDate
                     )
                 ).to.be.revertedWith('PO004');
-                // minimumStakingAmount too small
-                await expect(
-                    purchaseOfferMarket.createPurchaseOffer(
-                        DEPLOYMENT_ID,
-                        planTemplateId,
-                        deposit,
-                        1,
-                        minimumAcceptHeight,
-                        etherParse('900'),
-                        futureDate
-                    )
-                ).to.be.revertedWith('PO012');
             });
 
             it('create offer with inactive planTemplate should fail', async () => {
