@@ -142,26 +142,30 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         uint256 era = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
         EraPool storage eraPool = pools[era];
         Pool storage pool = eraPool.pools[deploymentId];
-        IndexerDeployment storage indexerDeployment = eraPool.indexerUnclaimDeployments[indexer];
 
         // deployment created firstly.
         if (pool.totalReward == 0) {
             eraPool.unclaimDeployment += 1;
         }
 
-        uint256 laborAdd = amount;
         // indexer joined the deployment pool firstly.
         if (pool.labor[indexer] == 0) {
             IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
             uint256 myStake = stakingManager.getTotalStakingAmount(indexer);
+            if (myStake == 0) {
+                // skip indexerUnclaimDeployments change, this indexer can not claim
+                // if this is the only reward this pool get in this era, the reward is locked forever in the pool
+                pool.totalReward += amount;
+                pool.unclaimReward += amount;
+                emit Labor(deploymentId, indexer, 0, pool.totalReward);
+                return;
+            }
             pool.stake[indexer] = myStake;
             pool.totalStake += myStake;
-            if (myStake == 0) {
-                laborAdd = 0;
-            }
         }
 
         // init deployments list
+        IndexerDeployment storage indexerDeployment = eraPool.indexerUnclaimDeployments[indexer];
         if (indexerDeployment.deployments.length == 0) {
             indexerDeployment.deployments.push(0); // only for skip 0;
         }
@@ -171,12 +175,12 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
             indexerDeployment.index[deploymentId] = indexerDeployment.unclaim;
         }
 
-        pool.labor[indexer] += laborAdd;
+        pool.labor[indexer] += amount;
         pool.totalReward += amount;
-        pool.unclaimTotalLabor += laborAdd;
+        pool.unclaimTotalLabor += amount;
         pool.unclaimReward += amount;
 
-        emit Labor(deploymentId, indexer, laborAdd, pool.totalReward);
+        emit Labor(deploymentId, indexer, amount, pool.totalReward);
     }
 
     /**
@@ -257,11 +261,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     function _collect(uint256 era, bytes32 deploymentId, address indexer) private {
         EraPool storage eraPool = pools[era];
         Pool storage pool = eraPool.pools[deploymentId];
-        // when only one indexer in the pool and that indexer has unregistered, it's possible that
-        // totalReward > 0 while labor and stake = 0, in this case we burn the reward
-        if (pool.totalReward == 0) {
-            return;
-        }
+        // this is to prevent duplicated collect
+        require(pool.totalStake > 0 && pool.totalReward > 0 && pool.labor[indexer] > 0, 'RP005');
 
         uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[indexer], pool.stake[indexer], pool.totalStake);
 
@@ -318,9 +319,10 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
     /// @notice we will choose the following if `stakeRatio > feeRatio`:
     /// @notice `reward * stakeRatio / e^(alpha * (ln(stakeRatio / feeRatio)))`
     function _cobbDouglas(uint256 reward, uint256 myLabor, uint256 myStake, uint256 totalStake) private view returns (uint256) {
-        if (myLabor == 0 || myStake == 0 || totalStake == 0) {
-            return 0;
+        if (myStake == totalStake) {
+            return reward;
         }
+
         int256 feeRatio = FixedMath.toFixed(myLabor, reward);
         int256 stakeRatio = FixedMath.toFixed(myStake, totalStake);
         if (feeRatio == 0 || stakeRatio == 0) {
