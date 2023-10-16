@@ -22,7 +22,7 @@ The contracts are upgradable, following the Open Zeppelin Proxy Upgrade Pattern.
 [**_PurchaseOfferMarket_**](./contracts/PurchaseOfferMarket.md)
 > The Purchase Offer Market Contract tracks all purchase offers for Indexers and Consumers. It allows Consumers to create/cancel purchase offers, and Indexers to accept the purchase offer to make the service agreements. It is the place Consumer publish a purchase offer for a specific deployment. And also the place indexers can search and take these purchase offers.
 
-[**_QueryRegistry_**](./contracts/QueryRegistry.md)
+[**_ProjectRegistry_**](./contracts/ProjectRegistry.md)
 > This contract tracks all query projects and their deployments. At the beginning of the network, we will start with the restrict mode which only allow permissioned account to create and update query project. Indexers are able to start and stop indexing with a specific deployment from this conttact. Also Indexers can update and report  their indexing status from this contarct.
 
 [**_RewardsDistributer_**](./contracts/RewardsDistributer.md)

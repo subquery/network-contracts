@@ -145,7 +145,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
     }
 
     /**
-     * @notice Indexer call to unregister, need to check no running indexing projects on this Indexer from QueryRegistry contract.
+     * @notice Indexer call to unregister, need to check no running indexing projects on this Indexer from ProjectRegistry contract.
      *  This function will call unstake for Indexer to make sure indexer unstaking all staked SQT Token after unregister.
      */
     function unregisterIndexer() external onlyIndexer {

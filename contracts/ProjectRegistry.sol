@@ -77,7 +77,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      */
     function initialize(ISettings _settings) external initializer {
         __Ownable_init();
-        __ERC721_init("SuqueryProject", "SP");
+        __ERC721_init("SubQueryProject", "SP");
         __ERC721URIStorage_init();
         __ERC721Enumerable_init();
 
@@ -172,7 +172,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      */
     function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata) external {
         require(ownerOf(projectId) == msg.sender, 'PR004');
-        require(deploymentInfos[deploymentId].projectId == projectId, 'PR007');
+        require(deploymentInfos[deploymentId].projectId == 0, 'PR003');
 
         projectInfos[projectId].latestDeploymentId = deploymentId;
         deploymentInfos[deploymentId] = DeploymentInfo(projectId, metadata);
@@ -199,7 +199,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     function stopService(bytes32 deploymentId) external onlyIndexer {
         ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
 
-        require(currentStatus != ServiceStatus.TERMINATED, 'PR005');
+        require(currentStatus == ServiceStatus.READY, 'PR005');
         require(
             !IServiceAgreementExtra(settings.getServiceAgreementExtra()).hasOngoingClosedServiceAgreement(
                 msg.sender,

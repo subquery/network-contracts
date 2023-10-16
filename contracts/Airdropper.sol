@@ -39,7 +39,7 @@ contract Airdropper is Ownable {
         _;
     }
 
-    constructor(address _settleDestination) public {
+    constructor(address _settleDestination) {
       controllers[msg.sender] = true;
       settleDestination = _settleDestination;
     }

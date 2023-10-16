@@ -1,4 +1,4 @@
-import {readFileSync, writeFileSync} from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 
 const main = async () => {
     try {
@@ -12,9 +12,10 @@ const main = async () => {
             'StakingManager',
             'EraManager',
             'IndexerRegistry',
-            'QueryRegistry',
+            'ProjectRegistry',
             'PlanManager',
             'PurchaseOfferMarket',
+            'ServiceAgreementExtra',
             'ServiceAgreementRegistry',
             'RewardsDistributer',
             'RewardsPool',

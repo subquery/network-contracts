@@ -168,6 +168,15 @@ describe('Service Agreement Registry Contract', () => {
             ).to.be.equal(true);
         });
 
+        it('transfer service agreement should work', async () => {
+            await purchaseOfferMarket.acceptPurchaseOffer(0, poi);
+            await serviceAgreementRegistry.transferFrom(wallet.address, wallet1.address, 1);
+            expect(await serviceAgreementRegistry.ownerOf(1)).to.equal(wallet1.address);
+
+            const agreement = await serviceAgreementRegistry.getClosedServiceAgreement(1);
+            expect(agreement.consumer).to.equal(wallet1.address);
+        });
+
         it('estabish service agressment with wrong param should revert', async () => {
             await purchaseOfferMarket.acceptPurchaseOffer(0, poi);
             await token.increaseAllowance(purchaseOfferMarket.address, etherParse('4000'));
