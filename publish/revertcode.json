@@ -96,6 +96,8 @@
     "PO009": "offer accepted already",
     "PO010": "number of contracts already reached limit",
     "PO011": "poi can not be empty",
+    "PO012": "offer minimum staking amount must greater than indexer minimum staking amount",
+    "PO013": "indexer staking amount must greater than offer minimum staking amount",
     "QR001": "Address is not authorised to operate query project",
     "QR002": "can not update status for NOTINDEXING services",
     "QR003": "only timestamp that is after previous timestamp is valid",
