@@ -71,24 +71,24 @@ export async function createPurchaseOffer(
     purchaseOfferMarket: PurchaseOfferMarket,
     token: Contract,
     deploymentId: string,
-    expireDate,
+    expireDate: number,
     planTemplateId = 0,
     limit = 1,
-    deposit = 2,
+    deposit = etherParse(2),
     minimumAcceptHeight = 100,
-    minimumStakingAmount = 1000
+    minimumStakingAmount = etherParse('1000')
 ): Promise<BigNumber> {
-    await token.increaseAllowance(purchaseOfferMarket.address, etherParse(deposit));
+    await token.increaseAllowance(purchaseOfferMarket.address, deposit);
     const tx = await purchaseOfferMarket.createPurchaseOffer(
         deploymentId,
         planTemplateId,
-        etherParse(deposit),
+        deposit,
         limit,
         minimumAcceptHeight,
-        etherParse(minimumStakingAmount),
+        minimumStakingAmount,
         expireDate
     );
-    const evt = await eventFrom(tx, purchaseOfferMarket, 'PurchaseOfferCreated(address,uint256,bytes32,uint256,uint256,uint16,uint256,uint256)');
+    const evt = await eventFrom(tx, purchaseOfferMarket, 'PurchaseOfferCreated(address,uint256,bytes32,uint256,uint256,uint16,uint256,uint256,uint256)');
     return evt.offerId;
 }
 

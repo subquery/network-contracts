@@ -66,6 +66,7 @@ describe('Purchase Offer Market Contract', () => {
                 expect(offer.limit).to.equal(limit);
                 expect(offer.numAcceptedContracts).to.equal(0);
                 expect(offer.minimumAcceptHeight).to.equal(minimumAcceptHeight);
+                expect(offer.minimumStakingAmount).to.equal(minimumStakingAmount);
                 expect(offer.planTemplateId).to.equal(planTemplateId);
                 expect((await planManager.getPlanTemplate(offer.planTemplateId)).period).to.equal(contractPeriod);
                 expect(offer.active).to.equal(true);
@@ -110,6 +111,18 @@ describe('Purchase Offer Market Contract', () => {
                         futureDate
                     )
                 ).to.be.revertedWith('PO004');
+                // minimumStakingAmount too small
+                await expect(
+                    purchaseOfferMarket.createPurchaseOffer(
+                        DEPLOYMENT_ID,
+                        planTemplateId,
+                        deposit,
+                        1,
+                        minimumAcceptHeight,
+                        etherParse('900'),
+                        futureDate
+                    )
+                ).to.be.revertedWith('PO012');
             });
 
             it('create offer with inactive planTemplate should fail', async () => {
@@ -243,6 +256,23 @@ describe('Purchase Offer Market Contract', () => {
                 await expect(createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate)).to.revertedWith("PO005");
 
                 await expect(purchaseOfferMarket.acceptPurchaseOffer(offerId2, poi)).to.revertedWith("PO005");
+            });
+
+            it('accept offer not meet mimum staking amount shoud fail', async () => {
+                const offerId2 = await createPurchaseOffer(
+                    purchaseOfferMarket,
+                    token,
+                    DEPLOYMENT_ID,
+                    futureDate,
+                    0,
+                    1,
+                    etherParse(2),
+                    100,
+                    etherParse(3000)
+                );
+
+                expect(offerId2).to.exist;
+                await expect(purchaseOfferMarket.acceptPurchaseOffer(offerId2, poi)).to.revertedWith("PO013");
             });
         });
     });
