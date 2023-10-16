@@ -35,6 +35,7 @@ describe('Purchase Offer Market Contract', () => {
     const deposit = etherParse('2');
     const limit = 1;
     const minimumAcceptHeight = 100;
+    const minimumStakingAmount = etherParse('1000');
     const planTemplateId = 0;
     let offerId: BigNumber;
 
@@ -81,6 +82,7 @@ describe('Purchase Offer Market Contract', () => {
                         deposit,
                         limit,
                         minimumAcceptHeight,
+                        minimumStakingAmount,
                         0
                     )
                 ).to.be.revertedWith('PO002');
@@ -92,6 +94,7 @@ describe('Purchase Offer Market Contract', () => {
                         0,
                         limit,
                         minimumAcceptHeight,
+                        minimumStakingAmount,
                         futureDate
                     )
                 ).to.be.revertedWith('PO003');
@@ -103,6 +106,7 @@ describe('Purchase Offer Market Contract', () => {
                         deposit,
                         0,
                         minimumAcceptHeight,
+                        minimumStakingAmount,
                         futureDate
                     )
                 ).to.be.revertedWith('PO004');

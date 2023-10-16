@@ -37,6 +37,8 @@ describe('Service Agreement Registry Contract', () => {
     let rewardsDistributor: RewardsDistributer;
     let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
+    
+    const minimumStakingAmount = etherParse('1000');
 
     const checkStateChange = async (agreementInfo, stateInfo, _isClear) => {
         const newValue = await saExtra.sumDailyReward(agreementInfo.indexer);
@@ -186,6 +188,7 @@ describe('Service Agreement Registry Contract', () => {
                 etherParse('1000'),
                 2,
                 100,
+                minimumStakingAmount,
                 (await futureTimestamp(mockProvider)) + 86400
             );
 
@@ -199,6 +202,7 @@ describe('Service Agreement Registry Contract', () => {
                 etherParse('1'),
                 2,
                 100,
+                minimumStakingAmount,
                 (await futureTimestamp(mockProvider)) + 86400
             );
             await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(4, poi)).to.be.revertedWith(
@@ -255,6 +259,7 @@ describe('Service Agreement Registry Contract', () => {
                     etherParse('2'),
                     2,
                     100,
+                    minimumStakingAmount,
                     await futureTimestamp(mockProvider)
                 );
 
@@ -387,7 +392,15 @@ describe('Service Agreement Registry Contract', () => {
             // use planTemplateId: 1
             await purchaseOfferMarket
                 .connect(wallet2)
-                .createPurchaseOffer(deploymentIds[0], 1, 100, 2, 100, await futureTimestamp(mockProvider));
+                .createPurchaseOffer(
+                    deploymentIds[0],
+                    1,
+                    100,
+                    2,
+                    100,
+                    minimumStakingAmount,
+                    await futureTimestamp(mockProvider)
+                );
             // create plan
             // value 100
             // period 10 days

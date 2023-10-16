@@ -1,10 +1,10 @@
-import { ContractSDK } from '../../src';
-import Token from '../../artifacts/contracts/SQToken.sol/SQToken.json';
-import deployment from '../../publish/testnet.json';
 import assert from 'assert';
 import { BigNumber, ContractReceipt, ContractTransaction, Wallet, ethers, utils } from 'ethers';
 import web3 from 'web3';
+import Token from '../../artifacts/contracts/SQToken.sol/SQToken.json';
+import deployment from '../../publish/testnet.json';
 import setup from '../../scripts/setup';
+import { ContractSDK } from '../../src';
 import { VERSION, poi } from '../constants';
 
 let INDEXER_ADDR;
@@ -216,7 +216,7 @@ async function purchaseOfferTest() {
     console.log('consumer create a purchaseOffer ...');
     await sendTx(() => sdk.sqToken.connect(root_wallet).transfer(consumer_wallet.address, etherParse('20')));
     await sendTx(() => sdk.sqToken.connect(consumer_wallet).increaseAllowance(sdk.purchaseOfferMarket.address, etherParse('20')));
-    await sendTx(async () => sdk.purchaseOfferMarket.connect(consumer_wallet).createPurchaseOffer(DEPLOYMENT_ID, 0, etherParse('10'), 2, 0, await futureTimestamp()));
+    await sendTx(async () => sdk.purchaseOfferMarket.connect(consumer_wallet).createPurchaseOffer(DEPLOYMENT_ID, 0, etherParse('10'), 2, 0, etherParse('1000'), await futureTimestamp()));
     let offer = await sdk.purchaseOfferMarket.offers(offerId);
     console.log('created purchaseOffer: ');
     console.log('deposit: ' + offer.deposit);
