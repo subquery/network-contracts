@@ -33,12 +33,11 @@ const main = async () => {
         contracts.forEach(function (name) {
             const readPath = `${__dirname}/../artifacts/contracts/${name}.sol/${name}.json`;
             const contract = JSON.parse(readFileSync(readPath, 'utf8'));
-            console.log(`Load contract: ${name}`);
 
             const savePath = `${__dirname}/../publish/ABI/${name}.json`;
             writeFileSync(savePath, JSON.stringify(contract.abi, null, 4));
-            console.log(`Saved contract ${name}`);
         });
+        console.log(`Generated ABI files completed`);
     } catch (e) {
         console.log(`e`, e);
     }

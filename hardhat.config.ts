@@ -1,4 +1,6 @@
 import * as dotenv from 'dotenv';
+import util from 'util';
+const exec = util.promisify(require('child_process').exec);
 
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
@@ -188,6 +190,21 @@ task('publish', "verify and publish contracts on etherscan")
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
+task("compile", async (taskArguments: Object, { run }, runSuper) => {
+    // Run the original compile task's logic
+    await runSuper({ ...taskArguments, noTypechain: true });
+    // Sync Proxy ABI
+    await exec('scripts/syncProxyABI.sh');
+    // Run Typechain
+    // TODO: not an elegant way to call `typechain` cmd
+    await exec('rm -rf ./artifacts/contracts/**/*.dbg.json && rm -rf ./artifacts/contracts/**/**/*.dbg.json');
+    await exec('npx typechain --target ethers-v5 --out-dir src/typechain "./artifacts/contracts/**/*.json"');
+    // Run the script to generate the typechain
+    await exec('scripts/build.sh');
+    // Generate ABI
+    await exec('ts-node --transpileOnly scripts/abi.ts');
+  });
+
 const config: HardhatUserConfig = {
     solidity: '0.8.15',
     networks: {
@@ -211,7 +228,7 @@ const config: HardhatUserConfig = {
     },
     typechain: {
         outDir: 'src/typechain',
-        target: 'ethers-v5'
+        target: 'ethers-v5',
     },
     contractSizer: {
         alphaSort: true,

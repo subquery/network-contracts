@@ -5,6 +5,7 @@ set -e
 mkdir -p build/build/publish
 cp -r src/* build/
 cp -r publish build/
+
 cp -r artifacts build/
 cp package.json build/build/
 cp tsconfig-build.json build/tsconfig.json
