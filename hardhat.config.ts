@@ -1,3 +1,4 @@
+import { exec } from 'child_process';
 import * as dotenv from 'dotenv';
 
 import '@nomiclabs/hardhat-etherscan';
@@ -187,6 +188,17 @@ task('publish', "verify and publish contracts on etherscan")
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
+
+task("compile", async (taskArguments, hre, runSuper) => {
+    // Clean the cache to compilation
+    exec('rm -rf ./artifacts');
+    // Run the original compile task's logic
+    await runSuper(taskArguments);
+    // Run the script to generate the typechain
+    exec('scripts/build.sh');
+    // Generate ABI
+    exec('ts-node --transpileOnly scripts/abi.ts');
+  });
 
 const config: HardhatUserConfig = {
     solidity: '0.8.15',

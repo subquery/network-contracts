@@ -4,9 +4,9 @@
     "main": "index.js",
     "license": "MIT",
     "scripts": {
-        "compile:contract": "rm -rf ./artifacts && hardhat compile",
+        "build": "hardhat compile",
         "build:ts": "scripts/build.sh",
-        "build": "yarn compile:contract && yarn build:ts && yarn abi",
+        "abi": "ts-node --transpileOnly scripts/abi.ts",
         "lint": "solhint contracts/**/*.sol --fix",
         "test": "hardhat test",
         "test:coverage": "hardhat coverage",
@@ -18,8 +18,7 @@
         "upgrade": "ts-node --transpileOnly scripts/upgrade.ts",
         "setup": "ts-node --transpileOnly scripts/startup.ts",
         "verify": "ts-node --transpileOnly scripts/verify.ts",
-        "kepler-e2e-test": "node -r ts-node/register/transpile-only test/e2e/kepler.e2e.ts",
-        "abi": "ts-node --transpileOnly scripts/abi.ts"
+        "kepler-e2e-test": "node -r ts-node/register/transpile-only test/e2e/kepler.e2e.ts"
     },
     "devDependencies": {
         "@ethersproject/abstract-provider": "~5.5.1",
