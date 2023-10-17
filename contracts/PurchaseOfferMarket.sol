@@ -14,6 +14,7 @@ import './interfaces/IPurchaseOfferMarket.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IPlanManager.sol';
 import './interfaces/IEraManager.sol';
+import './interfaces/IStakingManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
 
@@ -50,6 +51,8 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         uint256 deposit;
         //indexer must indexed to this height before accept the offer
         uint256 minimumAcceptHeight;
+        //indexer must meet the minimum staking amount before accept the offer
+        uint256 minimumStakingAmount;
         //planTemplate used to generate the service agreement.
         uint256 planTemplateId;
         //specific deployment id require for indexing
@@ -95,6 +98,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         uint256 deposit,
         uint16 limit,
         uint256 minimumAcceptHeight,
+        uint256 minimumStakingAmount,
         uint256 expireDate
     );
 
@@ -162,6 +166,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * @param _deposit purchase offer value to deposit
      * @param _limit limit indexer to accept the purchase offer
      * @param _minimumAcceptHeight minimum block height to accept the purchase offer
+     * @param _minimumStakingAmount minimum staking amount to accept the purchase offer
      * @param _expireDate expire date of the purchase offer in unix timestamp
      */
     function createPurchaseOffer(
@@ -170,12 +175,14 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         uint256 _deposit,
         uint16 _limit,
         uint256 _minimumAcceptHeight,
+        uint256 _minimumStakingAmount,
         uint256 _expireDate
     ) external {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         require(_expireDate > block.timestamp, 'PO002');
         require(_deposit > 0, 'PO003');
         require(_limit > 0, 'PO004');
+
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         PlanTemplateV2 memory template = planManager.getPlanTemplate(_planTemplateId);
         require(template.active, 'PO005');
@@ -184,6 +191,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         offers[numOffers] = PurchaseOffer(
             _deposit,
             _minimumAcceptHeight,
+            _minimumStakingAmount,
             _planTemplateId,
             _deploymentId,
             _expireDate,
@@ -207,6 +215,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
             _deposit,
             _limit,
             _minimumAcceptHeight,
+            _minimumStakingAmount,
             _expireDate
         );
 
@@ -262,6 +271,9 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         require(_poi != bytes32(0), 'PO011');
         require(offerPoi[_offerId][msg.sender] == bytes32(0), 'PO009');
         require(offer.limit > offer.numAcceptedContracts, 'PO010');
+
+        IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
+        require(stakingManager.getTotalStakingAmount(msg.sender) >= offer.minimumStakingAmount, 'PO013');
 
         IPlanManager planManager = IPlanManager(settings.getPlanManager());
         PlanTemplateV2 memory template = planManager.getPlanTemplate(offer.planTemplateId);

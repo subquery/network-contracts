@@ -129,6 +129,12 @@
             {
                 "indexed": false,
                 "internalType": "uint256",
+                "name": "minimumStakingAmount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
                 "name": "expireDate",
                 "type": "uint256"
             }
@@ -248,6 +254,11 @@
             },
             {
                 "internalType": "uint256",
+                "name": "_minimumStakingAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
                 "name": "_expireDate",
                 "type": "uint256"
             }
@@ -354,6 +365,11 @@
             {
                 "internalType": "uint256",
                 "name": "minimumAcceptHeight",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "minimumStakingAmount",
                 "type": "uint256"
             },
             {

@@ -74,6 +74,7 @@ describe('Maintenance Mode Test', () => {
             etherParse('1'),
             1,
             100,
+            etherParse('1000'),
             await futureTimestamp(mockProvider)
         );
 
@@ -156,6 +157,7 @@ describe('Maintenance Mode Test', () => {
                 etherParse('1'),
                 1,
                 100,
+                etherParse('1000'),
                 await futureTimestamp(mockProvider)
             )).to.be.revertedWith('G019');
         });
