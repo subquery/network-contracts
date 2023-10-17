@@ -229,11 +229,6 @@ const config: HardhatUserConfig = {
     typechain: {
         outDir: 'src/typechain',
         target: 'ethers-v5',
-        externalArtifacts: [
-            // This ensures TypeChain includes OpenZeppelin artifacts
-            // 'node_modules/@openzeppelin/contracts/build/contracts/ProxyAdmin.json',
-            // 'node_modules/@openzeppelin/contracts/build/contracts/TransparentUpgradeableProxy.json' 
-        ],
     },
     contractSizer: {
         alphaSort: true,
