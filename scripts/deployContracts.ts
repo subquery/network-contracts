@@ -277,7 +277,7 @@ export async function deployContracts(
         // deploy ServiceAgreementExtra.sol.sol contract
         const serviceAgreementExtra = await deployContract<ServiceAgreementExtra>('ServiceAgreementExtra', {
             proxyAdmin,
-            initConfig: [settingsAddress],
+            initConfig: [settingsAddress, 1e7],
         });
 
         // deploy RewardsDistributer contract
