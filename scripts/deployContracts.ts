@@ -9,13 +9,11 @@ import Pino from 'pino';
 import sha256 from 'sha256';
 
 import CONTRACTS from '../src/contracts';
-import { ContractDeployment, ContractName } from '../src/types';
+import { TransparentUpgradeableProxy__factory } from '../src/typechain';
+import { ContractDeployment, ContractName, SubqueryNetwork } from '../src/types';
 import { TextColor, colorText, getLogger } from './logger';
 
-import { SubqueryNetwork } from '@subql/contract-sdk';
-
 import {
-    AdminUpgradeabilityProxy__factory,
     Airdropper,
     ConsumerHost,
     ConsumerRegistry,
@@ -35,8 +33,8 @@ import {
     RewardsPool,
     RewardsStaking,
     SQToken,
-    ServiceAgreementRegistry,
     ServiceAgreementExtra,
+    ServiceAgreementRegistry,
     Settings,
     Staking,
     StakingManager,
@@ -153,9 +151,9 @@ export const deployProxy = async <C extends Contract>(
     let contractLogic = await contractFactory.deploy(await getOverrides());
     await contractLogic.deployTransaction.wait(confirms);
 
-    const adminUpgradabilityProxyFactory = new AdminUpgradeabilityProxy__factory(wallet);
+    const transparentUpgradeableProxyFactory = new TransparentUpgradeableProxy__factory(wallet);
 
-    const contractProxy = await adminUpgradabilityProxyFactory.deploy(
+    const contractProxy = await transparentUpgradeableProxyFactory.deploy(
         contractLogic.address,
         proxyAdmin.address,
         [],

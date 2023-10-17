@@ -214,7 +214,8 @@ const config: HardhatUserConfig = {
         target: 'ethers-v5',
         externalArtifacts: [
             // This ensures TypeChain includes OpenZeppelin artifacts
-            'node_modules/@openzeppelin/**/*.json', 
+            'node_modules/@openzeppelin/contracts/build/contracts/*.json', 
+            'node_modules/@openzeppelin/contracts-upgradeable/build/contracts/*.json',
         ],
     },
     contractSizer: {

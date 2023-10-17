@@ -16,8 +16,8 @@ import RewardsHelper from './artifacts/contracts/RewardsHelper.sol/RewardsHelper
 import RewardsPool from './artifacts/contracts/RewardsPool.sol/RewardsPool.json';
 import RewardsStaking from './artifacts/contracts/RewardsStaking.sol/RewardsStaking.json';
 import SQToken from './artifacts/contracts/SQToken.sol/SQToken.json';
-import ServiceAgreementRegistry from './artifacts/contracts/ServiceAgreementRegistry.sol/ServiceAgreementRegistry.json';
 import ServiceAgreementExtra from './artifacts/contracts/ServiceAgreementExtra.sol/ServiceAgreementExtra.json';
+import ServiceAgreementRegistry from './artifacts/contracts/ServiceAgreementRegistry.sol/ServiceAgreementRegistry.json';
 import Settings from './artifacts/contracts/Settings.sol/Settings.json';
 import Staking from './artifacts/contracts/Staking.sol/Staking.json';
 import StakingManager from './artifacts/contracts/StakingManager.sol/StakingManager.json';
