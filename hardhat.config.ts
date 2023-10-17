@@ -191,14 +191,14 @@ task('publish', "verify and publish contracts on etherscan")
 // Go to https://hardhat.org/config/ to learn more
 
 task("compile", async (taskArguments: Object, { run }, runSuper) => {
-    // Clean the cache to compilation
-    await exec('rm -rf ./artifacts');
     // Run the original compile task's logic
     await runSuper({ ...taskArguments, noTypechain: true });
     // Sync Proxy ABI
     await exec('scripts/syncProxyABI.sh');
     // Run Typechain
-    // await run('typechain');
+    // TODO: not an elegant way to call `typechain` cmd
+    await exec('rm -rf ./artifacts/contracts/**/*.dbg.json && rm -rf ./artifacts/contracts/**/**/*.dbg.json');
+    await exec('npx typechain --target ethers-v5 --out-dir src/typechain "./artifacts/contracts/**/*.json"');
     // Run the script to generate the typechain
     await exec('scripts/build.sh');
     // Generate ABI
