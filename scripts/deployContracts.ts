@@ -78,7 +78,6 @@ async function getOverrides(): Promise<Overrides> {
 export function saveDeployment(name: string, deployment: Partial<ContractDeployment>) {
     const filePath = `${__dirname}/../publish/${name}.json`;
     writeFileSync(filePath, JSON.stringify(deployment, null, 4));
-    getLogger('Save Deployment').info(`Exported deployment of network ${name} result to ${filePath}`);
 }
 
 function loadDeployment(name: string) {
@@ -184,6 +183,8 @@ function updateDeployment(
         bytecodeHash: codeToHash(CONTRACTS[name].bytecode),
         lastUpdate: new Date().toUTCString(),
     };
+
+    saveDeployment(network, deployment);
 }
 
 export async function deployContracts(
