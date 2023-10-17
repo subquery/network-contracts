@@ -5,8 +5,9 @@ import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { EraManager, IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsPool, SQToken, Staking } from '../src';
 import { METADATA_HASH, deploymentIds } from './constants';
-import { etherParse, startNewEra, time, timeTravel } from './helper';
+import {etherParse, eventFrom, startNewEra, time, timeTravel} from './helper';
 import { deployContracts } from './setup';
+import {utils} from "ethers";
 
 describe('RewardsPool Contract', () => {
     const deploymentId0 = deploymentIds[0];
@@ -64,7 +65,7 @@ describe('RewardsPool Contract', () => {
         await registerIndexer(root, indexer2, etherParse('1000'), 1e5);
     });
 
-    describe('workflow', async () => {
+    describe('RewardsPool workflow', async () => {
         it('Directly rewards also will work correctly', async () => {
             const era = await eraManager.eraNumber();
             const indexerAmount0 = etherParse('1');

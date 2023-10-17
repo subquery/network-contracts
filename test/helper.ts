@@ -135,12 +135,20 @@ export function etherParse(etherNum: string | number) {
 }
 
 type Event = utils.Result;
-export async function eventFrom(tx: ContractTransaction, contract: BaseContract, event: string): Promise<Event> {
+export async function eventFrom(tx: ContractTransaction, contract: BaseContract, event: string): Promise<Event|undefined> {
     const receipt = await tx.wait();
     const evt = receipt.events.find((log) => log.topics[0] === utils.id(event));
-
+    if (!evt) return;
     const eventName = event.split('(')[0];
     return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics);
+}
+export async function eventsFrom(tx: ContractTransaction, contract: BaseContract, event: string): Promise<Event[]> {
+    const receipt = await tx.wait();
+    const evts = receipt.events.filter((log) => log.topics[0] === utils.id(event));
+    const eventName = event.split('(')[0];
+    return evts.map(evt => contract.interface
+        .decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics)
+    );
 }
 
 export async function deploySUSD(siger: SignerWithAddress) {
