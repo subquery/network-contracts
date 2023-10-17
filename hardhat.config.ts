@@ -1,5 +1,6 @@
-import { exec } from 'child_process';
 import * as dotenv from 'dotenv';
+import util from 'util';
+const exec = util.promisify(require('child_process').exec);
 
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
@@ -189,15 +190,19 @@ task('publish', "verify and publish contracts on etherscan")
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
-task("compile", async (taskArguments, hre, runSuper) => {
+task("compile", async (taskArguments: Object, { run }, runSuper) => {
     // Clean the cache to compilation
-    exec('rm -rf ./artifacts');
+    await exec('rm -rf ./artifacts');
     // Run the original compile task's logic
-    await runSuper(taskArguments);
+    await runSuper({ ...taskArguments, noTypechain: true });
+    // Sync Proxy ABI
+    await exec('scripts/syncProxyABI.sh');
+    // Run Typechain
+    // await run('typechain');
     // Run the script to generate the typechain
-    exec('scripts/build.sh');
+    await exec('scripts/build.sh');
     // Generate ABI
-    exec('ts-node --transpileOnly scripts/abi.ts');
+    await exec('ts-node --transpileOnly scripts/abi.ts');
   });
 
 const config: HardhatUserConfig = {
@@ -226,8 +231,8 @@ const config: HardhatUserConfig = {
         target: 'ethers-v5',
         externalArtifacts: [
             // This ensures TypeChain includes OpenZeppelin artifacts
-            'node_modules/@openzeppelin/contracts/build/contracts/*.json', 
-            'node_modules/@openzeppelin/contracts-upgradeable/build/contracts/*.json',
+            // 'node_modules/@openzeppelin/contracts/build/contracts/ProxyAdmin.json',
+            // 'node_modules/@openzeppelin/contracts/build/contracts/TransparentUpgradeableProxy.json' 
         ],
     },
     contractSizer: {
