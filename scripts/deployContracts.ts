@@ -147,7 +147,7 @@ export const deployProxy = async <C extends Contract>(
     confirms: number
 ): Promise<[C, string]> => {
     const contractFactory = new ContractFactory(wallet);
-    let contractLogic = await contractFactory.deploy(await getOverrides());
+    const contractLogic = await contractFactory.deploy(await getOverrides());
     await contractLogic.deployTransaction.wait(confirms);
 
     const transparentUpgradeableProxyFactory = new TransparentUpgradeableProxy__factory(wallet);
@@ -274,10 +274,9 @@ export async function deployContracts(
             initConfig: [settingsAddress, [planManager.address, purchaseOfferMarket.address]],
         });
 
-        // deploy ServiceAgreementExtra.sol.sol contract
         const serviceAgreementExtra = await deployContract<ServiceAgreementExtra>('ServiceAgreementExtra', {
             proxyAdmin,
-            initConfig: [settingsAddress, 1e7],
+            initConfig: [settingsAddress],
         });
 
         // deploy RewardsDistributer contract
