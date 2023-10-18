@@ -72,12 +72,12 @@ export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpc
     logger.info('Create Query Projects');
     const projects = startupConfig.projects;
     for (let i = 0; i <= projects.length; i++) {
-        const { name, metadataCid, versionCid, deploymentId } = projects[i];
+        const { name, projectMetadata, deploymentMetadata, deploymentId } = projects[i];
         logger.info(`Create query project: ${name}`);
         await sendTx((overrides) =>
             sdk.projectRegistry.createProject(
-                metadataCid,
-                cidToBytes32(versionCid),
+                projectMetadata,
+                cidToBytes32(deploymentMetadata),
                 cidToBytes32(deploymentId),
                 0,
                 overrides

@@ -73,79 +73,92 @@
     "projects": [
         {
             "name": "",
-            "metadataCid": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE",
-            "versionCid": "QmYmUdTTaiKY5WPeCiSu3Lh8XbWK72hSncdtbkzfFHq5zA",
+            "projectMetadata": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE",
+            "deploymentMetadata": "QmYmUdTTaiKY5WPeCiSu3Lh8XbWK72hSncdtbkzfFHq5zA",
             "deploymentId": "QmZGAZQ7e1oZgfuK4V29Fa5gveYK3G2zEwvUzTZKNvSBsm"
         },
         {
             "name": "",
-            "metadataCid": "QmdSV6BkPcgEgh27Sb7mtr7ozy8t5ifXoxpctCoSasUbnN",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "projectMetadata": "QmdSV6BkPcgEgh27Sb7mtr7ozy8t5ifXoxpctCoSasUbnN",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "deploymentId": "Qmarrhgrpqw5VK71rMtb4GARpPvq8ajMjAqnjnWZFLV61N"
         },
         {
-            "metadataCid": "QmPjDY5LobMy2yJ5q3WLQF3vstzipNKJPKivHXvFvJ14sV",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "name": "",
+            "projectMetadata": "QmPjDY5LobMy2yJ5q3WLQF3vstzipNKJPKivHXvFvJ14sV",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "deploymentId": "QmPuHdLxTQHEAitgLe9Sg1Jnr1WwJASDRSL5RUzBe3NywV"
         },
         {
-            "metadataCid": "QmW2AFuU1T7W3qwBT8BwC8vtsLzSbQcYGGggRY3pvFn6KR",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "name": "",
+            "projectMetadata": "QmW2AFuU1T7W3qwBT8BwC8vtsLzSbQcYGGggRY3pvFn6KR",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "deploymentId": "QmPKMkqTe7UMRPZWxuD8dFgufjKzWQEeW84Qo1x1X8VVLR"
         },
         {
-            "metadataCid": "QmSVtXAxrnKNHYw6aFQsyyvS7mPVTmQ6AMvSmACnV8mzAf",
-            "versionCid": "QmU1yzJ13ejf61uBRqq9t6RmYB64shdBEENYiFZcGTq6jr",
+            "name": "",
+            "projectMetadata": "QmSVtXAxrnKNHYw6aFQsyyvS7mPVTmQ6AMvSmACnV8mzAf",
+            "deploymentMetadata": "QmU1yzJ13ejf61uBRqq9t6RmYB64shdBEENYiFZcGTq6jr",
             "deploymentId": "QmQtmsHoJEYUcxKE4tBqr9Z8kudcgkczQPfhkAxVExQX5y"
         },
         {
-            "metadataCid": "QmQVqXHFeppVZk3aiNCSejqWT87nFSmVePGA4mj8j9zyMW",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "name": "",
+            "projectMetadata": "QmQVqXHFeppVZk3aiNCSejqWT87nFSmVePGA4mj8j9zyMW",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "deploymentId": "QmWumrabg4k6t4EUMhQg19xWwcxGq1hWbcmfmRYiy2Bod5"
         },
         {
-            "metadataCid": "QmR13QM4u4Kg3f8qx7Tq55rwXE8aDb3bwxBpt4DFUdrKBa",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "name": "",
+            "projectMetadata": "QmR13QM4u4Kg3f8qx7Tq55rwXE8aDb3bwxBpt4DFUdrKBa",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "deploymentId": "QmUmnKPhcE6JwGMYvY3Yitb5j8qxbQBMxgpkHpVQuXqxDH"
         },
         {
-            "metadataCid": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj",
-            "versionCid": "QmcGoNtw98BmQNUy8X8DhnDMPiK2MqJASysVwpJua8Rv9d",
+            "name": "",
+            "projectMetadata": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj",
+            "deploymentMetadata": "QmcGoNtw98BmQNUy8X8DhnDMPiK2MqJASysVwpJua8Rv9d",
             "deploymentId": "QmRwisx41SRrR8fhNTRpKetNdpP7SaNkRAVrRgcdwoEtCH"
         },
         {
-            "metadataCid": "QmbxHDwk2D7ZiAzb6Qh6pP6cCi4KdeBc14CKjQykWADga6",
-            "versionCid": "QmS2itCAeMRtozMfQQZgdDPRq43NCcFrvKBRLiEZSEfqLV",
+            "name": "",
+            "projectMetadata": "QmbxHDwk2D7ZiAzb6Qh6pP6cCi4KdeBc14CKjQykWADga6",
+            "deploymentMetadata": "QmS2itCAeMRtozMfQQZgdDPRq43NCcFrvKBRLiEZSEfqLV",
             "deploymentId": "QmUVXKjcsYkS6WfJQfeD7juDbnMWCuo5qKgRRo893LajE2"
         },
         {
-            "metadataCid": "QmPg4D5QfbXYvKmyaq3NwE3B51oo8bB5Q28wAVdpaPEHLb",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "name": "",
+            "projectMetadata": "QmPg4D5QfbXYvKmyaq3NwE3B51oo8bB5Q28wAVdpaPEHLb",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "deploymentId": "QmUwTD5dqQRRFcMCihJ4HHnMPfEvRpKpcFvGcTJjBpGg9T"
         },
         {
-            "metadataCid": "QmaDZ6AK2Vdf9EZ4xujuhQVEv6CEF47GyiTA7oqNXRbEjP",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "name": "",
+            "projectMetadata": "QmaDZ6AK2Vdf9EZ4xujuhQVEv6CEF47GyiTA7oqNXRbEjP",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "deploymentId": "QmYCAns2cunZKJFU85KNK8CvL2ATAmCFVZRdBf963GqWYs"
         },
         {
-            "metadataCid": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX",
-            "versionCid": "QmZnFNWoRk4LPQ4wZKr2RzZwjq2T7rkyufQ5XbD9kjTsjM",
+            "name": "",
+            "projectMetadata": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX",
+            "deploymentMetadata": "QmZnFNWoRk4LPQ4wZKr2RzZwjq2T7rkyufQ5XbD9kjTsjM",
             "deploymentId": "QmXwfCF8858YY924VHgNLsxRQfBLosVbB31mygRLhgJbWn"
         },
         {
-            "metadataCid": "QmXWq1vnukGD2TqfPoC4KYH7qP6pipEsYgrMBUpDaRAsHY",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "name": "",
+            "projectMetadata": "QmXWq1vnukGD2TqfPoC4KYH7qP6pipEsYgrMBUpDaRAsHY",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "deploymentId": "Qma6BeSQGHrhP5aydmkQcJCR25TEwuNMogS5boovBBwoeW"
         },
         {
-            "metadataCid": "QmfLCxhB8P8JraM14CqKaWX7Wh5Lb8WFLJt1dmDYN1QGhn",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "name": "",
+            "projectMetadata": "QmfLCxhB8P8JraM14CqKaWX7Wh5Lb8WFLJt1dmDYN1QGhn",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "deploymentId": "QmXCr6uZFdY1YcGTa4u6ZieQPXK4VHE1Pjy7CBr7ubFwKR"
         },
         {
-            "metadataCid": "QmWH14imJQoSWF5cdWWaB9u4BivGLQCpJZkwQKH5VAQN9i",
-            "versionCid": "QmdugqUUYZcq12SLdKQ3xKw9XruyA6yHiFiqhBqjicTHgS",
+            "name": "",
+            "projectMetadata": "QmWH14imJQoSWF5cdWWaB9u4BivGLQCpJZkwQKH5VAQN9i",
+            "deploymentMetadata": "QmdugqUUYZcq12SLdKQ3xKw9XruyA6yHiFiqhBqjicTHgS",
             "deploymentId": "QmV6sbiPyTDUjcQNJs2eGcAQp2SMXL2BU6qdv5aKrRr7Hg"
         }
     ]

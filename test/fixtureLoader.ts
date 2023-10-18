@@ -114,12 +114,12 @@ export const loaders = {
         assert(author, `can't find account ${account}`);
         const { cid: metadataCid } = await ipfs.add(JSON.stringify(metadata), { pin: true });
         const [firstDeploy, ...restDeploy] = deployments;
-        const { cid: versionCid } = await ipfs.add(JSON.stringify(firstDeploy.version), { pin: true });
+        const { cid: deploymentMetadata } = await ipfs.add(JSON.stringify(firstDeploy.version), { pin: true });
         const tx = await sdk.projectRegistry
             .connect(author)
             .createProject(
                 cidToBytes32(metadataCid.toString()),
-                cidToBytes32(versionCid.toString()),
+                cidToBytes32(deploymentMetadata.toString()),
                 cidToBytes32(firstDeploy.deploymentId),
                 0,
             );
