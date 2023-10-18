@@ -72,94 +72,106 @@
     "multiSign": "0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f",
     "projects": [
         {
-            "name": "",
-            "projectMetadata": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE",
-            "deploymentMetadata": "QmYmUdTTaiKY5WPeCiSu3Lh8XbWK72hSncdtbkzfFHq5zA",
-            "deploymentId": "QmZGAZQ7e1oZgfuK4V29Fa5gveYK3G2zEwvUzTZKNvSBsm"
+            "name": "Kepler Testnet Dev",
+            "projectMetadata": "QmSpZaQ34upk8iKSTGdneNmqRh88oU1BvytbLUvhVEKiDZ",
+            "deploymentId": "QmQDQa6id3QP1Tiznu7gE4ZjNw4urQnS6R9mgfvzANWgqb",
+            "deploymentMetadata": "QmYRtkSyjJAV64fzb7gbvWoVssmssU3VpPzjr1quhoSvKQ"
         },
         {
-            "name": "",
-            "projectMetadata": "QmdSV6BkPcgEgh27Sb7mtr7ozy8t5ifXoxpctCoSasUbnN",
-            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "deploymentId": "Qmarrhgrpqw5VK71rMtb4GARpPvq8ajMjAqnjnWZFLV61N"
+            "name": "Nodle Eden Wallet",
+            "projectMetadata": "QmQam8rHReTBUaupMLp2FJXrdwVk26LDioWHP5J8CRfMRR",
+            "deploymentId": "QmQ77QHgkKa81cVXbiChfLCcivucQpVmbim8GnnXxzd2Lu",
+            "deploymentMetadata": "Qma42iZy7vJvYEYYxKzoc48WN1zPBMU9ytXJgo19PePiLn"
         },
         {
-            "name": "",
-            "projectMetadata": "QmPjDY5LobMy2yJ5q3WLQF3vstzipNKJPKivHXvFvJ14sV",
-            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "deploymentId": "QmPuHdLxTQHEAitgLe9Sg1Jnr1WwJASDRSL5RUzBe3NywV"
-        },
-        {
-            "name": "",
-            "projectMetadata": "QmW2AFuU1T7W3qwBT8BwC8vtsLzSbQcYGGggRY3pvFn6KR",
-            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "deploymentId": "QmPKMkqTe7UMRPZWxuD8dFgufjKzWQEeW84Qo1x1X8VVLR"
-        },
-        {
-            "name": "",
-            "projectMetadata": "QmSVtXAxrnKNHYw6aFQsyyvS7mPVTmQ6AMvSmACnV8mzAf",
-            "deploymentMetadata": "QmU1yzJ13ejf61uBRqq9t6RmYB64shdBEENYiFZcGTq6jr",
-            "deploymentId": "QmQtmsHoJEYUcxKE4tBqr9Z8kudcgkczQPfhkAxVExQX5y"
-        },
-        {
-            "name": "",
-            "projectMetadata": "QmQVqXHFeppVZk3aiNCSejqWT87nFSmVePGA4mj8j9zyMW",
-            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "deploymentId": "QmWumrabg4k6t4EUMhQg19xWwcxGq1hWbcmfmRYiy2Bod5"
-        },
-        {
-            "name": "",
-            "projectMetadata": "QmR13QM4u4Kg3f8qx7Tq55rwXE8aDb3bwxBpt4DFUdrKBa",
-            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "deploymentId": "QmUmnKPhcE6JwGMYvY3Yitb5j8qxbQBMxgpkHpVQuXqxDH"
-        },
-        {
-            "name": "",
-            "projectMetadata": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj",
-            "deploymentMetadata": "QmcGoNtw98BmQNUy8X8DhnDMPiK2MqJASysVwpJua8Rv9d",
-            "deploymentId": "QmRwisx41SRrR8fhNTRpKetNdpP7SaNkRAVrRgcdwoEtCH"
-        },
-        {
-            "name": "",
+            "name": "Kepler Network",
             "projectMetadata": "QmbxHDwk2D7ZiAzb6Qh6pP6cCi4KdeBc14CKjQykWADga6",
-            "deploymentMetadata": "QmS2itCAeMRtozMfQQZgdDPRq43NCcFrvKBRLiEZSEfqLV",
-            "deploymentId": "QmUVXKjcsYkS6WfJQfeD7juDbnMWCuo5qKgRRo893LajE2"
+            "deploymentId": "QmPGkUidJ9oTUudddC77bjahpNv2hjwH6tyv3d2B4Uqkbx",
+            "deploymentMetadata": "QmckwjUYYYhxQPdiTT7Uyy6MsnmXeWXSqKemA3zKSX2NwM"
         },
         {
-            "name": "",
-            "projectMetadata": "QmPg4D5QfbXYvKmyaq3NwE3B51oo8bB5Q28wAVdpaPEHLb",
-            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "deploymentId": "QmUwTD5dqQRRFcMCihJ4HHnMPfEvRpKpcFvGcTJjBpGg9T"
+            "name": "Moonbeam Dictionary",
+            "projectMetadata": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj",
+            "deploymentId": "QmRwisx41SRrR8fhNTRpKetNdpP7SaNkRAVrRgcdwoEtCH",
+            "deploymentMetadata": "QmcGoNtw98BmQNUy8X8DhnDMPiK2MqJASysVwpJua8Rv9d"
         },
         {
-            "name": "",
-            "projectMetadata": "QmaDZ6AK2Vdf9EZ4xujuhQVEv6CEF47GyiTA7oqNXRbEjP",
-            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "deploymentId": "QmYCAns2cunZKJFU85KNK8CvL2ATAmCFVZRdBf963GqWYs"
-        },
-        {
-            "name": "",
-            "projectMetadata": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX",
-            "deploymentMetadata": "QmZnFNWoRk4LPQ4wZKr2RzZwjq2T7rkyufQ5XbD9kjTsjM",
-            "deploymentId": "QmXwfCF8858YY924VHgNLsxRQfBLosVbB31mygRLhgJbWn"
-        },
-        {
-            "name": "",
-            "projectMetadata": "QmXWq1vnukGD2TqfPoC4KYH7qP6pipEsYgrMBUpDaRAsHY",
-            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "deploymentId": "Qma6BeSQGHrhP5aydmkQcJCR25TEwuNMogS5boovBBwoeW"
-        },
-        {
-            "name": "",
+            "name": "Moonriver Dictionary",
             "projectMetadata": "QmfLCxhB8P8JraM14CqKaWX7Wh5Lb8WFLJt1dmDYN1QGhn",
-            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "deploymentId": "QmXCr6uZFdY1YcGTa4u6ZieQPXK4VHE1Pjy7CBr7ubFwKR"
+            "deploymentId": "QmXCr6uZFdY1YcGTa4u6ZieQPXK4VHE1Pjy7CBr7ubFwKR",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ"
         },
         {
-            "name": "",
-            "projectMetadata": "QmWH14imJQoSWF5cdWWaB9u4BivGLQCpJZkwQKH5VAQN9i",
-            "deploymentMetadata": "QmdugqUUYZcq12SLdKQ3xKw9XruyA6yHiFiqhBqjicTHgS",
-            "deploymentId": "QmV6sbiPyTDUjcQNJs2eGcAQp2SMXL2BU6qdv5aKrRr7Hg"
+            "name": "Karura Dictionary",
+            "projectMetadata": "QmQVqXHFeppVZk3aiNCSejqWT87nFSmVePGA4mj8j9zyMW",
+            "deploymentId": "QmWumrabg4k6t4EUMhQg19xWwcxGq1hWbcmfmRYiy2Bod5",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ"
+        },
+        {
+            "name": "Kusama Dictionary",
+            "projectMetadata": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX",
+            "deploymentId": "QmXwfCF8858YY924VHgNLsxRQfBLosVbB31mygRLhgJbWn",
+            "deploymentMetadata": "QmZnFNWoRk4LPQ4wZKr2RzZwjq2T7rkyufQ5XbD9kjTsjM"
+        },
+        {
+            "name": "Khala Dictionary",
+            "projectMetadata": "QmaDZ6AK2Vdf9EZ4xujuhQVEv6CEF47GyiTA7oqNXRbEjP",
+            "deploymentId": "QmYCAns2cunZKJFU85KNK8CvL2ATAmCFVZRdBf963GqWYs",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ"
+        },
+        {
+            "name": "Optimism Dictionary",
+            "projectMetadata": "QmPjDY5LobMy2yJ5q3WLQF3vstzipNKJPKivHXvFvJ14sV",
+            "deploymentId": "QmPuHdLxTQHEAitgLe9Sg1Jnr1WwJASDRSL5RUzBe3NywV",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ"
+        },
+        {
+            "name": "Acala Dictionary",
+            "projectMetadata": "QmdSV6BkPcgEgh27Sb7mtr7ozy8t5ifXoxpctCoSasUbnN",
+            "deploymentId": "Qmarrhgrpqw5VK71rMtb4GARpPvq8ajMjAqnjnWZFLV61N",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ"
+        },
+        {
+            "name": "Polkadot Dictionary",
+            "projectMetadata": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE",
+            "deploymentId": "QmZGAZQ7e1oZgfuK4V29Fa5gveYK3G2zEwvUzTZKNvSBsm",
+            "deploymentMetadata": "QmYmUdTTaiKY5WPeCiSu3Lh8XbWK72hSncdtbkzfFHq5zA"
+        },
+        {
+            "name": "Arbitrum One Dictionary",
+            "projectMetadata": "QmW2AFuU1T7W3qwBT8BwC8vtsLzSbQcYGGggRY3pvFn6KR",
+            "deploymentId": "QmPKMkqTe7UMRPZWxuD8dFgufjKzWQEeW84Qo1x1X8VVLR",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ"
+        },
+        {
+            "name": "NodleWallet-Eden Testnet Dev",
+            "projectMetadata": "QmTeLzWvPU7CU5kikWZ16iKgYBSTsVhsmfHS5oHy9Vqjcj",
+            "deploymentId": "QmStgQRJVMGxj1LdzNirEcppPf7t8Zm4pgDkCqChqvrDKG",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ"
+        },
+        {
+            "name": "Nodle Parachain Dictionary",
+            "projectMetadata": "QmSVtXAxrnKNHYw6aFQsyyvS7mPVTmQ6AMvSmACnV8mzAf",
+            "deploymentId": "QmQtmsHoJEYUcxKE4tBqr9Z8kudcgkczQPfhkAxVExQX5y",
+            "deploymentMetadata": "QmU1yzJ13ejf61uBRqq9t6RmYB64shdBEENYiFZcGTq6jr"
+        },
+        {
+            "name": "Westend Dictionary",
+            "projectMetadata": "QmXWq1vnukGD2TqfPoC4KYH7qP6pipEsYgrMBUpDaRAsHY",
+            "deploymentId": "Qma6BeSQGHrhP5aydmkQcJCR25TEwuNMogS5boovBBwoeW",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ"
+        },
+        {
+            "name": "Polkadot Staking",
+            "projectMetadata": "QmZa4RyjKKp69mNsAgCTME3nKbKu6Zjgvnz1q1bG7L313s",
+            "deploymentId": "QmNYsNZvM9XZuzkF3n6XcqFVxvMLfWYtEQHzszMFfNCkgt",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ"
+        },
+        {
+            "name": "Astar Dictionary",
+            "projectMetadata": "QmR13QM4u4Kg3f8qx7Tq55rwXE8aDb3bwxBpt4DFUdrKBa",
+            "deploymentId": "QmUmnKPhcE6JwGMYvY3Yitb5j8qxbQBMxgpkHpVQuXqxDH",
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ"
         }
     ]
 }
