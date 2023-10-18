@@ -36,8 +36,18 @@
             "dailyReqCap": 10000,
             "rateLimit": 1200
         },
-        {"period": 21600, "dailyReqCap": 2000, "rateLimit": 600, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"},
-        {"period": 7200, "dailyReqCap": 100, "rateLimit": 300, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"}
+        {
+            "period": 21600,
+            "dailyReqCap": 2000,
+            "rateLimit": 600,
+            "token": "0x7E65A71046170A5b1AaB5C5cC64242EDF95CaBEA"
+        },
+        {
+            "period": 7200,
+            "dailyReqCap": 100,
+            "rateLimit": 300,
+            "token": "0x7E65A71046170A5b1AaB5C5cC64242EDF95CaBEA"
+        }
     ],
     "exchange": {
         "usdcAddress": "0x7E65A71046170A5b1AaB5C5cC64242EDF95CaBEA",
@@ -62,11 +72,13 @@
     "multiSign": "0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f",
     "projects": [
         {
+            "name": "",
             "metadataCid": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE",
             "versionCid": "QmYmUdTTaiKY5WPeCiSu3Lh8XbWK72hSncdtbkzfFHq5zA",
             "deploymentId": "QmZGAZQ7e1oZgfuK4V29Fa5gveYK3G2zEwvUzTZKNvSBsm"
         },
         {
+            "name": "",
             "metadataCid": "QmdSV6BkPcgEgh27Sb7mtr7ozy8t5ifXoxpctCoSasUbnN",
             "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "deploymentId": "Qmarrhgrpqw5VK71rMtb4GARpPvq8ajMjAqnjnWZFLV61N"
