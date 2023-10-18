@@ -71,7 +71,7 @@ export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpc
 
     logger.info('Create Query Projects');
     const projects = startupConfig.projects;
-    for (let i = 0; i <= projects.length; i++) {
+    for (let i = 0; i < projects.length; i++) {
         const { name, projectMetadata, deploymentMetadata, deploymentId } = projects[i];
         logger.info(`Create query project: ${name}`);
         await sendTx((overrides) =>
@@ -330,7 +330,7 @@ const main = async () => {
             confirms = 1;
             startupConfig = startupTestnetConfig;
             // await allocateTokenToIndexers(sdk);
-            // await createProjects(sdk);
+            await createProjects(sdk);
             // await createPlanTemplates(sdk);
             // await setupVesting(sdk);
             // await airdrop(sdk);
