@@ -1,4 +1,4 @@
-import {utils} from "ethers";
+import { utils } from "ethers";
 
 export default {
     mainnet: {
@@ -7,7 +7,7 @@ export default {
         Staking: [1209600, 1e3], // lockPeriod, unbondFeeRate
         Airdropper: ['0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // settle destination
         EraManager: [604800], // 7 day
-        ServiceAgreementRegistry: [1e6], //threshold
+        ServiceAgreementExtra: [1e6], //threshold
         PurchaseOfferMarket: [1e5, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'],
         IndexerRegistry: [utils.parseEther("16000")],
         ConsumerHost: [1], // Fee Percentage, default is 1%
@@ -31,7 +31,7 @@ export default {
         Staking: [1000, 1e3], // lockPeriod, unbondFeeRate
         Airdropper: ['0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // settle destination
         EraManager: [3600], // 1 hour
-        ServiceAgreementRegistry: [1e6], //threshold
+        ServiceAgreementExtra: [1e6], //threshold
         PurchaseOfferMarket: [1e5, '0x0000000000000000000000000000000000000000'],
         IndexerRegistry: [utils.parseEther("1000")],
         ConsumerHost: [1], // Fee Percentage, default is 1%
@@ -43,7 +43,7 @@ export default {
         Staking: [1000, 1e3], // lockPeriod, unbondFeeRate
         Airdropper: ['0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // settle destination
         EraManager: [60 * 60], // 1 hour
-        ServiceAgreementRegistry: [1e6], //threshold
+        ServiceAgreementExtra: [1e6], //threshold
         PurchaseOfferMarket: [1e5, '0x0000000000000000000000000000000000000000'],
         IndexerRegistry: [utils.parseEther("1000")],
         ConsumerHost: [1], // Fee Percentage, default is 1%

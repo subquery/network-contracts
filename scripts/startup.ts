@@ -1,4 +1,4 @@
-import {ContractReceipt, ContractTransaction, Overrides, Wallet, ethers, utils, BigNumber} from 'ethers';
+import { BigNumber, ContractReceipt, ContractTransaction, Overrides, Wallet, ethers, utils } from 'ethers';
 import Pino from 'pino';
 
 import setup from './setup';
@@ -11,9 +11,9 @@ import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
 
 import { Provider, StaticJsonRpcProvider } from '@ethersproject/providers';
+import { MockProvider } from "ethereum-waffle";
 import { parseEther } from 'ethers/lib/utils';
 import { getLogger } from './logger';
-import {MockProvider} from "ethereum-waffle";
 
 let startupConfig: any = startupTestnetConfig;
 let logger: Pino.Logger;
@@ -77,7 +77,7 @@ export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpc
         logger.info(`Create query project: ${name}`);
         await sendTx((overrides) =>
             sdk.projectRegistry.createProject(
-                cidToBytes32(metadataCid),
+                metadataCid,
                 cidToBytes32(versionCid),
                 cidToBytes32(deploymentId),
                 0,
@@ -101,8 +101,9 @@ export async function createPlanTemplates(sdk: ContractSDK, _provider?: StaticJs
     logger = getLogger('Plan Templates');
     const templateId = await sdk.planManager.nextTemplateId();
     const templates = startupConfig.planTemplates;
+    const token = sdk.sqToken.address;
     for (var i = templateId.toNumber(); i < templates.length; i++) {
-        const { period, dailyReqCap, rateLimit, token } = templates[i];
+        const { period, dailyReqCap, rateLimit } = templates[i];
         logger.info(`Create No. ${i} plan template: ${period} | ${dailyReqCap} | ${rateLimit}`);
         await sendTx((overrides) =>
             sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, token, METADATA_HASH, overrides)

@@ -78,7 +78,6 @@ async function getOverrides(): Promise<Overrides> {
 export function saveDeployment(name: string, deployment: Partial<ContractDeployment>) {
     const filePath = `${__dirname}/../publish/${name}.json`;
     writeFileSync(filePath, JSON.stringify(deployment, null, 4));
-    getLogger('Save Deployment').info(`Exported deployment of network ${name} result to ${filePath}`);
 }
 
 function loadDeployment(name: string) {
@@ -148,7 +147,7 @@ export const deployProxy = async <C extends Contract>(
     confirms: number
 ): Promise<[C, string]> => {
     const contractFactory = new ContractFactory(wallet);
-    let contractLogic = await contractFactory.deploy(await getOverrides());
+    const contractLogic = await contractFactory.deploy(await getOverrides());
     await contractLogic.deployTransaction.wait(confirms);
 
     const transparentUpgradeableProxyFactory = new TransparentUpgradeableProxy__factory(wallet);
@@ -184,6 +183,8 @@ function updateDeployment(
         bytecodeHash: codeToHash(CONTRACTS[name].bytecode),
         lastUpdate: new Date().toUTCString(),
     };
+
+    saveDeployment(network, deployment);
 }
 
 export async function deployContracts(
@@ -273,7 +274,6 @@ export async function deployContracts(
             initConfig: [settingsAddress, [planManager.address, purchaseOfferMarket.address]],
         });
 
-        // deploy ServiceAgreementExtra.sol.sol contract
         const serviceAgreementExtra = await deployContract<ServiceAgreementExtra>('ServiceAgreementExtra', {
             proxyAdmin,
             initConfig: [settingsAddress],

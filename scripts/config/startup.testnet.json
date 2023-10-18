@@ -24,20 +24,17 @@
         {
             "period": 604800,
             "dailyReqCap": 50000,
-            "rateLimit": 3000,
-            "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"
+            "rateLimit": 3000
         },
         {
             "period": 129600,
             "dailyReqCap": 100000,
-            "rateLimit": 6000,
-            "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"
+            "rateLimit": 6000
         },
         {
             "period": 43200,
             "dailyReqCap": 10000,
-            "rateLimit": 1200,
-            "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"
+            "rateLimit": 1200
         },
         {"period": 21600, "dailyReqCap": 2000, "rateLimit": 600, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"},
         {"period": 7200, "dailyReqCap": 100, "rateLimit": 300, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"}
@@ -49,13 +46,18 @@
         "expireDate": 1703681276,
         "tokenGiveBalance": "50000000"
     },
-    "QRCreator": ["0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77"],
+    "QRCreator": ["0xD3c54c8F8B993dD99440bb27862472016794255C"],
     "AirdropController": ["0xD3c54c8F8B993dD99440bb27862472016794255C"],
     "indexers": [
+        "0xceC71d3620773e6669223f0e4e5A5C27712560d5",
+        "0xCef192586b70e3Fc2FAD76Dd1D77983a30d38D04",
         "0x6971c53e0d1c4Bb4Fd507A377C97B456eDEAb6D2",
         "0x5Ef51c9f449DB7Be2f0c636C6C137e65B8B96B9B",
         "0x1175ee9739368c93BfcB3ca0a8cbd5782D9F55B4",
-        "0x577A9fA78b74E0a6575D7D5384AB0edfDb69aabE"
+        "0x577A9fA78b74E0a6575D7D5384AB0edfDb69aabE",
+        "0x7601D5876dC1f95a2d897B9C603B84F866FEeA18",
+        "0xFCA0037391B3cfe28f17453D6DBc4A7618F771e1",
+        "0xD0af1919aF890CfDd8d12be5CF1B1421224fc29a"
     ],
     "multiSign": "0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f",
     "projects": [
