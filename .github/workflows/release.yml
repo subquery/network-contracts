@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - kepler-network
+      - develop
     paths-ignore:
       - '.github/workflows/**'
   workflow_dispatch:
