@@ -70,15 +70,14 @@ export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpc
     }
 
     logger.info('Create Query Projects');
-    const queryId = await sdk.projectRegistry.nextProjectId();
     const projects = startupConfig.projects;
-    for (var i = queryId.toNumber(); i < projects.length; i++) {
-        const { name, metadataCid, versionCid, deploymentId } = projects[i];
+    for (let i = 0; i < projects.length; i++) {
+        const { name, projectMetadata, deploymentMetadata, deploymentId } = projects[i];
         logger.info(`Create query project: ${name}`);
         await sendTx((overrides) =>
             sdk.projectRegistry.createProject(
-                metadataCid,
-                cidToBytes32(versionCid),
+                projectMetadata,
+                cidToBytes32(deploymentMetadata),
                 cidToBytes32(deploymentId),
                 0,
                 overrides
@@ -101,12 +100,13 @@ export async function createPlanTemplates(sdk: ContractSDK, _provider?: StaticJs
     logger = getLogger('Plan Templates');
     const templateId = await sdk.planManager.nextTemplateId();
     const templates = startupConfig.planTemplates;
-    const token = sdk.sqToken.address;
+    const defaultToken = sdk.sqToken.address;
     for (var i = templateId.toNumber(); i < templates.length; i++) {
-        const { period, dailyReqCap, rateLimit } = templates[i];
+        const { period, dailyReqCap, rateLimit, token } = templates[i];
+        const templateToken = token ?? defaultToken;
         logger.info(`Create No. ${i} plan template: ${period} | ${dailyReqCap} | ${rateLimit}`);
         await sendTx((overrides) =>
-            sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, token, METADATA_HASH, overrides)
+            sdk.planManager.createPlanTemplate(period, dailyReqCap, rateLimit, templateToken, METADATA_HASH, overrides)
         );
     }
 
@@ -223,7 +223,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
     console.log('\n');
 }
 
-async function transferTokenToIndexers(sdk: ContractSDK) {
+async function allocateTokenToIndexers(sdk: ContractSDK) {
     logger = getLogger('Token');
     const { indexers } = startupConfig;
     const amount = utils.parseEther('1000000');
@@ -329,14 +329,12 @@ const main = async () => {
         case '--testnet':
             confirms = 1;
             startupConfig = startupTestnetConfig;
-            // await createProjects(sdk);
+            // await allocateTokenToIndexers(sdk);
+            await createProjects(sdk);
             // await createPlanTemplates(sdk);
+            // await setupVesting(sdk);
             // await airdrop(sdk);
-            // await transferTokenToIndexers(sdk);
             // await setupPermissionExchange(sdk, wallet);
-            // await balanceTransfer(sdk, wallet);
-            // await ownerTransfer(sdk);
-            await setupVesting(sdk);
             break;
         default:
             throw new Error(`Please provide correct network ${networkType}`);

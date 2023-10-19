@@ -1,10 +1,10 @@
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
 
-import {deployContracts} from '../setup';
-import {createPlanTemplates, createProjects, airdrop, ownerTransfer, balanceTransfer} from '../../scripts/startup';
-import {cidToBytes32} from '../helper';
 import config from 'scripts/config/startup.testnet.json';
+import { airdrop, createPlanTemplates, createProjects } from '../../scripts/startup';
+import { cidToBytes32 } from '../helper';
+import { deployContracts } from '../setup';
 
 // this test need to update once the new contracts are deployed to mumbai
 describe.skip('startup script', () => {
@@ -47,8 +47,8 @@ describe.skip('startup script', () => {
                 const version = await sdk.projectRegistry.deploymentInfos(info.latestDeploymentId);
                 const metadata = await sdk.projectRegistry.tokenURI(i+1);
                 expect(info.latestDeploymentId).to.be.equal(cidToBytes32(d.deploymentId));
-                expect(version.metadata).to.be.equal(`ipfs://${d.versionCid}`);
-                expect(metadata).to.be.equal(`ipfs://${d.metadataCid}`);
+                expect(version.metadata).to.be.equal(`ipfs://${d.deploymentMetadata}`);
+                expect(metadata).to.be.equal(`ipfs://${d.projectMetadata}`);
             }
         });
     });

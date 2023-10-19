@@ -159,8 +159,8 @@ async function checkConfiguration(sdk: ContractSDK, config) {
             const uri = await sdk.projectRegistry.tokenURI(i);
             const deploymentInfo = await sdk.projectRegistry.deploymentInfos(p.latestDeploymentId);
             expect(cidToBytes32(project.deploymentId)).to.eql(p.latestDeploymentId);
-            expect(cidToBytes32(project.versionCid)).to.eql(deploymentInfo.metadata);
-            expect(project.metadataCid).to.eql(`ipfs://${uri}`);
+            expect(cidToBytes32(project.deploymentMetadata)).to.eql(deploymentInfo.metadata);
+            expect(project.projectMetadata).to.eql(`ipfs://${uri}`);
             logger.info(`🎉 project ${project.name} verified`);
         }
         //QRCreators

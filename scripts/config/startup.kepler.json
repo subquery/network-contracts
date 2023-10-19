@@ -9,20 +9,20 @@
         {
             "name": "Polkadot Dictionary",
             "deploymentId": "QmVUpDjYQJkSFB2vNsJbkdZ6JUw51v23S3jx7QuU9igr9v",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE"
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "projectMetadata": "QmQMadZByP9RHeULtpJDH3qNBVGPv5CsawGaZV2vUSFvYE"
         },
         {
             "name": "Moonbeam Dictionary",
             "deploymentId": "QmXhc36szFrKYVBJkmiXDFM2PDsFADzfb2QF6UBYGsNfH3",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj"
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "projectMetadata": "QmQ4cBHRabyy3ExkvfVDFHZSneF5j8ySf843zMifzfY7Cj"
         },
         {
             "name": "Kusama Dictionary",
             "deploymentId": "QmZJ9whrhrMvn2HU8supcbGxCyCymdpzqWDgpaNuXCYXnk",
-            "versionCid": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
-            "metadataCid": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX"
+            "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
+            "projectMetadata": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX"
       }
     ]
 }

@@ -42,6 +42,8 @@ Testnet contracts are deployed on the `Polygon Mumbai`.
 Find the latest deployment file: `./publish/testnet.json`.
 Get configuration from js-sdk `networks['testnet']` or rust-sdk `Network::Testnet`.
 
+kUSDC on Mumbai: https://mumbai.polygonscan.com/token/0x7E65A71046170A5b1AaB5C5cC64242EDF95CaBEA
+
 ## Kepler
 The Kepler network sits between a testnet and mainnet.
 Kepler network contracts will be deployed on the `Polygon Mainnet`.
