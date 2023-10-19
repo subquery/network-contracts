@@ -279,8 +279,6 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
         rewardInfo.eraReward += rewardInfo.eraRewardAddTable[rewardInfo.lastClaimEra];
         rewardInfo.eraReward -= rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
-        delete rewardInfo.eraRewardAddTable[rewardInfo.lastClaimEra];
-        delete rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
         if (rewardInfo.eraReward != 0) {
             uint256 totalStake = rewardsStaking.getTotalStakingAmount(indexer);
             require(totalStake > 0, 'RD006');
