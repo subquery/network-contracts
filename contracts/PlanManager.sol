@@ -173,10 +173,10 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     function removePlan(uint256 planId) external {
         require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
         require(plans[planId].indexer == msg.sender, 'PM008');
-
-        bytes32 deploymentId = plans[planId].deploymentId;
+        Plan storage plan = plans[planId];
+        bytes32 deploymentId = plan.deploymentId;
         limits[msg.sender][deploymentId] -= 1;
-        delete plans[planId];
+        plan.active = false;
 
         emit PlanRemoved(planId);
     }
