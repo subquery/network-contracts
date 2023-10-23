@@ -194,12 +194,15 @@ const config: HardhatUserConfig = {
         hardhat: {},
         testnet: {
             url: "https://rpc.ankr.com/polygon_mumbai",
+            chainId: 80001,
         },
         kepler: {
             url: "https://polygon-rpc.com",
+            chainId: 137,
         },
         mainnet: {
             url: "https://polygon-rpc.com",
+            chainId: 137,
         }
     },
     gasReporter: {
@@ -211,6 +214,7 @@ const config: HardhatUserConfig = {
     },
     typechain: {
         outDir: 'src/typechain',
+        target: 'ethers-v5',
     },
     contractSizer: {
         alphaSort: true,
