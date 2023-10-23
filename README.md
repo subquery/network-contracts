@@ -122,6 +122,12 @@ Example
 yarn upgrade --testnet PlanManager
 ```
 
+### Verify Contract on Polygonscan
+```
+# set up ETHERSCAN_API_KEY in .env 
+yarn hardhat publish --deployment publish/kepler.json --network kepler 
+```
+
 ### Debug Script
 ```shell
 node --inspect-brk -r ts-node/register -r tsconfig-paths/register scripts/...
