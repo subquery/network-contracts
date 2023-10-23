@@ -470,6 +470,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         // delete the channel
         delete channels[channelId];
+        delete channelPrice[channelId];
 
         emit ChannelFinalize(channelId, total, remain);
     }

@@ -286,12 +286,14 @@ describe('StateChannel Contract', () => {
             const state1 = await stateChannel.channel(channelId);
             expect(state1.spent).to.equal(etherParse('0.1'));
             expect(state1.status).to.equal(2); // Terminate
+            expect(await stateChannel.channelPrice(channelId)).to.eq(etherParse('0.1'));
 
             const query2 = await buildQueryState(channelId, indexer, consumer, etherParse('0.2'), false);
             await stateChannel.connect(indexer).respond(query2);
             const state2 = await stateChannel.channel(channelId);
             expect(state2.spent).to.equal(0);
             expect(state2.status).to.equal(0); // Finalized
+            expect(await stateChannel.channelPrice(channelId)).to.eq(0);
 
             await expect(stateChannel.claim(channelId)).to.be.revertedWith('SC008');
         });
