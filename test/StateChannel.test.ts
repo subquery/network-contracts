@@ -156,6 +156,8 @@ describe('StateChannel Contract', () => {
             expect(channel.indexer).to.equal(indexer.address);
             expect(channel.consumer).to.equal(consumer.address);
             expect(channel.total).to.equal(etherParse('1'));
+            const onchainPrice = await stateChannel.channelPrice(channelId);
+            expect(onchainPrice).to.eq(etherParse('1'));
         });
 
         it('repeat same channel Id State Channel should not work', async () => {

@@ -67,6 +67,8 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     uint256 public terminateExpiration;
     /// @notice The states of the channels
     mapping(uint256 => ChannelState) private channels;
+    /// @notice The price of the channel
+    mapping(uint256 => uint256) public channelPrice;
 
     /// @dev ### EVENTS
     /// @notice Emitted when open a channel for Pay-as-you-go service
@@ -184,6 +186,8 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         state.terminatedAt = 0;
         state.deploymentId = deploymentId;
         state.terminateByIndexer = false;
+        // set channel price
+        channelPrice[channelId] = price;
 
         emit ChannelOpen(channelId, indexer, consumer, amount, price, block.timestamp + expiration, deploymentId, callback);
     }
