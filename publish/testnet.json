@@ -120,10 +120,10 @@
         "lastUpdate": "Wed, 18 Oct 2023 01:49:51 GMT"
     },
     "StateChannel": {
-        "innerAddress": "0x8d686d392e3275a61CAb0A5C8CE030f12F8Aa64F",
+        "innerAddress": "0xfF6eFa19c3994571B7848d8065857dB31d825C63",
         "address": "0x6b4C5B5d97FB073210ba424C2B7F0974D1f7fCDd",
-        "bytecodeHash": "cdb7812464cc3508c8076c5b7c383088dd74f096ed249d44179e7d07a36bccfa",
-        "lastUpdate": "Wed, 18 Oct 2023 01:50:18 GMT"
+        "bytecodeHash": "077eff4a56ba6044bca87fa7d6b2d1dd9e41be7f9594a918a1144945f607b4b0",
+        "lastUpdate": "Tue, 24 Oct 2023 01:41:15 GMT"
     },
     "PermissionedExchange": {
         "innerAddress": "0x32E33F0D39c920a0e70516228935EBE50CFe11be",
