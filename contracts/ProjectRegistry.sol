@@ -58,7 +58,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     event UpdateProjectMetadata(address indexed owner, uint256 indexed projectId, string metadata);
 
     /// @notice Emitted when the latestDeploymentId of the project updated.
-    event UpdateProjectDeployment(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 metadata);
+    event UpdateProjectDeployment(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 metadata, bool updateLatest);
 
     /// @notice Emitted when service status changed with a specific deploymentId.
     event ServiceStatusChanged(address indexed indexer, bytes32 indexed deploymentId, ServiceStatus status);
@@ -168,16 +168,23 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     }
 
     /**
-     * @notice update the deployment of a project, if in the restrict mode, only creator allowed call this function
+     * @notice update or add the deployment of a project, only creator allowed call this function
      */
-    function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata) external {
+    function addOrUpdateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata, bool updateLatest) external {
         require(ownerOf(projectId) == msg.sender, 'PR004');
-        require(deploymentInfos[deploymentId].projectId == 0, 'PR003');
+        require(deploymentInfos[deploymentId].projectId == 0 || deploymentInfos[deploymentId].projectId == projectId, 'PR007');
+        bool changed = false;
+        if (deploymentInfos[deploymentId].metadata != metadata) {
+            deploymentInfos[deploymentId] = DeploymentInfo(projectId, metadata);
+            changed = true;
+        }
 
-        projectInfos[projectId].latestDeploymentId = deploymentId;
-        deploymentInfos[deploymentId] = DeploymentInfo(projectId, metadata);
-
-        emit UpdateProjectDeployment(msg.sender, projectId, deploymentId, metadata);
+        if (updateLatest && projectInfos[projectId].latestDeploymentId != deploymentId) {
+            projectInfos[projectId].latestDeploymentId = deploymentId;
+            changed = true;
+        }
+        require(changed, 'PR008');
+        emit UpdateProjectDeployment(msg.sender, projectId, deploymentId, metadata, updateLatest);
     }
 
     /**

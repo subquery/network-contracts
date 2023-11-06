@@ -232,6 +232,12 @@
                 "internalType": "bytes32",
                 "name": "metadata",
                 "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "bool",
+                "name": "updateLatest",
+                "type": "bool"
             }
         ],
         "name": "UpdateProjectDeployment",
@@ -271,6 +277,34 @@
             }
         ],
         "name": "addCreator",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "projectId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "metadata",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bool",
+                "name": "updateLatest",
+                "type": "bool"
+            }
+        ],
+        "name": "addOrUpdateDeployment",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -894,29 +928,6 @@
             }
         ],
         "name": "transferOwnership",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "projectId",
-                "type": "uint256"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "deploymentId",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "metadata",
-                "type": "bytes32"
-            }
-        ],
-        "name": "updateDeployment",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

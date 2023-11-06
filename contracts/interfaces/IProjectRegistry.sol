@@ -33,10 +33,11 @@ interface IProjectRegistry {
 
     function updateProjectMetadata(uint256 projectId, string memory metadataUri) external;
 
-    function updateDeployment(
+    function addOrUpdateDeployment(
         uint256 projectId,
         bytes32 deploymentId,
-        bytes32 metadata
+        bytes32 metadata,
+        bool updateLatest
     ) external;
 
     function startService(bytes32 deploymentId) external;
