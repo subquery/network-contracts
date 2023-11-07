@@ -181,12 +181,12 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
 
         deploymentInfos[deploymentId] = DeploymentInfo(projectId, metadata);
 
+        emit ProjectDeploymentUpdated(msg.sender, projectId, deploymentId, metadata);
+        
         if (updateLatest) {
             projectInfos[projectId].latestDeploymentId = deploymentId;
             emit ProjectLatestDeploymentUpdated(projectId, deploymentId);
         }
-
-        emit ProjectDeploymentUpdated(msg.sender, projectId, deploymentId, metadata);
     }
 
     /**
