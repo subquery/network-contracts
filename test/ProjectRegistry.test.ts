@@ -173,7 +173,7 @@ describe('Project Registry Contract', () => {
             const [metadata, deploymentId] = [deploymentMetadatas[1], deploymentIds[1]];
             await expect(projectRegistry.addOrUpdateDeployment(1, deploymentId, metadata, true))
                 .to.be.emit(projectRegistry, 'UpdateProjectDeployment')
-                .withArgs(wallet_0.address, projectId, deploymentId, metadata);
+                .withArgs(wallet_0.address, projectId, deploymentId, metadata, true);
 
             // check state changes
             const projectInfo = await projectRegistry.projectInfos(projectId);
@@ -212,7 +212,7 @@ describe('Project Registry Contract', () => {
             expect(projectInfo.latestDeploymentId).to.equal(deploymentIds[1]);
             await expect(projectRegistry.addOrUpdateDeployment(projectId, deploymentIds[2], deploymentMetadatas[2], false))
                 .to.be.emit(projectRegistry, 'UpdateProjectDeployment')
-                .withArgs(wallet_0.address, projectId, deploymentId, deploymentMetadatas[0], false);
+                .withArgs(wallet_0.address, projectId, deploymentIds[2], deploymentMetadatas[2], false);
 
             // check state changes
             projectInfo = await projectRegistry.projectInfos(projectId);
