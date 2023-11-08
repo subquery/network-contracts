@@ -60,12 +60,11 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /// @notice Emitted when the latestDeploymentId of the project updated.
     event ProjectDeploymentUpdated(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 metadata);
 
+    /// @notice Emitted when project latest deployment updated.
+    event ProjectLatestDeploymentUpdated(address indexed owner, uint256 projectId, bytes32 deploymentId);
+
     /// @notice Emitted when service status changed with a specific deploymentId.
     event ServiceStatusChanged(address indexed indexer, bytes32 indexed deploymentId, ServiceStatus status);
-
-    /// @notice Emitted when project latest deployment updated.
-    event ProjectLatestDeploymentUpdated(uint256 projectId, bytes32 deploymentId);
-
 
     /// @dev MODIFIER
     /// @notice only indexer can call
@@ -185,7 +184,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         
         if (updateLatest) {
             projectInfos[projectId].latestDeploymentId = deploymentId;
-            emit ProjectLatestDeploymentUpdated(projectId, deploymentId);
+            emit ProjectLatestDeploymentUpdated(msg.sender, projectId, deploymentId);
         }
     }
 
@@ -210,7 +209,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
 
         projectInfos[projectId].latestDeploymentId = deploymentId;
 
-        emit ProjectLatestDeploymentUpdated(projectId, deploymentId);
+        emit ProjectLatestDeploymentUpdated(msg.sender, projectId, deploymentId);
     }
 
     /**
