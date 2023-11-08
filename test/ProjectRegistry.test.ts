@@ -1,8 +1,10 @@
+import { metadatas } from './constants';
 // Copyright (C) 2020-2023 SubProject Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
+import { constants } from 'ethers';
 
 import { IndexerRegistry, PlanManager, ProjectRegistry, PurchaseOfferMarket, SQToken, Settings, Staking } from '../src';
 import { METADATA_HASH, POI, deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
@@ -154,9 +156,7 @@ describe('Project Registry Contract', () => {
     });
 
     describe('Update Project', () => {
-        beforeEach(async () => {
-            await createProject();
-        });
+        beforeEach(async () => await createProject());
 
         it('update project metadata should work', async () => {
             const newProjectMetadata = projectMetadatas[1];
@@ -171,36 +171,39 @@ describe('Project Registry Contract', () => {
 
         it('add new deployment to project should work', async () => {
             const projectId = 1;
-            const [metadata, deploymentId] = [deploymentMetadatas[1], deploymentIds[1]];
+            let [metadata, deploymentId] = [deploymentMetadatas[1], deploymentIds[1]];
             await expect(projectRegistry.addOrUpdateDeployment(1, deploymentId, metadata, true))
                 .to.be.emit(projectRegistry, 'ProjectDeploymentUpdated')
                 .withArgs(wallet_0.address, projectId, deploymentId, metadata);
 
             // check state changes
-            const projectInfo = await projectRegistry.projectInfos(projectId);
-            const deploymentInfo = await projectRegistry.deploymentInfos(deploymentId);
+            let projectInfo = await projectRegistry.projectInfos(projectId);
+            let deploymentInfo = await projectRegistry.deploymentInfos(deploymentId);
             expect(projectInfo.latestDeploymentId).to.equal(deploymentId);
             expect(projectInfo.projectType).to.equal(ProjectType.SUBQUERY);
             expect(deploymentInfo.projectId).to.equal(projectId);
             expect(deploymentInfo.metadata).to.equal(metadata);
 
             // add the second deployment without setting it as latest
-            await expect(projectRegistry.addOrUpdateDeployment(1, deploymentId2, metadata, false))
+            [metadata, deploymentId] = [deploymentMetadatas[2], deploymentIds[2]];
+            await expect(projectRegistry.addOrUpdateDeployment(1, deploymentId, metadata, false))
                 .to.be.emit(projectRegistry, 'ProjectDeploymentUpdated')
-                .withArgs(wallet_0.address, projectId, deploymentId2, metadata);
+                .withArgs(wallet_0.address, projectId, deploymentId, metadata);
 
-            const deploymentInfo2 = await projectRegistry.deploymentInfos(deploymentId2);
-            const projectInfo2 = await projectRegistry.projectInfos(projectId);
-            expect(deploymentInfo2.projectId).to.equal(projectId);
-            expect(deploymentInfo2.metadata).to.equal(metadata);
-            expect(projectInfo.latestDeploymentId).to.equal(deploymentId);
+            // check state changes
+            projectInfo = await projectRegistry.projectInfos(projectId);
+            deploymentInfo = await projectRegistry.deploymentInfos(deploymentId);
+            expect(projectInfo.latestDeploymentId).to.equal(deploymentIds[1]);
+            expect(projectInfo.projectType).to.equal(ProjectType.SUBQUERY);
+            expect(deploymentInfo.projectId).to.equal(projectId);
+            expect(deploymentInfo.metadata).to.equal(metadata);
         });
 
         it('update deployment\'s metadata should work', async () => {
             const projectId = 1;
             const metadata = deploymentMetadatas[1];
-            await expect(projectRegistry.addOrUpdateDeployment(1, deploymentId, metadata, true))
-                .to.be.emit(projectRegistry, 'UpdateProjectDeployment')
+            await expect(projectRegistry.addOrUpdateDeployment(1, deploymentId, metadata, false))
+                .to.be.emit(projectRegistry, 'ProjectDeploymentUpdated')
                 .withArgs(wallet_0.address, projectId, deploymentId, metadata);
 
             // check state changes
@@ -251,24 +254,55 @@ describe('Project Registry Contract', () => {
             expect(deploymentInfo.metadata).to.equal(metadata);
         });
 
-        it('update project with invalid params should fail', async () => {
-            // no permission to update project
+        it('update project metadata with invalid params should fail', async () => {
+            // invalid owner
             await expect(
                 projectRegistry.connect(wallet_1).updateProjectMetadata(1, projectMetadata)
             ).to.be.revertedWith('PR004');
+        });
 
-            // deployment existed
-            await projectRegistry.addCreator(wallet_1.address);
-            await projectRegistry.connect(wallet_1).createProject(
+        it('update deployment with invalid params should fail', async () => {
+            // invalid owner
+            await expect(
+                projectRegistry.connect(wallet_1).addOrUpdateDeployment(1, deploymentId, deploymentMetadata, true)
+            ).to.be.revertedWith('PR004');
+            // empty metadata or deploymentId
+            await expect(
+                projectRegistry.addOrUpdateDeployment(1, deploymentId, constants.HashZero, true)
+            ).to.be.revertedWith('PR009');    
+            await expect(
+                projectRegistry.addOrUpdateDeployment(1, constants.HashZero, metadatas[0], true)
+            ).to.be.revertedWith('PR009');
+
+            // create another project
+            await projectRegistry.createProject(
                 projectMetadatas[1],
                 deploymentMetadatas[1],
                 deploymentIds[1],
                 ProjectType.SUBQUERY
             );
+
+            await expect(
+                projectRegistry.addOrUpdateDeployment(1, deploymentIds[1], deploymentMetadatas[1], true)
+            ).to.be.revertedWith('PR007');
+            await expect(
+                projectRegistry.addOrUpdateDeployment(1, deploymentId, deploymentMetadata, true)
+            ).to.be.revertedWith('PR008');
         });
 
-        it('update deployment with invalid params should fail', async () => {
-            
+        it('set project latest deployment with invalid params should fail', async () => {
+            // invalid owner 
+            await expect(
+                projectRegistry.connect(wallet_1).setProjectLatestDeployment(1, deploymentId)
+            ).to.be.revertedWith('PR004');
+            // inconsistent project id and deployment id
+            await expect(
+                projectRegistry.setProjectLatestDeployment(1, deploymentIds[1])
+            ).to.be.revertedWith('PR007');
+            // deployment id already set as latest
+            await expect(
+                projectRegistry.setProjectLatestDeployment(1, deploymentId)
+            ).to.be.revertedWith('PR010');
         });
     });
 
