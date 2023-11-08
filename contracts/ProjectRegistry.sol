@@ -173,12 +173,17 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice add a deployment to a project.
      */
-    function addDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata, bool updateLatest) external {
+    function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata, bool updateLatest) external {
         require(ownerOf(projectId) == msg.sender, 'PR004');
         require(deploymentId != bytes32(0) && metadata != bytes32(0), 'PR009');
-        require(deploymentInfos[deploymentId].projectId == 0, 'PR003');
 
-        deploymentInfos[deploymentId] = DeploymentInfo(projectId, metadata);
+        if (deploymentInfos[deploymentId].projectId == 0) {
+            deploymentInfos[deploymentId] = DeploymentInfo(projectId, metadata);
+        } else {
+            require(deploymentInfos[deploymentId].projectId == projectId, 'PR007');
+            require(deploymentInfos[deploymentId].metadata != metadata, 'PR008');
+            deploymentInfos[deploymentId].metadata = metadata;
+        }
 
         emit ProjectDeploymentUpdated(msg.sender, projectId, deploymentId, metadata);
         
@@ -186,20 +191,6 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
             projectInfos[projectId].latestDeploymentId = deploymentId;
             emit ProjectLatestDeploymentUpdated(msg.sender, projectId, deploymentId);
         }
-    }
-
-    /**
-     * @notice update the metadata of a deployment.
-     */
-    function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata) external {
-        require(ownerOf(projectId) == msg.sender, 'PR004');
-        require(deploymentInfos[deploymentId].projectId == projectId, 'PR007');
-        require(metadata != bytes32(0), 'PR009');
-        require(deploymentInfos[deploymentId].metadata != metadata, 'PR008');
-
-        deploymentInfos[deploymentId].metadata = metadata;
-
-        emit ProjectDeploymentUpdated(msg.sender, projectId, deploymentId, metadata);
     }
 
     function setProjectLatestDeployment(uint256 projectId, bytes32 deploymentId) external {
