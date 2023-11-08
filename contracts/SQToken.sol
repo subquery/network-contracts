@@ -17,7 +17,7 @@ contract SQToken is ERC20, Ownable, ERC20Burnable {
         _;
     }
 
-    constructor(address _minter, uint256 totalSupply) ERC20('SubQueryToken', 'kSQT') Ownable() {
+    constructor(address _minter, uint256 totalSupply) ERC20('SubQueryToken', 'SQT') Ownable() {
         minter = _minter;
         _mint(msg.sender, totalSupply);
     }
