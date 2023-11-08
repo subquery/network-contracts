@@ -78,10 +78,10 @@
         "lastUpdate": "Wed, 13 Sep 2023 01:18:55 GMT"
     },
     "PurchaseOfferMarket": {
-        "innerAddress": "0x209aC3C6FCf7591971c5C6486CeaB4afcd980a9C",
+        "innerAddress": "0x2958EBcfAd30a1E7A965a185B29A2885E0a33583",
         "address": "0x15124a66b375741CE8d26DA80c31Dcb0016864Ae",
-        "bytecodeHash": "a4dc4d7b61d5bf63d91559f7ce2d3b7f1584415c15947a3b2ae19d19f9feace2",
-        "lastUpdate": "Wed, 16 Aug 2023 05:39:46 GMT"
+        "bytecodeHash": "6691f7f0b63f6514405d8693c772ebaf4daa568dd117bc526f07f3b1f5d6bcaa",
+        "lastUpdate": "Wed, 08 Nov 2023 01:35:20 GMT"
     },
     "ServiceAgreementRegistry": {
         "innerAddress": "0x9bF081b3635c79432730d88042086793b382Ff19",
