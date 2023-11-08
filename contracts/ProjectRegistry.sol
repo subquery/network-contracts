@@ -173,7 +173,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice add a deployment to a project.
      */
-    function updateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata, bool updateLatest) external {
+    function addOrUpdateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata, bool updateLatest) external {
         require(ownerOf(projectId) == msg.sender, 'PR004');
         require(deploymentId != bytes32(0) && metadata != bytes32(0), 'PR009');
 
