@@ -170,6 +170,11 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         emit ProjectMetadataUpdated(msg.sender, projectId, metadataUri);
     }
 
+    function _updateProjectLatestDeployment(uint256 projectId, bytes32 deploymentId) internal {
+        projectInfos[projectId].latestDeploymentId = deploymentId;
+        emit ProjectLatestDeploymentUpdated(msg.sender, projectId, deploymentId);
+    }
+
     /**
      * @notice add a deployment to a project.
      */
@@ -188,8 +193,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         emit ProjectDeploymentUpdated(msg.sender, projectId, deploymentId, metadata);
         
         if (updateLatest && projectInfos[projectId].latestDeploymentId != deploymentId) {
-            projectInfos[projectId].latestDeploymentId = deploymentId;
-            emit ProjectLatestDeploymentUpdated(msg.sender, projectId, deploymentId);
+            _updateProjectLatestDeployment(projectId, deploymentId);
         }
     }
 
@@ -198,9 +202,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         require(deploymentInfos[deploymentId].projectId == projectId, 'PR007');
         require(projectInfos[projectId].latestDeploymentId != deploymentId, 'PR010');
 
-        projectInfos[projectId].latestDeploymentId = deploymentId;
-
-        emit ProjectLatestDeploymentUpdated(msg.sender, projectId, deploymentId);
+        _updateProjectLatestDeployment(projectId, deploymentId);
     }
 
     /**
