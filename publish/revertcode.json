@@ -118,6 +118,8 @@
     "PR006": "cannot stop indexing with an ongoing service agreement",
     "PR007": "Inconsistent project id and deployment id",
     "PR008": "deployment metadata not changed",
+    "PR009": "deployment id or metadata is empty",
+    "PR010": "project latest deployment id not changed",
     "RD001": "Waiting Era",
     "RD002": "Era expired",
     "RD003": "Waiting next era",

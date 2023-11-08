@@ -52,13 +52,16 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
 
     /// @dev EVENTS
     /// @notice Emitted when project created.
-    event CreateProject(address indexed creator, uint256 indexed projectId, string projectMetadata, ProjectType projectType, bytes32 deploymentId, bytes32 deploymentMetadata);
+    event ProjectCreated(address indexed creator, uint256 indexed projectId, string projectMetadata, ProjectType projectType, bytes32 deploymentId, bytes32 deploymentMetadata);
 
     /// @notice Emitted when the metadata of the project updated.
-    event UpdateProjectMetadata(address indexed owner, uint256 indexed projectId, string metadata);
+    event ProjectMetadataUpdated(address indexed owner, uint256 indexed projectId, string metadata);
 
     /// @notice Emitted when the latestDeploymentId of the project updated.
-    event UpdateProjectDeployment(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 metadata, bool updateLatest);
+    event ProjectDeploymentUpdated(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 metadata);
+
+    /// @notice Emitted when project latest deployment updated.
+    event ProjectLatestDeploymentUpdated(address indexed owner, uint256 projectId, bytes32 deploymentId);
 
     /// @notice Emitted when service status changed with a specific deploymentId.
     event ServiceStatusChanged(address indexed indexer, bytes32 indexed deploymentId, ServiceStatus status);
@@ -153,7 +156,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         _safeMint(msg.sender, projectId);
         _setTokenURI(projectId, projectMetadataUri);
 
-        emit CreateProject(msg.sender, projectId, projectMetadataUri, projectType, deploymentId, deploymentMetdata);
+        emit ProjectCreated(msg.sender, projectId, projectMetadataUri, projectType, deploymentId, deploymentMetdata);
     }
 
     /**
@@ -164,27 +167,40 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
 
         _setTokenURI(projectId, metadataUri);
 
-        emit UpdateProjectMetadata(msg.sender, projectId, metadataUri);
+        emit ProjectMetadataUpdated(msg.sender, projectId, metadataUri);
     }
 
     /**
-     * @notice update or add the deployment of a project, only creator allowed call this function
+     * @notice add a deployment to a project.
      */
     function addOrUpdateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata, bool updateLatest) external {
         require(ownerOf(projectId) == msg.sender, 'PR004');
-        require(deploymentInfos[deploymentId].projectId == 0 || deploymentInfos[deploymentId].projectId == projectId, 'PR007');
-        bool changed = false;
-        if (deploymentInfos[deploymentId].metadata != metadata) {
+        require(deploymentId != bytes32(0) && metadata != bytes32(0), 'PR009');
+
+        if (deploymentInfos[deploymentId].projectId == 0) {
             deploymentInfos[deploymentId] = DeploymentInfo(projectId, metadata);
-            changed = true;
+        } else {
+            require(deploymentInfos[deploymentId].projectId == projectId, 'PR007');
+            require(deploymentInfos[deploymentId].metadata != metadata, 'PR008');
+            deploymentInfos[deploymentId].metadata = metadata;
         }
 
-        if (updateLatest && projectInfos[projectId].latestDeploymentId != deploymentId) {
+        emit ProjectDeploymentUpdated(msg.sender, projectId, deploymentId, metadata);
+        
+        if (updateLatest) {
             projectInfos[projectId].latestDeploymentId = deploymentId;
-            changed = true;
+            emit ProjectLatestDeploymentUpdated(msg.sender, projectId, deploymentId);
         }
-        require(changed, 'PR008');
-        emit UpdateProjectDeployment(msg.sender, projectId, deploymentId, metadata, updateLatest);
+    }
+
+    function setProjectLatestDeployment(uint256 projectId, bytes32 deploymentId) external {
+        require(ownerOf(projectId) == msg.sender, 'PR004');
+        require(deploymentInfos[deploymentId].projectId == projectId, 'PR007');
+        require(projectInfos[projectId].latestDeploymentId != deploymentId, 'PR010');
+
+        projectInfos[projectId].latestDeploymentId = deploymentId;
+
+        emit ProjectLatestDeploymentUpdated(msg.sender, projectId, deploymentId);
     }
 
     /**
