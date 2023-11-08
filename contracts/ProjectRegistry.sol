@@ -177,7 +177,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     function addDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata, bool updateLatest) external {
         require(ownerOf(projectId) == msg.sender, 'PR004');
         require(deploymentId != bytes32(0) && metadata != bytes32(0), 'PR009');
-        require(deploymentInfos[deploymentId].projectId == 0, 'PR007');
+        require(deploymentInfos[deploymentId].projectId == 0, 'PR003');
 
         deploymentInfos[deploymentId] = DeploymentInfo(projectId, metadata);
 
@@ -196,7 +196,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         require(ownerOf(projectId) == msg.sender, 'PR004');
         require(deploymentInfos[deploymentId].projectId == projectId, 'PR007');
         require(metadata != bytes32(0), 'PR009');
-        require(deploymentInfos[deploymentId].metadata != metadata, 'PR010');
+        require(deploymentInfos[deploymentId].metadata != metadata, 'PR008');
 
         deploymentInfos[deploymentId].metadata = metadata;
 
@@ -206,7 +206,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     function setProjectLatestDeployment(uint256 projectId, bytes32 deploymentId) external {
         require(ownerOf(projectId) == msg.sender, 'PR004');
         require(deploymentInfos[deploymentId].projectId == projectId, 'PR007');
-        require(projectInfos[projectId].latestDeploymentId != deploymentId, 'PR011');
+        require(projectInfos[projectId].latestDeploymentId != deploymentId, 'PR010');
 
         projectInfos[projectId].latestDeploymentId = deploymentId;
 
