@@ -60,16 +60,16 @@
         "lastUpdate": "Tue, 17 Oct 2023 07:17:43 GMT"
     },
     "IndexerRegistry": {
-        "innerAddress": "0xec6bb2Cf63aaA15d06b8702770c6BE2c5Aec2c64",
+        "innerAddress": "0x0D1961FCf88aa77a5439e7059ba4570DC00DdfA1",
         "address": "0x0668C863312E8CeC0bDc2363a35CC047e849ecd2",
-        "bytecodeHash": "b7376f2cf72913eb27018a2f6e7cd6e5f265f86c0bb0047534011d692932a977",
-        "lastUpdate": "Tue, 17 Oct 2023 07:18:13 GMT"
+        "bytecodeHash": "5e767a608953ef9f00e0d196e9b85d758a437f1a3d309f3eedafb8277f367483",
+        "lastUpdate": "Fri, 10 Nov 2023 00:42:43 GMT"
     },
     "ProjectRegistry": {
-        "innerAddress": "0xc49038f4f02201774fF31f73403CD11ee252908B",
+        "innerAddress": "0x9B707b5Ca17352614035Df21AF584da1B4D09fA3",
         "address": "0xdD7bbd8bF59D11cac793389839fdcFD1468a0545",
-        "bytecodeHash": "d05024393d1a265c555447ff21aaa33c0d4cf9ae1a827e6d0f37b1e8a18d7bff",
-        "lastUpdate": "Tue, 17 Oct 2023 07:29:37 GMT"
+        "bytecodeHash": "cec4787ac1c84bcdbe0bbb01225943be4ab4ef24f0cfbb63f9cd9a8a897a12bf",
+        "lastUpdate": "Fri, 10 Nov 2023 00:43:01 GMT"
     },
     "PlanManager": {
         "innerAddress": "0x24ac0D3CAaC7a8221Ba277eB5E3c075D6d630bCb",
