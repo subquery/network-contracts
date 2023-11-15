@@ -3,7 +3,7 @@ import {deployContracts, saveDeployment} from './deployContracts';
 
 const main = async () => {
     try {
-        const {name, config, wallet, confirms, history} = await setup(process.argv);
+        const {name, config, wallet, confirms, history} = await setup();
         const result = await deployContracts(wallet, config.contracts, { network: name, confirms, history });
         if (!result) {
             console.log('Failed to deploy contracts!');

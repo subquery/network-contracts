@@ -3635,6 +3635,7 @@ __metadata:
     "@types/node": ^17.0.23
     "@types/prettier": ^2
     "@types/sha256": ^0.2.0
+    "@types/yargs": ^16.0.8
     chai: ^4.3.6
     dotenv: ^10.0.0
     ethereum-waffle: ^3.4.0
@@ -3659,6 +3660,7 @@ __metadata:
     typechain: ^8.3.1
     typescript: ^4.6.3
     vuepress: ^1.9.7
+    yargs: ^16.2.0
   languageName: unknown
   linkType: soft
 
@@ -4441,6 +4443,22 @@ __metadata:
     anymatch: ^3.0.0
     source-map: ^0.6.0
   checksum: e594a1357cbbc2f7c6ca47785c5a11adb5591a774a69afaeab07cd6f6bff6c6aea2030bd37b32bdd19d0ec2336a346db754e8d8d236ba8effeab542716fb32b7
+  languageName: node
+  linkType: hard
+
+"@types/yargs-parser@npm:*":
+  version: 21.0.3
+  resolution: "@types/yargs-parser@npm:21.0.3"
+  checksum: ef236c27f9432983e91432d974243e6c4cdae227cb673740320eff32d04d853eed59c92ca6f1142a335cfdc0e17cccafa62e95886a8154ca8891cc2dec4ee6fc
+  languageName: node
+  linkType: hard
+
+"@types/yargs@npm:^16.0.8":
+  version: 16.0.8
+  resolution: "@types/yargs@npm:16.0.8"
+  dependencies:
+    "@types/yargs-parser": "*"
+  checksum: 3e82590f930fed262580fec5878336e975934a758b10961e0b403b8883c59b472225f38959399612edb7a2a9783d9edd244d1f9c2b5e7d072b21372646e888d2
   languageName: node
   linkType: hard
 
@@ -24845,7 +24863,7 @@ typescript@^4.6.3:
   languageName: node
   linkType: hard
 
-"yargs@npm:16.2.0":
+"yargs@npm:16.2.0, yargs@npm:^16.2.0":
   version: 16.2.0
   resolution: "yargs@npm:16.2.0"
   dependencies:

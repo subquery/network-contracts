@@ -55,6 +55,20 @@ export const networks: { [key in SubqueryNetwork]: Network } = {
           decimals: 18
         }
     },
+    'base-goerli': {
+        chainId: '0x14a33',
+        chainName: 'Base Goerli',
+        rpcUrls: [
+            'https://base-goerli.publicnode.com\t'
+        ],
+        iconUrls: [],
+        blockExplorerUrls: ['https://goerli.basescan.org/'],
+        nativeCurrency: {
+            name: 'ETH',
+            symbol: 'ETH',
+            decimals: 18
+        }
+    },
     local: {
         chainId: '0x7A69',
         chainName: 'Hardhat',

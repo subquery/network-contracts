@@ -48,5 +48,17 @@ export default {
         IndexerRegistry: [utils.parseEther("1000")],
         ConsumerHost: [1], // Fee Percentage, default is 1%
         DisputeManager: [utils.parseEther("10000")], // minimumDeposit
-    }
+    },
+    'base-goerli': {
+        InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
+        SQToken: [utils.parseEther("10000000000")], // initial supply 10 billion
+        Staking: [1000, 1e3], // lockPeriod, unbondFeeRate
+        Airdropper: ['0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // settle destination
+        EraManager: [3600], // 1 hour
+        ServiceAgreementExtra: [1e6], //threshold
+        PurchaseOfferMarket: [1e5, '0x0000000000000000000000000000000000000000'],
+        IndexerRegistry: [utils.parseEther("1000")],
+        ConsumerHost: [1], // Fee Percentage, default is 1%
+        DisputeManager: [utils.parseEther("10000")], // minimumDeposit
+    },
 }

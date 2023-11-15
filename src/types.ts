@@ -32,7 +32,7 @@ import {
     Vesting__factory
 } from './typechain';
 
-export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'local';
+export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'base-goerli' | 'local';
 
 export type Network = {
     chainId: string;
