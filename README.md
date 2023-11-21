@@ -153,3 +153,14 @@ node --inspect-brk -r ts-node/register -r tsconfig-paths/register scripts/...
 
 ### revert code
 You can find all revert code details at `./public/revertcode.json`
+
+### Bridge Token Between L1 & L2
+```
+https://community.optimism.io/docs/developers/bridge/standard-bridge/#
+https://github.com/ethereum-optimism/optimism-tutorial/tree/main/standard-bridge-custom-token
+https://docs.base.org/base-contracts
+```
+
+### TODOs
+to support L1&L2 token pair mode, we can not burn token in l2 (bridge layer) according to the standard-bridge doc. 
+Instead, we either can avoid burn token but switch to taking a fee to treasury, or we need to call cross chain transfer for burn token.
