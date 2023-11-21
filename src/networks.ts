@@ -7,7 +7,6 @@ export const networks: { [key in SubqueryNetwork]: Network } = {
         chainId: '0x89',
         chainName: 'Polygon',
         rpcUrls: [
-            'https://polygon.api.onfinality.io/rpc?apikey=e7acc294-c859-48ed-a742-5aadf0a084b9',
             'https://polygon-rpc.com/'
         ],
         iconUrls: [
@@ -24,7 +23,6 @@ export const networks: { [key in SubqueryNetwork]: Network } = {
         chainId: '0x89',
         chainName: 'Polygon',
         rpcUrls: [
-            'https://polygon.api.onfinality.io/rpc?apikey=e7acc294-c859-48ed-a742-5aadf0a084b9',
             'https://polygon-rpc.com'
         ],
         iconUrls: [
@@ -42,8 +40,6 @@ export const networks: { [key in SubqueryNetwork]: Network } = {
         chainName: 'Mumbai',
         rpcUrls: [
             'https://rpc.ankr.com/polygon_mumbai',
-            'https://polygon-mumbai.api.onfinality.io/rpc?apikey=6b43efc3-a13c-4250-9203-e097fb9f239',
-            'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78'
         ],
         iconUrls: [
           'https://icons.llamao.fi/icons/chains/rsz_polygon.jpg'
