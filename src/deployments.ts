@@ -12,5 +12,5 @@ export const DEPLOYMENT_DETAILS: Record<SubqueryNetwork, ContractDeployment> = {
   kepler: keplerDeployment,
   testnet: testnetDeployment,
   local: testnetDeployment,
-  'base-goerli':baseGoerliDeployment,
+  'testnet-base':baseGoerliDeployment,
 };

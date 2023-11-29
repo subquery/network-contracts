@@ -69,17 +69,18 @@ const setup = async () => {
     let implementationOnly = false;
 
     switch (argv.network) {
+        // TODO: can support more network type here like `testnet-base` | `testnet-ethereum`
         case 'mainnet':
             config.contracts = contractsConfig.mainnet;
-            config.network = networks.mainnet;
+            config.network = networks.polygon;
             break;
         case 'kepler':
             config.contracts = contractsConfig.kepler;
-            config.network = networks.kepler;
+            config.network = networks.polygon;
             break;
         case 'testnet':
             config.contracts = contractsConfig.testnet;
-            config.network = networks.testnet;
+            config.network = networks.mumbai;
             break;
         default:
             config.contracts = contractsConfig.local;

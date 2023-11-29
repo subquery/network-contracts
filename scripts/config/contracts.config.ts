@@ -49,7 +49,7 @@ export default {
         ConsumerHost: [1], // Fee Percentage, default is 1%
         DisputeManager: [utils.parseEther("10000")], // minimumDeposit
     },
-    'base-goerli': {
+    'testnet-base': {
         InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
         SQToken: [utils.parseEther("10000000000")], // initial supply 10 billion
         Staking: [1000, 1e3], // lockPeriod, unbondFeeRate
