@@ -2673,22 +2673,22 @@ __metadata:
   linkType: hard
 
 "@ipld/dag-cbor@npm:^7.0.0":
-  version: 7.0.1
-  resolution: "@ipld/dag-cbor@npm:7.0.1"
+  version: 7.0.3
+  resolution: "@ipld/dag-cbor@npm:7.0.3"
   dependencies:
     cborg: ^1.6.0
     multiformats: ^9.5.4
-  checksum: 54690acf434160a5bb7e92f435dbccc9fdf244c183040e38342de8ccf57e461fbcbc53caad73d19d99d23da5758c72001d7309ca3c899092bcdef137125ac05a
+  checksum: c0c59907ab6146a214c1ecb2341cc02904bc952255e15544554990690f7841380a87636d5937aaa23e9004b1c141e90238277d088ed6932b5b0e6d2e6ee1fe02
   languageName: node
   linkType: hard
 
 "@ipld/dag-json@npm:^8.0.1":
-  version: 8.0.8
-  resolution: "@ipld/dag-json@npm:8.0.8"
+  version: 8.0.11
+  resolution: "@ipld/dag-json@npm:8.0.11"
   dependencies:
     cborg: ^1.5.4
     multiformats: ^9.5.4
-  checksum: 7fccf3387083ac81db4d3895a3fdb0ce7e33f27f7f07eb6d50b01cb4434bd65bf5a729280b045323af6b48c534d00cfc5070a9b3d5d63272c234a5e8f0b6c6cd
+  checksum: 5ce25e4ed4004839a0dc18a51b09d0e2bda02a00bc15e8066809ddcedf5927ef8829a7dacaaf71ba0eb1c8699599130389af6d137da1d6f524394f5ddb0763f0
   languageName: node
   linkType: hard
 
@@ -3683,7 +3683,7 @@ __metadata:
     hardhat-contract-sizer: ^2.10.0
     hardhat-gas-reporter: ^1.0.9
     husky: ^7.0.4
-    ipfs-http-client: ^56.0.1
+    ipfs-http-client: 56
     lint-staged: ^12.3.5
     mocha: ^7.2.0
     module-alias: ^2.2.2
@@ -6998,7 +6998,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"browser-readablestream-to-it@npm:^1.0.1, browser-readablestream-to-it@npm:^1.0.3":
+"browser-readablestream-to-it@npm:^1.0.0, browser-readablestream-to-it@npm:^1.0.1, browser-readablestream-to-it@npm:^1.0.3":
   version: 1.0.3
   resolution: "browser-readablestream-to-it@npm:1.0.3"
   checksum: 07895bbc54cdeea62c8e9b7e32d374ec5c340ed1d0bc0c6cd6f1e0561ad931b160a3988426c763672ddf38ac1f75e45b9d8ae267b43f387183edafcad625f30a
@@ -7562,12 +7562,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cborg@npm:^1.5.4, cborg@npm:^1.6.0":
+"cborg@npm:^1.5.4":
   version: 1.8.1
   resolution: "cborg@npm:1.8.1"
   bin:
     cborg: cli.js
   checksum: 5932e77b6ed8e3d02690a5fac6644e9d27169356db4ea9b349df6983447e710e0f769344cf79ba02bf01b9c25dbeaeb763b9dd41ad0f4c638427ec27dc645a6a
+  languageName: node
+  linkType: hard
+
+"cborg@npm:^1.6.0":
+  version: 1.10.2
+  resolution: "cborg@npm:1.10.2"
+  bin:
+    cborg: cli.js
+  checksum: 7743a8f125046ac27fb371c4ea18af54fbe853f7210f1ffacc6504a79566480c39d52ac4fbc1a5b5155e27b13c3b58955dc29db1bf20c4d651549d55fec2fa7f
   languageName: node
   linkType: hard
 
@@ -13730,29 +13739,31 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"ipfs-core-types@npm:^0.10.1":
-  version: 0.10.1
-  resolution: "ipfs-core-types@npm:0.10.1"
+"ipfs-core-types@npm:^0.10.3":
+  version: 0.10.3
+  resolution: "ipfs-core-types@npm:0.10.3"
   dependencies:
+    "@ipld/dag-pb": ^2.1.3
     interface-datastore: ^6.0.2
+    ipfs-unixfs: ^6.0.3
     multiaddr: ^10.0.0
     multiformats: ^9.5.1
-  checksum: bc8fc18c79cf57da7d5146b94e88296c7b2c11be2efd6985edcf1e3307ca24b26b4b1b77bd4a79c9a798a88f6d113708535bb9df9aa94f1c6316ad61471fed98
+  checksum: 2a36b0ac72b98011aed333b57253d87fd5888e9e102fa3dd8f9e2dcf1b5e8c8f5582fbe3957ec24a445cec207943ea4ce4cc839770a794b273fd8b66a7a0de9d
   languageName: node
   linkType: hard
 
-"ipfs-core-utils@npm:^0.14.1":
-  version: 0.14.1
-  resolution: "ipfs-core-utils@npm:0.14.1"
+"ipfs-core-utils@npm:^0.14.3":
+  version: 0.14.3
+  resolution: "ipfs-core-utils@npm:0.14.3"
   dependencies:
     any-signal: ^3.0.0
     blob-to-it: ^1.0.1
     browser-readablestream-to-it: ^1.0.1
     debug: ^4.1.1
     err-code: ^3.0.1
-    ipfs-core-types: ^0.10.1
+    ipfs-core-types: ^0.10.3
     ipfs-unixfs: ^6.0.3
-    ipfs-utils: ^9.0.2
+    ipfs-utils: ^9.0.6
     it-all: ^1.0.4
     it-map: ^1.0.4
     it-peekable: ^1.0.2
@@ -13765,13 +13776,13 @@ fsevents@~2.3.2:
     parse-duration: ^1.0.0
     timeout-abort-controller: ^3.0.0
     uint8arrays: ^3.0.0
-  checksum: ff2430a341bdd4e4e44e1dccad08bec9ef334ca41fe8888a218c49abe467b7d7c91ad4e9f167b23e0ef000df2e1cc4ffa1952ea84ce1bc1c7c132f3e689ca526
+  checksum: ed1bceef0677e050a06db3cc0fdd659ffaac256d89fedfa01633747675c1519ba01985d5adf5db40d7d82631028c363564a2c53678b9a665c54c75d287065d08
   languageName: node
   linkType: hard
 
-"ipfs-http-client@npm:^56.0.1":
-  version: 56.0.1
-  resolution: "ipfs-http-client@npm:56.0.1"
+"ipfs-http-client@npm:56":
+  version: 56.0.3
+  resolution: "ipfs-http-client@npm:56.0.3"
   dependencies:
     "@ipld/dag-cbor": ^7.0.0
     "@ipld/dag-json": ^8.0.1
@@ -13780,9 +13791,9 @@ fsevents@~2.3.2:
     dag-jose: ^1.0.0
     debug: ^4.1.1
     err-code: ^3.0.1
-    ipfs-core-types: ^0.10.1
-    ipfs-core-utils: ^0.14.1
-    ipfs-utils: ^9.0.2
+    ipfs-core-types: ^0.10.3
+    ipfs-core-utils: ^0.14.3
+    ipfs-utils: ^9.0.6
     it-first: ^1.0.6
     it-last: ^1.0.4
     merge-options: ^3.0.4
@@ -13791,7 +13802,7 @@ fsevents@~2.3.2:
     parse-duration: ^1.0.0
     stream-to-it: ^0.2.2
     uint8arrays: ^3.0.0
-  checksum: 4c4c6e1674f60ccaa44a90160a60f5f73c0eceef5ac27bad1e862ac2380de385a225e1a64d7582fa46fd77c04850e5001fbf4ffe8dca93487a2f4f3f80c7e0e8
+  checksum: d45fe955b368655ff37bbaeaa72eb968399cffb6ac1ae44bd7898d834259fbe8b2394b73626d2338cd753b57b4f99ebaa8e7dfbead887c73f36c0070185cd9d6
   languageName: node
   linkType: hard
 
@@ -13805,25 +13816,27 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"ipfs-utils@npm:^9.0.2":
-  version: 9.0.5
-  resolution: "ipfs-utils@npm:9.0.5"
+"ipfs-utils@npm:^9.0.6":
+  version: 9.0.14
+  resolution: "ipfs-utils@npm:9.0.14"
   dependencies:
     any-signal: ^3.0.0
+    browser-readablestream-to-it: ^1.0.0
     buffer: ^6.0.1
     electron-fetch: ^1.7.2
     err-code: ^3.0.1
     is-electron: ^2.2.0
     iso-url: ^1.1.5
+    it-all: ^1.0.4
     it-glob: ^1.0.1
     it-to-stream: ^1.0.0
     merge-options: ^3.0.4
     nanoid: ^3.1.20
     native-fetch: ^3.0.0
-    node-fetch: "https://registry.npmjs.org/@achingbrain/node-fetch/-/node-fetch-2.6.7.tgz"
-    react-native-fetch-api: ^2.0.0
+    node-fetch: ^2.6.8
+    react-native-fetch-api: ^3.0.0
     stream-to-it: ^0.2.2
-  checksum: ccefa7b873767dc3038af8054210e86830711c75cb2dd314e269363c60fbf52749585182366f2f8da6cb921bd9ccbff60a031e93f053e0f10928e208da63577f
+  checksum: 08108e03ea7b90e0fa11b76a4e24bd29d7e027c603494b53c1cc37b367fb559eaeea7b0f10b2e83ee419d50cdcb4d8105febdf185cab75c7e55afd4c8ed51aba
   languageName: node
   linkType: hard
 
@@ -16734,7 +16747,14 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"multiformats@npm:^9.0.2, multiformats@npm:^9.4.2, multiformats@npm:^9.4.5, multiformats@npm:^9.5.1, multiformats@npm:^9.5.4":
+"multiformats@npm:^9.0.2, multiformats@npm:^9.5.1":
+  version: 9.9.0
+  resolution: "multiformats@npm:9.9.0"
+  checksum: d3e8c1be400c09a014f557ea02251a2710dbc9fca5aa32cc702ff29f636c5471e17979f30bdcb0a9cbb556f162a8591dc2e1219c24fc21394a56115b820bb84e
+  languageName: node
+  linkType: hard
+
+"multiformats@npm:^9.4.2, multiformats@npm:^9.4.5, multiformats@npm:^9.5.4":
   version: 9.6.4
   resolution: "multiformats@npm:9.6.4"
   checksum: b3b8e481112379d6f3aace199a06e6974dfe3ed4e2100a0effe19fef936ba31704382356df6278a3922b5cb47fcfefe3e5bc54e5bebef35272e3503bad3c62ba
@@ -16923,7 +16943,14 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"node-fetch@https://registry.npmjs.org/@achingbrain/node-fetch/-/node-fetch-2.6.7.tgz, node-fetch@npm:^2.6.1":
+"node-fetch@npm:2.6.1":
+  version: 2.6.1
+  resolution: "node-fetch@npm:2.6.1"
+  checksum: 91075bedd57879117e310fbcc36983ad5d699e522edb1ebcdc4ee5294c982843982652925c3532729fdc86b2d64a8a827797a745f332040d91823c8752ee4d7c
+  languageName: node
+  linkType: hard
+
+"node-fetch@npm:^2.6.1":
   version: 2.6.7
   resolution: "node-fetch@npm:2.6.7"
   dependencies:
@@ -16937,10 +16964,17 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:2.6.1":
-  version: 2.6.1
-  resolution: "node-fetch@npm:2.6.1"
-  checksum: 91075bedd57879117e310fbcc36983ad5d699e522edb1ebcdc4ee5294c982843982652925c3532729fdc86b2d64a8a827797a745f332040d91823c8752ee4d7c
+"node-fetch@npm:^2.6.8":
+  version: 2.7.0
+  resolution: "node-fetch@npm:2.7.0"
+  dependencies:
+    whatwg-url: ^5.0.0
+  peerDependencies:
+    encoding: ^0.1.0
+  peerDependenciesMeta:
+    encoding:
+      optional: true
+  checksum: d76d2f5edb451a3f05b15115ec89fc6be39de37c6089f1b6368df03b91e1633fd379a7e01b7ab05089a25034b2023d959b47e59759cb38d88341b2459e89d6e5
   languageName: node
   linkType: hard
 
@@ -19167,12 +19201,12 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"react-native-fetch-api@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "react-native-fetch-api@npm:2.0.0"
+"react-native-fetch-api@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "react-native-fetch-api@npm:3.0.0"
   dependencies:
     p-defer: ^3.0.0
-  checksum: 1696e365db9fb10949f3e60d9fac7f2087fb4a0c51eedd168b6393c8c1198b507b408c56e52f470d2e7cf2c1831e1189bc8d7fed4c1574ef98ffdc3bf0ec746f
+  checksum: f10f435060551c470711ba0b3663e3d49c7701aae84ea645d66992d756b13e923fb5762b324d3583d85c1c0def4138b9cc3f686bab1c1bc10d3ad82dc7175c99
   languageName: node
   linkType: hard
 

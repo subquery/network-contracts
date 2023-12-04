@@ -19,6 +19,7 @@
         "upgrade": "ts-node --transpileOnly scripts/upgrade.ts",
         "setup": "ts-node --transpileOnly scripts/startup.ts",
         "verify": "ts-node --transpileOnly scripts/verify.ts",
+        "seed": "node -r ts-node/register/transpile-only scripts/seed.ts",
         "kepler-e2e-test": "node -r ts-node/register/transpile-only test/e2e/kepler.e2e.ts"
     },
     "devDependencies": {
@@ -59,7 +60,7 @@
         "hardhat-contract-sizer": "^2.10.0",
         "hardhat-gas-reporter": "^1.0.9",
         "husky": "^7.0.4",
-        "ipfs-http-client": "^56.0.1",
+        "ipfs-http-client": "56",
         "lint-staged": "^12.3.5",
         "mocha": "^7.2.0",
         "module-alias": "^2.2.2",

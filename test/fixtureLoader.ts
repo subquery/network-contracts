@@ -7,7 +7,10 @@ import assert from 'assert';
 import { constants, utils } from 'ethers';
 import { IPFSHTTPClient } from 'ipfs-http-client';
 import { ContractSDK } from '../src';
-import { cidToBytes32 } from './helper';
+
+function cidToBytes32(cid: string): string {
+    return '0x' + Buffer.from(utils.base58.decode(cid)).slice(2).toString('hex');
+}
 
 export interface AccountInput {
     name: string;
@@ -37,8 +40,10 @@ export interface IndexerControllerInput {
 export interface ProjectInput {
     account: string;
     metadata: object;
+    projectType: number;
     deployments: {
         deploymentId: string;
+        deployment: string;
         version: object;
     }[];
 }
@@ -108,31 +113,36 @@ export const loaders = {
             console.log(`Indexer Complete for account ${account}`);
         }
     },
-    Project: async function ({ account, deployments, metadata }: ProjectInput, { accounts, ipfs, sdk }: Context) {
+    Project: async function ({ account, deployments, metadata, projectType }: ProjectInput, { accounts, ipfs, sdk, rootAccount }: Context) {
         console.log(`Project Start for ${metadata['name']}`);
-        const author = accounts[account];
+        const author = account ? accounts[account] : rootAccount;
         assert(author, `can't find account ${account}`);
         const { cid: metadataCid } = await ipfs.add(JSON.stringify(metadata), { pin: true });
         const [firstDeploy, ...restDeploy] = deployments;
         const { cid: deploymentMetadata } = await ipfs.add(JSON.stringify(firstDeploy.version), { pin: true });
+        let deploymentId = firstDeploy.deploymentId;
+        if (!deploymentId) {
+            const { cid: deploymentCid } = await ipfs.add(firstDeploy.deployment, { pin: true });
+            deploymentId = deploymentCid.toString();
+        }
         const tx = await sdk.projectRegistry
             .connect(author)
             .createProject(
-                cidToBytes32(metadataCid.toString()),
+                metadataCid.toString(),
                 cidToBytes32(deploymentMetadata.toString()),
-                cidToBytes32(firstDeploy.deploymentId),
-                0,
+                cidToBytes32(deploymentId),
+                projectType,
             );
         const receipt = await tx.wait();
         const evt = receipt.events.find(
-            (log) => log.topics[0] === utils.id('CreateQuery(uint256,address,bytes32,bytes32,bytes32)')
+            (log) => log.topics[0] === utils.id('ProjectCreated(address,uint256,string,uint8,bytes32,bytes32)')
         );
         const { queryId } = evt.args;
         for (const { deploymentId, version } of restDeploy) {
             const { cid } = await ipfs.add(JSON.stringify(version), { pin: true });
             await sdk.projectRegistry
                 .connect(author)
-                .updateDeployment(queryId, cidToBytes32(deploymentId), cidToBytes32(cid.toString()));
+                .addOrUpdateDeployment(queryId, cidToBytes32(deploymentId), cidToBytes32(cid.toString()), true);
         }
         console.log(`Project Complete for ${metadata['name']} queryId: ${queryId.toString()}`);
     },
