@@ -22,8 +22,8 @@ let provider: Provider;
 
 async function getOverrides(): Promise<Overrides> {
     const price = await provider.getGasPrice();
-    const gasPrice = price.add(20000000000); // add extra 15 gwei
-    return { gasPrice };
+    // const gasPrice = price.add(20000000000); // add extra 15 gwei
+    return { gasPrice: price };
 }
 
 async function sendTx(transaction: (overrides: Overrides) => Promise<ContractTransaction>): Promise<ContractReceipt> {
@@ -228,7 +228,8 @@ async function allocateTokenToIndexers(sdk: ContractSDK) {
     const { indexers } = startupConfig;
     const amount = utils.parseEther('1000000');
     for (const indexer of indexers) {
-        await sdk.sqToken.transfer(indexer, amount);
+        const tx = await sdk.sqToken.transfer(indexer, amount);
+        await tx.wait();
         logger.info(`Transfer 1_000_000 sqt to ${indexer}`);
     }
 }
@@ -287,29 +288,13 @@ async function setupVesting(sdk: ContractSDK) {
 }
 
 const main = async () => {
-    const { wallet } = await setup(process.argv);
-    const networkType = process.argv[2];
+    const { wallet, name } = await setup();
     provider = wallet.provider;
 
-    let network: SubqueryNetwork;
-    switch (networkType) {
-        case '--mainnet':
-            network = 'mainnet';
-            break;
-        case '--kepler':
-            network = 'kepler';
-            break;
-        case '--testnet':
-            network = 'testnet';
-            break;
-        default:
-            throw new Error(`Please provide correct network ${networkType}`);
-    }
+    const sdk = ContractSDK.create(wallet, { network: name });
 
-    const sdk = ContractSDK.create(wallet, { network });
-
-    switch (networkType) {
-        case '--mainnet':
+    switch (name) {
+        case 'mainnet':
             startupConfig = startupMainnetConfig;
             confirms = 20;
             await createProjects(sdk);
@@ -317,7 +302,7 @@ const main = async () => {
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
-        case '--kepler':
+        case 'kepler':
             confirms = 20;
             startupConfig = startupKeplerConfig;
             // await airdrop(sdk);
@@ -326,7 +311,7 @@ const main = async () => {
             // await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
-        case '--testnet':
+        case 'testnet':
             confirms = 1;
             startupConfig = startupTestnetConfig;
             // await allocateTokenToIndexers(sdk);
@@ -336,8 +321,18 @@ const main = async () => {
             // await airdrop(sdk);
             // await setupPermissionExchange(sdk, wallet);
             break;
+        case 'base-goerli':
+            confirms = 1;
+            startupConfig = startupTestnetConfig;
+            await allocateTokenToIndexers(sdk);
+            await createProjects(sdk);
+            await createPlanTemplates(sdk);
+            // await setupVesting(sdk);
+            // await airdrop(sdk);
+            // await setupPermissionExchange(sdk, wallet);
+            break;
         default:
-            throw new Error(`Please provide correct network ${networkType}`);
+            throw new Error(`Please provide correct network ${name}`);
     }
 
     logger = getLogger('Contract Setup');

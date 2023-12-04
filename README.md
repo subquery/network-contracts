@@ -154,9 +154,7 @@ node --inspect-brk -r ts-node/register -r tsconfig-paths/register scripts/...
 ### revert code
 You can find all revert code details at `./public/revertcode.json`
 
-### Seeding Test data on Testnet
+### Bridge Token Between L1 & L2
 ```
-yarn seed test/fixtures/xxx.yaml
-# to debug
-node --inspect-brk -r ts-node/register -r tsconfig-paths/register -r dotenv/config scripts/seed.ts test/fixtures/xxx.yaml
+https://wiki.polygon.technology/docs/pos/design/bridge/ethereum-polygon/getting-started/
 ```
