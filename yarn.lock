@@ -2753,6 +2753,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@maticnetwork/pos-portal@npm:^1.5.2":
+  version: 1.5.2
+  resolution: "@maticnetwork/pos-portal@npm:1.5.2"
+  dependencies:
+    ganache-cli: ^6.9.1
+  checksum: fbb3d00f729bdf52311fa9e3a58b52b3916fcb93ef33a29ba90f2a6f4f37d105650a8ecff76d1bcd83b7344f4a3b923dac751a7241a604800391931c49678f52
+  languageName: node
+  linkType: hard
+
 "@metamask/eth-sig-util@npm:^4.0.0":
   version: 4.0.0
   resolution: "@metamask/eth-sig-util@npm:4.0.0"
@@ -3657,6 +3666,7 @@ __metadata:
     "@ethersproject/providers": ~5.5.3
     "@ethersproject/transactions": ~5.5.0
     "@ethersproject/wallet": ~5.5.0
+    "@maticnetwork/pos-portal": ^1.5.2
     "@nomiclabs/hardhat-ethers": ^2.0.5
     "@nomiclabs/hardhat-etherscan": ^3.1.7
     "@nomiclabs/hardhat-waffle": ^2.0.3
@@ -12153,7 +12163,7 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"ganache-cli@npm:^6.1.0":
+"ganache-cli@npm:^6.1.0, ganache-cli@npm:^6.9.1":
   version: 6.12.2
   resolution: "ganache-cli@npm:6.12.2"
   dependencies:

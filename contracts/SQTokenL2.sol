@@ -1,39 +1,75 @@
-// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
-// SPDX-License-Identifier: GPL-3.0-or-later
+// // Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// // SPDX-License-Identifier: GPL-3.0-or-later
 
-pragma solidity 0.8.15;
+// pragma solidity 0.8.15;
 
-import { L2StandardERC20 } from "@eth-optimism/contracts/standards/L2StandardERC20.sol";
-import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import '@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
+// import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+// import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+// import '@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol';
+// import '@openzeppelin/contracts/access/Ownable.sol';
 
-contract SQToken is L2StandardERC20, Ownable, ERC20Burnable {
-    using SafeERC20 for IERC20;
-    address public minter;
+// TODO: fix the polygon imports
+// import '@maticnetwork/pos-portal/contracts/child/ChildToken/IChildToken.sol';
+// import '@maticnetwork/pos-portal/contracts/common/ContextMixin.sol';
+// import '@maticnetwork/pos-portal/contracts/common/AccessControlMixin.sol';
+// import '@maticnetwork/pos-portal/contracts/common/NativeMetaTransaction.sol';
 
-    modifier isMinter() {
-        require(minter == msg.sender, 'Not minter');
-        _;
-    }
+// contract SQTokenL2 is
+//     ERC20,
+//     IChildToken,
+//     AccessControlMixin,
+//     NativeMetaTransaction,
+//     ContextMixin
+// {
+//     bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
 
-    constructor(address _minter, uint256 totalSupply) ERC20('SubQueryToken', 'SQT') Ownable() {
-        minter = _minter;
-        _mint(msg.sender, totalSupply);
-    }
+//     constructor(
+//         string memory name_,
+//         string memory symbol_,
+//         uint8 decimals_,
+//         address childChainManager
+//     ) public ERC20(name_, symbol_) {
+//         _setupContractId("ChildERC20");
+//         _setupDecimals(decimals_);
+//         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+//         _setupRole(DEPOSITOR_ROLE, childChainManager);
+//         _initializeEIP712(name_);
+//     }
 
-    function mint(address destination, uint256 amount) external isMinter {
-        _mint(destination, amount);
-    }
+//     // This is to support Native meta transactions
+//     // never use msg.sender directly, use _msgSender() instead
+//     function _msgSender()
+//         internal
+//         override
+//         view
+//         returns (address payable sender)
+//     {
+//         return ContextMixin.msgSender();
+//     }
 
-    /// #if_succeeds {:msg "minter should be set"} minter == _minter;
-    /// #if_succeeds {:msg "owner functionality"} old(msg.sender == address(owner));
-    function setMinter(address _minter) external onlyOwner {
-        minter = _minter;
-    }
+//     /**
+//      * @notice called when token is deposited on root chain
+//      * @dev Should be callable only by ChildChainManager
+//      * Should handle deposit by minting the required amount for user
+//      * Make sure minting is done only by this function
+//      * @param user user address for whom deposit is being done
+//      * @param depositData abi encoded amount
+//      */
+//     function deposit(address user, bytes calldata depositData)
+//         external
+//         override
+//         only(DEPOSITOR_ROLE)
+//     {
+//         uint256 amount = abi.decode(depositData, (uint256));
+//         _mint(user, amount);
+//     }
 
-    function getMinter() external view returns (address) {
-        return minter;
-    }
-}
+//     /**
+//      * @notice called when user wants to withdraw tokens back to root chain
+//      * @dev Should burn user's tokens. This transaction will be verified when exiting on root chain
+//      * @param amount amount of tokens to withdraw
+//      */
+//     function withdraw(uint256 amount) external {
+//         _burn(_msgSender(), amount);
+//     }
+// }

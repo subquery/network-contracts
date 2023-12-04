@@ -23,6 +23,7 @@
         "kepler-e2e-test": "node -r ts-node/register/transpile-only test/e2e/kepler.e2e.ts"
     },
     "devDependencies": {
+        "@eth-optimism/contracts": "^0.6.0",
         "@ethersproject/abstract-provider": "~5.5.1",
         "@ethersproject/address": "~5.5.0",
         "@ethersproject/bignumber": "~5.5.0",
@@ -34,6 +35,7 @@
         "@ethersproject/providers": "~5.5.3",
         "@ethersproject/transactions": "~5.5.0",
         "@ethersproject/wallet": "~5.5.0",
+        "@maticnetwork/pos-portal": "^1.5.2",
         "@nomiclabs/hardhat-ethers": "^2.0.5",
         "@nomiclabs/hardhat-etherscan": "^3.1.7",
         "@nomiclabs/hardhat-waffle": "^2.0.3",
@@ -85,8 +87,5 @@
             "prettier --write"
         ]
     },
-    "packageManager": "yarn@3.6.4",
-    "dependencies": {
-        "@eth-optimism/contracts": "^0.6.0"
-    }
+    "packageManager": "yarn@3.6.4"
 }
