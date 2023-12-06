@@ -23,6 +23,8 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
     struct ExchangeOrder {
         address tokenGive;
         address tokenGet;
+        uint256 amountGive;
+        uint256 amountGet;
         address sender;
         uint256 tokenGiveBalance;
     }
@@ -43,7 +45,9 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
         address sender,
         address tokenGive,
         address tokenGet,
-        uint256 amountGive
+        uint256 amountGive,
+        uint256 amountGet,
+        uint256 tokenGiveBalance
     );
     /// @notice Emitted when expired exchange order settled.
     event OrderSettled(
@@ -53,7 +57,7 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
         uint256 amountGive
     );
     /// @notice Emitted when trader trade on exist orders.
-    event Trade(uint256 indexed orderId, address tokenGive, address tokenGet, uint256 amount);
+    event Trade(uint256 indexed orderId, address tokenGive, address tokenGet, uint256 amountGive, uint256 amountGet);
 
     function initialize(address _tokenGet, address _tokenGive) external initializer {
         __Ownable_init();
@@ -72,19 +76,34 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
     function sendOrder(
         address _tokenGive,
         address _tokenGet,
+        uint256 _amountGive,
+        uint256 _amountGet,
         uint256 _tokenGiveBalance
     ) public onlyOwner {
         require(_tokenGiveBalance > 0, 'TE001');
         require(tokenGet == tokenGet, 'TE002');
         require(tokenGive == tokenGive, 'TE003');
+        
         IERC20(_tokenGive).safeTransferFrom(msg.sender, address(this), _tokenGiveBalance);
         orders[nextOrderId] = ExchangeOrder(
             _tokenGive,
             _tokenGet,
+            _amountGive,
+            _amountGet,
             msg.sender,
             _tokenGiveBalance
         );
-        emit ExchangeOrderSent(nextOrderId, msg.sender, _tokenGive, _tokenGet, _tokenGiveBalance);
+
+        emit ExchangeOrderSent(
+            nextOrderId,
+            msg.sender,
+            _tokenGive,
+            _tokenGet,
+            _amountGive,
+            _amountGet,
+            _tokenGiveBalance
+        );
+    
         nextOrderId += 1;
     }
 
@@ -116,11 +135,12 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
     function trade(uint256 orderId, uint256 amount) public {
         ExchangeOrder storage order = orders[orderId];
         IERC20(order.tokenGet).safeTransferFrom(msg.sender, address(this), amount);
-        IERC20(order.tokenGive).safeTransferFrom(address(this), msg.sender, amount);
         ISQToken(order.tokenGet).burn(amount);
 
-        order.tokenGiveBalance = order.tokenGiveBalance - amount;
+        uint256 amountGive = (amount * order.amountGive) / order.amountGet;
+        IERC20(order.tokenGive).safeTransferFrom(address(this), msg.sender, amountGive);
+        order.tokenGiveBalance = order.tokenGiveBalance - amountGive;
 
-        emit Trade(orderId, order.tokenGet, order.tokenGive, amount);
+        emit Trade(orderId, order.tokenGive, order.tokenGet, amountGive, amount);
     }
 }
