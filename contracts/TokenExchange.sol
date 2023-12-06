@@ -74,7 +74,9 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
         address _tokenGet,
         uint256 _tokenGiveBalance
     ) public onlyOwner {
-        require(_tokenGiveBalance > 0, 'Token give balance must be greater than 0');
+        require(_tokenGiveBalance > 0, 'TE001');
+        require(tokenGet == tokenGet, 'TE002');
+        require(tokenGive == tokenGive, 'TE003');
         IERC20(_tokenGive).safeTransferFrom(msg.sender, address(this), _tokenGiveBalance);
         orders[nextOrderId] = ExchangeOrder(
             _tokenGive,
@@ -113,9 +115,6 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
      */
     function trade(uint256 orderId, uint256 amount) public {
         ExchangeOrder storage order = orders[orderId];
-        require(order.tokenGet == tokenGet, 'Toekn get must be kSQToken');
-        require(order.tokenGive == tokenGive, 'Toekn give must be SQToken');
-
         IERC20(order.tokenGet).safeTransferFrom(msg.sender, address(this), amount);
         IERC20(order.tokenGive).safeTransferFrom(address(this), msg.sender, amount);
         ISQToken(order.tokenGet).burn(amount);
