@@ -134,8 +134,7 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
      */
     function trade(uint256 orderId, uint256 amount) public {
         ExchangeOrder storage order = orders[orderId];
-        IERC20(order.tokenGet).safeTransferFrom(msg.sender, address(this), amount);
-        ISQToken(order.tokenGet).burn(amount);
+        ISQToken(order.tokenGet).burnFrom(msg.sender ,amount);
 
         uint256 amountGive = (amount * order.amountGive) / order.amountGet;
         IERC20(order.tokenGive).safeTransferFrom(address(this), msg.sender, amountGive);
