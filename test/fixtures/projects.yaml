@@ -4,6 +4,7 @@
   derive: /1
 - kind: Project
   account: consumer1
+  projectType: 0
   metadata:
     name: Staking Threshold - Polkadot
     description: Tracking the miminum staking requirements for being validator in polkadot
@@ -16,6 +17,7 @@
         description: init
 - kind: Project
   account: consumer1
+  projectType: 0
   metadata:
     name: Staking Threshold - Kusama
     description: Tracking the miminum staking requirements for being validator in Kusama

@@ -156,9 +156,7 @@ You can find all revert code details at `./public/revertcode.json`
 
 ### Bridge Token Between L1 & L2
 ```
-https://community.optimism.io/docs/developers/bridge/standard-bridge/#
-https://github.com/ethereum-optimism/optimism-tutorial/tree/main/standard-bridge-custom-token
-https://docs.base.org/base-contracts
+https://wiki.polygon.technology/docs/pos/design/bridge/ethereum-polygon/getting-started/
 ```
 
 ### TODOs
