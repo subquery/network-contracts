@@ -29,9 +29,6 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
         uint256 tokenGiveBalance;
     }
 
-    address public tokenGet;
-    address public tokenGive;
-
     /// @dev ### STATES
     /// @notice The next order Id
     uint256 public nextOrderId;
@@ -59,12 +56,10 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
     /// @notice Emitted when trader trade on exist orders.
     event Trade(uint256 indexed orderId, address tokenGive, address tokenGet, uint256 amountGive, uint256 amountGet);
 
-    function initialize(address _tokenGet, address _tokenGive) external initializer {
+    function initialize() external initializer {
         __Ownable_init();
 
         nextOrderId = 1;
-        tokenGet = _tokenGet;
-        tokenGive = _tokenGive;
     }
 
     /**
@@ -81,8 +76,6 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
         uint256 _tokenGiveBalance
     ) public onlyOwner {
         require(_tokenGiveBalance > 0, 'TE001');
-        require(tokenGet == tokenGet, 'TE002');
-        require(tokenGive == tokenGive, 'TE003');
         
         IERC20(_tokenGive).safeTransferFrom(msg.sender, address(this), _tokenGiveBalance);
         orders[nextOrderId] = ExchangeOrder(
