@@ -40,6 +40,7 @@ import {
     RewardsPool__factory,
     RewardsStaking,
     RewardsStaking__factory,
+    IERC20,
     SQToken,
     SQToken__factory,
     ServiceAgreementRegistry,
@@ -58,7 +59,11 @@ import {
     VSQToken__factory,
     Vesting,
     Vesting__factory,
+    EventSyncRootTunnel,
+    EventSyncRootTunnel__factory,
 } from '../src';
+import ChildERC20 from "../artifacts/contracts/polygon/ChildERC20.sol/ChildERC20.json";
+import {ChildERC20__factory} from "../build";
 
 export interface FactoryContstructor {
     new(wallet: Wallet): ContractFactory;
@@ -70,7 +75,7 @@ export type Contracts = {
     proxyAdmin: ProxyAdmin;
     settings: Settings;
     inflationController: InflationController;
-    token: SQToken;
+    token: IERC20;
     vtoken: VSQToken;
     staking: Staking;
     stakingManager: StakingManager;
@@ -93,6 +98,7 @@ export type Contracts = {
     disputeManager: DisputeManager;
     consumerRegistry: ConsumerRegistry;
     priceOracle: PriceOracle;
+    eventSyncRootTunnel: EventSyncRootTunnel;
 };
 
 export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ bytecode: string }, FactoryContstructor]>> =
@@ -147,7 +153,9 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     DisputeManager: DisputeManager__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
     PriceOracle: PriceOracle__factory,
+    EventSyncRootTunnel: EventSyncRootTunnel__factory,
+    ChildERC20: ChildERC20__factory,
 };
 
-export type Config = number | string | BigNumber | string[];
-export type ContractConfig = Record<ContractName, Config[]>;
+export type Config = number | string | string[];
+export type ContractConfig = Record<Partial<ContractName>, Config[]>;

@@ -153,7 +153,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         require(channels[channelId].status == ChannelStatus.Finalized, 'SC001');
 
         // check indexer registered
-        IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getIndexerRegistry());
+        IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry));
         require(indexerRegistry.isIndexer(indexer), 'G002');
 
         // check sign
@@ -173,7 +173,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         _checkSign(payload, indexerSign, indexer, true);
 
         // transfer the balance to contract
-        IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(consumer, address(this), amount);
 
         // initial the channel
         ChannelState storage state = channels[channelId];
@@ -253,7 +253,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         }
 
         // transfer the balance to contract
-        IERC20(settings.getSQToken()).safeTransferFrom(consumer, address(this), amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(consumer, address(this), amount);
         channels[channelId].total += amount;
         emit ChannelFund(channelId, channels[channelId].total);
     }
@@ -406,7 +406,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             }
 
             // check indexer registered
-            address controller = IIndexerRegistry(settings.getIndexerRegistry()).getController(checkSigner);
+            address controller = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).getController(checkSigner);
             require(signer == controller, 'SC009');
         } else {
             if (signer == checkSigner) {
@@ -414,7 +414,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             }
 
             //check consumer registered
-            bool isController = IConsumerRegistry(settings.getConsumerRegistry()).isController(checkSigner, signer);
+            bool isController = IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(checkSigner, signer);
             require(isController, 'SC011');
         }
     }
@@ -435,8 +435,8 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         if (amount > 0) {
             address indexer = channels[query.channelId].indexer;
             bytes32 deploymentId = channels[query.channelId].deploymentId;
-            address rewardPoolAddress = settings.getRewardsPool();
-            IERC20(settings.getSQToken()).approve(rewardPoolAddress, amount);
+            address rewardPoolAddress = settings.getContractAddress(SQContracts.RewardsPool);
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(rewardPoolAddress, amount);
             IRewardsPool rewardsPool = IRewardsPool(rewardPoolAddress);
             rewardsPool.labor(deploymentId, indexer, amount);
             emit ChannelLabor(deploymentId, indexer, amount);
@@ -461,7 +461,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         uint256 remain = total - channels[channelId].spent;
 
         if (remain > 0) {
-            IERC20(settings.getSQToken()).safeTransfer(consumer, remain);
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(consumer, remain);
         }
 
         if (_isContract(consumer)) {

@@ -4,7 +4,7 @@
 pragma solidity ^0.8.15;
 
 import '../contracts/Airdropper.sol';
-import '../contracts/SQToken.sol';
+import "../contracts/root/SQToken.sol";
 
 contract AirdropperEchidnaTest {
     Airdropper internal airdropper;

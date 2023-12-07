@@ -6,7 +6,7 @@ pragma solidity ^0.8.15;
 import '../contracts/PermissionedExchange.sol';
 import '../contracts/Settings.sol';
 import '../contracts/interfaces/ISettings.sol';
-import '../contracts/SQToken.sol';
+import "../contracts/root/SQToken.sol";
 
 contract PermissionedExchangeEchidnaTest {
     PermissionedExchange internal pExchange;

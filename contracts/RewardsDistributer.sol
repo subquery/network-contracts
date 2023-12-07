@@ -90,7 +90,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     event RewardsChanged(address indexed indexer, uint256 indexed eraIdx, uint256 additions, uint256 removals);
 
     modifier onlyRewardsStaking() {
-        require(msg.sender == settings.getRewardsStaking(), 'G014');
+        require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'G014');
         _;
     }
 
@@ -152,10 +152,10 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * @param agreementId agreement Id
      */
     function increaseAgreementRewards(uint256 agreementId) external {
-        require(settings.getServiceAgreementRegistry() == msg.sender, 'G015');
-        ClosedServiceAgreementInfo memory agreement = IServiceAgreementRegistry(settings.getServiceAgreementRegistry()).getClosedServiceAgreement(agreementId);
+        require(settings.getContractAddress(SQContracts.ServiceAgreementRegistry) == msg.sender, 'G015');
+        ClosedServiceAgreementInfo memory agreement = IServiceAgreementRegistry(settings.getContractAddress(SQContracts.ServiceAgreementRegistry)).getClosedServiceAgreement(agreementId);
         require(agreement.consumer != address(0), 'SA001');
-        IEraManager eraManager = IEraManager(settings.getEraManager());
+        IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
 
         address indexer = agreement.indexer;
         uint256 agreementPeriod = agreement.period;
@@ -164,7 +164,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         uint256 agreementStartEra = eraManager.timestampToEraNumber(agreementStartDate);
         uint256 eraPeriod = eraManager.eraPeriod();
 
-        IERC20(settings.getSQToken()).safeTransferFrom(msg.sender, address(this), agreementValue);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), agreementValue);
 
         uint256 estAgreementEnd = agreementStartDate + agreementPeriod;
         uint256 firstEraPortion = MathUtil.min(eraManager.eraStartTime() + (agreementStartEra - eraManager.eraNumber() + 1) * eraPeriod, estAgreementEnd) - agreementStartDate;
@@ -231,7 +231,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     function addInstantRewards(address indexer, address sender, uint256 amount, uint256 era) external {
         require(era <= _getCurrentEra(), 'RD001');
         require(era >= info[indexer].lastClaimEra, 'RD002');
-        IERC20(settings.getSQToken()).safeTransferFrom(sender, address(this), amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(sender, address(this), amount);
 
         RewardInfo storage rewardInfo = info[indexer];
         rewardInfo.eraRewardAddTable[era] += amount;
@@ -267,14 +267,14 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             return rewardInfo.lastClaimEra;
         }
 
-        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
+        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
         rewardsStaking.checkAndReflectSettlement(indexer, rewardInfo.lastClaimEra);
         require(rewardInfo.lastClaimEra <= rewardsStaking.getLastSettledEra(indexer), 'RD005');
 
         rewardInfo.lastClaimEra++;
 
         // claim rewards pool.
-        IRewardsPool rewardsPool = IRewardsPool(settings.getRewardsPool());
+        IRewardsPool rewardsPool = IRewardsPool(settings.getContractAddress(SQContracts.RewardsPool));
         rewardsPool.batchCollectEra(rewardInfo.lastClaimEra, indexer);
 
         rewardInfo.eraReward += rewardInfo.eraRewardAddTable[rewardInfo.lastClaimEra];
@@ -285,19 +285,20 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             uint256 totalStake = rewardsStaking.getTotalStakingAmount(indexer);
             require(totalStake > 0, 'RD006');
 
-            uint256 commissionRate = IIndexerRegistry(settings.getIndexerRegistry()).getCommissionRate(indexer);
+            uint256 commissionRate = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).getCommissionRate(indexer);
             uint256 commission = MathUtil.mulDiv(commissionRate, rewardInfo.eraReward, PER_MILL);
 
             info[indexer].accSQTPerStake += MathUtil.mulDiv(rewardInfo.eraReward - commission, PER_TRILL, totalStake);
 
             // add commission to unbonding request
-            IERC20(settings.getSQToken()).safeTransfer(settings.getStaking(), commission);
-            IStaking(settings.getStaking()).unbondCommission(indexer, commission);
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(settings.getContractAddress(SQContracts.Staking), commission);
+            IStaking(settings.getContractAddress(SQContracts.Staking)).unbondCommission(indexer, commission);
 
             emit DistributeRewards(indexer, rewardInfo.lastClaimEra, rewardInfo.eraReward, commission);
 
-            IPermissionedExchange exchange = IPermissionedExchange(settings.getPermissionedExchange());
-            exchange.addQuota(settings.getSQToken(), indexer, commission);
+            // remove for mainnet
+//            IPermissionedExchange exchange = IPermissionedExchange(settings.getContractAddress(SQContracts.PermissionedExchange));
+//            exchange.addQuota(settings.getContractAddress(SQContracts.SQToken), indexer, commission);
         }
         return rewardInfo.lastClaimEra;
     }
@@ -313,15 +314,15 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * @notice Claculate the Rewards for user and tranfrer token to user.
      */
     function claimFrom(address indexer, address user) public returns (uint256) {
-        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
+        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
         uint256 rewards = userRewards(indexer, user);
         if (rewards == 0) return 0;
         info[indexer].rewardDebt[user] += rewards;
 
-        IERC20(settings.getSQToken()).safeTransfer(user, rewards);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(user, rewards);
 
-        IPermissionedExchange exchange = IPermissionedExchange(settings.getPermissionedExchange());
-        exchange.addQuota(settings.getSQToken(), user, rewards);
+        IPermissionedExchange exchange = IPermissionedExchange(settings.getContractAddress(SQContracts.PermissionedExchange));
+        exchange.addQuota(settings.getContractAddress(SQContracts.SQToken), user, rewards);
 
         emit ClaimRewards(indexer, user, rewards);
         return rewards;
@@ -338,12 +339,12 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
      * @notice Get current Era number from EraManager.
      */
     function _getCurrentEra() private returns (uint256) {
-        IEraManager eraManager = IEraManager(settings.getEraManager());
+        IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
         return eraManager.safeUpdateAndGetEra();
     }
 
     function userRewards(address indexer, address user) public view returns (uint256) {
-        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
+        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
         uint256 delegationAmount = rewardsStaking.getDelegationAmount(user, indexer);
 
         return MathUtil.mulDiv(delegationAmount, info[indexer].accSQTPerStake, PER_TRILL) - info[indexer].rewardDebt[user];

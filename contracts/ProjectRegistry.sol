@@ -69,7 +69,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /// @dev MODIFIER
     /// @notice only indexer can call
     modifier onlyIndexer() {
-        require(IIndexerRegistry(settings.getIndexerRegistry()).isIndexer(msg.sender), 'G002');
+        require(IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).isIndexer(msg.sender), 'G002');
         _;
     }
 
@@ -226,7 +226,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
 
         require(currentStatus == ServiceStatus.READY, 'PR005');
         require(
-            !IServiceAgreementExtra(settings.getServiceAgreementExtra()).hasOngoingClosedServiceAgreement(
+            !IServiceAgreementExtra(settings.getContractAddress(SQContracts.ServiceAgreementExtra)).hasOngoingClosedServiceAgreement(
                 msg.sender,
                 deploymentId
             ),

@@ -2,7 +2,7 @@ import assert from 'assert';
 import { BigNumber, ContractReceipt, ContractTransaction, Wallet, ethers, utils } from 'ethers';
 import web3 from 'web3';
 import Token from '../../artifacts/contracts/SQToken.sol/SQToken.json';
-import deployment from '../../publish/testnet.json';
+import deployment from '../../publish/testnet_old.json';
 import setup from '../../scripts/setup';
 import { ContractSDK } from '../../src';
 import { VERSION, poi } from '../constants';

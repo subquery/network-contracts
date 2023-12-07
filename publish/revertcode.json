@@ -173,5 +173,7 @@
     "OR001": "invalid asset price",
     "OR002": "not meet the block number limitation",
     "OR003": "invalid price size change",
-    "OR004": "invalid owner"
+    "OR004": "invalid owner",
+    "SS001": "Can only be called by eraManager",
+    "ST001": "length of sq and addresses should be same"
 }

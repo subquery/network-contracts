@@ -36,6 +36,8 @@ export default {
         IndexerRegistry: [utils.parseEther("1000")],
         ConsumerHost: [1], // Fee Percentage, default is 1%
         DisputeManager: [utils.parseEther("10000")], // minimumDeposit
+        EventSyncRootTunnel: ['0x2890bA17EfE978480615e330ecB65333b880928e','0x3d1d3E34f7fB6D26245E6640E1c50710eFFf15bA'],
+        ChildERC20: ['SubQueryToken', 'SQT', 18, '0x2e5e27d50EFa501D90Ad3638ff8441a0C0C0d75e'],
     },
     local: {
         InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
@@ -48,5 +50,17 @@ export default {
         IndexerRegistry: [utils.parseEther("1000")],
         ConsumerHost: [1], // Fee Percentage, default is 1%
         DisputeManager: [utils.parseEther("10000")], // minimumDeposit
-    }
+    },
+    'base-goerli': {
+        InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
+        SQToken: [utils.parseEther("10000000000")], // initial supply 10 billion
+        Staking: [1000, 1e3], // lockPeriod, unbondFeeRate
+        Airdropper: ['0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // settle destination
+        EraManager: [3600], // 1 hour
+        ServiceAgreementExtra: [1e6], //threshold
+        PurchaseOfferMarket: [1e5, '0x0000000000000000000000000000000000000000'],
+        IndexerRegistry: [utils.parseEther("1000")],
+        ConsumerHost: [1], // Fee Percentage, default is 1%
+        DisputeManager: [utils.parseEther("10000")], // minimumDeposit
+    },
 }

@@ -8,12 +8,12 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
-import './interfaces/IInflationDestination.sol';
-import './interfaces/ISettings.sol';
-import './interfaces/ISQToken.sol';
-import './interfaces/IEraManager.sol';
-import './Constants.sol';
-import './utils/MathUtil.sol';
+import "./IInflationDestination.sol";
+import '../interfaces/ISettings.sol';
+import '../interfaces/ISQToken.sol';
+//import './interfaces/IEraManager.sol';
+import '../Constants.sol';
+import '../utils/MathUtil.sol';
 
 /**
  * @title InflationController contract
@@ -22,9 +22,10 @@ import './utils/MathUtil.sol';
 contract InflationController is Initializable, OwnableUpgradeable, Constants {
     using MathUtil for uint256;
 
-    /// @dev ### STATES
-    /// @notice ISettings contract which stores SubQuery network contracts address
+//    /// @dev ### STATES
+//    /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
+//    address public sqToken;
 
     /// @notice The one year inflation rate for SQT token
     uint256 public inflationRate;
@@ -41,12 +42,13 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
     /**
      * @dev ### FUNCTIONS
      * @notice Initialize the contract to setup parameters: inflationRate, inflationDestination, lastInflationTimestamp
-     * @param _settings ISettings contract
+     * @param _settings SQT token address
      * @param _inflationRate One year inflationRate for SQT token
      * @param _inflationDestination Address to receive the inflation SQT token
      */
     function initialize(
         ISettings _settings,
+//        address _sqtoken,
         uint256 _inflationRate,
         address _inflationDestination
     ) external initializer {
@@ -54,6 +56,7 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
         require(_inflationRate < PER_MILL, 'IC001');
 
         settings = _settings;
+//        sqToken = _sqtoken;
         inflationRate = _inflationRate;
         inflationDestination = _inflationDestination;
         lastInflationTimestamp = block.timestamp;
@@ -88,14 +91,15 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
      * @notice Can only called by eraManager when startNewEra, it will calculate and mint the inflation SQT token for last Era according to the inflation rate.
      */
     function mintInflatedTokens() external {
-        require(msg.sender == settings.getEraManager(), 'G012');
+//        require(msg.sender == settings.getContractAddress(SQContracts.EraManager), 'G012');
+        require(msg.sender == settings.getContractAddress(SQContracts.EventSyncRootTunnel), 'G012');
         uint256 passedTime = block.timestamp - lastInflationTimestamp;
         require(passedTime > 0, 'IC002');
 
         uint256 passedTimeRate = MathUtil.mulDiv(passedTime * inflationRate, PER_BILL / PER_MILL, YEAR_SECONDS);
         lastInflationTimestamp = block.timestamp;
 
-        address sqToken = settings.getSQToken();
+        address sqToken = settings.getContractAddress(SQContracts.SQToken);
         uint256 totalSupply = IERC20(sqToken).totalSupply();
         uint256 newSupply = (totalSupply * (PER_BILL + passedTimeRate)) / PER_BILL;
         uint256 claimAmount = newSupply - totalSupply;
@@ -111,6 +115,6 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
      * @param _amount amount SQT token to mint
      */
     function mintSQT(address _destination, uint256 _amount) external onlyOwner {
-        ISQToken(settings.getSQToken()).mint(_destination, _amount);
+        ISQToken(settings.getContractAddress(SQContracts.SQToken)).mint(_destination, _amount);
     }
 }

@@ -77,7 +77,7 @@ export class ContractSDK {
     }
 
     private async _init() {
-        const contracts = Object.entries(this._contractDeployments).map(([name, contract]) => ({
+        const contracts = Object.entries(this._contractDeployments.child).map(([name, contract]) => ({
             address: contract.address,
             factory: CONTRACT_FACTORY[name as ContractName] as FactoryContstructor,
             name: name as ContractName,

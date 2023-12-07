@@ -29,10 +29,15 @@ import {
     Staking__factory,
     StateChannel__factory,
     VSQToken__factory,
-    Vesting__factory
+    Vesting__factory, EventSyncRootTunnel__factory, ChildERC20__factory
 } from './typechain';
 
-export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'local';
+export type SubqueryNetwork = 'testnet' | 'mainnet'; //  'mainnet' | 'kepler' | 'testnet' | 'base-goerli' | 'goerli' | 'local';
+
+export type NetworkPair = {
+    root: Network;
+    child: Network;
+};
 
 export type Network = {
     chainId: string;
@@ -48,7 +53,7 @@ export type Network = {
 };
 
 export type DeploymentConfig = {
-    network: Network;
+    network: NetworkPair;
     contracts: {[contract: string]: any[]};
 };
 
@@ -58,9 +63,14 @@ export type ContractDeploymentDetail = {
     bytecodeHash: string;
     lastUpdate: string;
 };
-export type ContractDeployment = Record<keyof typeof CONTRACTS, ContractDeploymentDetail>;
 
-export type ContractName = keyof ContractDeployment;
+export type ContractName = keyof typeof CONTRACTS;
+
+export type ContractDeployment2 = Record<Partial<ContractName>, ContractDeploymentDetail>;
+export type ContractDeployment = {
+    root: ContractDeployment2;
+    child: ContractDeployment2;
+};
 
 export type SdkOptions = {
     network: SubqueryNetwork;
@@ -100,4 +110,31 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     DisputeManager: DisputeManager__factory,
     PriceOracle: PriceOracle__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
+    EventSyncRootTunnel: EventSyncRootTunnel__factory,
+    ChildERC20: ChildERC20__factory,
+};
+
+export enum SQContracts {
+    SQToken,
+    Staking,
+    StakingManager,
+    IndexerRegistry,
+    ProjectRegistry,
+    EraManager,
+    PlanManager,
+    ServiceAgreementRegistry,
+    ServiceAgreementExtra,
+    RewardsDistributer,
+    RewardsPool,
+    RewardsStaking,
+    RewardsHelper,
+    InflationController,
+    Vesting,
+    PermissionedExchange,
+    DisputeManager,
+    StateChannel,
+    ConsumerRegistry,
+    PriceOracle,
+    EventSyncChildTunnel,
+    EventSyncRootTunnel
 };
