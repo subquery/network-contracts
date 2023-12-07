@@ -10,7 +10,7 @@ import {
     ProjectRegistry,
     PurchaseOfferMarket,
     RewardsDistributer,
-    SQToken,
+    ERC20,
     ServiceAgreementRegistry,
     Staking,
 } from '../src';
@@ -26,7 +26,7 @@ describe('Purchase Offer Market Contract', () => {
     let indexerRegistry: IndexerRegistry;
     let projectRegistry: ProjectRegistry;
     let staking: Staking;
-    let token: SQToken;
+    let token: ERC20;
     let rewardsDistributor: RewardsDistributer;
     let planManager: PlanManager;
 

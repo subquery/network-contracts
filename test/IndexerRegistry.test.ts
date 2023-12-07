@@ -3,7 +3,7 @@
 
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { IndexerRegistry, ProjectRegistry, RewardsStaking, SQToken, Staking, StakingManager } from '../src';
+import { IndexerRegistry, ProjectRegistry, RewardsStaking, ERC20, Staking, StakingManager } from '../src';
 import { DEPLOYMENT_ID, METADATA_1_HASH, METADATA_HASH, VERSION } from './constants';
 import { etherParse, registerIndexer } from './helper';
 import { deployContracts } from './setup';
@@ -13,7 +13,7 @@ const { constants } = require('@openzeppelin/test-helpers');
 describe('IndexerRegistry Contract', () => {
     let wallet_0, wallet_1, wallet_2;
 
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let stakingManager: StakingManager;
     let projectRegistry: ProjectRegistry;

@@ -7,7 +7,7 @@ import { ethers } from 'hardhat';
 import {
     ConsumerHost,
     IndexerRegistry,
-    SQToken,
+    ERC20,
     Staking,
     StateChannel
 } from '../src';
@@ -19,7 +19,7 @@ describe('ConsumerHost Contract', () => {
     const deploymentId = deploymentIds[0];
     let wallet_0, indexer, consumer, consumer2, hoster;
 
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
     let stateChannel: StateChannel;

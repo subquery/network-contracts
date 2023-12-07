@@ -3,6 +3,7 @@ import { Signer } from 'ethers';
 import { DEPLOYMENT_DETAILS } from './deployments';
 import {
     Airdropper,
+    ChildERC20,
     ConsumerHost,
     ConsumerRegistry,
     DisputeManager,
@@ -29,7 +30,13 @@ import {
     VSQToken,
     Vesting,
 } from './typechain';
-import { CONTRACT_FACTORY, ContractDeployment, ContractName, FactoryContstructor, SdkOptions } from './types';
+import {
+    CONTRACT_FACTORY,
+    ContractDeploymentInner,
+    ContractName,
+    FactoryContstructor,
+    SdkOptions
+} from './types';
 
 // HOTFIX: Contract names are not consistent between deployments and privous var names
 const contractNameConversion: Record<string, string> = {
@@ -38,10 +45,10 @@ const contractNameConversion: Record<string, string> = {
 };
 
 export class ContractSDK {
-    private _contractDeployments: ContractDeployment;
+    private _contractDeployments: ContractDeploymentInner;
 
     readonly settings!: Settings;
-    readonly sqToken!: SQToken;
+    readonly sqToken!: ChildERC20;
     readonly staking!: Staking;
     readonly stakingManager!: StakingManager;
     readonly indexerRegistry!: IndexerRegistry;
@@ -68,7 +75,7 @@ export class ContractSDK {
     readonly vSQToken!: VSQToken;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options: SdkOptions) {
-        this._contractDeployments = this.options.deploymentDetails ?? DEPLOYMENT_DETAILS[options.network];
+        this._contractDeployments = this.options.deploymentDetails ?? DEPLOYMENT_DETAILS[options.network].child;
         this._init();
     }
 
@@ -77,7 +84,7 @@ export class ContractSDK {
     }
 
     private async _init() {
-        const contracts = Object.entries(this._contractDeployments.child).map(([name, contract]) => ({
+        const contracts = Object.entries(this._contractDeployments).map(([name, contract]) => ({
             address: contract.address,
             factory: CONTRACT_FACTORY[name as ContractName] as FactoryContstructor,
             name: name as ContractName,

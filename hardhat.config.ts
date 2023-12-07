@@ -10,7 +10,7 @@ import 'solidity-coverage';
 import 'solidity-docgen';
 import 'tsconfig-paths/register';
 import {constants, utils} from "ethers";
-import contractConfig from './scripts/config/contracts.config';
+import contractsConfig from "./scripts/config/contracts.config";
 
 const exec = util.promisify(require('child_process').exec);
 
@@ -58,7 +58,7 @@ task('publishRoot', "verify and publish contracts on etherscan")
     .addParam('networkpair','testnet|kepler|mainnet')
     .setAction(async (taskArgs, hre) => {
         const deployment = require(taskArgs.deployment);
-        const configNetwork = taskArgs.networkpair;
+        const config = contractsConfig[taskArgs.networkpair];
 
         try {
             await hre.run("verify:verify", {
@@ -78,7 +78,7 @@ task('publishRoot', "verify and publish contracts on etherscan")
             // SQToken
             await hre.run("verify:verify", {
                 address: deployment.root.SQToken.address,
-                constructorArguments: [constants.AddressZero, utils.parseEther("10000000000")],
+                constructorArguments: [constants.AddressZero, ...config.SQToken],
             });
 
             //Vesting
@@ -90,117 +90,8 @@ task('publishRoot', "verify and publish contracts on etherscan")
             // EventSyncRootTunnel
             await hre.run("verify:verify", {
                 address: deployment.root.EventSyncRootTunnel.address,
-                constructorArguments: ['0x2890bA17EfE978480615e330ecB65333b880928e', '0x3d1d3E34f7fB6D26245E6640E1c50710eFFf15bA'], // testnet
+                constructorArguments: [...config.EventSyncRootTunnel],
             });
-
-            //VSQToken
-            // await hre.run("verify:verify", {
-            //     address: deployment.VSQToken.address,
-            //     constructorArguments: [],
-            // });
-
-            // //Airdropper
-            // await hre.run("verify:verify", {
-            //     address: deployment.Airdropper.address,
-            //     constructorArguments: ["0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C"],
-            // });
-            //
-            //
-            // //Staking
-            // await hre.run("verify:verify", {
-            //     address: deployment.Staking.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //StakingManager
-            // await hre.run("verify:verify", {
-            //     address: deployment.StakingManager.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //EraManager
-            // await hre.run("verify:verify", {
-            //     address: deployment.EraManager.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //IndexerRegistry
-            // await hre.run("verify:verify", {
-            //     address: deployment.IndexerRegistry.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //ProjectRegistry
-            // await hre.run("verify:verify", {
-            //     address: deployment.ProjectRegistry.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //PlanManager
-            // await hre.run("verify:verify", {
-            //     address: deployment.PlanManager.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //PurchaseOfferMarket
-            // await hre.run("verify:verify", {
-            //     address: deployment.PurchaseOfferMarket.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //ServiceAgreementRegistry
-            // await hre.run("verify:verify", {
-            //     address: deployment.ServiceAgreementRegistry.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //RewardsDistributer
-            // await hre.run("verify:verify", {
-            //     address: deployment.RewardsDistributer.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //RewardsPool
-            // await hre.run("verify:verify", {
-            //     address: deployment.RewardsPool.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //RewardsStaking
-            // await hre.run("verify:verify", {
-            //     address: deployment.RewardsStaking.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //RewardsHelper
-            // await hre.run("verify:verify", {
-            //     address: deployment.RewardsHelper.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //StateChannel
-            // await hre.run("verify:verify", {
-            //     address: deployment.StateChannel.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //PermissionedExchange
-            // await hre.run("verify:verify", {
-            //     address: deployment.PermissionedExchange.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //ConsumerHost
-            // await hre.run("verify:verify", {
-            //     address: deployment.ConsumerHost.innerAddress,
-            //     constructorArguments: [],
-            // });
-            //
-            // //DisputeManager
-            // await hre.run("verify:verify", {
-            //     address: deployment.DisputeManager.innerAddress,
-            //     constructorArguments: [],
-            // });
 
         } catch (err) {
             console.log(err);
@@ -211,15 +102,219 @@ task('publishChild', "verify and publish contracts on etherscan")
     .addParam("deployment", "Deployment file path")
     .addParam('networkpair','')
     .setAction(async (taskArgs, hre) => {
-        const deployment = require(taskArgs.deployment);
-        const configNetwork = taskArgs.networkpair;
+        const deployment = require(taskArgs.deployment).child;
 
         try {
-            // SQToken
             await hre.run("verify:verify", {
-                address: deployment.child.ChildERC20.address,
-                constructorArguments: [...contractConfig[configNetwork].ChildERC20],
+                address: deployment.ProxyAdmin.address,
+                constructorArguments: [],
             });
+            //Settings
+            await hre.run("verify:verify", {
+                address: deployment.Settings.address,
+                constructorArguments: [deployment.Settings.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.Settings.innerAddress,
+                constructorArguments: [],
+            });
+
+            //VSQToken
+            await hre.run("verify:verify", {
+                address: deployment.VSQToken.address,
+                constructorArguments: [deployment.VSQToken.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.VSQToken.innerAddress,
+                constructorArguments: [],
+            });
+
+            // //Airdropper
+            // await hre.run("verify:verify", {
+            //     address: deployment.Airdropper.address,
+            //     constructorArguments: ["0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C"],
+            // });
+
+
+            //Staking
+            await hre.run("verify:verify", {
+                address: deployment.Staking.address,
+                constructorArguments: [deployment.Staking.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.Staking.innerAddress,
+                constructorArguments: [],
+            });
+
+            //StakingManager
+            await hre.run("verify:verify", {
+                address: deployment.StakingManager.address,
+                constructorArguments: [deployment.StakingManager.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.StakingManager.innerAddress,
+                constructorArguments: [],
+            });
+
+            //EraManager
+            await hre.run("verify:verify", {
+                address: deployment.EraManager.address,
+                constructorArguments: [deployment.EraManager.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.EraManager.innerAddress,
+                constructorArguments: [],
+            });
+
+            //IndexerRegistry
+            await hre.run("verify:verify", {
+                address: deployment.IndexerRegistry.address,
+                constructorArguments: [deployment.IndexerRegistry.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.IndexerRegistry.innerAddress,
+                constructorArguments: [],
+            });
+
+            //ProjectRegistry
+            await hre.run("verify:verify", {
+                address: deployment.ProjectRegistry.address,
+                constructorArguments: [deployment.ProjectRegistry.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.ProjectRegistry.innerAddress,
+                constructorArguments: [],
+            });
+
+            //PlanManager
+            await hre.run("verify:verify", {
+                address: deployment.PlanManager.address,
+                constructorArguments: [deployment.PlanManager.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.PlanManager.innerAddress,
+                constructorArguments: [],
+            });
+
+            //PurchaseOfferMarket
+            await hre.run("verify:verify", {
+                address: deployment.PurchaseOfferMarket.address,
+                constructorArguments: [deployment.PurchaseOfferMarket.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.PurchaseOfferMarket.innerAddress,
+                constructorArguments: [],
+            });
+
+            //ServiceAgreementRegistry
+            await hre.run("verify:verify", {
+                address: deployment.ServiceAgreementRegistry.address,
+                constructorArguments: [deployment.ServiceAgreementRegistry.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.ServiceAgreementRegistry.innerAddress,
+                constructorArguments: [],
+            });
+
+            //ServiceAgreementExtra
+            await hre.run("verify:verify", {
+                address: deployment.ServiceAgreementExtra.address,
+                constructorArguments: [deployment.ServiceAgreementExtra.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.ServiceAgreementExtra.innerAddress,
+                constructorArguments: [],
+            });
+
+            //RewardsDistributer
+            await hre.run("verify:verify", {
+                address: deployment.RewardsDistributer.address,
+                constructorArguments: [deployment.RewardsDistributer.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.RewardsDistributer.innerAddress,
+                constructorArguments: [],
+            });
+
+            //RewardsPool
+            await hre.run("verify:verify", {
+                address: deployment.RewardsPool.address,
+                constructorArguments: [deployment.RewardsPool.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.RewardsPool.innerAddress,
+                constructorArguments: [],
+            });
+
+            //RewardsStaking
+            await hre.run("verify:verify", {
+                address: deployment.RewardsStaking.address,
+                constructorArguments: [deployment.RewardsStaking.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.RewardsStaking.innerAddress,
+                constructorArguments: [],
+            });
+
+            //RewardsHelper
+            await hre.run("verify:verify", {
+                address: deployment.RewardsHelper.address,
+                constructorArguments: [deployment.RewardsHelper.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.RewardsHelper.innerAddress,
+                constructorArguments: [],
+            });
+
+            //StateChannel
+            await hre.run("verify:verify", {
+                address: deployment.StateChannel.address,
+                constructorArguments: [deployment.StateChannel.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.StateChannel.innerAddress,
+                constructorArguments: [],
+            });
+            //ConsumerHost
+            await hre.run("verify:verify", {
+                address: deployment.ConsumerHost.address,
+                constructorArguments: [deployment.ConsumerHost.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.ConsumerHost.innerAddress,
+                constructorArguments: [],
+            });
+
+            //DisputeManager
+            await hre.run("verify:verify", {
+                address: deployment.DisputeManager.address,
+                constructorArguments: [deployment.DisputeManager.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.DisputeManager.innerAddress,
+                constructorArguments: [],
+            });
+
+            //ConsumerRegistry
+            await hre.run("verify:verify", {
+                address: deployment.ConsumerRegistry.address,
+                constructorArguments: [deployment.ConsumerRegistry.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.ConsumerRegistry.innerAddress,
+                constructorArguments: [],
+            });
+
+            //PriceOracle
+            await hre.run("verify:verify", {
+                address: deployment.PriceOracle.address,
+                constructorArguments: [deployment.PriceOracle.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.PriceOracle.innerAddress,
+                constructorArguments: [],
+            });
+
 
 
         } catch (err) {
@@ -249,7 +344,11 @@ const config: HardhatUserConfig = {
     solidity: {
         compilers: [
             {version: '0.6.6', settings: {}},
-            {version: '0.8.15', settings: {}},
+            {version: '0.8.15', settings: {
+                optimizer: {
+                    enabled: true,
+                },
+            }},
         ],
     },
     networks: {
@@ -277,11 +376,8 @@ const config: HardhatUserConfig = {
     },
     etherscan: {
         apiKey: {
-            testnet: process.env.POLYGONSCAN_API_KEY,
+            polygonMumbai: process.env.POLYGONSCAN_API_KEY,
             goerli: process.env.ETHERSCAN_API_KEY,
-            kepler: process.env.POLYGONSCAN_API_KEY,
-            mainnet: process.env.POLYGONSCAN_API_KEY,
-            "mainnet-root": process.env.ETHERSCAN_API_KEY,
         },
     },
     typechain: {

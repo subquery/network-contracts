@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { constants } from 'ethers';
 
-import { IndexerRegistry, PlanManager, ProjectRegistry, PurchaseOfferMarket, SQToken, Settings, Staking } from '../src';
+import { IndexerRegistry, PlanManager, ProjectRegistry, PurchaseOfferMarket, ERC20, Settings, Staking } from '../src';
 import { METADATA_HASH, POI, deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
 import {
     Wallet,
@@ -32,7 +32,7 @@ describe('Project Registry Contract', () => {
     let wallet_0: Wallet;
     let wallet_1: Wallet;
 
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
     let projectRegistry: ProjectRegistry;

@@ -5,11 +5,11 @@ import moduleAlias from 'module-alias';
 moduleAlias.addAlias('./publish', '../publish');
 moduleAlias.addAlias('./artifacts', '../artifacts');
 
-import { Wallet as EthWallet } from 'ethers';
+import { Wallet as EthWallet, constants } from 'ethers';
 import { ZERO_ADDRESS } from './constants';
 import { Wallet, etherParse } from './helper';
 
-import { deployContracts as deploy } from '../scripts/deployContracts';
+import { deployContracts as deploy, deployRootContracts as deployRoot } from '../scripts/deployContracts';
 
 export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
     const signer = wallet as EthWallet;
@@ -17,16 +17,16 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
         signer,
         {
             InflationController: [1000, wallet1.address],
-            SQToken: [etherParse("10000000000")],
+            SQToken: [constants.AddressZero, etherParse("10000000000").toString()],
             Staking: [1000, 1e3],
             Airdropper: [ZERO_ADDRESS],
             EraManager: [60 * 60 * 24],
             ServiceAgreementRegistry: [],
             ServiceAgreementExtra: [1e6],
             PurchaseOfferMarket: [1e5, ZERO_ADDRESS],
-            IndexerRegistry: [etherParse("1000")],
+            IndexerRegistry: [etherParse("1000").toString()],
             ConsumerHost: [1],
-            DisputeManager: [etherParse("1000")],
+            DisputeManager: [etherParse("1000").toString()],
             Settings: [],
             VSQToken: [],
             StakingManager: [],
@@ -42,6 +42,19 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
             Vesting: [],
             ConsumerRegistry: [],
             PriceOracle: [],
+        }
+    );
+
+    return contracts;
+};
+
+export const deployRootContracts = async (wallet: Wallet, wallet1: Wallet) => {
+    const signer = wallet as EthWallet;
+    const [_, contracts] = await deployRoot(
+        signer,
+        {
+            InflationController: [1000, wallet1.address],
+            SQToken: [etherParse("10000000000").toString()],
         }
     );
 

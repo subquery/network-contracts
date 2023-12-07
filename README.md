@@ -119,13 +119,15 @@ Note: After contract upgrade, should run below again.
 
 Example
 ```shell
-yarn upgrade --testnet PlanManager
+yarn upgrade --network testnet --check-only=false --target child
+yarn upgrade --network testnet --check-only=false --target root
 ```
 
-### Verify Contract on Polygonscan
+### Verify Contract on Polygonscan / etherscan
 ```
 # set up ETHERSCAN_API_KEY in .env 
-yarn hardhat publish --deployment publish/kepler.json --network kepler 
+yarn hardhat publishChild --deployment publish/testnet.json --network testnet --networkpair testnet
+yarn hardhat publishRoot --deployment publish/testnet.json --network testnet --networkpair testnet
 ```
 
 ### Debug Script
@@ -158,6 +160,9 @@ You can find all revert code details at `./public/revertcode.json`
 ```
 https://wiki.polygon.technology/docs/pos/design/bridge/ethereum-polygon/getting-started/
 ```
+
+Deposit usually takes more than 20 min
+Withdraw takes moer than x min
 
 ### TODOs
 to support L1&L2 token pair mode, we can not burn token in l2 (bridge layer) according to the standard-bridge doc. 

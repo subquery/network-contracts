@@ -26,6 +26,7 @@ import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import ChildERC20 from './artifacts/contracts/polygon/ChildERC20.sol/ChildERC20.json';
 import Vesting from './artifacts/contracts/Vesting.sol/Vesting.json';
 import EventSyncRootTunnel from './artifacts/contracts/root/EventSyncRootTunnel.sol/EventSyncRootTunnel.json';
+import RootChainManager from './artifacts/contracts/external/RootChainManager.sol/RootChainManager.json';
 
 
 export default {
@@ -57,4 +58,5 @@ export default {
     ConsumerRegistry,
     ChildERC20,
     EventSyncRootTunnel,
+    RootChainManager,
 };

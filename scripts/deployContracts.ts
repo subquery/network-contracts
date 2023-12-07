@@ -9,7 +9,7 @@ import Pino from 'pino';
 import sha256 from 'sha256';
 
 import CONTRACTS from '../src/contracts';
-import {ContractDeployment, ContractDeployment2, ContractName, SQContracts, SubqueryNetwork} from '../src/types';
+import {ContractDeployment, ContractDeploymentInner, ContractName, SQContracts, SubqueryNetwork} from '../src/types';
 import { TextColor, colorText, getLogger } from './logger';
 
 import {
@@ -51,7 +51,6 @@ import {
     FactoryContstructor,
     UPGRADEBAL_CONTRACTS,
 } from './contracts';
-import {address} from "hardhat/internal/core/config/config-validation";
 import {ChildERC20__factory} from "../build";
 
 let wallet: Wallet;
@@ -120,6 +119,7 @@ async function deployContract<T extends BaseContract>(
         [contract, innerAddress] = await deployProxy<T>(proxyAdmin, CONTRACT_FACTORY[name], wallet, confirms);
     } else {
         const overrides = await getOverrides();
+        const f = CONTRACT_FACTORY[name]
         contract = (await new CONTRACT_FACTORY[name](wallet).deploy(...deployConfig, overrides)) as T;
         await contract.deployTransaction.wait(confirms);
         logger?.info(`🔎 Tx hash: ${contract.deployTransaction.hash}`);
@@ -254,7 +254,7 @@ export async function deployRootContracts(
             deployment,
             {
                 inflationController,
-                token: sqtToken,
+                rootToken: sqtToken,
                 proxyAdmin,
                 eventSyncRootTunnel,
                 vesting,
@@ -269,12 +269,12 @@ export async function deployRootContracts(
 export async function deployContracts(
     _wallet: Wallet,
     _config: ContractConfig,
-    options?: { network: SubqueryNetwork; confirms: number; history: boolean }
+    options?: { network: SubqueryNetwork; confirms: number; history: boolean, test: boolean }
 ): Promise<[Partial<ContractDeployment>, Partial<Contracts>]> {
     wallet = _wallet;
     config = _config;
     confirms = options?.confirms ?? 1;
-    network = options?.network;
+    network = options?.network ?? 'local';
 
     if (options?.history) {
         const localDeployment = loadDeployment(network);
@@ -291,11 +291,14 @@ export async function deployContracts(
 
         // We don't need to deploy ChildErc20, polygon team will do it for us when we request tokenMapping
         // deploy SQToken contract
-        // const sqtToken = await deployContract<ChildERC20>('ChildERC20', 'child', {
-        //     deployConfig: [...config['ChildERC20']],
-        // });
-        const sqtToken = ChildERC20__factory.connect(deployment.child.SQToken.address, wallet);
-
+        let sqtToken;
+        if (network === 'local') {
+            sqtToken = await deployContract<SQToken>('SQToken', 'child', {
+                deployConfig: [...config['SQToken']],
+            });
+        } else {
+            sqtToken = ChildERC20__factory.connect(deployment.child.SQToken.address, wallet);
+        }
         // deploy VSQToken contract
         const vsqtToken = await deployContract<VSQToken>('VSQToken', 'child', { proxyAdmin, initConfig: [settingsAddress] });
 
@@ -518,13 +521,15 @@ export async function upgradeContracts(configs: {
     implementationOnly: boolean,
     target: string,
     matcher: string,
+    network: SubqueryNetwork,
 }): Promise<ContractDeployment> {
     const { deployment, confirms, checkOnly, implementationOnly, target, matcher } = configs;
     wallet = configs.wallet;
+    network = configs.network;
 
     const logger = getLogger('Upgrade Contract');
     logger.info(`Upgrade contract with wallet ${wallet.address}`);
-    let _deployment: ContractDeployment2;
+    let _deployment: ContractDeploymentInner;
     let proxyAdmin: ProxyAdmin;
     if (target === 'root') {
         _deployment = deployment.root;

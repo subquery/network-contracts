@@ -3,7 +3,7 @@
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-import { DisputeManager, EraManager, IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsStaking, SQToken, Staking, StakingManager } from '../src';
+import { DisputeManager, EraManager, IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsStaking, ERC20, Staking, StakingManager } from '../src';
 import { DEPLOYMENT_ID } from './constants';
 import { etherParse, registerIndexer, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
@@ -12,7 +12,7 @@ describe('Dispute Manager Contract', () => {
     const mockProvider = waffle.provider;
     let root, indexer, fisherman;
     let disputeManager: DisputeManager;
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let stakingManager: StakingManager;
     let indexerRegistry: IndexerRegistry;

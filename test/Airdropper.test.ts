@@ -3,7 +3,7 @@
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-import { Airdropper, SQToken, Settings } from '../src';
+import { Airdropper, ERC20, Settings, SQContracts } from '../src';
 import { ZERO_ADDRESS } from './constants';
 import { etherParse, futureTimestamp, lastestTime, timeTravel } from './helper';
 import { deployContracts } from './setup';
@@ -13,7 +13,7 @@ describe('Airdropper Contract', () => {
     let wallet_0, wallet_1, wallet_2, wallet_3;
     let airdropper: Airdropper;
     let settings: Settings;
-    let token: SQToken;
+    let token: ERC20;
     let sqtAddress;
 
     beforeEach(async () => {
@@ -22,7 +22,7 @@ describe('Airdropper Contract', () => {
         airdropper = deployment.airdropper;
         settings = deployment.settings;
         token = deployment.token;
-        sqtAddress = await settings.getSQToken();
+        sqtAddress = await settings.getContractAddress(SQContracts.SQToken);
     });
 
     describe('init states check', () => {

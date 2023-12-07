@@ -12,7 +12,7 @@ import {
     ProjectRegistry,
     PurchaseOfferMarket,
     RewardsDistributer,
-    SQToken,
+    ERC20,
     ServiceAgreementRegistry,
     Settings,
     Staking,
@@ -28,7 +28,7 @@ describe('Maintenance Mode Test', () => {
     let wallet_0, wallet_1, wallet_2;
     let permissionedExchange: PermissionedExchange;
     let settings: Settings;
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;

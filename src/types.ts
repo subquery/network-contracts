@@ -29,10 +29,10 @@ import {
     Staking__factory,
     StateChannel__factory,
     VSQToken__factory,
-    Vesting__factory, EventSyncRootTunnel__factory, ChildERC20__factory
+    Vesting__factory, EventSyncRootTunnel__factory, ChildERC20__factory, RootChainManager__factory
 } from './typechain';
 
-export type SubqueryNetwork = 'testnet' | 'mainnet'; //  'mainnet' | 'kepler' | 'testnet' | 'base-goerli' | 'goerli' | 'local';
+export type SubqueryNetwork = 'testnet' | 'mainnet' | 'local'; //  'mainnet' | 'kepler' | 'testnet' | 'base-goerli' | 'goerli' | 'local';
 
 export type NetworkPair = {
     root: Network;
@@ -66,15 +66,15 @@ export type ContractDeploymentDetail = {
 
 export type ContractName = keyof typeof CONTRACTS;
 
-export type ContractDeployment2 = Record<Partial<ContractName>, ContractDeploymentDetail>;
+export type ContractDeploymentInner = Record<Partial<ContractName>, ContractDeploymentDetail>;
 export type ContractDeployment = {
-    root: ContractDeployment2;
-    child: ContractDeployment2;
+    root: ContractDeploymentInner;
+    child: ContractDeploymentInner;
 };
 
 export type SdkOptions = {
     network: SubqueryNetwork;
-    deploymentDetails?: ContractDeployment;
+    deploymentDetails?: ContractDeploymentInner;
 };
 
 export interface FactoryContstructor {
@@ -83,11 +83,12 @@ export interface FactoryContstructor {
     readonly abi: any;
 }
 
+// for child sdk only
 export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ProxyAdmin: ProxyAdmin__factory,
     Settings: Settings__factory,
     InflationController: InflationController__factory,
-    SQToken: SQToken__factory,
+    SQToken: ChildERC20__factory, // for child sdk only
     VSQToken: VSQToken__factory,
     Airdropper: Airdropper__factory,
     Vesting: Vesting__factory,
@@ -112,6 +113,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ConsumerRegistry: ConsumerRegistry__factory,
     EventSyncRootTunnel: EventSyncRootTunnel__factory,
     ChildERC20: ChildERC20__factory,
+    RootChainManager: RootChainManager__factory,
 };
 
 export enum SQContracts {
@@ -137,4 +139,4 @@ export enum SQContracts {
     PriceOracle,
     EventSyncChildTunnel,
     EventSyncRootTunnel
-};
+}

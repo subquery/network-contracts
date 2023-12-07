@@ -1,9 +1,9 @@
-import {Network, NetworkPair, SubqueryNetwork} from './types';
+import {NetworkPair, SubqueryNetwork} from './types';
 
 export const CURRENT_NETWORK = 'testnet';
 
 export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
-    mainnet:{
+    mainnet: {
         root: {
             chainId: '0x1',
             chainName: 'Ethereum Mainnet',
@@ -69,6 +69,36 @@ export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
             }
         }
     },
+    local: {
+        root: {
+            chainId: '0x7A69',
+            chainName: 'Hardhat',
+            rpcUrls: [
+                'http://127.0.0.1:8545'
+            ],
+            iconUrls: [],
+            blockExplorerUrls: [''],
+            nativeCurrency: {
+                name: '',
+                symbol: '',
+                decimals: 18
+            }
+        },
+        child: {
+            chainId: '0x7A69',
+            chainName: 'Hardhat',
+            rpcUrls: [
+                'http://127.0.0.1:8545'
+            ],
+            iconUrls: [],
+            blockExplorerUrls: [''],
+            nativeCurrency: {
+                name: '',
+                symbol: '',
+                decimals: 18
+            }
+        }
+    }
     // 'goerli': {
     //     chainId: '0x5',
     //     chainName: 'Goerli',

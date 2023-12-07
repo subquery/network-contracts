@@ -19,6 +19,7 @@ const main = async () => {
         implementationOnly,
         target,
         matcher,
+        network: name,
     });
 
     // writeFileSync(filePath, JSON.stringify(deployment, null, 4));

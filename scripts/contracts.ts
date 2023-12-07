@@ -40,7 +40,7 @@ import {
     RewardsPool__factory,
     RewardsStaking,
     RewardsStaking__factory,
-    IERC20,
+    ERC20,
     SQToken,
     SQToken__factory,
     ServiceAgreementRegistry,
@@ -64,6 +64,7 @@ import {
 } from '../src';
 import ChildERC20 from "../artifacts/contracts/polygon/ChildERC20.sol/ChildERC20.json";
 import {ChildERC20__factory} from "../build";
+import RootChainManager from "../artifacts/contracts/external/RootChainManager.sol/RootChainManager.json";
 
 export interface FactoryContstructor {
     new(wallet: Wallet): ContractFactory;
@@ -75,7 +76,8 @@ export type Contracts = {
     proxyAdmin: ProxyAdmin;
     settings: Settings;
     inflationController: InflationController;
-    token: IERC20;
+    rootToken: SQToken;
+    token: ERC20;
     vtoken: VSQToken;
     staking: Staking;
     stakingManager: StakingManager;
@@ -112,6 +114,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ byt
     RewardsStaking: [CONTRACTS.RewardsStaking, RewardsStaking__factory],
     RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
     ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
+    ServiceAgreementExtra: [CONTRACTS.ServiceAgreementExtra, ServiceAgreementExtra__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
     StakingManager: [CONTRACTS.StakingManager, StakingManager__factory],
     EraManager: [CONTRACTS.EraManager, EraManager__factory],
@@ -155,7 +158,8 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PriceOracle: PriceOracle__factory,
     EventSyncRootTunnel: EventSyncRootTunnel__factory,
     ChildERC20: ChildERC20__factory,
+    RootChainManager: undefined,
 };
 
 export type Config = number | string | string[];
-export type ContractConfig = Record<Partial<ContractName>, Config[]>;
+export type ContractConfig = Partial<Record<ContractName, Config[]>>;

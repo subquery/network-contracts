@@ -12,7 +12,7 @@ import {
     ProjectRegistry,
     RewardsDistributer,
     RewardsHelper,
-    SQToken,
+    ERC20,
     ServiceAgreementExtra,
     ServiceAgreementRegistry,
     Staking,
@@ -28,7 +28,7 @@ describe('PlanManger Contract', () => {
 
     let indexer: Wallet, consumer: Wallet;
 
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let stakingManager: StakingManager;
     let projectRegistry: ProjectRegistry;
