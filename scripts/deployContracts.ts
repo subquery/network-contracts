@@ -315,7 +315,7 @@ export async function deployContracts(
             initConfig: [settingsAddress, [rewardsDistributer.address]],
         });
 
-        const tokenExchange = await deployContract<TokenExchange>('TokenExchange');
+        const tokenExchange = await deployContract<TokenExchange>('TokenExchange', { initConfig: [] });
 
         // deploy ConsumerHost contract
         const consumerHost = await deployContract<ConsumerHost>('ConsumerHost', {

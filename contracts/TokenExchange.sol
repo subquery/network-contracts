@@ -106,6 +106,8 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
      */
     function cancelOrder(uint256 orderId) onlyOwner public {
         ExchangeOrder memory order = orders[orderId];
+        require(order.sender != address(0), 'TE002');
+
         if (order.tokenGiveBalance != 0) {
             IERC20(order.tokenGive).safeTransfer(order.sender, order.tokenGiveBalance);
         }
@@ -127,10 +129,14 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
      */
     function trade(uint256 orderId, uint256 amount) public {
         ExchangeOrder storage order = orders[orderId];
-        ISQToken(order.tokenGet).burnFrom(msg.sender ,amount);
+        require(order.sender != address(0), 'TE002');
+
+        ISQToken(order.tokenGet).burnFrom(msg.sender, amount);
 
         uint256 amountGive = (amount * order.amountGive) / order.amountGet;
-        IERC20(order.tokenGive).safeTransferFrom(address(this), msg.sender, amountGive);
+        require(amountGive <= order.tokenGiveBalance, 'TE003');
+
+        IERC20(order.tokenGive).safeTransfer(msg.sender, amountGive);
         order.tokenGiveBalance = order.tokenGiveBalance - amountGive;
 
         emit Trade(orderId, order.tokenGive, order.tokenGet, amountGive, amount);
