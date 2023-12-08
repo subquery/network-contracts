@@ -162,7 +162,10 @@ https://wiki.polygon.technology/docs/pos/design/bridge/ethereum-polygon/getting-
 ```
 
 Deposit usually takes more than 20 min
-Withdraw takes moer than x min
+Withdraw takes moer than 40 min
+
+### Withdraw token
+For some rpcs, eth_getRootHash is not available, in that case, we should use withdrawExitFaster
 
 ### TODOs
 to support L1&L2 token pair mode, we can not burn token in l2 (bridge layer) according to the standard-bridge doc. 

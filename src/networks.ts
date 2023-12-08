@@ -40,6 +40,7 @@ export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
             chainId: '0x5',
             chainName: 'Goerli',
             rpcUrls: [
+                'https://ethereum-goerli.publicnode.com',
                 'https://rpc.ankr.com/eth_goerli'
             ],
             iconUrls: [],
@@ -54,9 +55,8 @@ export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
             chainId: '0x13881',
             chainName: 'Mumbai',
             rpcUrls: [
+                'https://rpc-mumbai.maticvigil.com',
                 'https://rpc.ankr.com/polygon_mumbai',
-                'https://polygon-mumbai.api.onfinality.io/rpc?apikey=6b43efc3-a13c-4250-9203-e097fb9f239',
-                'https://polygon-mumbai.infura.io/v3/4458cf4d1689497b9a38b1d6bbf05e78'
             ],
             iconUrls: [
                 'https://icons.llamao.fi/icons/chains/rsz_polygon.jpg'

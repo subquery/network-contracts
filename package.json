@@ -87,5 +87,9 @@
             "prettier --write"
         ]
     },
-    "packageManager": "yarn@3.6.4"
+    "packageManager": "yarn@3.6.4",
+    "dependencies": {
+        "@maticnetwork/maticjs": "^3.6.7",
+        "@maticnetwork/maticjs-ethers": "^1.0.3"
+    }
 }

@@ -21,7 +21,6 @@ import {
     RewardsHelper__factory,
     RewardsPool__factory,
     RewardsStaking__factory,
-    SQToken__factory,
     ServiceAgreementRegistry__factory,
     ServiceAgreementExtra__factory,
     Settings__factory,
@@ -29,7 +28,7 @@ import {
     Staking__factory,
     StateChannel__factory,
     VSQToken__factory,
-    Vesting__factory, EventSyncRootTunnel__factory, ChildERC20__factory, RootChainManager__factory
+    Vesting__factory, EventSyncRootTunnel__factory, ChildERC20__factory,
 } from './typechain';
 
 export type SubqueryNetwork = 'testnet' | 'mainnet' | 'local'; //  'mainnet' | 'kepler' | 'testnet' | 'base-goerli' | 'goerli' | 'local';
@@ -76,6 +75,10 @@ export type SdkOptions = {
     network: SubqueryNetwork;
     deploymentDetails?: ContractDeploymentInner;
 };
+export type PolygonSdkOptions = {
+    network: SubqueryNetwork;
+    deploymentDetails?: ContractDeployment;
+};
 
 export interface FactoryContstructor {
     new (wallet: Wallet): ContractFactory;
@@ -113,7 +116,6 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ConsumerRegistry: ConsumerRegistry__factory,
     EventSyncRootTunnel: EventSyncRootTunnel__factory,
     ChildERC20: ChildERC20__factory,
-    RootChainManager: RootChainManager__factory,
 };
 
 export enum SQContracts {

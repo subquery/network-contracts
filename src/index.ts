@@ -1,5 +1,5 @@
 export * from './sdk';
-export * from './rootsdk';
+export * from './polygonSDK';
 export * from './typechain';
 export * from './types';
 export * from './networks'
