@@ -9,7 +9,6 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '../interfaces/IEraManager.sol';
 import '../interfaces/ISettings.sol';
 import "./IEventSyncChildTunnel.sol";
-//import './interfaces/IInflationController.sol';
 
 /**
  * @title EraManager contract
@@ -81,10 +80,10 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
         eraNumber++;
         eraStartTime = block.timestamp;
 
-        if (settings.getContractAddress(SQContracts.EventSyncChildTunnel) != address(0)) {
-            IEventSyncChildTunnel tunnel = IEventSyncChildTunnel(settings.getContractAddress(SQContracts.EventSyncChildTunnel));
-            tunnel.notifyEraStart(eraNumber, msg.sender);
-        }
+//        if (settings.getContractAddress(SQContracts.EventSyncChildTunnel) != address(0)) {
+//            IEventSyncChildTunnel tunnel = IEventSyncChildTunnel(settings.getContractAddress(SQContracts.EventSyncChildTunnel));
+//            tunnel.notifyEraStart(eraNumber, msg.sender);
+//        }
 
 //        IInflationController inflationController = IInflationController(settings.getContractAddress(SQContracts.InflationController));
 //        if (inflationController.inflationRate() > 0) {

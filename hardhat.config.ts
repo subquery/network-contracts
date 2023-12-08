@@ -343,7 +343,6 @@ task("compile", async (taskArguments: Object, {run}, runSuper) => {
 const config: HardhatUserConfig = {
     solidity: {
         compilers: [
-            {version: '0.6.6', settings: {}},
             {version: '0.8.15', settings: {
                 optimizer: {
                     enabled: true,
