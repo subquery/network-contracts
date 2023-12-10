@@ -50,6 +50,7 @@ import {
     FactoryContstructor,
     UPGRADEBAL_CONTRACTS,
 } from './contracts';
+import { TokenExchange } from 'build';
 
 let wallet: Wallet;
 let network: SubqueryNetwork;
@@ -275,7 +276,6 @@ export async function deployContracts(
         });
 
         const serviceAgreementExtra = await deployContract<ServiceAgreementExtra>('ServiceAgreementExtra', {
-            proxyAdmin,
             initConfig: [settingsAddress],
         });
 
@@ -314,6 +314,8 @@ export async function deployContracts(
             proxyAdmin,
             initConfig: [settingsAddress, [rewardsDistributer.address]],
         });
+
+        const tokenExchange = await deployContract<TokenExchange>('TokenExchange', { initConfig: [] });
 
         // deploy ConsumerHost contract
         const consumerHost = await deployContract<ConsumerHost>('ConsumerHost', {
@@ -400,6 +402,7 @@ export async function deployContracts(
                 stateChannel,
                 airdropper,
                 permissionedExchange,
+                tokenExchange,
                 vesting,
                 consumerHost,
                 disputeManager,

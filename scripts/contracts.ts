@@ -22,6 +22,8 @@ import {
     InflationController__factory,
     PermissionedExchange,
     PermissionedExchange__factory,
+    TokenExchange,
+    TokenExchange__factory,
     PlanManager,
     PlanManager__factory,
     PriceOracle,
@@ -88,6 +90,7 @@ export type Contracts = {
     stateChannel: StateChannel;
     airdropper: Airdropper;
     permissionedExchange: PermissionedExchange;
+    tokenExchange: TokenExchange;
     vesting: Vesting;
     consumerHost: ConsumerHost;
     disputeManager: DisputeManager;
@@ -143,6 +146,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     RewardsHelper: RewardsHelper__factory,
     StateChannel: StateChannel__factory,
     PermissionedExchange: PermissionedExchange__factory,
+    TokenExchange: TokenExchange__factory,
     ConsumerHost: ConsumerHost__factory,
     DisputeManager: DisputeManager__factory,
     ConsumerRegistry: ConsumerRegistry__factory,

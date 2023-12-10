@@ -7,4 +7,6 @@ interface ISQToken {
     function mint(address destination, uint256 amount) external;
 
     function burn(uint256 amount) external;
+
+    function burnFrom(address account,uint256 amount) external;
 }

@@ -39,6 +39,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
             ProxyAdmin: [],
             StateChannel: [],
             PermissionedExchange: [],
+            TokenExchange: [],
             Vesting: [],
             ConsumerRegistry: [],
             PriceOracle: [],
