@@ -175,5 +175,8 @@
     "OR003": "invalid price size change",
     "OR004": "invalid owner",
     "SS001": "Can only be called by eraManager",
-    "ST001": "length of sq and addresses should be same"
+    "ST001": "length of sq and addresses should be same",
+    "TE001": "Token give balance must be greater than 0",
+    "TE002": "order not exist",
+    "TE003": "trade amount exceed order balance"
 }

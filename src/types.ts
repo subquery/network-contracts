@@ -28,7 +28,10 @@ import {
     Staking__factory,
     StateChannel__factory,
     VSQToken__factory,
-    Vesting__factory, EventSyncRootTunnel__factory, ChildERC20__factory,
+    Vesting__factory,
+    EventSyncRootTunnel__factory,
+    ChildERC20__factory,
+    TokenExchange__factory
 } from './typechain';
 
 export type SubqueryNetwork = 'testnet' | 'mainnet' | 'local';
@@ -110,6 +113,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     RewardsHelper: RewardsHelper__factory,
     StateChannel: StateChannel__factory,
     PermissionedExchange: PermissionedExchange__factory,
+    TokenExchange: TokenExchange__factory,
     ConsumerHost: ConsumerHost__factory,
     DisputeManager: DisputeManager__factory,
     PriceOracle: PriceOracle__factory,

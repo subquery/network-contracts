@@ -6,6 +6,7 @@ import EraManager from './artifacts/contracts/polygon/EraManager.sol/EraManager.
 import IndexerRegistry from './artifacts/contracts/IndexerRegistry.sol/IndexerRegistry.json';
 import InflationController from './artifacts/contracts/root/InflationController.sol/InflationController.json';
 import PermissionedExchange from './artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json';
+import TokenExchange from './artifacts/contracts/TokenExchange.sol/TokenExchange.json';
 import PlanManager from './artifacts/contracts/PlanManager.sol/PlanManager.json';
 import PriceOracle from './artifacts/contracts/PriceOracle.sol/PriceOracle.json';
 import ProjectRegistry from './artifacts/contracts/ProjectRegistry.sol/ProjectRegistry.json';
@@ -49,6 +50,7 @@ export default {
     StateChannel,
     Airdropper,
     PermissionedExchange,
+    TokenExchange,
     Vesting,
     ConsumerHost,
     DisputeManager,

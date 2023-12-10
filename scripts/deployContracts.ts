@@ -39,6 +39,7 @@ import {
     VSQToken,
     Vesting,
     EventSyncRootTunnel, TransparentUpgradeableProxy__factory,
+    TokenExchange,
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -352,6 +353,8 @@ export async function deployContracts(
             initConfig: [settingsAddress],
         });
 
+        const tokenExchange = await deployContract<TokenExchange>('TokenExchange', 'child', { initConfig: [] });
+
         // deploy RewardsDistributer contract
         const rewardsDistributer = await deployContract<RewardsDistributer>('RewardsDistributer', 'child', {
             proxyAdmin,
@@ -472,6 +475,7 @@ export async function deployContracts(
                 stateChannel,
                 consumerHost,
                 disputeManager,
+                tokenExchange,
                 priceOracle,
                 consumerRegistry,
             },
