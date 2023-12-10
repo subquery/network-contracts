@@ -8,7 +8,7 @@
         "build:ts": "scripts/build.sh",
         "abi": "ts-node --transpileOnly scripts/abi.ts",
         "lint": "solhint contracts/**/*.sol --fix",
-        "test": "hardhat test ./test/*.test.ts",
+        "test": "hardhat test ./test/*",
         "test:coverage": "hardhat coverage",
         "prepare": "husky install",
         "docs:dev": "vuepress dev docs",

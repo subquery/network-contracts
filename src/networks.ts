@@ -99,32 +99,4 @@ export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
             }
         }
     }
-    // 'goerli': {
-    //     chainId: '0x5',
-    //     chainName: 'Goerli',
-    //     rpcUrls: [
-    //         'https://rpc.ankr.com/eth_goerli'
-    //     ],
-    //     iconUrls: [],
-    //     blockExplorerUrls: ['https://goerli.etherscan.io'],
-    //     nativeCurrency: {
-    //         name: 'ETH',
-    //         symbol: 'ETH',
-    //         decimals: 18
-    //     }
-    // },
-    // local: {
-    //     chainId: '0x7A69',
-    //     chainName: 'Hardhat',
-    //     rpcUrls: [
-    //         'http://127.0.0.1:8545'
-    //     ],
-    //     iconUrls: [],
-    //     blockExplorerUrls: [''],
-    //     nativeCurrency: {
-    //       name: '',
-    //       symbol: '',
-    //       decimals: 18
-    //     }
-    // }
 }

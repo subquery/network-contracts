@@ -225,12 +225,6 @@ export async function deployRootContracts(
         });
         getLogger('Deployer').info('🤞 InflationController');
 
-        // TODO: we don't need event sync contract anymore
-        const eventSyncRootTunnel = await deployContract<EventSyncRootTunnel>('EventSyncRootTunnel', 'root', {
-            deployConfig: [...config['EventSyncRootTunnel']],
-        });
-        getLogger('Deployer').info('🤞 EventSyncRootTunnel');
-
         //deploy vesting contract
         const vesting = await deployContract<Vesting>('Vesting', 'root', { deployConfig: [deployment.root.SQToken.address] });
         getLogger('Deployer').info('🤞 Vesting');
@@ -239,16 +233,13 @@ export async function deployRootContracts(
         let tx = await settings.setBatchAddress([
             SQContracts.SQToken,
             SQContracts.InflationController,
-            SQContracts.EventSyncRootTunnel,
             SQContracts.Vesting,
         ],[
             sqtToken.address,
             inflationController.address,
-            eventSyncRootTunnel.address,
             vesting.address
         ]);
         await tx.wait(confirms);
-
 
         // Register addresses on settings contract
         return [
@@ -257,7 +248,6 @@ export async function deployRootContracts(
                 inflationController,
                 rootToken: sqtToken,
                 proxyAdmin,
-                eventSyncRootTunnel,
                 vesting,
             },
         ];

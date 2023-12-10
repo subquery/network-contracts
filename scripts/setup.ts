@@ -94,7 +94,7 @@ const setup = async (network?: string) => {
             throw new Error('no network specified');
     }
 
-    name = argv.network as SubqueryNetwork;
+    name = (argv.network ?? 'local') as SubqueryNetwork;
 
     history = argv.history;
     checkOnly = argv["check-only"];
