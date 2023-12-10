@@ -295,10 +295,6 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             IStaking(settings.getContractAddress(SQContracts.Staking)).unbondCommission(indexer, commission);
 
             emit DistributeRewards(indexer, rewardInfo.lastClaimEra, rewardInfo.eraReward, commission);
-
-            // remove for mainnet
-//            IPermissionedExchange exchange = IPermissionedExchange(settings.getContractAddress(SQContracts.PermissionedExchange));
-//            exchange.addQuota(settings.getContractAddress(SQContracts.SQToken), indexer, commission);
         }
         return rewardInfo.lastClaimEra;
     }
@@ -320,9 +316,6 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         info[indexer].rewardDebt[user] += rewards;
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(user, rewards);
-
-        IPermissionedExchange exchange = IPermissionedExchange(settings.getContractAddress(SQContracts.PermissionedExchange));
-        exchange.addQuota(settings.getContractAddress(SQContracts.SQToken), user, rewards);
 
         emit ClaimRewards(indexer, user, rewards);
         return rewards;

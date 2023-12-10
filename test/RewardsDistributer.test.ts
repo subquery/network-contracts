@@ -72,13 +72,12 @@ describe('RewardsDistributer Contract', () => {
         serviceAgreementExtra = deployment.serviceAgreementExtra;
         staking = deployment.staking;
         stakingManager = deployment.stakingManager;
-        token = deployment.token;
+        token = deployment.token as SQToken;
         rewardsDistributor = deployment.rewardsDistributer;
         rewardsStaking = deployment.rewardsStaking;
         rewardsHelper = deployment.rewardsHelper;
         eraManager = deployment.eraManager;
         settings = deployment.settings;
-        inflationController = deployment.inflationController;
 
         //init delegator account
         await token.connect(root).transfer(delegator.address, etherParse('10'));
@@ -87,12 +86,7 @@ describe('RewardsDistributer Contract', () => {
         await token.connect(consumer).increaseAllowance(planManager.address, etherParse('10'));
         await token.connect(delegator).increaseAllowance(staking.address, etherParse('10'));
         await token.connect(delegator2).increaseAllowance(staking.address, etherParse('10'));
-        //make root as ServiceAgreementRegistry
-        //await settings.setServiceAgreementRegistry(root.address);
         await token.connect(root).increaseAllowance(rewardsDistributor.address, etherParse('10'));
-
-        //set root address as inflation destination
-        inflationController.connect(root).setInflationDestination(root.address);
 
         //setup era period be 5 days
         await eraManager.connect(root).updateEraPeriod(time.duration.days(5).toString());
