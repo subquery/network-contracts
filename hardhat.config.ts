@@ -129,13 +129,6 @@ task('publishChild', "verify and publish contracts on etherscan")
                 constructorArguments: [],
             });
 
-            // //Airdropper
-            // await hre.run("verify:verify", {
-            //     address: deployment.Airdropper.address,
-            //     constructorArguments: ["0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C"],
-            // });
-
-
             //Staking
             await hre.run("verify:verify", {
                 address: deployment.Staking.address,
@@ -328,12 +321,6 @@ task('publishChild', "verify and publish contracts on etherscan")
 task("compile", async (taskArguments: Object, {run}, runSuper) => {
     // Run the original compile task's logic
     await runSuper({...taskArguments});
-    // Sync Proxy ABI
-    // await exec('scripts/syncProxyABI.sh');
-    // Run Typechain
-    // TODO: not an elegant way to call `typechain` cmd
-    // await exec('rm -rf ./artifacts/contracts/**/*.dbg.json && rm -rf ./artifacts/contracts/**/**/*.dbg.json');
-    // await exec('npx typechain --target ethers-v5 --out-dir src/typechain --input-dir "./artifacts/@maticnetwork/fx-portal" "./artifacts/contracts/**/*.json"');
     // Run the script to generate the typechain
     await exec('scripts/build.sh');
     // Generate ABI

@@ -31,7 +31,7 @@ import {
     Vesting__factory, EventSyncRootTunnel__factory, ChildERC20__factory,
 } from './typechain';
 
-export type SubqueryNetwork = 'testnet' | 'mainnet' | 'local'; //  'mainnet' | 'kepler' | 'testnet' | 'base-goerli' | 'goerli' | 'local';
+export type SubqueryNetwork = 'testnet' | 'mainnet' | 'local';
 
 export type NetworkPair = {
     root: Network;

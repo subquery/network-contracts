@@ -7,7 +7,7 @@ moduleAlias.addAlias('./artifacts', '../artifacts');
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 
-import {DeploymentConfig, networks, SubqueryNetwork, Network, NetworkPair} from '../src';
+import { networks, SubqueryNetwork, NetworkPair} from '../src';
 import contractsConfig from './config/contracts.config';
 import {ContractConfig} from "./contracts";
 
@@ -86,10 +86,6 @@ const setup = async (network?: string) => {
             config.contracts = contractsConfig.mainnet as any;
             config.network = networks.mainnet;
             break;
-        // case 'kepler':
-        //     config.contracts = contractsConfig.kepler;
-        //     config.network = networks.kepler;
-        //     break;
         case 'testnet':
             config.contracts = contractsConfig.testnet as any;
             config.network = networks.testnet;

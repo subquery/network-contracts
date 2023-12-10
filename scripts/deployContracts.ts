@@ -10,18 +10,15 @@ import sha256 from 'sha256';
 
 import CONTRACTS from '../src/contracts';
 import {ContractDeployment, ContractDeploymentInner, ContractName, SQContracts, SubqueryNetwork} from '../src/types';
-import { TextColor, colorText, getLogger } from './logger';
+import { getLogger } from './logger';
 
 import {
-    Airdropper,
-    ChildERC20,
     ConsumerHost,
     ConsumerRegistry,
     DisputeManager,
     EraManager,
     IndexerRegistry,
     InflationController,
-    PermissionedExchange,
     PlanManager,
     PriceOracle,
     ProjectRegistry,
@@ -226,10 +223,13 @@ export async function deployRootContracts(
             proxyAdmin,
         });
         getLogger('Deployer').info('🤞 InflationController');
+
+        // TODO: we don't need event sync contract anymore
         const eventSyncRootTunnel = await deployContract<EventSyncRootTunnel>('EventSyncRootTunnel', 'root', {
             deployConfig: [...config['EventSyncRootTunnel']],
         });
         getLogger('Deployer').info('🤞 EventSyncRootTunnel');
+
         //deploy vesting contract
         const vesting = await deployContract<Vesting>('Vesting', 'root', { deployConfig: [deployment.root.SQToken.address] });
         getLogger('Deployer').info('🤞 Vesting');
@@ -301,10 +301,6 @@ export async function deployContracts(
         }
         // deploy VSQToken contract
         const vsqtToken = await deployContract<VSQToken>('VSQToken', 'child', { proxyAdmin, initConfig: [settingsAddress] });
-
-        //deploy Airdropper contract
-        // const [settleDestination] = config['Airdropper'];
-        // const airdropper = await deployContract<Airdropper>('Airdropper', 'child', { deployConfig: [settleDestination] });
 
         //deploy vesting contract
         // const vesting = await deployContract<Vesting>('Vesting', { deployConfig: [deployment.SQToken.address] });
@@ -385,12 +381,6 @@ export async function deployContracts(
             proxyAdmin,
             initConfig: [settingsAddress],
         });
-
-        // deploy PermissionedExchange contract
-        // const permissionedExchange = await deployContract<PermissionedExchange>('PermissionedExchange', {
-        //     proxyAdmin,
-        //     initConfig: [settingsAddress, [rewardsDistributer.address]],
-        // });
 
         // deploy ConsumerHost contract
         const consumerHost = await deployContract<ConsumerHost>('ConsumerHost', 'child', {
