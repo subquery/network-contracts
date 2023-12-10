@@ -1,6 +1,5 @@
 import setup from './setup';
 import {deployContracts, deployRootContracts, saveDeployment} from './deployContracts';
-import contractsConfig from "./config/contracts.config";
 
 const main = async () => {
     try {

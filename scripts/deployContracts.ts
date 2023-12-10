@@ -89,7 +89,7 @@ function loadDeployment(name: string) {
 
 async function deployContract<T extends BaseContract>(
     name: ContractName,
-    target: 'root'|'child',
+    target: 'root' | 'child',
     options?: {
         proxyAdmin?: ProxyAdmin;
         initConfig?: (string | number | string[])[];
@@ -196,7 +196,7 @@ export async function deployRootContracts(
     wallet = _wallet;
     config = _config;
     confirms = options?.confirms ?? 1;
-    network = options?.network;
+    network = options?.network ?? 'local';
 
     if (options?.history) {
         const localDeployment = loadDeployment(network);

@@ -92,9 +92,8 @@ const setup = async (network?: string) => {
             break;
         default:
             throw new Error('no network specified');
-            // config.contracts = contractsConfig.local;
-            // config.network = {rpcUrls: ['http://localhost:8545']};
     }
+
     name = argv.network as SubqueryNetwork;
 
     history = argv.history;

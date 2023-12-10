@@ -1,6 +1,4 @@
 // @ts-nocheck
-import moduleAlias from 'module-alias';
-moduleAlias.addAlias('./publish', '../publish');
 
 import { ContractDeployment, SubqueryNetwork } from './types';
 
