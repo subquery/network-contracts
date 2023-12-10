@@ -26,7 +26,6 @@ import { deployContracts } from './setup';
 describe('Maintenance Mode Test', () => {
     const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
-    let permissionedExchange: PermissionedExchange;
     let settings: Settings;
     let token: ERC20;
     let staking: Staking;
@@ -43,7 +42,6 @@ describe('Maintenance Mode Test', () => {
     before(async () => {
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
         const deployment = await deployContracts(wallet_0, wallet_0);
-        permissionedExchange = deployment.permissionedExchange;
         token = deployment.token;
         settings = deployment.settings;
         staking = deployment.staking;
@@ -125,15 +123,6 @@ describe('Maintenance Mode Test', () => {
         });
         it('withdraw should ban in maintenance mode', async () => {
             await expect(consumerHost.withdraw(etherParse('9.5'))).to.be.revertedWith('G019');
-        });
-    });
-
-    describe('PermissionedExchange check', () => {
-        it('trade should ban in maintenance mode', async () => {
-            await expect(permissionedExchange.trade(1, etherParse('2'))).to.be.revertedWith('G019');
-        });
-        it('settleExpiredOrder should ban in maintenance mode', async () => {
-            await expect(permissionedExchange.settleExpiredOrder(1)).to.be.revertedWith('G019');
         });
     });
 

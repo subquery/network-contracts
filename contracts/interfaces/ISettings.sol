@@ -19,7 +19,6 @@ enum SQContracts {
     RewardsHelper,
     InflationController,
     Vesting,
-    PermissionedExchange,
     DisputeManager,
     StateChannel,
     ConsumerRegistry,

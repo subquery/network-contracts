@@ -64,9 +64,7 @@ import {
     EventSyncRootTunnel,
     EventSyncRootTunnel__factory,
 } from '../src';
-import ChildERC20 from "../artifacts/contracts/polygon/ChildERC20.sol/ChildERC20.json";
 import {ChildERC20__factory} from "../build";
-import RootChainManager from "../artifacts/contracts/external/RootChainManager.sol/RootChainManager.json";
 
 export interface FactoryContstructor {
     new(wallet: Wallet): ContractFactory;
@@ -161,8 +159,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ConsumerRegistry: ConsumerRegistry__factory,
     PriceOracle: PriceOracle__factory,
     EventSyncRootTunnel: EventSyncRootTunnel__factory,
-    ChildERC20: ChildERC20__factory,
-    RootChainManager: undefined,
+    ChildERC20: ChildERC20__factory
 };
 
 export type Config = number | string | string[];
