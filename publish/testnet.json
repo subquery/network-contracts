@@ -30,12 +30,6 @@
             "bytecodeHash": "5d3f5ec0939560ee147d7a15a0296d0c7d384e950a52679d9480345f92761c31",
             "lastUpdate": "Mon, 11 Dec 2023 01:49:26 GMT"
         },
-        "EventSyncRootTunnel": {
-            "innerAddress": "",
-            "address": "0x561d1322d2C82D516D1966e4a476d26195D5556D",
-            "bytecodeHash": "9326339092b0195c03b081aa5b7f062143b609abd1b07ebeaf4cbb8cc39f8222",
-            "lastUpdate": "Wed, 06 Dec 2023 09:07:05 GMT"
-        },
         "PolygonDestination": {
             "innerAddress": "",
             "address": "0x4F45d18BB9B99413fC299BE9410DF91B5ca57538",

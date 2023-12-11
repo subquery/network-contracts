@@ -90,8 +90,6 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
      * @notice Can only called by eraManager when startNewEra, it will calculate and mint the inflation SQT token for last Era according to the inflation rate.
      */
     function mintInflatedTokens() external {
-//        require(msg.sender == settings.getContractAddress(SQContracts.EraManager), 'G012');
-//        require(msg.sender == settings.getContractAddress(SQContracts.EventSyncRootTunnel), 'G012');
         uint256 passedTime = block.timestamp - lastInflationTimestamp;
         require(passedTime > 0, 'IC002');
 
