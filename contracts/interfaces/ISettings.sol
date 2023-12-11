@@ -23,8 +23,7 @@ enum SQContracts {
     StateChannel,
     ConsumerRegistry,
     PriceOracle,
-    EventSyncChildTunnel,
-    EventSyncRootTunnel
+    RootChainManager
 }
 
 interface ISettings {

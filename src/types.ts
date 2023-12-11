@@ -1,3 +1,6 @@
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { Provider } from '@ethersproject/abstract-provider';
 import { Wallet } from '@ethersproject/wallet';
 import { BaseContract, ContractFactory, Signer } from 'ethers';
@@ -29,7 +32,6 @@ import {
     StateChannel__factory,
     VSQToken__factory,
     Vesting__factory,
-    EventSyncRootTunnel__factory,
     ChildERC20__factory,
     TokenExchange__factory
 } from './typechain';
@@ -68,7 +70,7 @@ export type ContractDeploymentDetail = {
 
 export type ContractName = keyof typeof CONTRACTS;
 
-export type ContractDeploymentInner = Record<Partial<ContractName>, ContractDeploymentDetail>;
+export type ContractDeploymentInner = Partial<Record<ContractName, ContractDeploymentDetail>>;
 export type ContractDeployment = {
     root: ContractDeploymentInner;
     child: ContractDeploymentInner;
@@ -118,7 +120,6 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     DisputeManager: DisputeManager__factory,
     PriceOracle: PriceOracle__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
-    EventSyncRootTunnel: EventSyncRootTunnel__factory,
     ChildERC20: ChildERC20__factory,
 };
 
@@ -143,6 +144,5 @@ export enum SQContracts {
     StateChannel,
     ConsumerRegistry,
     PriceOracle,
-    EventSyncChildTunnel,
-    EventSyncRootTunnel
+    RootChainManager,
 }

@@ -1,5 +1,11 @@
 {
     "root": {
+        "RootChainManager": {
+            "innerAddress": "",
+            "address": "0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
         "ProxyAdmin": {
             "innerAddress": "",
             "address": "0xefcbBA622f9A596C15b0d36499A5B447D15ccfAB",

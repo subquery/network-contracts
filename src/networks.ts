@@ -1,3 +1,6 @@
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import {NetworkPair, SubqueryNetwork} from './types';
 
 export const CURRENT_NETWORK = 'testnet';

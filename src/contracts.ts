@@ -1,3 +1,6 @@
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import Airdropper from './artifacts/contracts/Airdropper.sol/Airdropper.json';
 import ConsumerHost from './artifacts/contracts/ConsumerHost.sol/ConsumerHost.json';
 import ConsumerRegistry from './artifacts/contracts/ConsumerRegistry.sol/ConsumerRegistry.json';
@@ -26,7 +29,6 @@ import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.js
 import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import ChildERC20 from './artifacts/contracts/polygon/ChildERC20.sol/ChildERC20.json';
 import Vesting from './artifacts/contracts/Vesting.sol/Vesting.json';
-import EventSyncRootTunnel from './artifacts/contracts/root/EventSyncRootTunnel.sol/EventSyncRootTunnel.json';
 
 export default {
     Settings,
@@ -57,5 +59,4 @@ export default {
     PriceOracle,
     ConsumerRegistry,
     ChildERC20,
-    EventSyncRootTunnel,
 };

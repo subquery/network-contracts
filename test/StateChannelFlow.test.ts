@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import {ethers, waffle} from 'hardhat';
 import {deployContracts} from './setup';
 import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
-import {IndexerRegistry, RewardsPool, RewardsDistributer, EraManager, SQToken, Staking, StateChannel, StakingManager} from '../src';
+import {IndexerRegistry, RewardsPool, RewardsDistributer, EraManager, ERC20, Staking, StateChannel, StakingManager} from '../src';
 import {constants, registerIndexer, startNewEra, time, delay, etherParse} from './helper';
 import {utils, Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
 import { MockProvider } from 'ethereum-waffle';
@@ -13,7 +13,7 @@ describe('StateChannel Workflow Tests', () => {
     let wallet_0, indexer, indexer2, consumer, consumer2;
     let channelId, channelId2, channelId3, channelId4;
 
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
     let eraManager: EraManager;

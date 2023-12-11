@@ -3,7 +3,7 @@
 
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { SQToken, SQToken__factory, Settings } from '../src';
+import { ERC20, SQToken__factory, Settings, SQContracts } from '../src';
 import { ZERO_ADDRESS } from './constants';
 import { etherParse, revertrMsg } from './helper';
 import { deployContracts } from './setup';
@@ -14,8 +14,8 @@ describe('TokenExchange Contract', () => {
     let tokenExchange: TokenExchange;
     let settings: Settings;
     let ksqtAddress: string;
-    let kSQToken: SQToken;
-    let SQToken: SQToken;
+    let kSQToken: ERC20;
+    let SQToken: ERC20;
     let sqtAddress: string;
 
     beforeEach(async () => {
@@ -24,7 +24,7 @@ describe('TokenExchange Contract', () => {
         tokenExchange = deployment.tokenExchange;
         kSQToken = deployment.token;
         settings = deployment.settings;
-        ksqtAddress = await settings.getSQToken();
+        ksqtAddress = await settings.getContractAddress(SQContracts.SQToken);
 
         //deploy SQToken
         SQToken = await new SQToken__factory(wallet_0).deploy(deployment.inflationController.address, etherParse('10000000000000'));

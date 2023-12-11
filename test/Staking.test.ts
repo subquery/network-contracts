@@ -11,7 +11,7 @@ import {
     IndexerRegistry,
     RewardsDistributer,
     RewardsStaking,
-    SQToken,
+    ERC20,
     Staking,
     StakingManager,
 } from '../src';
@@ -21,7 +21,7 @@ import { deployContracts } from './setup';
 describe('Staking Contract', () => {
     const mockProvider = waffle.provider;
     let indexer, indexer2, delegator;
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let stakingManager: StakingManager;
     let eraManager: EraManager;

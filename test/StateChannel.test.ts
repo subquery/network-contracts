@@ -4,7 +4,7 @@
 import { expect } from 'chai';
 import { BigNumber, BigNumberish, BytesLike, Wallet } from 'ethers';
 import { ethers, waffle } from 'hardhat';
-import { EraManager, IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsPool, SQToken, Staking, StateChannel } from '../src';
+import { EraManager, IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsPool, ERC20, Staking, StateChannel } from '../src';
 import { deploymentIds } from './constants';
 import { delay, etherParse, eventFrom, eventsFrom, registerIndexer, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
@@ -13,7 +13,7 @@ describe('StateChannel Contract', () => {
     const deploymentId = deploymentIds[0];
     let wallet_0, indexer, consumer, indexer2, indexer3;
 
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
     let eraManager: EraManager;

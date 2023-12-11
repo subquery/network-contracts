@@ -1,140 +1,143 @@
 {
-    "ProxyAdmin": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
+    "root": {
+        "ProxyAdmin": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "Settings": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "InflationController": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "SQToken": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "VSQToken": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "Airdropper": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "Vesting": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "Staking": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "StakingManager": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "EraManager": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "IndexerRegistry": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "ProjectRegistry": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "PlanManager": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "PurchaseOfferMarket": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "ServiceAgreementRegistry": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "RewardsDistributer": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "RewardsPool": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "RewardsStaking": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "RewardsHelper": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "StateChannel": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "PermissionedExchange": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "ConsumerHost": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        },
+        "DisputeManager": {
+            "innerAddress": "",
+            "address": "",
+            "bytecodeHash": "",
+            "lastUpdate": ""
+        }
     },
-    "Settings": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "InflationController": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "SQToken": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "VSQToken": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "Airdropper": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "Vesting": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "Staking": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "StakingManager": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "EraManager": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "IndexerRegistry": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "ProjectRegistry": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "PlanManager": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "PurchaseOfferMarket": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "ServiceAgreementRegistry": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "RewardsDistributer": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "RewardsPool": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "RewardsStaking": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "RewardsHelper": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "StateChannel": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "PermissionedExchange": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "ConsumerHost": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    },
-    "DisputeManager": {
-        "innerAddress": "",
-        "address": "",
-        "bytecodeHash": "",
-        "lastUpdate": ""
-    }
+    "child": {}
 }

@@ -318,14 +318,14 @@ task('publishChild', "verify and publish contracts on etherscan")
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
-task("compile", async (taskArguments: Object, {run}, runSuper) => {
-    // Run the original compile task's logic
-    await runSuper({...taskArguments});
-    // Run the script to generate the typechain
-    await exec('scripts/build.sh');
-    // Generate ABI
-    await exec('ts-node --transpileOnly scripts/abi.ts');
-});
+// task("compile", async (taskArguments: Object, {run}, runSuper) => {
+//     // Run the original compile task's logic
+//     await runSuper({...taskArguments});
+//     // Run the script to generate the typechain
+//     await exec('scripts/build.sh');
+//     // Generate ABI
+//     await exec('ts-node --transpileOnly scripts/abi.ts');
+// });
 
 const config: HardhatUserConfig = {
     solidity: {

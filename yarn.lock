@@ -2748,15 +2748,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@maticnetwork/fx-portal@npm:^1.0.5":
-  version: 1.0.5
-  resolution: "@maticnetwork/fx-portal@npm:1.0.5"
-  dependencies:
-    "@openzeppelin/contracts": ^4.2.0
-  checksum: 295b817aa00905d62eccb0f83176c3477800c6fc7f5c1de34c10d4d9a3f0e3587b9cba46e562234df4e3ac0160db45e6fe8fe5e60166328e7bf1c2ec0054eddf
-  languageName: node
-  linkType: hard
-
 "@maticnetwork/maticjs-ethers@npm:^1.0.3":
   version: 1.0.3
   resolution: "@maticnetwork/maticjs-ethers@npm:1.0.3"
@@ -3228,7 +3219,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openzeppelin/contracts@npm:^4.2.0, @openzeppelin/contracts@npm:^4.9.3":
+"@openzeppelin/contracts@npm:^4.9.3":
   version: 4.9.3
   resolution: "@openzeppelin/contracts@npm:4.9.3"
   checksum: 4932063e733b35fa7669b9fe2053f69b062366c5c208b0c6cfa1ac451712100c78acff98120c3a4b88d94154c802be05d160d71f37e7d74cadbe150964458838
@@ -3692,7 +3683,6 @@ __metadata:
     "@ethersproject/providers": ~5.5.3
     "@ethersproject/transactions": ~5.5.0
     "@ethersproject/wallet": ~5.5.0
-    "@maticnetwork/fx-portal": ^1.0.5
     "@maticnetwork/maticjs": ^3.6.7
     "@maticnetwork/maticjs-ethers": ^1.0.3
     "@maticnetwork/pos-portal": ^1.5.2

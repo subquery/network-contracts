@@ -6,12 +6,13 @@ pragma solidity 0.8.15;
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+
 
 import "./IInflationDestination.sol";
 import '../interfaces/ISettings.sol';
 import '../interfaces/ISQToken.sol';
-//import './interfaces/IEraManager.sol';
 import '../Constants.sol';
 import '../utils/MathUtil.sol';
 
@@ -21,11 +22,11 @@ import '../utils/MathUtil.sol';
  */
 contract InflationController is Initializable, OwnableUpgradeable, Constants {
     using MathUtil for uint256;
+    using ERC165CheckerUpgradeable for address;
 
 //    /// @dev ### STATES
 //    /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
-//    address public sqToken;
 
     /// @notice The one year inflation rate for SQT token
     uint256 public inflationRate;
@@ -48,7 +49,6 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
      */
     function initialize(
         ISettings _settings,
-//        address _sqtoken,
         uint256 _inflationRate,
         address _inflationDestination
     ) external initializer {
@@ -56,7 +56,6 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
         require(_inflationRate < PER_MILL, 'IC001');
 
         settings = _settings;
-//        sqToken = _sqtoken;
         inflationRate = _inflationRate;
         inflationDestination = _inflationDestination;
         lastInflationTimestamp = block.timestamp;
@@ -92,7 +91,7 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
      */
     function mintInflatedTokens() external {
 //        require(msg.sender == settings.getContractAddress(SQContracts.EraManager), 'G012');
-        require(msg.sender == settings.getContractAddress(SQContracts.EventSyncRootTunnel), 'G012');
+//        require(msg.sender == settings.getContractAddress(SQContracts.EventSyncRootTunnel), 'G012');
         uint256 passedTime = block.timestamp - lastInflationTimestamp;
         require(passedTime > 0, 'IC002');
 
@@ -104,7 +103,7 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
         uint256 newSupply = (totalSupply * (PER_BILL + passedTimeRate)) / PER_BILL;
         uint256 claimAmount = newSupply - totalSupply;
         ISQToken(sqToken).mint(inflationDestination, claimAmount);
-        if (AddressUpgradeable.isContract(inflationDestination)) {
+        if (inflationDestination.supportsInterface(type(IInflationDestination).interfaceId)) {
             IInflationDestination(inflationDestination).afterReceiveInflatedTokens(claimAmount);
         }
     }

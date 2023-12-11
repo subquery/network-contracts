@@ -1,3 +1,6 @@
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { Provider as AbstractProvider } from '@ethersproject/abstract-provider';
 import {BigNumber, BigNumberish, Signer, utils} from 'ethers';
 import { DEPLOYMENT_DETAILS } from './deployments';
@@ -10,6 +13,7 @@ import {
 } from './types';
 import {POSClient, use, setProofApi} from "@maticnetwork/maticjs";
 import { Web3ClientPlugin } from '@maticnetwork/maticjs-ethers';
+import assert from "assert";
 use(Web3ClientPlugin);
 setProofApi("https://proof-generator.polygon.technology/");
 
@@ -22,9 +26,10 @@ export class PolygonSDK {
     private signerAddress?: string;
 
     constructor(private readonly wallet: Signer, private readonly providers: {root: AbstractProvider, child: AbstractProvider}, public readonly options: PolygonSdkOptions) {
-        this._contractDeployments = this.options.deploymentDetails ?? DEPLOYMENT_DETAILS[options.network];
-        this.sqToken = CONTRACT_FACTORY.SQToken.connect(this._contractDeployments.root.SQToken.address, this.wallet.connect(providers.root)) as SQToken;
-        this.childToken = CONTRACT_FACTORY.ChildERC20.connect(this._contractDeployments.child.SQToken.address, this.wallet.connect(providers.child)) as ERC20;
+        assert(this.options.deploymentDetails || DEPLOYMENT_DETAILS[options.network],' missing contract deployment info');
+        this._contractDeployments = this.options.deploymentDetails ?? DEPLOYMENT_DETAILS[options.network]!;
+        this.sqToken = CONTRACT_FACTORY.SQToken.connect(this._contractDeployments.root.SQToken!.address, this.wallet.connect(providers.root)) as SQToken;
+        this.childToken = CONTRACT_FACTORY.ChildERC20.connect(this._contractDeployments.child.SQToken!.address, this.wallet.connect(providers.child)) as ERC20;
         this._posClient = new POSClient();
     }
 

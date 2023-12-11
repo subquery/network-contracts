@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { InflationController, SQToken } from '../src';
 import { etherParse } from './helper';
-import { deployContracts } from './setup';
+import {deployRootContracts} from './setup';
 import { ZERO_ADDRESS } from './constants';
 
 describe('SQToken Contract', () => {
@@ -16,9 +16,9 @@ describe('SQToken Contract', () => {
 
     beforeEach(async () => {
         [wallet_0, wallet_1] = await ethers.getSigners();
-        const deployment = await deployContracts(wallet_0, wallet_1);
+        const deployment = await deployRootContracts(wallet_0, wallet_1);
         inflationController = deployment.inflationController;
-        token = deployment.token as SQToken;
+        token = deployment.rootToken;
     });
 
     describe('Genesis Config', () => {

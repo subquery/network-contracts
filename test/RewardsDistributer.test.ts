@@ -13,7 +13,7 @@ import {
     RewardsDistributer,
     RewardsHelper,
     RewardsStaking,
-    SQToken,
+    ERC20,
     ServiceAgreementExtra,
     ServiceAgreementRegistry,
     Settings,
@@ -30,7 +30,7 @@ describe('RewardsDistributer Contract', () => {
     const mockProvider = waffle.provider;
     let root, indexer, consumer, delegator, delegator2;
 
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let stakingManager: StakingManager;
     let projectRegistry: ProjectRegistry;

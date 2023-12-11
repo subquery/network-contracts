@@ -178,5 +178,6 @@
     "ST001": "length of sq and addresses should be same",
     "TE001": "Token give balance must be greater than 0",
     "TE002": "order not exist",
-    "TE003": "trade amount exceed order balance"
+    "TE003": "trade amount exceed order balance",
+    "PD001": "RootChainManager is undefined"
 }

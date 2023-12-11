@@ -4,14 +4,14 @@
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 
-import { EraManager, IndexerRegistry, SQToken, Staking, StakingManager, VSQToken } from '../src';
+import { EraManager, IndexerRegistry, ERC20, Staking, StakingManager, VSQToken } from '../src';
 import { etherParse, registerIndexer, startNewEra } from './helper';
 import { deployContracts } from './setup';
 
 describe('VSQToken Contract', () => {
     const mockProvider = waffle.provider;
     let root, indexer, indexer2, delegator;
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let stakingManager: StakingManager;
     let eraManager: EraManager;
