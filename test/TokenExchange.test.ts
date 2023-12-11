@@ -27,7 +27,7 @@ describe('TokenExchange Contract', () => {
         ksqtAddress = await settings.getContractAddress(SQContracts.SQToken);
 
         //deploy SQToken
-        SQToken = await new SQToken__factory(wallet_0).deploy(deployment.inflationController.address, etherParse('10000000000000'));
+        SQToken = await new SQToken__factory(wallet_0).deploy(ZERO_ADDRESS, etherParse('10000000000000'));
         await SQToken.deployTransaction.wait();
         sqtAddress = SQToken.address;
 

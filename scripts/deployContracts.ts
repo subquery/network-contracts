@@ -301,9 +301,6 @@ export async function deployContracts(
         // deploy VSQToken contract
         const vsqtToken = await deployContract<VSQToken>('VSQToken', 'child', { proxyAdmin, initConfig: [settingsAddress] });
 
-        //deploy vesting contract
-        // const vesting = await deployContract<Vesting>('Vesting', { deployConfig: [deployment.SQToken.address] });
-
         // deploy Staking contract
         const staking = await deployContract<Staking>('Staking', 'child', { proxyAdmin, initConfig: [settingsAddress] });
 
