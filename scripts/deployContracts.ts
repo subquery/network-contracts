@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import Pino from 'pino';
 import sha256 from 'sha256';
 
+import { rootChainMananger } from './rootChainManager';
 import CONTRACTS from '../src/contracts';
 import {ContractDeployment, ContractDeploymentInner, ContractName, SQContracts, SubqueryNetwork} from '../src/types';
 import { getLogger } from './logger';
@@ -257,6 +258,7 @@ export async function deployRootContracts(
                 proxyAdmin,
                 vesting,
                 polygonDestination,
+                rootChainMananger: rootChainMananger[network],
             },
         ];
     } catch (error) {
