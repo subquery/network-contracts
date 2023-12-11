@@ -94,13 +94,14 @@ To verify the contracts deployment, run the following cmd to verify specific typ
 
 ### test
 
-`yarn test`
+Single Test
+`yarn test ./test/SQToken.test.ts`
 
 Note: After contract upgrade, should run below again.
 
 ```
     yarn build
-    yarn test
+    yarn test:all
     yarn mocha test/Staking.test.ts
     ...
 ```
