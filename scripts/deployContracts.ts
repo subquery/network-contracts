@@ -38,8 +38,9 @@ import {
     StateChannel,
     VSQToken,
     Vesting,
-    EventSyncRootTunnel, TransparentUpgradeableProxy__factory,
+    TransparentUpgradeableProxy__factory,
     TokenExchange,
+    PolygonDestination,
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -229,6 +230,12 @@ export async function deployRootContracts(
         const vesting = await deployContract<Vesting>('Vesting', 'root', { deployConfig: [deployment.root.SQToken.address] });
         getLogger('Deployer').info('🤞 Vesting');
 
+        //deploy PolygonDestination contract
+        const polygonDestination = await deployContract<PolygonDestination>('PolygonDestination' as any, 'root',
+            { deployConfig: [settingsAddress, constants.AddressZero] });
+
+        getLogger('Deployer').info('🤞 PolygonDestination');
+
         getLogger('SettingContract').info('🤞 Set addresses');
         let tx = await settings.setBatchAddress([
             SQContracts.SQToken,
@@ -249,6 +256,7 @@ export async function deployRootContracts(
                 rootToken: sqtToken,
                 proxyAdmin,
                 vesting,
+                polygonDestination,
             },
         ];
     } catch (error) {
@@ -260,7 +268,7 @@ export async function deployRootContracts(
 export async function deployContracts(
     _wallet: Wallet,
     _config: ContractConfig,
-    options?: { network: SubqueryNetwork; confirms: number; history: boolean, test: boolean }
+    options?: { network: SubqueryNetwork; confirms: number; history: boolean }
 ): Promise<[Partial<ContractDeployment>, Partial<Contracts>]> {
     wallet = _wallet;
     config = _config;
@@ -436,7 +444,7 @@ export async function deployContracts(
             serviceAgreementExtra.address,
             disputeManager.address,
             stateChannel.address,
-            consumerHost.address,
+            consumerRegistry.address,
         ]);
 
         await txToken.wait(confirms);

@@ -127,7 +127,7 @@ yarn upgrade --network testnet --check-only=false --target root
 ```
 # set up ETHERSCAN_API_KEY in .env 
 yarn hardhat publishChild --deployment publish/testnet.json --network testnet --networkpair testnet
-yarn hardhat publishRoot --deployment publish/testnet.json --network testnet --networkpair testnet
+yarn hardhat publishRoot --deployment publish/testnet.json --network goerli --networkpair testnet
 ```
 
 ### Debug Script

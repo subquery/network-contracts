@@ -57,40 +57,55 @@ task('publishRoot', "verify and publish contracts on etherscan")
     .addParam("deployment", "Deployment file path")
     .addParam('networkpair','testnet|kepler|mainnet')
     .setAction(async (taskArgs, hre) => {
-        const deployment = require(taskArgs.deployment);
+        const deployment = require(taskArgs.deployment).root;
         const config = contractsConfig[taskArgs.networkpair];
 
         try {
+            console.log(`verify ProxyAdmin`);
             await hre.run("verify:verify", {
-                address: deployment.root.ProxyAdmin.address,
-                constructorArguments: [],
-            });
-            // InflationController
-            await hre.run("verify:verify", {
-                address: deployment.root.InflationController.address,
-                constructorArguments: [deployment.root.InflationController.innerAddress, deployment.root.ProxyAdmin.address, []],
-            });
-            await hre.run("verify:verify", {
-                address: deployment.root.InflationController.innerAddress,
+                address: deployment.ProxyAdmin.address,
                 constructorArguments: [],
             });
 
+            console.log(`verify InflationController`);
+            // InflationController
+            await hre.run("verify:verify", {
+                address: deployment.InflationController.address,
+                constructorArguments: [deployment.InflationController.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.InflationController.innerAddress,
+                constructorArguments: [],
+            });
+
+            console.log(`verify SQToken`);
             // SQToken
             await hre.run("verify:verify", {
-                address: deployment.root.SQToken.address,
+                address: deployment.SQToken.address,
                 constructorArguments: [constants.AddressZero, ...config.SQToken],
             });
 
             //Vesting
+            console.log(`verify Vesting`);
             await hre.run("verify:verify", {
-                address: deployment.root.Vesting.address,
+                address: deployment.Vesting.address,
                 constructorArguments: [deployment.SQToken.address],
             });
-
-            // EventSyncRootTunnel
+            //Settings
+            console.log(`verify Settings`);
             await hre.run("verify:verify", {
-                address: deployment.root.EventSyncRootTunnel.address,
-                constructorArguments: [...config.EventSyncRootTunnel],
+                address: deployment.Settings.address,
+                constructorArguments: [deployment.Settings.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.Settings.innerAddress,
+                constructorArguments: [],
+            });
+
+            // PolygonDestination
+            await hre.run("verify:verify", {
+                address: deployment.PolygonDestination.address,
+                constructorArguments: [deployment.Settings.address, constants.AddressZero],
             });
 
         } catch (err) {

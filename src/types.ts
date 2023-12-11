@@ -33,7 +33,8 @@ import {
     VSQToken__factory,
     Vesting__factory,
     ChildERC20__factory,
-    TokenExchange__factory
+    TokenExchange__factory,
+    PolygonDestination__factory,
 } from './typechain';
 
 export type SubqueryNetwork = 'testnet' | 'mainnet' | 'local';
@@ -121,6 +122,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PriceOracle: PriceOracle__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
     ChildERC20: ChildERC20__factory,
+    PolygonDestination: PolygonDestination__factory,
 };
 
 export enum SQContracts {
@@ -139,7 +141,6 @@ export enum SQContracts {
     RewardsHelper,
     InflationController,
     Vesting,
-    PermissionedExchange,
     DisputeManager,
     StateChannel,
     ConsumerRegistry,

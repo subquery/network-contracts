@@ -61,10 +61,10 @@ import {
     VSQToken__factory,
     Vesting,
     Vesting__factory,
-    EventSyncRootTunnel,
-    EventSyncRootTunnel__factory,
+    PolygonDestination,
+    PolygonDestination__factory,
+    ChildERC20__factory
 } from '../src';
-import {ChildERC20__factory} from "../build";
 
 export interface FactoryContstructor {
     new(wallet: Wallet): ContractFactory;
@@ -101,7 +101,7 @@ export type Contracts = {
     disputeManager: DisputeManager;
     consumerRegistry: ConsumerRegistry;
     priceOracle: PriceOracle;
-    eventSyncRootTunnel: EventSyncRootTunnel;
+    polygonDestination: PolygonDestination;
 };
 
 export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ bytecode: string }, FactoryContstructor]>> =
@@ -158,8 +158,8 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     DisputeManager: DisputeManager__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
     PriceOracle: PriceOracle__factory,
-    EventSyncRootTunnel: EventSyncRootTunnel__factory,
-    ChildERC20: ChildERC20__factory
+    ChildERC20: ChildERC20__factory,
+    PolygonDestination: PolygonDestination__factory,
 };
 
 export type Config = number | string | string[];

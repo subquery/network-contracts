@@ -29,6 +29,7 @@ import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.js
 import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import ChildERC20 from './artifacts/contracts/polygon/ChildERC20.sol/ChildERC20.json';
 import Vesting from './artifacts/contracts/Vesting.sol/Vesting.json';
+import PolygonDestination from './artifacts/contracts/root/PolygonDestination.sol/PolygonDestination.json';
 
 export default {
     Settings,
@@ -59,4 +60,5 @@ export default {
     PriceOracle,
     ConsumerRegistry,
     ChildERC20,
+    PolygonDestination,
 };
