@@ -5,9 +5,8 @@ import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { EraManager, IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsPool, ERC20, Staking } from '../src';
 import { METADATA_HASH, deploymentIds } from './constants';
-import {etherParse, eventFrom, startNewEra, time, timeTravel} from './helper';
+import {etherParse, startNewEra, time, timeTravel} from './helper';
 import { deployContracts } from './setup';
-import {utils} from "ethers";
 
 describe('RewardsPool Contract', () => {
     const deploymentId0 = deploymentIds[0];
