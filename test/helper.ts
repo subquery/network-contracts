@@ -7,7 +7,7 @@ import { constants, time } from '@openzeppelin/test-helpers';
 import { MockProvider } from 'ethereum-waffle';
 import { BaseContract, BigNumber, Contract, ContractTransaction, Wallet as EthWallet, utils } from 'ethers';
 import { ethers } from "hardhat";
-import { EraManager, IndexerRegistry, PlanManager, PurchaseOfferMarket, SQToken } from '../src';
+import { EraManager, IndexerRegistry, PlanManager, PurchaseOfferMarket, ERC20 } from '../src';
 import { METADATA_HASH } from './constants';
 
 export { constants, time };
@@ -115,7 +115,7 @@ export async function acceptPlan(
     period: number,
     value: BigNumber,
     DEPLOYMENT_ID,
-    sqtToken: SQToken,
+    sqtToken: ERC20,
     planManager: PlanManager
 ) {
     await planManager.createPlanTemplate(

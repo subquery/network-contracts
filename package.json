@@ -2,19 +2,21 @@
     "name": "@subql/contract-sdk",
     "version": "0.100.3",
     "main": "index.js",
-    "license": "MIT",
+    "license": "GPL3",
     "scripts": {
-        "build": "hardhat compile",
+        "build:contract": "hardhat compile",
         "build:ts": "scripts/build.sh",
-        "abi": "ts-node --transpileOnly scripts/abi.ts",
+        "build:abi": "ts-node --transpileOnly scripts/abi.ts",
+        "build": "yarn build:contract && yarn build:ts && yarn build:abi",
         "lint": "solhint contracts/**/*.sol --fix",
         "test": "hardhat test",
+        "test:all": "hardhat test ./test/*.test.ts",
         "test:coverage": "hardhat coverage",
         "prepare": "husky install",
         "docs:dev": "vuepress dev docs",
         "docs:build": "vuepress build docs",
         "docs:generate": "hardhat docgen",
-        "debug": "node --inspect -r ts-node/register -r tsconfig-paths/register",
+        "debug": "node --inspect-brk -r ts-node/register -r tsconfig-paths/register",
         "deploy": "ts-node --transpileOnly scripts/deploy.ts",
         "upgrade": "ts-node --transpileOnly scripts/upgrade.ts",
         "setup": "ts-node --transpileOnly scripts/startup.ts",
@@ -23,7 +25,6 @@
         "kepler-e2e-test": "node -r ts-node/register/transpile-only test/e2e/kepler.e2e.ts"
     },
     "devDependencies": {
-        "@eth-optimism/contracts": "^0.6.0",
         "@ethersproject/abstract-provider": "~5.5.1",
         "@ethersproject/address": "~5.5.0",
         "@ethersproject/bignumber": "~5.5.0",
@@ -87,5 +88,9 @@
             "prettier --write"
         ]
     },
-    "packageManager": "yarn@3.6.4"
+    "packageManager": "yarn@3.6.4",
+    "dependencies": {
+        "@maticnetwork/maticjs": "^3.6.7",
+        "@maticnetwork/maticjs-ethers": "^1.0.3"
+    }
 }

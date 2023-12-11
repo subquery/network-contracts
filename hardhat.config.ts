@@ -1,16 +1,19 @@
 import * as dotenv from 'dotenv';
 import util from 'util';
-const exec = util.promisify(require('child_process').exec);
-
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
 import 'hardhat-contract-sizer';
 import 'hardhat-gas-reporter';
-import { HardhatUserConfig, task } from 'hardhat/config';
+import {HardhatUserConfig, task} from 'hardhat/config';
 import 'solidity-coverage';
 import 'solidity-docgen';
 import 'tsconfig-paths/register';
+import {constants, utils} from "ethers";
+import contractsConfig from "./scripts/config/contracts.config";
+
+const exec = util.promisify(require('child_process').exec);
+
 require('solidity-coverage');
 
 
@@ -32,8 +35,8 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 
 task('flat', 'Flattens and prints contracts and their dependencies (Resolves licenses)')
     .addOptionalVariadicPositionalParam('files', 'The files to flatten', undefined)
-    .setAction(async ({ files }, hre) => {
-        let flattened = await hre.run('flatten:get-flattened-sources', { files });
+    .setAction(async ({files}, hre) => {
+        let flattened = await hre.run('flatten:get-flattened-sources', {files});
 
         // Remove every line started with "// SPDX-License-Identifier:"
         flattened = flattened.replace(/SPDX-License-Identifier:/gm, 'License-Identifier:');
@@ -50,43 +53,102 @@ task('flat', 'Flattens and prints contracts and their dependencies (Resolves lic
         console.log(flattened);
     });
 
-task('publish', "verify and publish contracts on etherscan")
+task('publishRoot', "verify and publish contracts on etherscan")
     .addParam("deployment", "Deployment file path")
+    .addParam('networkpair','testnet|kepler|mainnet')
     .setAction(async (taskArgs, hre) => {
-        const deployment = require(taskArgs.deployment);
+        const deployment = require(taskArgs.deployment).root;
+        const config = contractsConfig[taskArgs.networkpair];
 
         try {
-            //InflationController
-            // await hre.run("verify:verify", {
-            //     address: deployment.InflationController.innerAddress,
-            //     constructorArguments: [],
-            // });
-
-            //SQToken
-            // await hre.run("verify:verify", {
-            //     address: deployment.SQToken.address,
-            //     constructorArguments: [deployment.InflationController.address, etherParse("25000000")],
-            // });
-
-            //VSQToken
-            // await hre.run("verify:verify", {
-            //     address: deployment.VSQToken.address,
-            //     constructorArguments: [],
-            // });
-
-            //Airdropper
+            console.log(`verify ProxyAdmin`);
             await hre.run("verify:verify", {
-                address: deployment.Airdropper.address,
-                constructorArguments: ["0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C"],
+                address: deployment.ProxyAdmin.address,
+                constructorArguments: [],
+            });
+
+            console.log(`verify InflationController`);
+            // InflationController
+            await hre.run("verify:verify", {
+                address: deployment.InflationController.address,
+                constructorArguments: [deployment.InflationController.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.InflationController.innerAddress,
+                constructorArguments: [],
+            });
+
+            console.log(`verify SQToken`);
+            // SQToken
+            await hre.run("verify:verify", {
+                address: deployment.SQToken.address,
+                constructorArguments: [constants.AddressZero, ...config.SQToken],
             });
 
             //Vesting
+            console.log(`verify Vesting`);
             await hre.run("verify:verify", {
                 address: deployment.Vesting.address,
                 constructorArguments: [deployment.SQToken.address],
             });
+            //Settings
+            console.log(`verify Settings`);
+            await hre.run("verify:verify", {
+                address: deployment.Settings.address,
+                constructorArguments: [deployment.Settings.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.Settings.innerAddress,
+                constructorArguments: [],
+            });
+
+            // PolygonDestination
+            await hre.run("verify:verify", {
+                address: deployment.PolygonDestination.address,
+                constructorArguments: [deployment.Settings.address, constants.AddressZero],
+            });
+
+        } catch (err) {
+            console.log(err);
+        }
+    });
+
+task('publishChild', "verify and publish contracts on etherscan")
+    .addParam("deployment", "Deployment file path")
+    .addParam('networkpair','')
+    .setAction(async (taskArgs, hre) => {
+        const deployment = require(taskArgs.deployment).child;
+
+        try {
+            await hre.run("verify:verify", {
+                address: deployment.ProxyAdmin.address,
+                constructorArguments: [],
+            });
+            //Settings
+            await hre.run("verify:verify", {
+                address: deployment.Settings.address,
+                constructorArguments: [deployment.Settings.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.Settings.innerAddress,
+                constructorArguments: [],
+            });
+
+            //VSQToken
+            await hre.run("verify:verify", {
+                address: deployment.VSQToken.address,
+                constructorArguments: [deployment.VSQToken.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.VSQToken.innerAddress,
+                constructorArguments: [],
+            });
 
             //Staking
+            await hre.run("verify:verify", {
+                address: deployment.Staking.address,
+                constructorArguments: [deployment.Staking.innerAddress, deployment.ProxyAdmin.address, []],
+            });
             await hre.run("verify:verify", {
                 address: deployment.Staking.innerAddress,
                 constructorArguments: [],
@@ -94,11 +156,19 @@ task('publish', "verify and publish contracts on etherscan")
 
             //StakingManager
             await hre.run("verify:verify", {
+                address: deployment.StakingManager.address,
+                constructorArguments: [deployment.StakingManager.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
                 address: deployment.StakingManager.innerAddress,
                 constructorArguments: [],
             });
 
             //EraManager
+            await hre.run("verify:verify", {
+                address: deployment.EraManager.address,
+                constructorArguments: [deployment.EraManager.innerAddress, deployment.ProxyAdmin.address, []],
+            });
             await hre.run("verify:verify", {
                 address: deployment.EraManager.innerAddress,
                 constructorArguments: [],
@@ -106,11 +176,19 @@ task('publish', "verify and publish contracts on etherscan")
 
             //IndexerRegistry
             await hre.run("verify:verify", {
+                address: deployment.IndexerRegistry.address,
+                constructorArguments: [deployment.IndexerRegistry.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
                 address: deployment.IndexerRegistry.innerAddress,
                 constructorArguments: [],
             });
 
             //ProjectRegistry
+            await hre.run("verify:verify", {
+                address: deployment.ProjectRegistry.address,
+                constructorArguments: [deployment.ProjectRegistry.innerAddress, deployment.ProxyAdmin.address, []],
+            });
             await hre.run("verify:verify", {
                 address: deployment.ProjectRegistry.innerAddress,
                 constructorArguments: [],
@@ -118,11 +196,19 @@ task('publish', "verify and publish contracts on etherscan")
 
             //PlanManager
             await hre.run("verify:verify", {
+                address: deployment.PlanManager.address,
+                constructorArguments: [deployment.PlanManager.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
                 address: deployment.PlanManager.innerAddress,
                 constructorArguments: [],
             });
 
             //PurchaseOfferMarket
+            await hre.run("verify:verify", {
+                address: deployment.PurchaseOfferMarket.address,
+                constructorArguments: [deployment.PurchaseOfferMarket.innerAddress, deployment.ProxyAdmin.address, []],
+            });
             await hre.run("verify:verify", {
                 address: deployment.PurchaseOfferMarket.innerAddress,
                 constructorArguments: [],
@@ -130,11 +216,29 @@ task('publish', "verify and publish contracts on etherscan")
 
             //ServiceAgreementRegistry
             await hre.run("verify:verify", {
+                address: deployment.ServiceAgreementRegistry.address,
+                constructorArguments: [deployment.ServiceAgreementRegistry.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
                 address: deployment.ServiceAgreementRegistry.innerAddress,
                 constructorArguments: [],
             });
 
+            //ServiceAgreementExtra
+            await hre.run("verify:verify", {
+                address: deployment.ServiceAgreementExtra.address,
+                constructorArguments: [deployment.ServiceAgreementExtra.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.ServiceAgreementExtra.innerAddress,
+                constructorArguments: [],
+            });
+
             //RewardsDistributer
+            await hre.run("verify:verify", {
+                address: deployment.RewardsDistributer.address,
+                constructorArguments: [deployment.RewardsDistributer.innerAddress, deployment.ProxyAdmin.address, []],
+            });
             await hre.run("verify:verify", {
                 address: deployment.RewardsDistributer.innerAddress,
                 constructorArguments: [],
@@ -142,11 +246,19 @@ task('publish', "verify and publish contracts on etherscan")
 
             //RewardsPool
             await hre.run("verify:verify", {
+                address: deployment.RewardsPool.address,
+                constructorArguments: [deployment.RewardsPool.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
                 address: deployment.RewardsPool.innerAddress,
                 constructorArguments: [],
             });
 
             //RewardsStaking
+            await hre.run("verify:verify", {
+                address: deployment.RewardsStaking.address,
+                constructorArguments: [deployment.RewardsStaking.innerAddress, deployment.ProxyAdmin.address, []],
+            });
             await hre.run("verify:verify", {
                 address: deployment.RewardsStaking.innerAddress,
                 constructorArguments: [],
@@ -154,23 +266,28 @@ task('publish', "verify and publish contracts on etherscan")
 
             //RewardsHelper
             await hre.run("verify:verify", {
+                address: deployment.RewardsHelper.address,
+                constructorArguments: [deployment.RewardsHelper.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
                 address: deployment.RewardsHelper.innerAddress,
                 constructorArguments: [],
             });
 
             //StateChannel
             await hre.run("verify:verify", {
+                address: deployment.StateChannel.address,
+                constructorArguments: [deployment.StateChannel.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
                 address: deployment.StateChannel.innerAddress,
                 constructorArguments: [],
             });
-
-            //PermissionedExchange
-            await hre.run("verify:verify", {
-                address: deployment.PermissionedExchange.innerAddress,
-                constructorArguments: [],
-            });
-
             //ConsumerHost
+            await hre.run("verify:verify", {
+                address: deployment.ConsumerHost.address,
+                constructorArguments: [deployment.ConsumerHost.innerAddress, deployment.ProxyAdmin.address, []],
+            });
             await hre.run("verify:verify", {
                 address: deployment.ConsumerHost.innerAddress,
                 constructorArguments: [],
@@ -178,9 +295,35 @@ task('publish', "verify and publish contracts on etherscan")
 
             //DisputeManager
             await hre.run("verify:verify", {
+                address: deployment.DisputeManager.address,
+                constructorArguments: [deployment.DisputeManager.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
                 address: deployment.DisputeManager.innerAddress,
                 constructorArguments: [],
             });
+
+            //ConsumerRegistry
+            await hre.run("verify:verify", {
+                address: deployment.ConsumerRegistry.address,
+                constructorArguments: [deployment.ConsumerRegistry.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.ConsumerRegistry.innerAddress,
+                constructorArguments: [],
+            });
+
+            //PriceOracle
+            await hre.run("verify:verify", {
+                address: deployment.PriceOracle.address,
+                constructorArguments: [deployment.PriceOracle.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.PriceOracle.innerAddress,
+                constructorArguments: [],
+            });
+
+
 
         } catch (err) {
             console.log(err);
@@ -190,28 +333,34 @@ task('publish', "verify and publish contracts on etherscan")
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
-task("compile", async (taskArguments: Object, { run }, runSuper) => {
-    // Run the original compile task's logic
-    await runSuper({ ...taskArguments, noTypechain: true });
-    // Sync Proxy ABI
-    await exec('scripts/syncProxyABI.sh');
-    // Run Typechain
-    // TODO: not an elegant way to call `typechain` cmd
-    await exec('rm -rf ./artifacts/contracts/**/*.dbg.json && rm -rf ./artifacts/contracts/**/**/*.dbg.json');
-    await exec('npx typechain --target ethers-v5 --out-dir src/typechain "./artifacts/contracts/**/*.json"');
-    // Run the script to generate the typechain
-    await exec('scripts/build.sh');
-    // Generate ABI
-    await exec('ts-node --transpileOnly scripts/abi.ts');
-  });
+// task("compile", async (taskArguments: Object, {run}, runSuper) => {
+//     // Run the original compile task's logic
+//     await runSuper({...taskArguments});
+//     // Run the script to generate the typechain
+//     await exec('scripts/build.sh');
+//     // Generate ABI
+//     await exec('ts-node --transpileOnly scripts/abi.ts');
+// });
 
 const config: HardhatUserConfig = {
-    solidity: '0.8.15',
+    solidity: {
+        compilers: [
+            {version: '0.8.15', settings: {
+                optimizer: {
+                    enabled: true,
+                },
+            }},
+        ],
+    },
     networks: {
         hardhat: {},
         testnet: {
             url: "https://rpc.ankr.com/polygon_mumbai",
             chainId: 80001,
+        },
+        goerli: {
+            url: "https://rpc.ankr.com/eth_goerli",
+            chainId: 5,
         },
         kepler: {
             url: "https://polygon-rpc.com",
@@ -227,7 +376,10 @@ const config: HardhatUserConfig = {
         gasPrice: 21,
     },
     etherscan: {
-        apiKey: process.env.ETHERSCAN_API_KEY,
+        apiKey: {
+            polygonMumbai: process.env.POLYGONSCAN_API_KEY,
+            goerli: process.env.ETHERSCAN_API_KEY,
+        },
     },
     typechain: {
         outDir: 'src/typechain',

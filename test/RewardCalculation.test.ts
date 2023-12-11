@@ -13,7 +13,7 @@ import {
     RewardsDistributer,
     RewardsHelper,
     RewardsStaking,
-    SQToken,
+    ERC20,
     ServiceAgreementRegistry,
     Settings,
     Staking,
@@ -30,19 +30,15 @@ describe.skip('RewardsDistributer Contract', () => {
   const mockProvider = waffle.provider;
   let root, indexer, consumer, delegator1, delegator2;
 
-  let token: SQToken;
+  let token: ERC20;
   let staking: Staking;
   let stakingManager: StakingManager;
   let projectRegistry: ProjectRegistry;
   let indexerRegistry: IndexerRegistry;
   let planManager: PlanManager;
   let eraManager: EraManager;
-  let serviceAgreementRegistry: ServiceAgreementRegistry;
   let rewardsDistributor: RewardsDistributer;
-  let rewardsStaking: RewardsStaking;
   let rewardsHelper: RewardsHelper;
-  let settings: Settings;
-  let inflationController: InflationController;
 
   let rewards: BigNumber;
 
@@ -77,16 +73,11 @@ describe.skip('RewardsDistributer Contract', () => {
       indexerRegistry = deployment.indexerRegistry;
       projectRegistry = deployment.projectRegistry;
       planManager = deployment.planManager;
-      serviceAgreementRegistry = deployment.serviceAgreementRegistry;
       staking = deployment.staking;
       stakingManager = deployment.stakingManager;
-      token = deployment.token;
       rewardsDistributor = deployment.rewardsDistributer;
-      rewardsStaking = deployment.rewardsStaking;
       rewardsHelper = deployment.rewardsHelper;
       eraManager = deployment.eraManager;
-      settings = deployment.settings;
-      inflationController = deployment.inflationController;
 
       // transfer SQT to accounts
       await token.connect(root).transfer(delegator1.address, etherParse('1000'));
@@ -186,16 +177,12 @@ describe.skip('RewardsDistributer Contract', () => {
       indexerRegistry = deployment.indexerRegistry;
       projectRegistry = deployment.projectRegistry;
       planManager = deployment.planManager;
-      serviceAgreementRegistry = deployment.serviceAgreementRegistry;
       staking = deployment.staking;
       stakingManager = deployment.stakingManager;
-      token = deployment.token;
       rewardsDistributor = deployment.rewardsDistributer;
-      rewardsStaking = deployment.rewardsStaking;
+
       rewardsHelper = deployment.rewardsHelper;
       eraManager = deployment.eraManager;
-      settings = deployment.settings;
-      inflationController = deployment.inflationController;
 
       // transfer SQT to accounts
       await token.connect(root).transfer(delegator1.address, etherParse('1000'));

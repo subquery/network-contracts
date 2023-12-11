@@ -22,7 +22,8 @@ import { DEPLOYMENT_ID, METADATA_HASH, VERSION, ZERO_ADDRESS } from './constants
 import { constants, etherParse, futureTimestamp, registerIndexer, startNewEra, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
-describe('PermissionedExchange Contract', () => {
+// PermissionedExchange only available on Kepler Network
+describe.skip('PermissionedExchange Contract', () => {
     const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2, indexer, consumer;
     let permissionedExchange: PermissionedExchange;

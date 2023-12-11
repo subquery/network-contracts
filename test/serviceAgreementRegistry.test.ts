@@ -13,7 +13,7 @@ import {
     RewardsDistributer,
     RewardsHelper,
     RewardsStaking,
-    SQToken,
+    ERC20,
     ServiceAgreementExtra,
     ServiceAgreementRegistry,
     Staking,
@@ -25,7 +25,7 @@ import { deployContracts } from './setup';
 describe('Service Agreement Registry Contract', () => {
     const mockProvider = waffle.provider;
     let wallet, wallet1, wallet2;
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
     let projectRegistry: ProjectRegistry;

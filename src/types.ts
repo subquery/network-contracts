@@ -1,3 +1,6 @@
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { Provider } from '@ethersproject/abstract-provider';
 import { Wallet } from '@ethersproject/wallet';
 import { BaseContract, ContractFactory, Signer } from 'ethers';
@@ -21,7 +24,6 @@ import {
     RewardsHelper__factory,
     RewardsPool__factory,
     RewardsStaking__factory,
-    SQToken__factory,
     ServiceAgreementRegistry__factory,
     ServiceAgreementExtra__factory,
     Settings__factory,
@@ -30,10 +32,17 @@ import {
     StateChannel__factory,
     VSQToken__factory,
     Vesting__factory,
-    TokenExchange__factory
+    ChildERC20__factory,
+    TokenExchange__factory,
+    PolygonDestination__factory,
 } from './typechain';
 
-export type SubqueryNetwork = 'mainnet' | 'kepler' | 'testnet' | 'testnet-base' | 'local';
+export type SubqueryNetwork = 'testnet' | 'mainnet' | 'local';
+
+export type NetworkPair = {
+    root: Network;
+    child: Network;
+};
 
 export type Network = {
     chainId: string;
@@ -49,7 +58,7 @@ export type Network = {
 };
 
 export type DeploymentConfig = {
-    network: Network;
+    network: NetworkPair;
     contracts: {[contract: string]: any[]};
 };
 
@@ -59,11 +68,20 @@ export type ContractDeploymentDetail = {
     bytecodeHash: string;
     lastUpdate: string;
 };
-export type ContractDeployment = Record<keyof typeof CONTRACTS, ContractDeploymentDetail>;
 
-export type ContractName = keyof ContractDeployment;
+export type ContractName = keyof typeof CONTRACTS;
+
+export type ContractDeploymentInner = Partial<Record<ContractName, ContractDeploymentDetail>>;
+export type ContractDeployment = {
+    root: ContractDeploymentInner;
+    child: ContractDeploymentInner;
+};
 
 export type SdkOptions = {
+    network: SubqueryNetwork;
+    deploymentDetails?: ContractDeploymentInner;
+};
+export type PolygonSdkOptions = {
     network: SubqueryNetwork;
     deploymentDetails?: ContractDeployment;
 };
@@ -74,11 +92,12 @@ export interface FactoryContstructor {
     readonly abi: any;
 }
 
+// for child sdk only
 export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ProxyAdmin: ProxyAdmin__factory,
     Settings: Settings__factory,
     InflationController: InflationController__factory,
-    SQToken: SQToken__factory,
+    SQToken: ChildERC20__factory, // for child sdk only
     VSQToken: VSQToken__factory,
     Airdropper: Airdropper__factory,
     Vesting: Vesting__factory,
@@ -102,4 +121,29 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     DisputeManager: DisputeManager__factory,
     PriceOracle: PriceOracle__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
+    ChildERC20: ChildERC20__factory,
+    PolygonDestination: PolygonDestination__factory,
 };
+
+export enum SQContracts {
+    SQToken,
+    Staking,
+    StakingManager,
+    IndexerRegistry,
+    ProjectRegistry,
+    EraManager,
+    PlanManager,
+    ServiceAgreementRegistry,
+    ServiceAgreementExtra,
+    RewardsDistributer,
+    RewardsPool,
+    RewardsStaking,
+    RewardsHelper,
+    InflationController,
+    Vesting,
+    DisputeManager,
+    StateChannel,
+    ConsumerRegistry,
+    PriceOracle,
+    RootChainManager,
+}

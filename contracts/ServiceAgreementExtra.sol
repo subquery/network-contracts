@@ -88,9 +88,9 @@ contract ServiceAgreementExtra is Initializable, OwnableUpgradeable, IServiceAgr
     }
 
     function addAgreement(uint256 agreementId, ClosedServiceAgreementInfo memory agreement, bool checkThreshold) external {
-        require(msg.sender == settings.getServiceAgreementRegistry(), 'ISA001');
+        require(msg.sender == settings.getContractAddress(SQContracts.ServiceAgreementRegistry), 'ISA001');
         require(
-            IProjectRegistry(settings.getProjectRegistry()).isServiceAvailable(agreement.deploymentId, agreement.indexer),
+            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).isServiceAvailable(agreement.deploymentId, agreement.indexer),
             'SA005'
         );
 
@@ -99,7 +99,7 @@ contract ServiceAgreementExtra is Initializable, OwnableUpgradeable, IServiceAgr
         uint256 period = periodInDay(agreement.period);
         sumDailyReward[indexer] += lockedAmount / period;
 
-        IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
+        IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
         uint256 totalStake = stakingManager.getTotalStakingAmount(agreement.indexer);
         require(
             !checkThreshold || totalStake >= MathUtil.mulDiv(sumDailyReward[indexer], threshold, PER_MILL),
@@ -112,7 +112,7 @@ contract ServiceAgreementExtra is Initializable, OwnableUpgradeable, IServiceAgr
     }
 
     function clearEndedAgreement(address indexer, uint256 id) external {
-        IServiceAgreementRegistry sar = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
+        IServiceAgreementRegistry sar = IServiceAgreementRegistry(settings.getContractAddress(SQContracts.ServiceAgreementRegistry));
         require(id < saLength[indexer], 'SA001');
 
         uint256 agreementId = closedServiceAgreementIds[indexer][id];
@@ -127,7 +127,7 @@ contract ServiceAgreementExtra is Initializable, OwnableUpgradeable, IServiceAgr
 
     function clearAllEndedAgreements(address indexer) external {
         require(saLength[indexer]>0, 'SA001');
-        IServiceAgreementRegistry sar = IServiceAgreementRegistry(settings.getServiceAgreementRegistry());
+        IServiceAgreementRegistry sar = IServiceAgreementRegistry(settings.getContractAddress(SQContracts.ServiceAgreementRegistry));
         uint256 count = 0;
         for (uint256 i = saLength[indexer]; i > 0; i--) {
             uint256 agreementId = closedServiceAgreementIds[indexer][i - 1];

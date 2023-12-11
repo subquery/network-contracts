@@ -44,10 +44,15 @@ contract VSQToken is Initializable, OwnableUpgradeable {
     }
 
     function balanceOf(address account) public view returns (uint256) {
-        uint256 balanceAmount = IERC20(settings.getSQToken()).balanceOf(account);
-        uint256 stakeAmount = IStaking(settings.getStaking()).lockedAmount(account);
-        IVesting vesting = IVesting(settings.getVesting());
-        uint256 vestingAmount = vesting.allocations(account) - vesting.claimed(account);
-        return balanceAmount + stakeAmount + vestingAmount;
+        uint256 balanceAmount = IERC20(settings.getContractAddress(SQContracts.SQToken)).balanceOf(account);
+        uint256 stakeAmount = IStaking(settings.getContractAddress(SQContracts.Staking)).lockedAmount(account);
+        // TODO: vesting may not live on child network
+        IVesting vesting = IVesting(settings.getContractAddress(SQContracts.Vesting));
+        uint256 returnBalance = balanceAmount + stakeAmount;
+        if (address(vesting) != address(0)) {
+            uint256 vestingAmount = vesting.allocations(account) - vesting.claimed(account);
+            returnBalance = returnBalance + vestingAmount;
+        }
+        return returnBalance;
     }
 }

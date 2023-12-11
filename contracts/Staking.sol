@@ -145,7 +145,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
     event UnbondCancelled(address indexed source, address indexed indexer, uint256 amount, uint256 index);
 
     modifier onlyStakingManager() {
-        require(msg.sender == settings.getStakingManager(), 'G007');
+        require(msg.sender == settings.getContractAddress(SQContracts.StakingManager), 'G007');
         _;
     }
 
@@ -192,7 +192,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * require it idempotent.
      */
     function reflectEraUpdate(address _source, address _indexer) public {
-        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
+        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
         _reflectStakingAmount(eraNumber, delegation[_source][_indexer]);
         _reflectStakingAmount(eraNumber, totalStakingAmount[_indexer]);
     }
@@ -256,7 +256,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         address _indexer,
         uint256 _amount
     ) external {
-        require(msg.sender == settings.getStakingManager() || msg.sender == address(this), 'G008');
+        require(msg.sender == settings.getContractAddress(SQContracts.StakingManager) || msg.sender == address(this), 'G008');
         require(_amount > 0, 'S003');
         if (this.isEmptyDelegation(_source, _indexer)) {
             stakingIndexerNos[_source][_indexer] = stakingIndexerLengths[_source];
@@ -288,7 +288,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         address _indexer,
         uint256 _amount
     ) external onlyStakingManager {
-        IERC20(settings.getSQToken()).safeTransferFrom(_source, address(this), _amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(_source, address(this), _amount);
 
         this.addDelegation(_source, _indexer, _amount);
     }
@@ -298,7 +298,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         address _indexer,
         uint256 _amount
     ) external {
-        require(msg.sender == settings.getStakingManager() || msg.sender == address(this), 'G008');
+        require(msg.sender == settings.getContractAddress(SQContracts.StakingManager) || msg.sender == address(this), 'G008');
         require(delegation[_source][_indexer].valueAfter >= _amount && _amount > 0, 'S005');
 
         delegation[_source][_indexer].valueAfter -= _amount;
@@ -313,7 +313,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
      * @dev When the delegation change nodify rewardsStaking to deal with the change.
      */
     function _onDelegationChange(address _source, address _indexer) internal {
-        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
+        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
         rewardsStaking.onStakeChange(_indexer, _source);
     }
 
@@ -323,7 +323,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
         uint256 _amount,
         UnbondType _type
     ) external {
-        require(msg.sender == settings.getStakingManager() || msg.sender == address(this), 'G008');
+        require(msg.sender == settings.getContractAddress(SQContracts.StakingManager) || msg.sender == address(this), 'G008');
         uint256 nextIndex = unbondingLength[_source];
         if (_type == UnbondType.Undelegation) {
             require(nextIndex - withdrawnLength[_source] < maxUnbondingRequest - 1, 'S006');
@@ -362,7 +362,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             uint256 burnAmount = MathUtil.mulDiv(unbondFeeRate, amount, PER_MILL);
             uint256 availableAmount = amount - burnAmount;
 
-            address SQToken = settings.getSQToken();
+            address SQToken = settings.getContractAddress(SQContracts.SQToken);
             ISQToken(SQToken).burn(burnAmount);
             IERC20(SQToken).safeTransfer(_source, availableAmount);
 
@@ -399,11 +399,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
             totalStakingAmount[_indexer].valueAfter -= amount;
         }
 
-        IERC20(settings.getSQToken()).safeTransfer(settings.getDisputeManager(), _amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(settings.getContractAddress(SQContracts.DisputeManager), _amount);
     }
 
     function unbondCommission(address _indexer, uint256 _amount) external {
-        require(msg.sender == settings.getRewardsDistributer(), 'G003');
+        require(msg.sender == settings.getContractAddress(SQContracts.RewardsDistributer), 'G003');
         lockedAmount[_indexer] += _amount;
         this.startUnbond(_indexer, _indexer, _amount, UnbondType.Commission);
     }

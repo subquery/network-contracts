@@ -6,9 +6,8 @@ pragma solidity 0.8.15;
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-import './interfaces/IEraManager.sol';
-import './interfaces/ISettings.sol';
-import './interfaces/IInflationController.sol';
+import '../interfaces/IEraManager.sol';
+import '../interfaces/ISettings.sol';
 
 /**
  * @title EraManager contract
@@ -80,10 +79,10 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
         eraNumber++;
         eraStartTime = block.timestamp;
 
-        IInflationController inflationController = IInflationController(settings.getInflationController());
-        if (inflationController.inflationRate() > 0) {
-            inflationController.mintInflatedTokens();
-        }
+//        IInflationController inflationController = IInflationController(settings.getContractAddress(SQContracts.InflationController));
+//        if (inflationController.inflationRate() > 0) {
+//            inflationController.mintInflatedTokens();
+//        }
 
         emit NewEraStart(eraNumber, msg.sender);
     }

@@ -7,8 +7,9 @@ moduleAlias.addAlias('./artifacts', '../artifacts');
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 
-import { DeploymentConfig, networks, SubqueryNetwork } from '../src';
+import { networks, SubqueryNetwork, NetworkPair} from '../src';
 import contractsConfig from './config/contracts.config';
+import {ContractConfig} from "./contracts";
 
 dotenv.config();
 
@@ -18,10 +19,10 @@ const privateKey = process.env.PK;
 export const {argv} = yargs(hideBin(process.argv))
     .options({
         'network': {
-            demandOption: false,
+            demandOption: true,
             describe: 'network',
             type: 'string',
-            default: 'local',
+            choices: ['testnet', 'mainnet'],
         },
         'history':{
             type: 'boolean',
@@ -36,73 +37,84 @@ export const {argv} = yargs(hideBin(process.argv))
             type: 'boolean',
             describe: 'only deploy implementation contract',
             default: false,
+        },
+        'target':{
+            type: 'string',
+            choices: ['root','child'],
+            demandOption: true,
+
         }
     });
 
-async function setupCommon({ rpcUrls, chainId, chainName }: DeploymentConfig["network"]) {
+export async function setupCommon(pair: NetworkPair) {
     let wallet: Wallet;
-    const provider = new providers.StaticJsonRpcProvider(rpcUrls[0], chainId ? {
-        chainId: parseInt(chainId, 16),
-        name: chainName
+
+    const rootProvider = new providers.StaticJsonRpcProvider(pair.root.rpcUrls[0], pair.root.chainId ? {
+        chainId: parseInt(pair.root.chainId, 16),
+        name: pair.root.chainName
+    }: undefined);
+    const childProvider = new providers.StaticJsonRpcProvider(pair.child.rpcUrls[0], pair.child.chainId ? {
+        chainId: parseInt(pair.child.chainId, 16),
+        name: pair.child.chainName
     }: undefined);
     if (seed) {
         const hdNode = utils.HDNode.fromMnemonic(seed).derivePath("m/44'/60'/0'/0/0");
-        wallet = new Wallet(hdNode, provider);
+        wallet = new Wallet(hdNode);
     }else if (privateKey) {
-        wallet = new Wallet(privateKey, provider);
+        wallet = new Wallet(privateKey);
     } else {
         throw new Error('Not found SEED or PK in env');
     }
     console.log(`signer is ${wallet.address}`);
     return {
         wallet,
-        provider,
-        overrides: { gasPrice: await provider.getGasPrice() },
+        rootProvider,
+        childProvider,
+        overrides: {},
     };
 }
 
-const setup = async () => {
-    let config = { contracts: null, network: null };
+const setup = async (network?: string) => {
+    let config:{network: NetworkPair, contracts: ContractConfig} = { contracts: null, network: null };
     let name: SubqueryNetwork;
     let history = false;
     let checkOnly = false;
     let implementationOnly = false;
 
-    switch (argv.network) {
-        // TODO: can support more network type here like `testnet-base` | `testnet-ethereum`
+    switch (network ?? argv.network) {
         case 'mainnet':
-            config.contracts = contractsConfig.mainnet;
-            config.network = networks.polygon;
-            break;
-        case 'kepler':
-            config.contracts = contractsConfig.kepler;
-            config.network = networks.polygon;
+            config.contracts = contractsConfig.mainnet as any;
+            config.network = networks.mainnet;
             break;
         case 'testnet':
-            config.contracts = contractsConfig.testnet;
-            config.network = networks.mumbai;
+            config.contracts = contractsConfig.testnet as any;
+            config.network = networks.testnet;
             break;
         default:
-            config.contracts = contractsConfig.local;
-            config.network = {rpcUrls: ['http://localhost:8545']};
+            throw new Error('no network specified');
     }
-    name = argv.network as SubqueryNetwork;
+
+    name = (argv.network ?? 'local') as SubqueryNetwork;
 
     history = argv.history;
     checkOnly = argv["check-only"];
     implementationOnly = argv["implementation-only"];
 
-    if (process.env.ENDPOINT) {
-        console.log(`use overridden endpoint ${process.env.ENDPOINT}`);
-        config.network.rpcUrls = [process.env.ENDPOINT];
+    if (process.env.ROOT_ENDPOINT) {
+        console.log(`use overridden endpoint ${process.env.ROOT_ENDPOINT}`);
+        config.network.root.rpcUrls = [process.env.ROOT_ENDPOINT];
+    }
+    if (process.env.CHILD_ENDPOINT) {
+        console.log(`use overridden endpoint ${process.env.CHILD_ENDPOINT}`);
+        config.network.root.rpcUrls = [process.env.CHILD_ENDPOINT];
     }
 
     let confirms = 1;
-    if (['Polygon'].includes(config.network.chainName)) {
+    if (['Polygon'].includes(config.network.child.chainName)) {
         confirms = 20;
     }
-    const { wallet, provider, overrides } = await setupCommon(config.network);
-    return { name, config, wallet, provider, overrides, confirms, history, checkOnly, implementationOnly }
+    const { wallet, rootProvider, childProvider, overrides } = await setupCommon(config.network);
+    return { name, config, wallet, rootProvider, childProvider, overrides, confirms, history, checkOnly, implementationOnly, target: argv.target }
 };
 
 export default setup;

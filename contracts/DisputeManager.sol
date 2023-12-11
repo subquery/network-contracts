@@ -77,7 +77,7 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
     ) external {
         require(disputeIdByIndexer[_indexer].length <= 20, 'D001');
         require(_deposit >= minimumDeposit, 'D002');
-        IERC20(settings.getSQToken()).safeTransferFrom(msg.sender, address(this), _deposit);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), _deposit);
 
         Dispute storage dispute = disputes[nextDisputeId];
         dispute.disputeId = nextDisputeId;
@@ -103,7 +103,7 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
             require(newDeposit > dispute.depositAmount, 'D005');
             uint256 rewardAmount = newDeposit - dispute.depositAmount;
             require(rewardAmount <= indexerSlashAmount, 'D005');
-            IStakingManager(settings.getStakingManager()).slashIndexer(dispute.indexer, indexerSlashAmount);
+            IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).slashIndexer(dispute.indexer, indexerSlashAmount);
         } else if (state == DisputeState.Rejected) {
             //reject dispute, slash fisherman
             require(newDeposit < dispute.depositAmount, 'D005');
@@ -113,7 +113,7 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
         }
 
         dispute.state = state;
-        IERC20(settings.getSQToken()).safeTransfer(dispute.fisherman, newDeposit);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(dispute.fisherman, newDeposit);
 
         uint256[] memory ids = disputeIdByIndexer[dispute.indexer];
         delete disputeIdByIndexer[dispute.indexer];

@@ -13,7 +13,7 @@ import {
     RewardsDistributer,
     RewardsHelper,
     RewardsStaking,
-    SQToken,
+    ERC20,
     ServiceAgreementExtra,
     ServiceAgreementRegistry,
     Settings,
@@ -30,7 +30,7 @@ describe('RewardsDistributer Contract', () => {
     const mockProvider = waffle.provider;
     let root, indexer, consumer, delegator, delegator2;
 
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let stakingManager: StakingManager;
     let projectRegistry: ProjectRegistry;
@@ -78,7 +78,6 @@ describe('RewardsDistributer Contract', () => {
         rewardsHelper = deployment.rewardsHelper;
         eraManager = deployment.eraManager;
         settings = deployment.settings;
-        inflationController = deployment.inflationController;
 
         //init delegator account
         await token.connect(root).transfer(delegator.address, etherParse('10'));
@@ -87,12 +86,7 @@ describe('RewardsDistributer Contract', () => {
         await token.connect(consumer).increaseAllowance(planManager.address, etherParse('10'));
         await token.connect(delegator).increaseAllowance(staking.address, etherParse('10'));
         await token.connect(delegator2).increaseAllowance(staking.address, etherParse('10'));
-        //make root as ServiceAgreementRegistry
-        //await settings.setServiceAgreementRegistry(root.address);
         await token.connect(root).increaseAllowance(rewardsDistributor.address, etherParse('10'));
-
-        //set root address as inflation destination
-        inflationController.connect(root).setInflationDestination(root.address);
 
         //setup era period be 5 days
         await eraManager.connect(root).updateEraPeriod(time.duration.days(5).toString());

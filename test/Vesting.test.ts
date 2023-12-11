@@ -7,7 +7,7 @@ import { BigNumber } from "ethers";
 import { ethers, waffle } from 'hardhat';
 import { SQToken, Vesting } from '../src';
 import { eventFrom } from "./helper";
-import { deployContracts } from './setup';
+import { deployRootContracts } from './setup';
 
 describe('Vesting Contract', () => {
     const mockProvider = waffle.provider;
@@ -60,8 +60,8 @@ describe('Vesting Contract', () => {
     };
 
     beforeEach(async () => {
-        const deployment = await deployContracts(wallet, wallet1);
-        token = deployment.token;
+        const deployment = await deployRootContracts(wallet, wallet1);
+        token = deployment.rootToken;
         vestingContract = deployment.vesting;
         lockPeriod = 86400 * 30; // 2 month
         vestingPeriod = 86400 * 365; // 1 year

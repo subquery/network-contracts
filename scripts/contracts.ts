@@ -42,6 +42,7 @@ import {
     RewardsPool__factory,
     RewardsStaking,
     RewardsStaking__factory,
+    ERC20,
     SQToken,
     SQToken__factory,
     ServiceAgreementRegistry,
@@ -60,6 +61,9 @@ import {
     VSQToken__factory,
     Vesting,
     Vesting__factory,
+    PolygonDestination,
+    PolygonDestination__factory,
+    ChildERC20__factory
 } from '../src';
 
 export interface FactoryContstructor {
@@ -72,7 +76,8 @@ export type Contracts = {
     proxyAdmin: ProxyAdmin;
     settings: Settings;
     inflationController: InflationController;
-    token: SQToken;
+    rootToken: SQToken;
+    token: ERC20;
     vtoken: VSQToken;
     staking: Staking;
     stakingManager: StakingManager;
@@ -96,6 +101,7 @@ export type Contracts = {
     disputeManager: DisputeManager;
     consumerRegistry: ConsumerRegistry;
     priceOracle: PriceOracle;
+    polygonDestination: PolygonDestination;
 };
 
 export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ bytecode: string }, FactoryContstructor]>> =
@@ -109,6 +115,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ byt
     RewardsStaking: [CONTRACTS.RewardsStaking, RewardsStaking__factory],
     RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
     ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
+    ServiceAgreementExtra: [CONTRACTS.ServiceAgreementExtra, ServiceAgreementExtra__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
     StakingManager: [CONTRACTS.StakingManager, StakingManager__factory],
     EraManager: [CONTRACTS.EraManager, EraManager__factory],
@@ -151,7 +158,9 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     DisputeManager: DisputeManager__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
     PriceOracle: PriceOracle__factory,
+    ChildERC20: ChildERC20__factory,
+    PolygonDestination: PolygonDestination__factory,
 };
 
-export type Config = number | string | BigNumber | string[];
-export type ContractConfig = Record<ContractName, Config[]>;
+export type Config = number | string | string[];
+export type ContractConfig = Partial<Record<ContractName, Config[]>>;

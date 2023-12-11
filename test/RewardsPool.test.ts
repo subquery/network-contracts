@@ -3,11 +3,10 @@
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-import { EraManager, IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsPool, SQToken, Staking } from '../src';
+import { EraManager, IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsPool, ERC20, Staking } from '../src';
 import { METADATA_HASH, deploymentIds } from './constants';
-import {etherParse, eventFrom, startNewEra, time, timeTravel} from './helper';
+import {etherParse, startNewEra, time, timeTravel} from './helper';
 import { deployContracts } from './setup';
-import {utils} from "ethers";
 
 describe('RewardsPool Contract', () => {
     const deploymentId0 = deploymentIds[0];
@@ -17,7 +16,7 @@ describe('RewardsPool Contract', () => {
     const mockProvider = waffle.provider;
     let root, indexer0, indexer1, indexer2, delegator0, delegator1;
 
-    let token: SQToken;
+    let token: ERC20;
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
     let eraManager: EraManager;

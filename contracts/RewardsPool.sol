@@ -137,9 +137,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      */
     function labor(bytes32 deploymentId, address indexer, uint256 amount) external {
         require(amount > 0, 'RP002');
-        IERC20(settings.getSQToken()).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), amount);
 
-        uint256 era = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
+        uint256 era = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
         EraPool storage eraPool = pools[era];
         Pool storage pool = eraPool.pools[deploymentId];
 
@@ -150,7 +150,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
 
         // indexer joined the deployment pool firstly.
         if (pool.labor[indexer] == 0) {
-            IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
+            IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
             uint256 myStake = stakingManager.getTotalStakingAmount(indexer);
             if (myStake == 0) {
                 // skip indexerUnclaimDeployments change, this indexer can not claim
@@ -189,7 +189,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      * @param indexer indexer address
      */
     function collect(bytes32 deploymentId, address indexer) external {
-        uint256 currentEra = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
+        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
         _collect(currentEra - 1, deploymentId, indexer);
     }
 
@@ -198,7 +198,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      * @param indexer indexer address
      */
     function batchCollect(address indexer) external {
-        uint256 currentEra = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
+        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
         _batchCollect(currentEra - 1, indexer);
     }
 
@@ -209,7 +209,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      * @param indexer indexer address
      */
     function collectEra(uint256 era, bytes32 deploymentId, address indexer) external {
-        uint256 currentEra = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
+        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
         require(currentEra > era, 'RP004');
         _collect(era, deploymentId, indexer);
     }
@@ -220,7 +220,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
      * @param indexer indexer address
      */
     function batchCollectEra(uint256 era, address indexer) external {
-        uint256 currentEra = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
+        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
         require(currentEra > era, 'RP004');
         _batchCollect(era, indexer);
     }
@@ -266,9 +266,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
 
         uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[indexer], pool.stake[indexer], pool.totalStake);
 
-        address rewardDistributer = settings.getRewardsDistributer();
+        address rewardDistributer = settings.getContractAddress(SQContracts.RewardsDistributer);
         IRewardsDistributer distributer = IRewardsDistributer(rewardDistributer);
-        IERC20(settings.getSQToken()).approve(rewardDistributer, amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(rewardDistributer, amount);
         if (amount > 0) {
             distributer.addInstantRewards(indexer, address(this), amount, era);
         }
@@ -293,7 +293,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constan
         if (pool.unclaimTotalLabor == 0) {
             // burn the remained
             if (pool.unclaimReward > 0) {
-                ISQToken token = ISQToken(settings.getSQToken());
+                ISQToken token = ISQToken(settings.getContractAddress(SQContracts.SQToken));
                 token.burn(pool.unclaimReward);
             }
 

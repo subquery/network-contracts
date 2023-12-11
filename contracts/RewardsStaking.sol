@@ -11,7 +11,6 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
-import './interfaces/IPermissionedExchange.sol';
 import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IRewardsStaking.sol';
@@ -89,12 +88,12 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
     }
 
     modifier onlyStaking() {
-        require(msg.sender == settings.getStaking(), 'G016');
+        require(msg.sender == settings.getContractAddress(SQContracts.Staking), 'G016');
         _;
     }
 
     modifier onlyIndexerRegistry() {
-        require(msg.sender == settings.getIndexerRegistry(), 'G017');
+        require(msg.sender == settings.getContractAddress(SQContracts.IndexerRegistry), 'G017');
         _;
     }
 
@@ -117,7 +116,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
             rewardsDistributer.setLastClaimEra(_indexer, currentEra - 1);
             lastSettledEra[_indexer] = currentEra - 1;
 
-            IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
+            IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
             //apply first onStakeChange
             uint256 newDelegation = stakingManager.getAfterDelegationAmount(_indexer, _indexer);
             delegation[_indexer][_indexer] = newDelegation;
@@ -131,7 +130,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
             totalStakingAmount[_indexer] = stakingManager.getTotalStakingAmount(_indexer);
 
             //apply first onICRChgange
-            uint256 newCommissionRate = IIndexerRegistry(settings.getIndexerRegistry()).getCommissionRate(_indexer);
+            uint256 newCommissionRate = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).getCommissionRate(_indexer);
             commissionRates[_indexer] = newCommissionRate;
 
             emit StakeChanged(_indexer, _indexer, newDelegation);
@@ -183,7 +182,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
         rewardsDistributer.claimFrom(indexer, staker);
 
         // run hook for delegation change
-        IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
+        IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
         uint256 newDelegation = stakingManager.getAfterDelegationAmount(staker, indexer);
         delegation[staker][indexer] = newDelegation;
 
@@ -213,8 +212,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
         IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(indexer);
         require(lastSettledEra[indexer] < rewardInfo.lastClaimEra, 'RS006');
 
-        IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
-        uint256 newCommissionRate = IIndexerRegistry(settings.getIndexerRegistry()).getCommissionRate(indexer);
+        IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
+        uint256 newCommissionRate = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).getCommissionRate(indexer);
         commissionRates[indexer] = newCommissionRate;
         pendingCommissionRateChange[indexer] = 0;
         _updateTotalStakingAmount(stakingManager, indexer, rewardInfo.lastClaimEra);
@@ -259,14 +258,14 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
      * @dev Get RewardsDistributer instant
      */
     function _getRewardsDistributer() private view returns (IRewardsDistributer) {
-        return IRewardsDistributer(settings.getRewardsDistributer());
+        return IRewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
     }
 
     /**
      * @dev Get current Era number from EraManager.
      */
     function _getCurrentEra() private returns (uint256) {
-        IEraManager eraManager = IEraManager(settings.getEraManager());
+        IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
         return eraManager.safeUpdateAndGetEra();
     }
 

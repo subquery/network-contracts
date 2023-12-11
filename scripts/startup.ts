@@ -3,7 +3,7 @@ import Pino from 'pino';
 
 import setup from './setup';
 
-import Token from '../artifacts/contracts/SQToken.sol/SQToken.json';
+import Token from '../artifacts/contracts/root/SQToken.sol/SQToken.json';
 import { ContractSDK, SubqueryNetwork } from '../build';
 import { METADATA_HASH } from '../test/constants';
 import startupKeplerConfig from './config/startup.kepler.json';
@@ -302,31 +302,12 @@ const main = async () => {
             await balanceTransfer(sdk, wallet);
             await ownerTransfer(sdk);
             break;
-        case 'kepler':
-            confirms = 20;
-            startupConfig = startupKeplerConfig;
-            // await airdrop(sdk);
-            // await createProjects(sdk);
-            // await createPlanTemplates(sdk);
-            // await balanceTransfer(sdk, wallet);
-            await ownerTransfer(sdk);
-            break;
         case 'testnet':
             confirms = 1;
             startupConfig = startupTestnetConfig;
             // await allocateTokenToIndexers(sdk);
             await createProjects(sdk);
             // await createPlanTemplates(sdk);
-            // await setupVesting(sdk);
-            // await airdrop(sdk);
-            // await setupPermissionExchange(sdk, wallet);
-            break;
-        case 'base-goerli':
-            confirms = 1;
-            startupConfig = startupTestnetConfig;
-            await allocateTokenToIndexers(sdk);
-            await createProjects(sdk);
-            await createPlanTemplates(sdk);
             // await setupVesting(sdk);
             // await airdrop(sdk);
             // await setupPermissionExchange(sdk, wallet);

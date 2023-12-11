@@ -8,7 +8,8 @@ import { ZERO_ADDRESS } from './constants';
 import { etherParse, futureTimestamp, lastestTime, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
-describe('Airdropper Contract', () => {
+// `Airdropper` only available on Kepler Network
+describe.skip('Airdropper Contract', () => {
     const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2, wallet_3;
     let airdropper: Airdropper;
@@ -71,7 +72,7 @@ describe('Airdropper Contract', () => {
                 endTime
             )).to.be.emit(airdropper, 'RoundCreated')
             .withArgs(0, sqtAddress, startTime, endTime);
-            
+
             const round = await airdropper.roundRecord(0);
             expect(round.tokenAddress).to.equal(sqtAddress);
             expect(round.roundStartTime).to.equal(startTime);
@@ -217,7 +218,7 @@ describe('Airdropper Contract', () => {
         });
         it('claim airdrop should work', async () => {
             await timeTravel(mockProvider, 60 * 60 * 3);
-             
+
             await expect(airdropper.connect(wallet_1).claimAirdrop(0))
             .to.be.emit(airdropper, 'AirdropClaimed')
             .withArgs(wallet_1.address, 0, etherParse('10'));
@@ -233,7 +234,7 @@ describe('Airdropper Contract', () => {
             await expect(airdropper.connect(wallet_1).batchClaimAirdrop([0, 1]))
             .to.be.emit(airdropper, 'AirdropClaimed')
             .withArgs(wallet_1.address, 0, etherParse('10'));
-            
+
             expect(await airdropper.airdropRecord(wallet_1.address, 0)).to.be.eq(etherParse('0'));
             expect(await (await airdropper.roundRecord(0)).unclaimedAmount).to.be.eq(etherParse('0'));
             expect(await token.balanceOf(airdropper.address)).to.be.eq(etherParse('0'));

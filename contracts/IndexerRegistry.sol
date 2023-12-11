@@ -139,7 +139,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
 
         metadata[msg.sender] = _metadata;
         setInitialCommissionRate(msg.sender, rate);
-        IStakingManager(settings.getStakingManager()).stake(msg.sender, amount);
+        IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).stake(msg.sender, amount);
 
         emit RegisterIndexer(msg.sender, amount, _metadata);
     }
@@ -149,12 +149,12 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
      *  This function will call unstake for Indexer to make sure indexer unstaking all staked SQT Token after unregister.
      */
     function unregisterIndexer() external onlyIndexer {
-        require(IProjectRegistry(settings.getProjectRegistry()).numberOfDeployments(msg.sender) == 0, 'IR004');
+        require(IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).numberOfDeployments(msg.sender) == 0, 'IR004');
 
         delete metadata[msg.sender];
         delete controllers[msg.sender];
 
-        IStakingManager stakingManager = IStakingManager(settings.getStakingManager());
+        IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
         uint256 amount = stakingManager.getAfterDelegationAmount(msg.sender, msg.sender);
         stakingManager.unstake(msg.sender, amount);
 
@@ -216,11 +216,11 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
      * when indexer do registration. The commissionRate need to apply at once.
      */
     function setInitialCommissionRate(address indexer, uint256 rate) private {
-        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getRewardsStaking());
+        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
         require(rewardsStaking.getTotalStakingAmount(indexer) == 0, 'RS001');
         require(rate <= PER_MILL, 'IR006');
 
-        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
+        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
         commissionRates[indexer] = CommissionRate(eraNumber, rate, rate);
 
         emit SetCommissionRate(indexer, rate);
@@ -233,8 +233,8 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
     function setCommissionRate(uint256 rate) external onlyIndexer {
         require(rate <= PER_MILL, 'IR006');
 
-        uint256 eraNumber = IEraManager(settings.getEraManager()).safeUpdateAndGetEra();
-        IRewardsStaking(settings.getRewardsStaking()).onICRChange(msg.sender, eraNumber + 2);
+        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        IRewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking)).onICRChange(msg.sender, eraNumber + 2);
 
         CommissionRate storage commissionRate = commissionRates[msg.sender];
         if (commissionRate.era < eraNumber) {
@@ -247,7 +247,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
     }
 
     function getCommissionRate(address indexer) external view returns (uint256) {
-        uint256 era = IEraManager(settings.getEraManager()).eraNumber();
+        uint256 era = IEraManager(settings.getContractAddress(SQContracts.EraManager)).eraNumber();
         CommissionRate memory rate = commissionRates[indexer];
         if ((rate.era + 1) < era) {
             return rate.valueAfter;

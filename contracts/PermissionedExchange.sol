@@ -228,12 +228,12 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      * @param _amount The amount to trade.
      */
     function trade(uint256 _orderId, uint256 _amount) public {
-        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
+        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
         ExchangeOrder storage order = orders[_orderId];
-        if (order.tokenGet == settings.getSQToken()) {
+        if (order.tokenGet == settings.getContractAddress(SQContracts.SQToken)) {
             require(tradeQuota[order.tokenGet][msg.sender] >= _amount, 'PE005');
         }
-        if (order.tokenGive == settings.getSQToken()) {
+        if (order.tokenGive == settings.getContractAddress(SQContracts.SQToken)) {
             require(_amount <= tradeLimitation, 'PE012');
             accumulatedTrades[msg.sender] = accumulatedTrades[msg.sender] + _amount;
             require(accumulatedTrades[msg.sender] <= tradeLimitationPerAccount, 'PE013');
@@ -243,7 +243,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         require(amount > 0, 'PE007');
         require(amount <= order.tokenGiveBalance, 'PE008');
         order.tokenGiveBalance -= amount;
-        if (order.tokenGet == settings.getSQToken()) {
+        if (order.tokenGet == settings.getContractAddress(SQContracts.SQToken)) {
             tradeQuota[order.tokenGet][msg.sender] -= _amount;
         }
         if (order.pairOrderId != 0){
@@ -262,7 +262,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      * @param _orderId The order id to settle.
      */
     function settleExpiredOrder(uint256 _orderId) public {
-        require(!(IEraManager(settings.getEraManager()).maintenance()), 'G019');
+        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
         ExchangeOrder memory order = orders[_orderId];
         require(order.expireDate != 0, 'PE009');
         require(order.expireDate < block.timestamp, 'PE010');

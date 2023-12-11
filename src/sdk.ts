@@ -1,8 +1,12 @@
+// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import type { Provider as AbstractProvider } from '@ethersproject/abstract-provider';
 import { Signer } from 'ethers';
 import { DEPLOYMENT_DETAILS } from './deployments';
 import {
     Airdropper,
+    ChildERC20,
     ConsumerHost,
     ConsumerRegistry,
     DisputeManager,
@@ -29,7 +33,14 @@ import {
     VSQToken,
     Vesting,
 } from './typechain';
-import { CONTRACT_FACTORY, ContractDeployment, ContractName, FactoryContstructor, SdkOptions } from './types';
+import {
+    CONTRACT_FACTORY,
+    ContractDeploymentInner,
+    ContractName,
+    FactoryContstructor,
+    SdkOptions
+} from './types';
+import assert from "assert";
 
 // HOTFIX: Contract names are not consistent between deployments and privous var names
 const contractNameConversion: Record<string, string> = {
@@ -38,10 +49,10 @@ const contractNameConversion: Record<string, string> = {
 };
 
 export class ContractSDK {
-    private _contractDeployments: ContractDeployment;
+    private _contractDeployments: ContractDeploymentInner;
 
     readonly settings!: Settings;
-    readonly sqToken!: SQToken;
+    readonly sqToken!: ChildERC20;
     readonly staking!: Staking;
     readonly stakingManager!: StakingManager;
     readonly indexerRegistry!: IndexerRegistry;
@@ -68,7 +79,8 @@ export class ContractSDK {
     readonly vSQToken!: VSQToken;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options: SdkOptions) {
-        this._contractDeployments = this.options.deploymentDetails ?? DEPLOYMENT_DETAILS[options.network];
+        assert(this.options.deploymentDetails || DEPLOYMENT_DETAILS[options.network],' missing contract deployment info');
+        this._contractDeployments = this.options.deploymentDetails ?? DEPLOYMENT_DETAILS[options.network]!.child;
         this._init();
     }
 

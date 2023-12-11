@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { BigNumber, ContractReceipt, ContractTransaction, Wallet, ethers, utils } from 'ethers';
 import web3 from 'web3';
-import Token from '../../artifacts/contracts/SQToken.sol/SQToken.json';
+import Token from '../../artifacts/contracts/root/SQToken.sol/SQToken.json';
 import deployment from '../../publish/testnet.json';
 import setup from '../../scripts/setup';
 import { ContractSDK } from '../../src';
@@ -11,7 +11,7 @@ let INDEXER_ADDR;
 let CONSUMER_ADDR;
 const METADATA_HASH = 'QmdKLNpQ6vXZNXguEaTp9uWQyjj2dR8HpL7JHVZhW1CsaJ';
 const DEPLOYMENT_ID = cidToBytes32('QmSjjRjfjXXEfSUTheNwvWcBaH54pWoToTHPDsJRby955X');
-let Provider;
+let provider;
 
 const usdcAddress = '0xE097d6B3100777DC31B34dC2c58fB524C2e76921';
 
@@ -33,7 +33,7 @@ function cidToBytes32(cid) {
 }
 
 async function futureTimestamp(sec = 60 * 60 * 2) {
-    return (await Provider.getBlock()).timestamp + sec;
+    return (await provider.getBlock()).timestamp + sec;
 }
 
 async function indexerCollectRewards() {
@@ -79,7 +79,7 @@ async function queryProjectSetup() {
     const projectNft = await sdk.projectRegistry.tokenURI(0)
     if (info.latestDeploymentId != DEPLOYMENT_ID) {
         console.log('start update query project 0 ...');
-        await sendTx(() => sdk.projectRegistry.updateDeployment(0, DEPLOYMENT_ID, VERSION));
+        await sendTx(() => sdk.projectRegistry.addOrUpdateDeployment(0, DEPLOYMENT_ID, VERSION, true));
         await sendTx(() => sdk.projectRegistry.updateProjectMetadata(0, METADATA_HASH));
     }
 
@@ -374,7 +374,7 @@ async function permissionedExchangedtest() {
     let orderId = await sdk.permissionedExchange.nextOrderId();
     console.log(`start create exchange order ${orderId}`);
     await sendTx(() => sdk.sqToken.increaseAllowance(sdk.permissionedExchange.address, etherParse('100')));
-    const usdcContract = new ethers.Contract(usdcAddress, Token.abi, Provider);
+    const usdcContract = new ethers.Contract(usdcAddress, Token.abi, provider);
 
     await usdcContract.connect(root_wallet).increaseAllowance(sdk.permissionedExchange.address, 1000000);
     await sendTx(async () =>
@@ -433,8 +433,8 @@ async function main() {
     assert(INDEXER_PK, 'Not found SEED in env');
     assert(CONSUMER_PK, 'Not found SEED in env');
 
-    const { wallet, provider } = await setup(process.argv);
-    Provider = provider;
+    const { wallet, childProvider } = await setup();
+    provider = childProvider;
     sdk = await ContractSDK.create(wallet, { deploymentDetails: deployment } as any);
     root_wallet = wallet;
     indexer_wallet = new Wallet(INDEXER_PK, provider);

@@ -123,15 +123,15 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(agreement.consumer != address(0), 'SA001');
 
-        IServiceAgreementExtra saHelper = IServiceAgreementExtra(settings.getServiceAgreementExtra());
+        IServiceAgreementExtra saHelper = IServiceAgreementExtra(settings.getContractAddress(SQContracts.ServiceAgreementExtra));
         saHelper.addAgreement(agreementId, agreement, checkThreshold);
 
         // approve token to reward distributor contract
-        address SQToken = settings.getSQToken();
-        IERC20(SQToken).approve(settings.getRewardsDistributer(), agreement.lockedAmount);
+        address SQToken = settings.getContractAddress(SQContracts.SQToken);
+        IERC20(SQToken).approve(settings.getContractAddress(SQContracts.RewardsDistributer), agreement.lockedAmount);
 
         // increase agreement rewards
-        IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getRewardsDistributer());
+        IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
         rewardsDistributer.increaseAgreementRewards(agreementId);
 
         emit ClosedAgreementCreated(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
@@ -153,7 +153,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         require(agreement.startDate < block.timestamp, 'SA008');
         require((agreement.startDate + agreement.period) > block.timestamp, 'SA009');
 
-        IPlanManager planManager = IPlanManager(settings.getPlanManager());
+        IPlanManager planManager = IPlanManager(settings.getContractAddress(SQContracts.PlanManager));
         Plan memory plan = planManager.getPlan(agreement.planId);
         require(plan.active, 'PM009');
         PlanTemplateV2 memory template = planManager.getPlanTemplate(plan.templateId);
@@ -171,7 +171,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
             agreement.planTemplateId
         );
         // deposit SQToken into service agreement registry contract
-        IERC20(settings.getSQToken()).transferFrom(msg.sender, address(this), agreement.lockedAmount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).transferFrom(msg.sender, address(this), agreement.lockedAmount);
         this.createClosedServiceAgreement(newAgreement, false);
     }
 
