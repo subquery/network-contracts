@@ -8,7 +8,7 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 
-contract SQToken is ERC20, Ownable, ERC20Burnable {
+contract VTSQToken is ERC20, Ownable, ERC20Burnable {
     using SafeERC20 for IERC20;
     address public minter;
 
@@ -17,7 +17,7 @@ contract SQToken is ERC20, Ownable, ERC20Burnable {
         _;
     }
 
-    constructor(address _minter, uint256 totalSupply) ERC20('VTSubQueryToken', 'vtSQT') Ownable() {
+    constructor(address _minter, uint256 totalSupply) ERC20('SubQueryToken', 'SQT') Ownable() {
         minter = _minter;
         _mint(msg.sender, totalSupply);
     }
