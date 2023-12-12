@@ -23,7 +23,7 @@ describe('SQToken Contract', () => {
 
     describe('Genesis Config', () => {
         it('check genesis config', async () => {
-            expect(await token.getMinter()).to.equal(ZERO_ADDRESS);
+            expect(await token.getMinter()).to.equal(inflationController.address);
             expect(await token.balanceOf(wallet_0.address)).to.equal(etherParse("10000000000"));
         });
     });
