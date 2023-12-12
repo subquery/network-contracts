@@ -62,7 +62,7 @@ contract Vesting is Ownable {
         allocations[addr] = allocation;
         totalAllocation += allocation;
 
-        ISQToken(vtToken).mint(address(this), allocation);
+        ISQToken(vtToken).mint(addr, allocation);
 
         emit VestingAllocated(addr, planId, allocation);
     }
