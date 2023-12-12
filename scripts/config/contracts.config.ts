@@ -2,7 +2,7 @@ import { utils } from "ethers";
 
 export default {
     mainnet: {
-        InflationController: [1000, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // inflationRate, inflationDestination
+        InflationController: [10000, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // inflationRate, inflationDestination
         SQToken: [utils.parseEther("10000000000")], // initial supply 10 billion
         Staking: [1209600, 1e3], // lockPeriod, unbondFeeRate
         Airdropper: ['0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // settle destination
@@ -26,7 +26,7 @@ export default {
         DisputeManager: [utils.parseEther("10000")], // minimumDeposit
     },
     testnet: {
-        InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
+        InflationController: [10000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
         SQToken: [utils.parseEther("10000000000")], // initial supply 10 billion
         Staking: [1000, 1e3], // lockPeriod, unbondFeeRate
         Airdropper: ['0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // settle destination

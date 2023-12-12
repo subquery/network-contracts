@@ -41,6 +41,7 @@ import {
     TransparentUpgradeableProxy__factory,
     TokenExchange,
     PolygonDestination,
+    RootChainManager__factory,
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -226,25 +227,38 @@ export async function deployRootContracts(
         });
         getLogger('Deployer').info('🤞 InflationController');
 
+        let tx = await sqtToken.setMinter(inflationController.address);
+        await tx.wait(confirms);
+
         //deploy vesting contract
         const vesting = await deployContract<Vesting>('Vesting', 'root', { deployConfig: [deployment.root.SQToken.address] });
         getLogger('Deployer').info('🤞 Vesting');
 
         //deploy PolygonDestination contract
         const polygonDestination = await deployContract<PolygonDestination>('PolygonDestination' as any, 'root',
-            { deployConfig: [settingsAddress, constants.AddressZero] });
+            { deployConfig: [settingsAddress, _wallet.address] });
+
+        let rootChainManager;
+        if (network === 'local') {
+            // deploy MockRootChainManager
+            rootChainManager = await new RootChainManager__factory(wallet).deploy();
+        }
+        // tx = await inflationController.setInflationDestination(polygonDestination.address);
+        // await tx.wait(confirms);
 
         getLogger('Deployer').info('🤞 PolygonDestination');
 
         getLogger('SettingContract').info('🤞 Set addresses');
-        let tx = await settings.setBatchAddress([
+        tx = await settings.setBatchAddress([
             SQContracts.SQToken,
             SQContracts.InflationController,
             SQContracts.Vesting,
+            SQContracts.RootChainManager,
         ],[
             sqtToken.address,
             inflationController.address,
-            vesting.address
+            vesting.address,
+            deployment.root['RootChainManager']?.address ?? rootChainManager.address,
         ]);
         await tx.wait(confirms);
 
