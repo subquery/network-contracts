@@ -46,6 +46,7 @@ contract PolygonDestination is IInflationDestination, Ownable, ERC165 {
         require(rcManager != address(0), "PD001");
         address sqtoken = ISettings(settings).getContractAddress(SQContracts.SQToken);
         bytes32 tokenType = IRootChainManager(rcManager).tokenToType(sqtoken);
+        // ERC20Predicate contract address, use for locking tokens
         address predicate = IRootChainManager(rcManager).typeToPredicate(tokenType);
         ERC20(sqtoken).increaseAllowance(predicate, tokenAmount);
         bytes memory depositData = abi.encode(tokenAmount);
