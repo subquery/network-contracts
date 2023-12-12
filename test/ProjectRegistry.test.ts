@@ -77,7 +77,8 @@ describe('Project Registry Contract', () => {
             expect(await projectRegistry.symbol()).to.equal('SP');
             expect(await projectRegistry.totalSupply()).to.equal(0);
 
-            expect(await projectRegistry.creatorRestricted()).to.equal(true);
+            expect(await projectRegistry.creatorRestricted(ProjectType.SUBQUERY)).to.equal(true);
+            expect(await projectRegistry.creatorRestricted(ProjectType.RPC)).to.equal(true);
             expect(await projectRegistry.creatorWhitelist(wallet_0.address)).to.equal(true);
             expect(await projectRegistry.creatorWhitelist(wallet_1.address)).to.equal(false);
             expect(await projectRegistry.settings()).to.equal(setting.address);
@@ -87,9 +88,9 @@ describe('Project Registry Contract', () => {
 
     describe('Managing Creator', () => {
         it('change creator restricted mode should work', async () => {
-            expect(await projectRegistry.creatorRestricted()).to.equal(true);
-            await projectRegistry.setCreatorRestricted(false);
-            expect(await projectRegistry.creatorRestricted()).to.equal(false);
+            expect(await projectRegistry.creatorRestricted(ProjectType.SUBQUERY)).to.equal(true);
+            await projectRegistry.setCreatorRestricted(ProjectType.SUBQUERY, false);
+            expect(await projectRegistry.creatorRestricted(ProjectType.SUBQUERY)).to.equal(false);
         });
 
         it('add creator should work', async () => {
@@ -140,7 +141,7 @@ describe('Project Registry Contract', () => {
         });
 
         it('any account can create a project when creatorRestricted mode disabled', async () => {
-            await projectRegistry.setCreatorRestricted(false);
+            await projectRegistry.setCreatorRestricted(ProjectType.SUBQUERY, false);
             await createProject(wallet_1);
             expect(await projectRegistry.ownerOf(1)).to.equal(wallet_1.address);
         });
