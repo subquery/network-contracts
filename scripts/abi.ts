@@ -20,7 +20,6 @@ const main = async () => {
             'StateChannel',
             'Airdropper',
             'PermissionedExchange',
-            'Vesting',
             'ConsumerHost',
             'DisputeManager',
             'ConsumerRegistry',
@@ -32,6 +31,7 @@ const main = async () => {
         ]
         const rootContracts = [
             'SQToken',
+            'Vesting',
             'InflationController',
         ]
         const proxyContracts = [

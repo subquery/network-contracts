@@ -27,13 +27,10 @@ contract Vesting is Ownable {
     mapping(address => uint256) public userPlanId;
     mapping(address => uint256) public allocations;
     mapping(address => uint256) public claimed;
-    mapping(address => uint256) public vtSQTAllocations;
 
     event VestingPlanAdded(uint256 planId, uint256 lockPeriod, uint256 vestingPeriod, uint256 initialUnlockPercent);
     event VestingAllocated(address indexed user, uint256 planId, uint256 allocation);
     event VestingClaimed(address indexed user, uint256 amount);
-    event TokenDeposited(address indexed user, uint256 amount);
-    event TokenWithdrawn(address indexed user, uint256 amount);
 
     constructor(address _token, address _vtToken) Ownable() {
         require(_token != address(0x0), "G009");
@@ -63,8 +60,9 @@ contract Vesting is Ownable {
 
         userPlanId[addr] = planId;
         allocations[addr] = allocation;
-        vtSQTAllocations[addr] = allocation;
         totalAllocation += allocation;
+
+        ISQToken(vtToken).mint(address(this), allocation);
 
         emit VestingAllocated(addr, planId, allocation);
     }
@@ -86,7 +84,6 @@ contract Vesting is Ownable {
 
     function withdrawAllByAdmin() external onlyOwner {
         uint256 amount = IERC20(token).balanceOf(address(this));
-        ISQToken(vtToken).burn(amount);
         require(IERC20(token).transfer(msg.sender, amount), "V008");
     }
 
@@ -96,30 +93,9 @@ contract Vesting is Ownable {
         vestingStartDate = _vestingStartDate;
 
         uint256 amount = IERC20(token).balanceOf(address(this));
-        uint256 vtTokenAmount = IERC20(vtToken).balanceOf(address(this));
-        require(amount == vtTokenAmount, "V013");
         require(amount == totalAllocation, "V010");
 
         transferOwnership(address(this));
-    }
-
-    function deposit(uint256 amount) external {
-        require(amount > 0, "V007");
-
-        vtSQTAllocations[msg.sender] += amount;
-        IERC20(vtToken).transferFrom(msg.sender, address(this), amount);
-
-        emit TokenDeposited(msg.sender, amount);
-    }
-
-    function withdraw(uint256 amount) external {
-        require(amount > 0, "V007");
-        require(vtSQTAllocations[msg.sender] >= amount, "V014");
-
-        vtSQTAllocations[msg.sender] -= amount;
-        IERC20(vtToken).transferFrom(address(this), msg.sender, amount);
-
-        emit TokenWithdrawn(msg.sender, amount);
     }
 
     function claim() external {
@@ -128,8 +104,7 @@ contract Vesting is Ownable {
         uint256 amount = claimableAmount(msg.sender);
         require(amount > 0, "V012");
 
-        ISQToken(vtToken).burn(amount);
-        vtSQTAllocations[msg.sender] -= amount;
+        ISQToken(vtToken).burnFrom(msg.sender, amount);
         claimed[msg.sender] += amount;
         totalClaimed += amount;
 
@@ -139,7 +114,7 @@ contract Vesting is Ownable {
 
     function claimableAmount(address user) public view returns (uint256) {
         uint256 amount = unlockedAmount(user);
-        uint256 vtSQTAmount = vtSQTAllocations[msg.sender];
+        uint256 vtSQTAmount = IERC20(vtToken).balanceOf(user);
         return vtSQTAmount >= amount ? amount : vtSQTAmount;
     }
 

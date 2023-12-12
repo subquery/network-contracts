@@ -5,6 +5,11 @@
                 "internalType": "address",
                 "name": "_token",
                 "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_vtToken",
+                "type": "address"
             }
         ],
         "stateMutability": "nonpayable",
@@ -368,6 +373,25 @@
         "inputs": [
             {
                 "internalType": "address",
+                "name": "user",
+                "type": "address"
+            }
+        ],
+        "name": "unlockedAmount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
                 "name": "",
                 "type": "address"
             }
@@ -391,6 +415,19 @@
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "vtToken",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
             }
         ],
         "stateMutability": "view",
