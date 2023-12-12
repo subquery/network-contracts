@@ -3,6 +3,9 @@
 pragma solidity 0.8.15;
 
 interface IRootChainManager {
+    function typeToPredicate(bytes32 _type) external view returns (address);
+    function tokenToType(address _addr) external view returns (bytes32);
+
     event TokenMapped(
         address indexed rootToken,
         address indexed childToken,
