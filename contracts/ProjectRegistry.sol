@@ -33,7 +33,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     uint256 public nextProjectId;
 
     /// @notice is the contract run in creator restrict mode. If in creator restrict mode, only permissioned account allowed to create and update project
-    mapping(ProjectType=>bool) public creatorRestricted;
+    mapping(ProjectType => bool) public creatorRestricted;
 
     /// @notice account address -> is creator
     mapping(address => bool) public creatorWhitelist;
@@ -192,7 +192,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         }
 
         emit ProjectDeploymentUpdated(msg.sender, projectId, deploymentId, metadata);
-        
+
         if (updateLatest && projectInfos[projectId].latestDeploymentId != deploymentId) {
             _updateProjectLatestDeployment(projectId, deploymentId);
         }
