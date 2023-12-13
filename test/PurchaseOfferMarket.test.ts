@@ -39,10 +39,14 @@ describe('Purchase Offer Market Contract', () => {
     const planTemplateId = 0;
     let offerId: BigNumber;
 
-    beforeEach(async () => {
+    const deployer = ()=>deployContracts(wallet_0, wallet_1);
+    before(async ()=>{
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         futureDate = await futureTimestamp(mockProvider);
-        const deployment = await deployContracts(wallet_0, wallet_1);
         purchaseOfferMarket = deployment.purchaseOfferMarket;
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         indexerRegistry = deployment.indexerRegistry;

@@ -14,9 +14,13 @@ describe('SQToken Contract', () => {
     let inflationController: InflationController;
     let token: SQToken;
 
-    beforeEach(async () => {
+    const deployer = ()=>deployRootContracts(wallet_0, wallet_1);
+    before(async ()=>{
         [wallet_0, wallet_1] = await ethers.getSigners();
-        const deployment = await deployRootContracts(wallet_0, wallet_1);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         inflationController = deployment.inflationController;
         token = deployment.rootToken;
     });

@@ -21,6 +21,7 @@ import {
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, metadatas } from './constants';
 import { Wallet, constants, deploySUSD, etherParse, eventFrom, registerIndexer, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 
 describe('PlanManger Contract', () => {
     const mockProvider = waffle.provider;
@@ -42,10 +43,16 @@ describe('PlanManger Contract', () => {
     let priceOracle: PriceOracle;
     let SUSD: Contract;
 
-    beforeEach(async () => {
+    const deployer = async ()=>{
+        SUSD = await deploySUSD(consumer as SignerWithAddress);
+        return deployContracts(indexer, consumer);
+    };
+    before(async ()=>{
         [indexer, consumer] = await ethers.getSigners();
-        SUSD = await deploySUSD(consumer);
-        const deployment = await deployContracts(indexer, consumer);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         indexerRegistry = deployment.indexerRegistry;
         projectRegistry = deployment.projectRegistry;
         planManager = deployment.planManager;

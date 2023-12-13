@@ -126,9 +126,13 @@ describe('StateChannel Workflow Tests', () => {
         await stateChannel.fund(channelId, total, amount, '0x', sign);
     }
 
-    beforeEach(async () => {
+    const deployer = ()=>deployContracts(wallet_0, indexer);
+    before(async ()=>{
         [wallet_0, indexer, indexer2, consumer, consumer2] = await ethers.getSigners();
-        const deployment = await deployContracts(wallet_0, indexer);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         indexerRegistry = deployment.indexerRegistry;
         staking = deployment.staking;
         token = deployment.token;

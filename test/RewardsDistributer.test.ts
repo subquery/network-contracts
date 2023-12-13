@@ -61,10 +61,14 @@ describe('RewardsDistributer Contract', () => {
         expect((await rewardsDistributor.getRewardInfo(indexer.address)).eraReward).to.be.equal(_eraReward);
     };
 
-    beforeEach(async () => {
+
+    const deployer = ()=>deployContracts(root, indexer);
+    before(async ()=>{
         [root, indexer, consumer, delegator, delegator2] = await ethers.getSigners();
-        //contract deployed start at era 1
-        const deployment = await deployContracts(root, indexer);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         indexerRegistry = deployment.indexerRegistry;
         projectRegistry = deployment.projectRegistry;
         planManager = deployment.planManager;
