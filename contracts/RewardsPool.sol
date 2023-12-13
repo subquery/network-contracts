@@ -9,7 +9,6 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 
-import './Constants.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
