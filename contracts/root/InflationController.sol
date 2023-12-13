@@ -20,7 +20,7 @@ import '../utils/MathUtil.sol';
  * @title InflationController contract
  * @notice The InflationController contract mint the inflation SQT token to a set address at a set inflation rate. It also provide the manual way to mint SQT Token to admin.
  */
-contract InflationController is Initializable, OwnableUpgradeable, Constants {
+contract InflationController is Initializable, OwnableUpgradeable {
     using MathUtil for uint256;
     using ERC165CheckerUpgradeable for address;
 

@@ -24,7 +24,7 @@ import './utils/MathUtil.sol';
  * @notice ### Overview
  * Keep tracing the pending staking and commission rate and last settled era.
  */
-contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, Constants {
+contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 

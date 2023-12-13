@@ -52,13 +52,6 @@ describe('Inflation Controller Contract', () => {
             .mul(inflationRate)
             .div(PER_MILL * YEAR_SECONDS)
             .mul(block.timestamp-lastInflationTimestamp.toNumber());
-
-        // const distance = expectValue.sub(newSupply).abs();
-        //
-        // // distance need to less the threshold, `0xDE0B6B3A7640000` -> `1e18`
-        // expect(distance.div(ethers.BigNumber.from('0xDE0B6B3A7640000'))).to.be.lt(
-        //     ethers.BigNumber.from(inflationRate.toNumber() / 10)
-        // );
     };
 
     beforeEach(async () => {

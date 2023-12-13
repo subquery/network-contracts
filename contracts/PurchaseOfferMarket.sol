@@ -42,7 +42,7 @@ import './utils/MathUtil.sol';
  * Consumers can cancel their purchase offer after expire date for free, but if cancel the unexpired Purchase Offer
  * we will charge the penalty fee.
  */
-contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOfferMarket, Constants {
+contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOfferMarket {
     /**
      * @notice Purchase Offer information.
      */

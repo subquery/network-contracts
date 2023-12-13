@@ -25,7 +25,7 @@ import './utils/StakingUtil.sol';
  * @notice ### Overview
  * The Rewards Pool using the Cobb-Douglas production function for PAYG and Open Agreement
  */
-contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constants {
+contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
