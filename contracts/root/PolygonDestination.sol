@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.15;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {IInflationDestination} from "./IInflationDestination.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -44,8 +45,16 @@ contract PolygonDestination is IInflationDestination, Ownable, ERC165 {
         address rcManager = ISettings(settings).getContractAddress(SQContracts.RootChainManager);
         require(rcManager != address(0), "PD001");
         address sqtoken = ISettings(settings).getContractAddress(SQContracts.SQToken);
+        bytes32 tokenType = IRootChainManager(rcManager).tokenToType(sqtoken);
+        // ERC20Predicate contract address, use for locking tokens
+        address predicate = IRootChainManager(rcManager).typeToPredicate(tokenType);
+        ERC20(sqtoken).increaseAllowance(predicate, tokenAmount);
         bytes memory depositData = abi.encode(tokenAmount);
         IRootChainManager(rcManager).depositFor(xcRecipient, sqtoken, depositData);
     }
 
+    function withdraw(address _token) external onlyOwner {
+        uint256 amount = ERC20(_token).balanceOf(address(this));
+        ERC20(_token).transfer(owner(), amount);
+    }
 }

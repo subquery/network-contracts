@@ -115,9 +115,13 @@ describe('StateChannel Contract', () => {
         };
     };
 
-    beforeEach(async () => {
+    const deployer = ()=>deployContracts(wallet_0, indexer);
+    before(async ()=>{
         [wallet_0, indexer, consumer, indexer2, indexer3] = await ethers.getSigners();
-        const deployment = await deployContracts(wallet_0, indexer);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         indexerRegistry = deployment.indexerRegistry;
         staking = deployment.staking;
         token = deployment.token;

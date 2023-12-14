@@ -58,9 +58,13 @@ describe('Staking Contract', () => {
         await token.connect(delegator).increaseAllowance(staking.address, amount);
     };
 
-    beforeEach(async () => {
+    const deployer = ()=>deployContracts(indexer, indexer2);
+    before(async ()=>{
         [indexer, indexer2, delegator] = await ethers.getSigners();
-        const deployment = await deployContracts(indexer, indexer2);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         token = deployment.token;
         staking = deployment.staking;
         stakingManager = deployment.stakingManager;

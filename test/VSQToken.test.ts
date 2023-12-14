@@ -20,9 +20,13 @@ describe('VSQToken Contract', () => {
 
     const amount = '2000';
 
-    beforeEach(async () => {
+    const deployer = ()=>deployContracts(root, root);
+    before(async ()=>{
         [root, indexer, indexer2, delegator] = await ethers.getSigners();
-        const deployment = await deployContracts(root, root);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         token = deployment.token;
         staking = deployment.staking;
         stakingManager = deployment.stakingManager;

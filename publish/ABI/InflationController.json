@@ -1,6 +1,12 @@
 [
     {
         "anonymous": false,
+        "inputs": [],
+        "name": "InflationStart",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
         "inputs": [
             {
                 "indexed": false,

@@ -40,6 +40,9 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
     /// @notice Seconds for the Julian year
     uint256 private constant YEAR_SECONDS = (3600 * 24 * 36525) / 100;
 
+    /// @notice Emitted when inflation started
+    event InflationStart();
+
     /**
      * @dev ### FUNCTIONS
      * @notice Initialize the contract to setup parameters: inflationRate, inflationDestination, lastInflationTimestamp
@@ -58,7 +61,7 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
         settings = _settings;
         inflationRate = _inflationRate;
         inflationDestination = _inflationDestination;
-        lastInflationTimestamp = block.timestamp;
+//        lastInflationTimestamp = block.timestamp;
     }
 
     /**
@@ -90,9 +93,15 @@ contract InflationController is Initializable, OwnableUpgradeable, Constants {
      * @notice Can only called by eraManager when startNewEra, it will calculate and mint the inflation SQT token for last Era according to the inflation rate.
      */
     function mintInflatedTokens() external {
+        if (lastInflationTimestamp == 0) {
+            lastInflationTimestamp = block.timestamp;
+            emit InflationStart();
+            return;
+        }
         uint256 passedTime = block.timestamp - lastInflationTimestamp;
         require(passedTime > 0, 'IC002');
 
+        // passedTimeRate is enlarged by 1e9 (PER_BILL)
         uint256 passedTimeRate = MathUtil.mulDiv(passedTime * inflationRate, PER_BILL / PER_MILL, YEAR_SECONDS);
         lastInflationTimestamp = block.timestamp;
 

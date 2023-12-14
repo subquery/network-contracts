@@ -21,9 +21,14 @@ describe('Dispute Manager Contract', () => {
     let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
 
-    beforeEach(async () => {
+
+    const deployer = ()=>deployContracts(root, root);
+    before(async ()=>{
         [root, indexer, fisherman] = await ethers.getSigners();
-        const deployment = await deployContracts(root, root);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         disputeManager = deployment.disputeManager;
         token = deployment.token;
         staking = deployment.staking;

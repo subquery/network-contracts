@@ -18,29 +18,29 @@
             "bytecodeHash": "b36d78daa299ef0902228a52e74c6016998ac240026c54624ba882e15d4a29cc",
             "lastUpdate": "Mon, 11 Dec 2023 07:37:28 GMT"
         },
-        "InflationController": {
-            "innerAddress": "0xBc32e397eC9299673eeAb0b952Bb63E6F6Cc4d4B",
-            "address": "0xB612080559f0102C5d60A034C841D72b7709ffE6",
-            "bytecodeHash": "5d3f5ec0939560ee147d7a15a0296d0c7d384e950a52679d9480345f92761c31",
-            "lastUpdate": "Mon, 11 Dec 2023 07:38:26 GMT"
-        },
-        "Vesting": {
+        "EventSyncRootTunnel": {
             "innerAddress": "",
             "address": "0x520c2A23000D134780a90bd9dec533df434140a2",
             "bytecodeHash": "1208cc441a58d80ec117c5204dae43ac65a0dc7b3694177820f380a62647a037",
             "lastUpdate": "Mon, 11 Dec 2023 07:38:40 GMT"
         },
+        "Vesting": {
+            "innerAddress": "",
+            "address": "0x2313f40a4F8a551f42F2bD945591ee0035052C95",
+            "bytecodeHash": "1208cc441a58d80ec117c5204dae43ac65a0dc7b3694177820f380a62647a037",
+            "lastUpdate": "Mon, 11 Dec 2023 03:58:39 GMT"
+        },
+        "InflationController": {
+            "innerAddress": "0x4c57881890b76bA70becB2E2Ba195fEB952Baa96",
+            "address": "0xD3C8939EC6eD2B7a474D98A810285fEeC3c01298",
+            "bytecodeHash": "dfd9277a412a48549880ecfcb856649e81471b23e0aa3b05c26322b3832eb701",
+            "lastUpdate": "Tue, 12 Dec 2023 00:59:38 GMT"
+        },
         "PolygonDestination": {
             "innerAddress": "",
-            "address": "0x6073e3c9Bec1b101239C628944e258118d9b9CE5",
-            "bytecodeHash": "8d09d42a0cfae5939989b80b3c48e7d7e0dde8b036fa41ebcaf8d571d1c5c4d4",
-            "lastUpdate": "Mon, 11 Dec 2023 07:38:50 GMT"
-        },
-        "RootChainManager": {
-            "innerAddress": "0xe45d449909905f82a5e0b0F2afA5953C2E3583Fd",
-            "address": "0xBbD7cBFA79faee899Eaf900F13C9065bF03B1A74",
-            "bytecodeHash": "",
-            "lastUpdate": ""
+            "address": "0x35d4BF80a13D6b1f5dF783CE37E1dcB37F14F654",
+            "bytecodeHash": "d5180aa05d3c3fdbe206f0e5abafddfab6606ccbcf91812bffe919fb6fed3567",
+            "lastUpdate": "Tue, 12 Dec 2023 02:27:52 GMT"
         }
     },
     "child": {
