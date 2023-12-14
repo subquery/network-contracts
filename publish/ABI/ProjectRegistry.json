@@ -394,7 +394,13 @@
         "type": "function"
     },
     {
-        "inputs": [],
+        "inputs": [
+            {
+                "internalType": "enum ProjectType",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
         "name": "creatorRestricted",
         "outputs": [
             {
@@ -745,6 +751,11 @@
     },
     {
         "inputs": [
+            {
+                "internalType": "enum ProjectType",
+                "name": "_type",
+                "type": "uint8"
+            },
             {
                 "internalType": "bool",
                 "name": "_creatorRestricted",

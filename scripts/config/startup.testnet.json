@@ -49,12 +49,13 @@
             "token": "0x7E65A71046170A5b1AaB5C5cC64242EDF95CaBEA"
         }
     ],
+    "tokenDeposit": "1000000000000000000000000000",
     "exchange": {
-        "usdcAddress": "0x7E65A71046170A5b1AaB5C5cC64242EDF95CaBEA",
-        "amountGive": "1000000",
-        "amountGet": "5000000000000000000",
-        "expireDate": 1703681276,
-        "tokenGiveBalance": "50000000"
+        "tokenGive": "0xDa9f97B9dE8509938c65DB0F0CB0ff9Ea425E9a0",
+        "tokenGet": "0x4C779e847b4893345B29cB34225dB0D2fb1C6239",
+        "amountGive": "1",
+        "amountGet": "1",
+        "tokenGiveBalance": "1000000000000000000000000"
     },
     "QRCreator": ["0xD3c54c8F8B993dD99440bb27862472016794255C"],
     "AirdropController": ["0xD3c54c8F8B993dD99440bb27862472016794255C"],
@@ -71,6 +72,24 @@
     ],
     "multiSign": "0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f",
     "projects": [
+        {
+            "name": "Ethereum Node",
+            "projectMetadata": "QmNrvxwA6isiDt2aicoNp1EqB2e4MarW7HhLDTaaot9etn",
+            "deploymentId": "Qmdn8iu7p39YR6WKfzECiwywxhUkyXJp68fjEqG4bkLA7z",
+            "deploymentMetadata": "QmaBm3Htj5yR9xbWWYbyx5ALsxNVn8to4a6FgoJLi3czCc"
+        },
+        {
+            "name": "Eth Private RPC",
+            "projectMetadata": "QmbK2PaNrMZ9WhpQEPbAMn1btszNpdoAnqPD7P9VGiqEvp",
+            "deploymentId": "QmTeutqL8wQqzAdG8MNWMXxoz1LDkkRZkY6HEw1HbdT2um",
+            "deploymentMetadata": "QmbkeHJeUzfxyaPckG6NFkbZMa3g61unMHCWNDCY7yh3vy"
+        },
+        {
+            "name": "Polkadot RPC",
+            "projectMetadata": "QmZuHNB1cv6QzYCrbyMFX1EWigFWcReGWMzANJM1DpfpYF",
+            "deploymentId": "QmQTUtMN3Ko6nuY5wTSA14Hc8dGbdqv5981QDyCmoS9hqh",
+            "deploymentMetadata": "QmbkeHJeUzfxyaPckG6NFkbZMa3g61unMHCWNDCY7yh3vy"
+        },
         {
             "name": "Kepler Testnet Dev",
             "projectMetadata": "QmSpZaQ34upk8iKSTGdneNmqRh88oU1BvytbLUvhVEKiDZ",

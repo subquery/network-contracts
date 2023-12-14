@@ -158,7 +158,7 @@ impl Network {
 #[inline]
 fn contract_parse(name: &str, file: &str, network: Network) -> Result<(Abi, Address), ()> {
     let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address[name]["address"]
+    let contract_address: Address = address["child"][name]["address"]
         .as_str()
         .ok_or(())?
         .parse()

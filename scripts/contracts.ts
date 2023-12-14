@@ -63,7 +63,7 @@ import {
     Vesting__factory,
     PolygonDestination,
     PolygonDestination__factory,
-    ChildERC20__factory
+    ChildERC20__factory,
 } from '../src';
 
 export interface FactoryContstructor {
