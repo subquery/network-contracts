@@ -64,8 +64,6 @@ import {
     PolygonDestination,
     PolygonDestination__factory,
     ChildERC20__factory,
-    RootChainManager,
-    RootChainManager__factory,
 } from '../src';
 
 export interface FactoryContstructor {
@@ -162,7 +160,6 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PriceOracle: PriceOracle__factory,
     ChildERC20: ChildERC20__factory,
     PolygonDestination: PolygonDestination__factory,
-    RootChainManager: RootChainManager__factory,
 };
 
 export type Config = number | string | string[];
