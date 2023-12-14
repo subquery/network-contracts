@@ -31,10 +31,14 @@ describe('RewardsPool Contract', () => {
         await indexerRegistry.connect(wallet).registerIndexer(amount, METADATA_HASH, rate, {gasLimit: '2000000'});
     };
 
-    beforeEach(async () => {
+
+    const deployer = ()=>deployContracts(root, indexer0);
+    before(async ()=>{
         [root, indexer0, indexer1, indexer2, delegator0, delegator1] = await ethers.getSigners();
-        // Contract deployed start at era 1.
-        const deployment = await deployContracts(root, indexer0);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         indexerRegistry = deployment.indexerRegistry;
         staking = deployment.staking;
         token = deployment.token;

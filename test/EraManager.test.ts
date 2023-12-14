@@ -13,9 +13,13 @@ describe('Era Manager Contract', () => {
     let wallet_0, wallet_1;
     let eraManager: EraManager;
 
-    beforeEach(async () => {
+    const deployer = ()=>deployContracts(wallet_0, wallet_1);
+    before(async ()=>{
         [wallet_0, wallet_1] = await ethers.getSigners();
-        const deployment = await deployContracts(wallet_0, wallet_1);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         eraManager = deployment.eraManager;
     });
 

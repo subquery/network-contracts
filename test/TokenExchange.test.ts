@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { ethers } from 'hardhat';
+import { ethers, waffle } from 'hardhat';
 import { ERC20, SQToken__factory, Settings, SQContracts } from '../src';
 import { ZERO_ADDRESS } from './constants';
 import { etherParse, revertrMsg } from './helper';
@@ -18,9 +18,13 @@ describe('TokenExchange Contract', () => {
     let SQToken: ERC20;
     let sqtAddress: string;
 
-    beforeEach(async () => {
+    const deployer = ()=>deployContracts(wallet_0, wallet_0);
+    before(async ()=>{
         [wallet_0, wallet_1] = await ethers.getSigners();
-        const deployment = await deployContracts(wallet_0, wallet_0);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         tokenExchange = deployment.tokenExchange;
         kSQToken = deployment.token;
         settings = deployment.settings;

@@ -39,9 +39,13 @@ describe('Maintenance Mode Test', () => {
     let purchaseOfferMarket: PurchaseOfferMarket;
     let stakingManager: StakingManager;
 
-    before(async () => {
+    const deployer = ()=>deployContracts(wallet_0, wallet_1);
+    before(async ()=>{
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
-        const deployment = await deployContracts(wallet_0, wallet_0);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         token = deployment.token;
         settings = deployment.settings;
         staking = deployment.staking;
