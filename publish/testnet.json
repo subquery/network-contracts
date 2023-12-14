@@ -18,12 +18,6 @@
             "bytecodeHash": "b36d78daa299ef0902228a52e74c6016998ac240026c54624ba882e15d4a29cc",
             "lastUpdate": "Mon, 11 Dec 2023 07:37:28 GMT"
         },
-        "EventSyncRootTunnel": {
-            "innerAddress": "",
-            "address": "0x520c2A23000D134780a90bd9dec533df434140a2",
-            "bytecodeHash": "1208cc441a58d80ec117c5204dae43ac65a0dc7b3694177820f380a62647a037",
-            "lastUpdate": "Mon, 11 Dec 2023 07:38:40 GMT"
-        },
         "Vesting": {
             "innerAddress": "",
             "address": "0x2313f40a4F8a551f42F2bD945591ee0035052C95",
