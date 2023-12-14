@@ -23,7 +23,6 @@ import {
     RewardsHelper,
     RewardsPool,
     RewardsStaking,
-    SQToken,
     ServiceAgreementExtra,
     ServiceAgreementRegistry,
     Settings,

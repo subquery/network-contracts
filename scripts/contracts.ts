@@ -104,7 +104,6 @@ export type Contracts = {
     consumerRegistry: ConsumerRegistry;
     priceOracle: PriceOracle;
     polygonDestination: PolygonDestination;
-    rootChainMananger: RootChainManager;
 };
 
 export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ bytecode: string }, FactoryContstructor]>> =

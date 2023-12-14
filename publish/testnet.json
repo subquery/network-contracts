@@ -46,9 +46,15 @@
         },
         "Settings": {
             "innerAddress": "0x58860b89EcbC75D9e1324e252601bcf1fFF76c3c",
-            "address": "0x1c89F1e353F0caB4De2fA3fc3cF4FE16eBaB260D",
+            "address": "0xDa9f97B9dE8509938c65DB0F0CB0ff9Ea425E9a0",
             "bytecodeHash": "dfac521769378a271223c367271170fee8c956997a98c0fb3823acc505cadabd",
             "lastUpdate": "Mon, 11 Dec 2023 08:03:52 GMT"
+        },
+        "SQToken": {
+            "innerAddress": "0xd947A1543991fA31f41D98D491A229A2a4f8466f",
+            "address": "0xDa9f97B9dE8509938c65DB0F0CB0ff9Ea425E9a0",
+            "bytecodeHash": "",
+            "lastUpdate": "Dec-13-2023 04:59:00 PM +UTC"
         },
         "VSQToken": {
             "innerAddress": "0x984914725c167c9Bb6d1E953d47bb979ACA28B83",
@@ -79,12 +85,6 @@
             "address": "0x7f87DC86d4d31db2B28583BaFe6c63d62b6a7e7b",
             "bytecodeHash": "d4f17d66dcab027c30e9e0c6d9e9663379e3ab42b1b9950cce2b194d15a872ec",
             "lastUpdate": "Mon, 11 Dec 2023 08:07:15 GMT"
-        },
-        "ProjectRegistry": {
-            "innerAddress": "0xC1569D48b146285234e711a531E18Fb19fA3e362",
-            "address": "0x7C44Bdf31293Ce7Cb58885a9dbCcb9423DD737bF",
-            "bytecodeHash": "004dcd90a8b41aabfae17d7b0b5db8d572bde1f6422528fc2854a2a2129e1134",
-            "lastUpdate": "Mon, 11 Dec 2023 08:07:38 GMT"
         },
         "PlanManager": {
             "innerAddress": "0x336355E9932F8dD00C29E230A3C3e328b36eF5D9",
@@ -163,6 +163,18 @@
             "address": "0xaB9189822844b90eE0A99F33512c2Aa3927232a4",
             "bytecodeHash": "b20207e97417d886517fed33845cb52f36de9c9cad73206d01a9bf97f680c6f0",
             "lastUpdate": "Mon, 11 Dec 2023 08:23:05 GMT"
+        },
+        "ProjectRegistry": {
+            "innerAddress": "0x9dc963070625a5DEc6F21cEd3C1f8FE15947D954",
+            "address": "0x984F8CBea62c54953BB3b9532841d774Dd04669b",
+            "bytecodeHash": "8105d867a7b3f388a9043df1af7485fe0fbd99d3ee07c8ef823578ca5e0a5da9",
+            "lastUpdate": "Thu, 14 Dec 2023 01:09:07 GMT"
+        },
+        "ConsumerHost": {
+            "innerAddress": "0x21e5Cc129982aF07DCd4B2619BB320d75cD174c5",
+            "address": "0x77D39058F48F84D355Aaf0328719B5c8843b601C",
+            "bytecodeHash": "0bbc689ef2cd93f60c16059c7492b54e57e7eeb7e6fc11d5698ec1b0ded1c2c6",
+            "lastUpdate": "Thu, 14 Dec 2023 01:09:27 GMT"
         }
     }
 }
