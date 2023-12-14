@@ -9,6 +9,7 @@ import {
     SQToken,
     InflationController,
     PolygonDestination,
+    SQToken__factory
 } from './typechain';
 import {
     CONTRACT_FACTORY, ContractDeployment, PolygonSdkOptions,
@@ -37,7 +38,7 @@ export class PolygonSDK {
 
         const rootWallet = this.wallet.connect(providers.root);
         const { SQToken, InflationController, PolygonDestination } = this._contractDeployments.root;
-        this.sqToken = CONTRACT_FACTORY.SQToken.connect(SQToken!.address, rootWallet) as SQToken;
+        this.sqToken = SQToken__factory.connect(SQToken!.address, rootWallet) as SQToken;
         this.inflationController = CONTRACT_FACTORY.InflationController.connect(InflationController!.address, rootWallet) as InflationController;
         this.polygonDestination = CONTRACT_FACTORY.PolygonDestination.connect(PolygonDestination!.address, rootWallet) as PolygonDestination;
         this.childToken = CONTRACT_FACTORY.ChildERC20.connect(this._contractDeployments.child.SQToken!.address, this.wallet.connect(providers.child)) as ERC20;
