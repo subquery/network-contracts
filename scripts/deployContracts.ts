@@ -419,6 +419,7 @@ export async function deployContracts(
         });
 
         // Register addresses on settings contract
+        // FIXME: failed to send this tx
         getLogger('SettingContract').info('🤞 Set token addresses');
         const txToken = await settings.setBatchAddress([
             SQContracts.SQToken,

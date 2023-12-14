@@ -7,6 +7,8 @@ import { DEPLOYMENT_DETAILS } from './deployments';
 import {
     ERC20,
     SQToken,
+    InflationController,
+    PolygonDestination,
 } from './typechain';
 import {
     CONTRACT_FACTORY, ContractDeployment, PolygonSdkOptions,
@@ -22,14 +24,24 @@ export class PolygonSDK {
 
     readonly sqToken: SQToken;
     readonly childToken: ERC20;
+    readonly inflationController: InflationController;
+    readonly polygonDestination: PolygonDestination;
+    // TODO: add vesting contract
+
     private _posClient: POSClient;
     private signerAddress?: string;
 
     constructor(private readonly wallet: Signer, private readonly providers: {root: AbstractProvider, child: AbstractProvider}, public readonly options: PolygonSdkOptions) {
         assert(this.options.deploymentDetails || DEPLOYMENT_DETAILS[options.network],' missing contract deployment info');
         this._contractDeployments = this.options.deploymentDetails ?? DEPLOYMENT_DETAILS[options.network]!;
-        this.sqToken = CONTRACT_FACTORY.SQToken.connect(this._contractDeployments.root.SQToken!.address, this.wallet.connect(providers.root)) as SQToken;
+
+        const rootWallet = this.wallet.connect(providers.root);
+        const { SQToken, InflationController, PolygonDestination } = this._contractDeployments.root;
+        this.sqToken = CONTRACT_FACTORY.SQToken.connect(SQToken!.address, rootWallet) as SQToken;
+        this.inflationController = CONTRACT_FACTORY.InflationController.connect(InflationController!.address, rootWallet) as InflationController;
+        this.polygonDestination = CONTRACT_FACTORY.PolygonDestination.connect(PolygonDestination!.address, rootWallet) as PolygonDestination;
         this.childToken = CONTRACT_FACTORY.ChildERC20.connect(this._contractDeployments.child.SQToken!.address, this.wallet.connect(providers.child)) as ERC20;
+
         this._posClient = new POSClient();
     }
 
