@@ -237,7 +237,7 @@ export async function deployRootContracts(
 
         //deploy PolygonDestination contract
         const polygonDestination = await deployContract<PolygonDestination>('PolygonDestination' as any, 'root',
-            { deployConfig: [settingsAddress, _wallet.address] });
+            { deployConfig: [settingsAddress, constants.AddressZero] });
 
         let rootChainManager;
         if (network === 'local') {
