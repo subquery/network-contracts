@@ -77,7 +77,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
-    ISettings private settings;
+    ISettings public settings;
     /// @notice Reward information: indexer => RewardInfo
     mapping(address => RewardInfo) private info;
 

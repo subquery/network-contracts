@@ -35,7 +35,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     }
 
     /// @dev ### STATES
-    ISettings private settings;
+    ISettings public settings;
     /// @notice The Signer account address
     address[] private signers;
     mapping(address => uint256) private signerIndex;

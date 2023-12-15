@@ -30,7 +30,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
 
     // -- Storage --
 
-    ISettings private settings;
+    ISettings public settings;
 
     //Pending staker address: indexer => indexNumber => staker
     mapping(address => mapping(uint256 => address)) private pendingStakers;
