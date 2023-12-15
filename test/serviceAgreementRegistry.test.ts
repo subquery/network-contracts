@@ -66,9 +66,13 @@ describe('Service Agreement Registry Contract', () => {
 
     const allowanceMultiplerBP = 1e6;
 
-    beforeEach(async () => {
+    const deployer = ()=>deployContracts(wallet, wallet1);
+    before(async ()=>{
         [wallet, wallet1, wallet2] = await ethers.getSigners();
-        const deployment = await deployContracts(wallet, wallet1);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         token = deployment.token;
         staking = deployment.staking;
         indexerRegistry = deployment.indexerRegistry;

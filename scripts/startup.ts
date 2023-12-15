@@ -1,10 +1,12 @@
+import { TokenExchange } from './../src/typechain/contracts/TokenExchange';
+import { PolygonDestination } from './../src/typechain/contracts/root/PolygonDestination';
 import { BigNumber, ContractReceipt, ContractTransaction, Overrides, Wallet, ethers, utils } from 'ethers';
 import Pino from 'pino';
 
-import setup from './setup';
+import { argv, setupCommon } from './setup';
 
 import Token from '../artifacts/contracts/root/SQToken.sol/SQToken.json';
-import { ContractSDK, SubqueryNetwork } from '../build';
+import { ContractSDK, PolygonSDK, SubqueryNetwork } from '../build';
 import { METADATA_HASH } from '../test/constants';
 import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
@@ -14,6 +16,8 @@ import { Provider, StaticJsonRpcProvider } from '@ethersproject/providers';
 import { MockProvider } from "ethereum-waffle";
 import { parseEther } from 'ethers/lib/utils';
 import { getLogger } from './logger';
+import { networks } from '../src/networks';
+import { token } from 'src/typechain/@openzeppelin/contracts';
 
 let startupConfig: any = startupTestnetConfig;
 let logger: Pino.Logger;
@@ -54,6 +58,26 @@ async function getAirdropTimeConfig(provider) {
     const endTime = startTime + 864000;
 
     return { startTime, endTime };
+}
+
+async function setupInflation(sdk: PolygonSDK) {
+    logger = getLogger('Token');
+    logger.info('Set minter');
+    //FIXME: error: setMinter is not a function
+    await sdk.sqToken.setMinter(sdk.inflationController.address);
+    // logger.info('Set inflationDestination');
+    // await sendTx((overrides) => sdk.inflationController.setInflationDestination(sdk.polygonDestination.address, overrides));
+    // logger.info('Set xcRecipient');
+    // await sendTx((overrides) => sdk.polygonDestination.setXcRecipient(sdk.childToken.address, overrides));
+}
+
+async function tokenDeposit(sdk: PolygonSDK) {
+    logger = getLogger('Token');
+    const amount = startupConfig.tokenDeposit;
+    logger.info(`Deposit ${amount} token to Polygon`);
+    let tx = await sdk.approveDeposit(amount);
+    await tx.getReceipt();
+    tx = await sdk.depositFor(amount);
 }
 
 export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpcProvider) {
@@ -157,24 +181,13 @@ export async function airdrop(sdk: ContractSDK, _provider?: StaticJsonRpcProvide
     console.log('\n');
 }
 
-async function setupPermissionExchange(sdk: ContractSDK, wallet: Wallet, _provider?: StaticJsonRpcProvider) {
-    if (_provider) provider = _provider;
-    logger = getLogger('Permission Exchange');
+async function setupTokenExchange(sdk: ContractSDK) {
+    logger = getLogger('Token Exchange');
     logger.info('Setup exchange order');
-    const { usdcAddress, amountGive, amountGet, expireDate, tokenGiveBalance } = startupConfig.exchange;
-    const usdcContract = new ethers.Contract(usdcAddress, Token.abi, provider);
-    await usdcContract.connect(wallet).increaseAllowance(sdk.permissionedExchange.address, tokenGiveBalance);
-
+    const { tokenGive, tokenGet, amountGive, amountGet, tokenGiveBalance } = startupConfig.exchange;
+    await sendTx((overrides) => sdk.sqToken.increaseAllowance(sdk.tokenExchange.address, tokenGiveBalance, overrides));
     await sendTx((overrides) =>
-        sdk.permissionedExchange.createPairOrders(
-            usdcAddress,
-            sdk.sqToken.address,
-            amountGive,
-            amountGet,
-            expireDate,
-            tokenGiveBalance,
-            overrides
-        )
+         sdk.tokenExchange.sendOrder(tokenGive, tokenGet, amountGive, amountGet, tokenGiveBalance, overrides)
     );
 
     console.log('\n');
@@ -211,9 +224,11 @@ export async function ownerTransfer(sdk: ContractSDK) {
     ];
 
     for (const contract of contracts) {
+        // @ts-ignore
         const owner = await contract.owner();
         if (owner != startupConfig.multiSign) {
             logger.info(`Transfer Ownership: ${contract.address}`);
+            // @ts-ignore
             await sendTx((overrides) => contract.transferOwnership(startupConfig.multiSign, overrides));
         } else {
             console.info(`${contract.address} ownership has already transfered`);
@@ -288,12 +303,14 @@ async function setupVesting(sdk: ContractSDK) {
 }
 
 const main = async () => {
-    const { wallet, name } = await setup();
-    provider = wallet.provider;
+    const network = (argv.network ?? 'testnet') as SubqueryNetwork;
+    const { wallet, rootProvider, childProvider, overrides } = await setupCommon(networks[network]);
+    const polygonSdk = await PolygonSDK.create(wallet, {root: rootProvider, child: childProvider}, {network: 'testnet'});
 
-    const sdk = ContractSDK.create(wallet, { network: name });
+    const sdk = ContractSDK.create(wallet.connect(childProvider), { network });
+    provider = childProvider;
 
-    switch (name) {
+    switch (network) {
         case 'mainnet':
             startupConfig = startupMainnetConfig;
             confirms = 20;
@@ -303,17 +320,23 @@ const main = async () => {
             await ownerTransfer(sdk);
             break;
         case 'testnet':
-            confirms = 1;
+            confirms = 5;
             startupConfig = startupTestnetConfig;
-            // await allocateTokenToIndexers(sdk);
-            await createProjects(sdk);
+            // root contracts
+            await setupInflation(polygonSdk);
+            // await tokenDeposit(polygonSdk);
+
+            // child contracts
+            // await createProjects(sdk);
             // await createPlanTemplates(sdk);
+            // await setupTokenExchange(sdk);
+            // await allocateTokenToIndexers(sdk);
+
             // await setupVesting(sdk);
-            // await airdrop(sdk);
-            // await setupPermissionExchange(sdk, wallet);
+            // await setupTokenExchange(sdk);
             break;
         default:
-            throw new Error(`Please provide correct network ${name}`);
+            throw new Error(`Please provide correct network ${network}`);
     }
 
     logger = getLogger('Contract Setup');

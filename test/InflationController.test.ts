@@ -54,10 +54,13 @@ describe('Inflation Controller Contract', () => {
             .mul(block.timestamp-lastInflationTimestamp.toNumber());
     };
 
-    beforeEach(async () => {
+    const deployer = ()=>deployRootContracts(wallet_0, wallet_1);
+    before(async ()=>{
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
+    });
+
+    beforeEach(async () => {
         inflationDestination = wallet_1.address;
-        const deployer = ()=>deployRootContracts(wallet_0, wallet_1);
         const deployment = await waffle.loadFixture(deployer);
         inflationController = deployment.inflationController;
         polygonDestination = deployment.polygonDestination;

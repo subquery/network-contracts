@@ -59,8 +59,10 @@ describe('Vesting Contract', () => {
         expect(await vestingContract.allocations(user)).to.equal(parseEther(allocation));
     };
 
+    const deployer = ()=>deployRootContracts(wallet, wallet1);
+
     beforeEach(async () => {
-        const deployment = await deployRootContracts(wallet, wallet1);
+        const deployment = await waffle.loadFixture(deployer);
         token = deployment.rootToken;
         vestingContract = deployment.vesting;
         lockPeriod = 86400 * 30; // 2 month

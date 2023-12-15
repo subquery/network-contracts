@@ -3,7 +3,7 @@
 
 import { expect } from 'chai';
 import { BigNumber, BigNumberish, BytesLike, Wallet } from 'ethers';
-import { ethers } from 'hardhat';
+import { ethers, waffle } from 'hardhat';
 import {
     ConsumerHost,
     IndexerRegistry,
@@ -180,9 +180,14 @@ describe('ConsumerHost Contract', () => {
         };
     };
 
-    beforeEach(async () => {
+
+    const deployer = ()=>deployContracts(wallet_0, indexer);
+    before(async ()=>{
         [wallet_0, indexer, consumer, consumer2, hoster] = await ethers.getSigners();
-        const deployment = await deployContracts(wallet_0, indexer);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         indexerRegistry = deployment.indexerRegistry;
         staking = deployment.staking;
         token = deployment.token;

@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import Pino from 'pino';
 import sha256 from 'sha256';
 
+import { rootChainMananger } from './rootChainManager';
 import CONTRACTS from '../src/contracts';
 import {ContractDeployment, ContractDeploymentInner, ContractName, SQContracts, SubqueryNetwork} from '../src/types';
 import { getLogger } from './logger';
@@ -243,8 +244,6 @@ export async function deployRootContracts(
             // deploy MockRootChainManager
             rootChainManager = await new RootChainManager__factory(wallet).deploy();
         }
-        // tx = await inflationController.setInflationDestination(polygonDestination.address);
-        // await tx.wait(confirms);
 
         getLogger('Deployer').info('🤞 PolygonDestination');
 
@@ -258,7 +257,7 @@ export async function deployRootContracts(
             sqtToken.address,
             inflationController.address,
             vesting.address,
-            deployment.root['RootChainManager']?.address ?? rootChainManager.address,
+            rootChainMananger[network]?.address ?? rootChainManager.address,
         ]);
         await tx.wait(confirms);
 
@@ -288,6 +287,7 @@ export async function deployContracts(
     config = _config;
     confirms = options?.confirms ?? 1;
     network = options?.network ?? 'local';
+    logger = getLogger('Child Deployer');
 
     if (options?.history) {
         const localDeployment = loadDeployment(network);
@@ -419,6 +419,7 @@ export async function deployContracts(
         });
 
         // Register addresses on settings contract
+        // FIXME: failed to send this tx
         getLogger('SettingContract').info('🤞 Set token addresses');
         const txToken = await settings.setBatchAddress([
             SQContracts.SQToken,

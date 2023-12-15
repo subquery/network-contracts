@@ -81,11 +81,14 @@ describe.skip('Rewardflow tests', () => {
     }
 
 
+    const deployer = () => deployContracts(root, delegator2);
+    before(async () => {
+        [root, indexer, consumer, delegator1, delegator2, delegator3] = await ethers.getSigners();
+    });
     describe('Rewardflow test', async () => {
         beforeEach(async () => {
-            [root, indexer, consumer, delegator1, delegator2, delegator3] = await ethers.getSigners();
             //contract deployed start at era 1
-            const deployment = await deployContracts(root, delegator2);
+            const deployment = await waffle.loadFixture(deployer);
             indexerRegistry = deployment.indexerRegistry;
             projectRegistry = deployment.projectRegistry;
             planManager = deployment.planManager;
