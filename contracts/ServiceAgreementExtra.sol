@@ -23,7 +23,7 @@ import './Constants.sol';
  * @notice ### Overview
  * This contract tracks all service Agreements for Indexers.
  */
-contract ServiceAgreementExtra is Initializable, OwnableUpgradeable, IServiceAgreementExtra, Constants {
+contract ServiceAgreementExtra is Initializable, OwnableUpgradeable, IServiceAgreementExtra {
     using MathUtil for uint256;
 
     /// @dev ### STATES

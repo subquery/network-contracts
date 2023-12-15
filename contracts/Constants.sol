@@ -3,9 +3,7 @@
 
 pragma solidity 0.8.15;
 
-contract Constants {
-    uint256 public constant PER_MILL = 1e6;
-    uint256 public constant PER_BILL = 1e9;
-    uint256 public constant PER_TRILL = 1e12;
-    address public constant ZERO_ADDRESS = address(0);
-}
+uint256 constant PER_MILL = 1e6;
+uint256 constant PER_BILL = 1e9;
+uint256 constant PER_TRILL = 1e12;
+address constant ZERO_ADDRESS = address(0);

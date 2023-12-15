@@ -59,7 +59,7 @@ import './utils/MathUtil.sol';
  * accumulated rewards by call claim() any time.
  *
  */
-contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgradeable, Constants {
+contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 

@@ -58,7 +58,6 @@ describe('Project Registry Contract', () => {
     const checkTokenUri = async (tokenId: number, uri: string) => {
         expect(await projectRegistry.tokenURI(tokenId)).to.equal(`ipfs://${uri}`);
     }
-
     const deployer = ()=>deployContracts(wallet_0, wallet_1);
     before(async ()=>{
         [wallet_0, wallet_1] = await ethers.getSigners();
