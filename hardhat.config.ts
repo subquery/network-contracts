@@ -323,8 +323,11 @@ task('publishChild', "verify and publish contracts on etherscan")
                 address: deployment.PriceOracle.innerAddress,
                 constructorArguments: [],
             });
-
-
+            //TokenExchange
+            await hre.run("verify:verify", {
+                address: deployment.TokenExchange.address,
+                constructorArguments: [],
+            });
 
         } catch (err) {
             console.log(err);
