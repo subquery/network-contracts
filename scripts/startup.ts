@@ -5,10 +5,8 @@ import Pino from 'pino';
 
 import { argv, setupCommon } from './setup';
 
-import Token from '../artifacts/contracts/root/SQToken.sol/SQToken.json';
 import { ContractSDK, PolygonSDK, SubqueryNetwork } from '../build';
 import { METADATA_HASH } from '../test/constants';
-import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
 
@@ -17,7 +15,6 @@ import { MockProvider } from "ethereum-waffle";
 import { parseEther } from 'ethers/lib/utils';
 import { getLogger } from './logger';
 import { networks } from '../src/networks';
-import { token } from 'src/typechain/@openzeppelin/contracts';
 
 let startupConfig: any = startupTestnetConfig;
 let logger: Pino.Logger;
@@ -63,12 +60,11 @@ async function getAirdropTimeConfig(provider) {
 async function setupInflation(sdk: PolygonSDK) {
     logger = getLogger('Token');
     logger.info('Set minter');
-    //FIXME: error: setMinter is not a function
     await sdk.sqToken.setMinter(sdk.inflationController.address);
-    // logger.info('Set inflationDestination');
-    // await sendTx((overrides) => sdk.inflationController.setInflationDestination(sdk.polygonDestination.address, overrides));
-    // logger.info('Set xcRecipient');
-    // await sendTx((overrides) => sdk.polygonDestination.setXcRecipient(sdk.childToken.address, overrides));
+    logger.info('Set inflationDestination');
+    await sendTx((overrides) => sdk.inflationController.setInflationDestination(sdk.polygonDestination.address, overrides));
+    logger.info('Set xcRecipient');
+    await sendTx((overrides) => sdk.polygonDestination.setXcRecipient(sdk.childToken.address, overrides));
 }
 
 async function tokenDeposit(sdk: PolygonSDK) {
@@ -304,11 +300,11 @@ async function setupVesting(sdk: ContractSDK) {
 
 const main = async () => {
     const network = (argv.network ?? 'testnet') as SubqueryNetwork;
-    const { wallet, rootProvider, childProvider, overrides } = await setupCommon(networks[network]);
-    const polygonSdk = await PolygonSDK.create(wallet, {root: rootProvider, child: childProvider}, {network: 'testnet'});
+    const { wallet, rootProvider, childProvider } = await setupCommon(networks[network]);
 
+    const polygonSdk = await PolygonSDK.create(wallet, {root: rootProvider, child: childProvider}, {network: 'testnet'});
     const sdk = ContractSDK.create(wallet.connect(childProvider), { network });
-    provider = childProvider;
+    provider = argv.target === 'root' ? rootProvider : childProvider;
 
     switch (network) {
         case 'mainnet':
