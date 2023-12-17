@@ -25,6 +25,7 @@ const main = async () => {
             'DisputeManager',
             'ConsumerRegistry',
             'PriceOracle',
+            'TokenExchange',
         ];
         const childContracts = [
             'ChildERC20',
