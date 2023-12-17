@@ -447,6 +447,19 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "settings",
+        "outputs": [
+            {
+                "internalType": "contract ISettings",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
