@@ -43,6 +43,7 @@ export default {
     local: {
         InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
         SQToken: [utils.parseEther("10000000000")], // initial supply 10 billion
+        VTSQToken: [utils.parseEther("0")], // initial supply 0 billion
         Staking: [1000, 1e3], // lockPeriod, unbondFeeRate
         Airdropper: ['0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // settle destination
         EraManager: [60 * 60], // 1 hour
