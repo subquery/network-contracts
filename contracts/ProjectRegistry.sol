@@ -33,7 +33,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     uint256 public nextProjectId;
 
     /// @notice is the contract run in creator restrict mode. If in creator restrict mode, only permissioned account allowed to create and update project
-    bool public creatorRestricted;
+    mapping(ProjectType => bool) public creatorRestricted;
 
     /// @notice account address -> is creator
     mapping(address => bool) public creatorWhitelist;
@@ -85,7 +85,8 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         __ERC721Enumerable_init();
 
         settings = _settings;
-        creatorRestricted = true;
+        creatorRestricted[ProjectType.SUBQUERY] = true;
+        creatorRestricted[ProjectType.RPC] = true;
         creatorWhitelist[msg.sender] = true;
         nextProjectId = 1;
     }
@@ -98,8 +99,8 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      * @notice set the mode to restrict or not
      * restrict mode -- only permissioned accounts allowed to create project
      */
-    function setCreatorRestricted(bool _creatorRestricted) external onlyOwner {
-        creatorRestricted = _creatorRestricted;
+    function setCreatorRestricted(ProjectType _type, bool _creatorRestricted) external onlyOwner {
+        creatorRestricted[_type] = _creatorRestricted;
     }
 
     /**
@@ -140,7 +141,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      * @notice create a project, if in the restrict mode, only creator allowed to call this function
      */
     function createProject(string memory projectMetadataUri, bytes32 deploymentMetdata, bytes32 deploymentId, ProjectType projectType) external {
-        if (creatorRestricted) {
+        if (creatorRestricted[projectType]) {
             require(creatorWhitelist[msg.sender], 'PR001');
         }
 
@@ -191,7 +192,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
         }
 
         emit ProjectDeploymentUpdated(msg.sender, projectId, deploymentId, metadata);
-        
+
         if (updateLatest && projectInfos[projectId].latestDeploymentId != deploymentId) {
             _updateProjectLatestDeployment(projectId, deploymentId);
         }

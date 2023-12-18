@@ -9,7 +9,6 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 
-import './Constants.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
@@ -25,7 +24,7 @@ import './utils/StakingUtil.sol';
  * @notice ### Overview
  * The Rewards Pool using the Cobb-Douglas production function for PAYG and Open Agreement
  */
-contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, Constants {
+contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
     using MathUtil for uint256;

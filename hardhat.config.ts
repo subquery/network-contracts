@@ -103,6 +103,7 @@ task('publishRoot', "verify and publish contracts on etherscan")
             });
 
             // PolygonDestination
+            console.log(`verify PolygonDestination`);
             await hre.run("verify:verify", {
                 address: deployment.PolygonDestination.address,
                 constructorArguments: [deployment.Settings.address, constants.AddressZero],
@@ -322,8 +323,11 @@ task('publishChild', "verify and publish contracts on etherscan")
                 address: deployment.PriceOracle.innerAddress,
                 constructorArguments: [],
             });
-
-
+            //TokenExchange
+            await hre.run("verify:verify", {
+                address: deployment.TokenExchange.address,
+                constructorArguments: [],
+            });
 
         } catch (err) {
             console.log(err);

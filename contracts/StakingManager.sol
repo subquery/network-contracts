@@ -14,7 +14,7 @@ import './utils/StakingUtil.sol';
 
 contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
 
-    ISettings private settings;
+    ISettings public settings;
 
     /**
      * @dev Initialize this contract.

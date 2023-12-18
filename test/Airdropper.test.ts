@@ -6,7 +6,7 @@ import { ethers, waffle } from 'hardhat';
 import { Airdropper, SQToken, Settings } from '../src';
 import { ZERO_ADDRESS } from './constants';
 import { etherParse, futureTimestamp, lastestTime, timeTravel } from './helper';
-import { deployContracts } from './setup';
+import { deployRootContracts } from './setup';
 
 // `Airdropper` only available on Kepler Network
 describe.skip('Airdropper Contract', () => {
@@ -19,11 +19,11 @@ describe.skip('Airdropper Contract', () => {
 
     beforeEach(async () => {
         [wallet_0, wallet_1, wallet_2, wallet_3] = await ethers.getSigners();
-        const deployment = await deployContracts(wallet_0, wallet_1);
+        const deployment = await deployRootContracts(wallet_0, wallet_1);
         airdropper = deployment.airdropper;
         settings = deployment.settings;
-        token = deployment.token;
-        sqtAddress = await settings.getSQToken();
+        token = deployment.rootToken;
+        sqtAddress = token.address;
     });
 
     describe('init states check', () => {

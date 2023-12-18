@@ -24,13 +24,13 @@ import './utils/MathUtil.sol';
  * @notice ### Overview
  * Keep tracing the pending staking and commission rate and last settled era.
  */
-contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, Constants {
+contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
     // -- Storage --
 
-    ISettings private settings;
+    ISettings public settings;
 
     //Pending staker address: indexer => indexNumber => staker
     mapping(address => mapping(uint256 => address)) private pendingStakers;

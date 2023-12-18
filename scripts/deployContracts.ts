@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import Pino from 'pino';
 import sha256 from 'sha256';
 
+import { rootChainMananger } from './rootChainManager';
 import CONTRACTS from '../src/contracts';
 import {ContractDeployment, ContractDeploymentInner, ContractName, SQContracts, SubqueryNetwork} from '../src/types';
 import { getLogger } from './logger';
@@ -41,6 +42,7 @@ import {
     TransparentUpgradeableProxy__factory,
     TokenExchange,
     PolygonDestination,
+    RootChainManager__factory,
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -199,6 +201,7 @@ export async function deployRootContracts(
     config = _config;
     confirms = options?.confirms ?? 1;
     network = options?.network ?? 'local';
+    logger = network === 'local' ? undefined : getLogger('Deployer');
 
     if (options?.history) {
         const localDeployment = loadDeployment(network);
@@ -209,42 +212,53 @@ export async function deployRootContracts(
 
     try {
         const proxyAdmin = await deployContract<ProxyAdmin>('ProxyAdmin', 'root');
-        getLogger('Deployer').info('🤞 ProxyAdmin');
+        logger?.info('🤞 ProxyAdmin');
         const settings = await deployContract<Settings>('Settings', 'root', { proxyAdmin, initConfig: [] });
-        getLogger('Deployer').info('🤞 Settings');
+        logger?.info('🤞 Settings');
         const settingsAddress = settings.address;
 
         // deploy SQToken contract
         const sqtToken = await deployContract<SQToken>('SQToken', 'root', {
             deployConfig: [constants.AddressZero, ...config['SQToken']],
         });
-        getLogger('Deployer').info('🤞 SQToken');
+        logger?.info('🤞 SQToken');
 
         const inflationController = await deployContract<InflationController>('InflationController', 'root', {
             initConfig: [settingsAddress],
             proxyAdmin,
         });
-        getLogger('Deployer').info('🤞 InflationController');
+        logger?.info('🤞 InflationController');
+
+        let tx = await sqtToken.setMinter(inflationController.address);
+        await tx.wait(confirms);
 
         //deploy vesting contract
         const vesting = await deployContract<Vesting>('Vesting', 'root', { deployConfig: [deployment.root.SQToken.address] });
-        getLogger('Deployer').info('🤞 Vesting');
+        logger?.info('🤞 Vesting');
 
         //deploy PolygonDestination contract
         const polygonDestination = await deployContract<PolygonDestination>('PolygonDestination' as any, 'root',
             { deployConfig: [settingsAddress, constants.AddressZero] });
 
-        getLogger('Deployer').info('🤞 PolygonDestination');
+        let rootChainManager;
+        if (network === 'local') {
+            // deploy MockRootChainManager
+            rootChainManager = await new RootChainManager__factory(wallet).deploy();
+        }
 
-        getLogger('SettingContract').info('🤞 Set addresses');
-        let tx = await settings.setBatchAddress([
+        logger?.info('🤞 PolygonDestination');
+
+        logger?.info('🤞 Set addresses');
+        tx = await settings.setBatchAddress([
             SQContracts.SQToken,
             SQContracts.InflationController,
             SQContracts.Vesting,
+            SQContracts.RootChainManager,
         ],[
             sqtToken.address,
             inflationController.address,
-            vesting.address
+            vesting.address,
+            rootChainMananger[network]?.address ?? rootChainManager.address,
         ]);
         await tx.wait(confirms);
 
@@ -274,6 +288,7 @@ export async function deployContracts(
     config = _config;
     confirms = options?.confirms ?? 1;
     network = options?.network ?? 'local';
+    logger = network === 'local' ? undefined : getLogger('Child Deployer');
 
     if (options?.history) {
         const localDeployment = loadDeployment(network);
@@ -405,7 +420,8 @@ export async function deployContracts(
         });
 
         // Register addresses on settings contract
-        getLogger('SettingContract').info('🤞 Set token addresses');
+        // FIXME: failed to send this tx
+        logger?.info('🤞 Set token addresses');
         const txToken = await settings.setBatchAddress([
             SQContracts.SQToken,
             SQContracts.Staking,
@@ -445,7 +461,7 @@ export async function deployContracts(
         ]);
 
         await txToken.wait(confirms);
-        getLogger('SettingContract').info('🚀  Set settings success');
+        logger?.info('🚀  Set settings success');
 
         return [
             deployment,

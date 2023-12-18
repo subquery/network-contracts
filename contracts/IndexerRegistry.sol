@@ -43,7 +43,7 @@ import './interfaces/IStakingManager.sol';
  * Indexer must set a appropriate commission rate and stake enough SQT Token when registering.
  * Indexer need to make sure all the query projects with NOT INDEXING status before unregister.
  */
-contract IndexerRegistry is Initializable, OwnableUpgradeable, Constants {
+contract IndexerRegistry is Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
 
     /**

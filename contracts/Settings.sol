@@ -6,9 +6,8 @@ pragma solidity 0.8.15;
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import './interfaces/ISettings.sol';
-import './Constants.sol';
 
-contract Settings is ISettings, Initializable, OwnableUpgradeable, Constants {
+contract Settings is ISettings, Initializable, OwnableUpgradeable {
     mapping(SQContracts => address) public contractAddresses;
 
     function initialize() external initializer {

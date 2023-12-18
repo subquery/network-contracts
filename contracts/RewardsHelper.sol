@@ -20,7 +20,7 @@ import './utils/MathUtil.sol';
 contract RewardsHelper is Initializable, OwnableUpgradeable {
     using MathUtil for uint256;
 
-    ISettings private settings;
+    ISettings public settings;
 
     /**
      * @dev Initialize this contract.

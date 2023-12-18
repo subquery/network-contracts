@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { ethers } from 'hardhat';
+import { ethers, waffle } from 'hardhat';
 import { IndexerRegistry, ProjectRegistry, RewardsStaking, ERC20, Staking, StakingManager } from '../src';
 import { DEPLOYMENT_ID, METADATA_1_HASH, METADATA_HASH, VERSION } from './constants';
 import { etherParse, registerIndexer } from './helper';
@@ -25,9 +25,13 @@ describe('IndexerRegistry Contract', () => {
         expect(await indexerRegistry.getController(wallet_0.address)).to.equal(constants.ZERO_ADDRESS);
     };
 
-    beforeEach(async () => {
+    const deployer = ()=>deployContracts(wallet_0, wallet_1);
+    before(async ()=>{
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
-        const deployment = await deployContracts(wallet_0, wallet_1);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         token = deployment.token;
         staking = deployment.staking;
         stakingManager = deployment.stakingManager;

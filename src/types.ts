@@ -147,3 +147,13 @@ export enum SQContracts {
     PriceOracle,
     RootChainManager,
 }
+
+export enum ServiceStatus {
+    TERMINATED,
+    READY,
+}
+
+export enum ProjectType {
+    SUBQUERY,
+    RPC
+}

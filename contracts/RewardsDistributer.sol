@@ -59,7 +59,7 @@ import './utils/MathUtil.sol';
  * accumulated rewards by call claim() any time.
  *
  */
-contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgradeable, Constants {
+contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
@@ -77,7 +77,7 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
-    ISettings private settings;
+    ISettings public settings;
     /// @notice Reward information: indexer => RewardInfo
     mapping(address => RewardInfo) private info;
 

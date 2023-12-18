@@ -56,7 +56,7 @@ import './utils/MathUtil.sol';
  * Tokens will transfer to user's account after the lockPeriod when users apply withdraw.
  * Every widthdraw will cost a fix rate fees(unbondFeeRate), and these fees will be burned.
  */
-contract Staking is IStaking, Initializable, OwnableUpgradeable, Constants {
+contract Staking is IStaking, Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 

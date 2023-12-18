@@ -15,9 +15,14 @@ describe('PriceOracle Contract', () => {
     const assetTo = '0x0000000000000000000000000000000000000001';
     const price = 100; // 1 assetA to 100 assetB
 
-    beforeEach(async () => {
+
+    const deployer = ()=>deployContracts(wallet_0, wallet_1);
+    before(async ()=>{
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
-        const deployment = await deployContracts(wallet_0, wallet_1);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         priceOracle = deployment.priceOracle;
         await priceOracle.setAssetPrice(assetFrom, assetTo, 1, price);
     });

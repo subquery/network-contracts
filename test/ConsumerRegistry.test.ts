@@ -12,9 +12,14 @@ describe('ConsumerRegistry Contract', () => {
     let consumerRegistry: ConsumerRegistry;
     let consumerHost: ConsumerHost;
 
-    beforeEach(async () => {
+
+    const deployer = ()=>deployContracts(wallet_0, wallet_1);
+    before(async ()=>{
         [wallet_0, wallet_1, wallet_2, wallet_3] = await ethers.getSigners();
-        const deployment = await deployContracts(wallet_0, wallet_1);
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
         consumerRegistry = deployment.consumerRegistry;
         consumerHost = deployment.consumerHost;
     });
