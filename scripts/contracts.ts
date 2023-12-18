@@ -1,6 +1,6 @@
 import { Provider } from '@ethersproject/abstract-provider';
 import { Wallet } from '@ethersproject/wallet';
-import { BaseContract, BigNumber, ContractFactory, Signer } from 'ethers';
+import { BaseContract, ContractFactory, Signer } from 'ethers';
 
 import CONTRACTS from '../src/contracts';
 
@@ -64,6 +64,8 @@ import {
     PolygonDestination,
     PolygonDestination__factory,
     ChildERC20__factory,
+    VTSQToken,
+    VTSQToken__factory,
 } from '../src';
 
 export interface FactoryContstructor {
@@ -97,6 +99,7 @@ export type Contracts = {
     permissionedExchange: PermissionedExchange;
     tokenExchange: TokenExchange;
     vesting: Vesting;
+    vtSQToken: VTSQToken;
     consumerHost: ConsumerHost;
     disputeManager: DisputeManager;
     consumerRegistry: ConsumerRegistry;
@@ -138,6 +141,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     VSQToken: VSQToken__factory,
     Airdropper: Airdropper__factory,
     Vesting: Vesting__factory,
+    VTSQToken: VTSQToken__factory,
     Staking: Staking__factory,
     StakingManager: StakingManager__factory,
     EraManager: EraManager__factory,

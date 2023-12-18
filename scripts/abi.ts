@@ -33,6 +33,7 @@ const main = async () => {
         const rootContracts = [
             'SQToken',
             'Vesting',
+            'VTSQToken',
             'InflationController',
         ]
         const proxyContracts = [
