@@ -18,57 +18,88 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
   
   address public sqtoken;
   address public redeemer;
+  uint256 public seriesId;
 
-  uint256 public maxSupply;
-  uint256 public maxSQT;
+  /// @notice seriesId => GiftSeries
+  mapping(uint256 => GiftSeries) public series;
 
-  uint256 public defaultSQTValue;
-  uint256 public totalRedeemableSQT;
-  uint256 public totalRedeemedSQT;
+  /// @notice account => seriesId => gift count
+  mapping(address => mapping(uint256 => uint8)) public allowlist;
 
-  RedeemRange[] public redeemRanges;
-  mapping(address => bool) public allowlist;
-  mapping(uint256 => uint256) public sqtRedeemableValue;
+  /// @notice tokenId => Gift
+  mapping(uint256 => Gift) public gifts;
 
-  event GiftMinted(address indexed to, uint256 indexed tokenId, string tokenURI, uint256 sqtValue);
+  event SeriesCreated(uint256 indexed seriesId, uint256 maxSupply, uint256 maxSQT, uint256 defaultValue, uint256 minValue, uint256 maxValue, string tokenURI);
 
-  function initialize(uint256 _maxSupply, uint256 _maxSQT, address _sqtoken) external initializer {
+  event GiftMinted(address indexed to, uint256 seriesId, uint256 indexed tokenId, string tokenURI, uint256 sqtValue);
+
+  function initialize(address _sqtoken) external initializer {
     __Ownable_init();
     __ERC721_init("SQT Gift", "SQTG");
     __ERC721URIStorage_init();
     __ERC721Enumerable_init();
 
-    maxSupply = _maxSupply;
-    maxSQT = _maxSQT;
     sqtoken = _sqtoken;
-  }
-
-  function setMaxSupply(uint256 _maxSupply) external onlyOwner {
-    maxSupply = _maxSupply;
-  }
-
-  function setMaxSQT(uint256 _maxSQT) external onlyOwner {
-    maxSQT = _maxSQT;
   }
 
   function setRedeemer(address _redeemer) external onlyOwner {
     redeemer = _redeemer;
   }
 
-  function setDefaultSQTValue(uint256 _defaultSQTValue) external onlyOwner {
-    defaultSQTValue = _defaultSQTValue;
+  function addToAllowlist(uint256 _seriesId, address _address) public onlyOwner {
+    require(series[_seriesId].maxSupply > 0, "Series not found");
+    allowlist[_address][_seriesId] += 1;
   }
 
-  function addToAllowlist(address _address) public onlyOwner {
-    allowlist[_address] = true;
+  function removeFromAllowlist(uint256 _seriesId, address _address) public onlyOwner {
+    require(series[_seriesId].maxSupply > 0, "Series not found");
+    allowlist[_address][_seriesId] += 1;
   }
 
-  function removeFromAllowlist(address _address) public onlyOwner {
-    allowlist[_address] = false;
+  function createSeries(
+    uint256 _maxSupply,
+    uint256 _maxSQT,
+    uint256 _defaultValue,
+    uint256 _minValue,
+    uint256 _maxValue,
+    string memory _tokenURI
+  ) external onlyOwner {
+    require(_maxSupply > 0, "Max supply must be greater than 0");
+    require(_maxSQT > 0, "Max SQT must be greater than 0");
+
+    if (_defaultValue == 0) {
+      require(_minValue > 0, "Min value must be greater than 0");
+      require(_maxValue > 0, "Max value must be greater than 0");
+      require(_maxValue - _minValue > 0, "Max value must be greater than min value");
+    }
+
+    series[seriesId] = GiftSeries({
+      maxSupply: _maxSupply,
+      maxSQT: _maxSQT,
+      defaultValue: _defaultValue,
+      minValue: _minValue,
+      maxValue: _maxValue,
+      totalSupply: 0,
+      totalRedeemableSQT: 0,
+      totalRedeemedSQT: 0,
+      active: true,
+      redeemable: false,
+      tokenURI: _tokenURI
+    });
+
+    seriesId += 1;
+
+    emit SeriesCreated(seriesId - 1, _maxSupply, _maxSQT, _defaultValue, _minValue, _maxValue, _tokenURI);
   }
 
-  function addRedeemRange(uint256 startId, uint256 endId, uint256 sqtValue) public onlyOwner {
-    redeemRanges.push(RedeemRange(startId, endId, sqtValue));
+  function setSeriesRedeemable(uint256 _seriesId, bool _redeemable) external onlyOwner {
+    require(series[_seriesId].maxSupply > 0, "Series not found");
+    series[_seriesId].redeemable = _redeemable;
+  }
+
+  function setSeriesActive(uint256 _seriesId, bool _active) external onlyOwner {
+    require(series[_seriesId].maxSupply > 0, "Series not found");
+    series[_seriesId].active = _active;
   }
 
   function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override(
@@ -102,46 +133,57 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
     return "ipfs://";
   }
 
-  function _getSQTValueForTokenId(uint256 tokenId) private view returns (uint256) {
-    for (uint i = 0; i < redeemRanges.length; i++) {
-      if (tokenId >= redeemRanges[i].startTokenId && tokenId <= redeemRanges[i].endTokenId) {
-          return redeemRanges[i].sqtValue;
-      }
+  function _getSQTValueForTokenId(uint256 _seriesId) private view returns (uint256) {
+    GiftSeries memory gift = series[_seriesId];
+    if (gift.defaultValue > 0) {
+      return gift.defaultValue;
     }
     
-    return defaultSQTValue;
+    uint256 random = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % (gift.maxValue - gift.minValue + 1);
+    return gift.minValue + random;
   }
 
-  function mint(string memory _tokenURI) public {
-    require(allowlist[msg.sender], "Not on allowlist");
-    require(totalSupply() < maxSupply, "Max gift supply reached");
+  function mint(uint256 _seriesId) public {
+    GiftSeries memory giftSerie = series[_seriesId];
+    require(giftSerie.active, "Series not active");
+    require(allowlist[msg.sender][_seriesId] > 0, "Not on allowlist");
+
+    require(giftSerie.totalSupply < giftSerie.maxSupply, "Max gift supply reached");
+    series[_seriesId].totalSupply += 1;
 
     uint256 tokenId = totalSupply() + 1;
-    uint256 sqtValue = _getSQTValueForTokenId(tokenId);
-    totalRedeemableSQT += sqtValue;
-    require(totalRedeemableSQT <= maxSQT, "Max SQT reached");
-    sqtRedeemableValue[tokenId] = sqtValue;
+    uint256 sqtValue = _getSQTValueForTokenId(_seriesId);
+    series[_seriesId].totalRedeemableSQT += sqtValue;
+    require(giftSerie.totalRedeemableSQT <= giftSerie.maxSQT, "Max SQT reached");
+    
+    gifts[tokenId].seriesId = _seriesId;
+    gifts[tokenId].sqtValue = sqtValue;
 
     _safeMint(msg.sender, tokenId);
-    _setTokenURI(tokenId, _tokenURI);
+    _setTokenURI(tokenId, giftSerie.tokenURI);
 
-    allowlist[msg.sender] = false;
+    allowlist[msg.sender][_seriesId]--;
 
-    emit GiftMinted(msg.sender, tokenId, _tokenURI, sqtValue);
+    emit GiftMinted(msg.sender, _seriesId, tokenId, giftSerie.tokenURI, sqtValue);
   }
 
   function afterTokenRedeem(uint256 tokenId) external {
     require(msg.sender == redeemer, "Not redeemer");
 
-    uint256 sqtValue = sqtRedeemableValue[tokenId];
-    sqtRedeemableValue[tokenId] = 0;
-    totalRedeemableSQT -= sqtValue;
-    totalRedeemedSQT += sqtValue;
+    Gift memory gift = gifts[tokenId];
+    uint256 sqtValue = gift.sqtValue;
+    series[gift.seriesId].totalRedeemedSQT += sqtValue;
+
+    delete gifts[tokenId];
     
     _burn(tokenId);
   }
 
+  function getGiftRedeemable(uint256 tokenId) external view returns (bool) {
+    return series[gifts[tokenId].seriesId].redeemable;
+  }
+
   function getSQTRedeemableValue(uint256 tokenId) external view returns (uint256) {
-    return sqtRedeemableValue[tokenId];
+    return gifts[tokenId].sqtValue;
   }
 }
