@@ -49,12 +49,15 @@ contract SQTRedeem is Initializable, OwnableUpgradeable {
   function redeem(address nft, uint256 tokenId) public {
     require(redeemable, "Redeem not enabled");
     require(allowlist[nft], "nft not allowed to redeem");
-    require(nft.supportsInterface(type(IERC721Upgradeable).interfaceId), "NFT does not support IERC721Upgradeable");
-    require(IERC165Upgradeable(nft).ownerOf(tokenId) == msg.sender, "Not owner of token");
 
-    require(nft.supportsInterface(type(ISQTGift).interfaceId), "NFT does not support ISQTGift");
-    uint256 sqtValue = ISQTGift(nft).getSQTRedeemableValue(tokenId);
+    IERC165Upgradeable nftContract = IERC165Upgradeable(nft);
+    require(nftContract.supportsInterface(type(ISQTGift).interfaceId), "NFT does not support ISQTGift");
+    
+    ISQTGift sqtGift = ISQTGift(nft);
+    require(sqtGift.ownerOf(tokenId) == msg.sender, "Not owner of token");
+    uint256 sqtValue = sqtGift.getSQTRedeemableValue(tokenId);
     require(sqtValue > 0, "Token not redeemable");
+    sqtGift.afterTokenRedeem(tokenId);
 
     require(IERC20(sqtoken).transfer(msg.sender, sqtValue), 'Failed to transfer SQT');
 

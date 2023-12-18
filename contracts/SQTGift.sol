@@ -79,6 +79,7 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
   }
 
   function supportsInterface(bytes4 interfaceId) public view override(
+    IERC165Upgradeable,
     ERC721Upgradeable,
     ERC721EnumerableUpgradeable,
     ERC721URIStorageUpgradeable
@@ -129,7 +130,7 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
     emit GiftMinted(msg.sender, tokenId, _tokenURI, sqtValue);
   }
 
-  function redeem(uint256 tokenId) public {
+  function afterTokenRedeem(uint256 tokenId) external {
     require(msg.sender == redeemer, "Not redeemer");
 
     uint256 sqtValue = sqtRedeemableValue[tokenId];
