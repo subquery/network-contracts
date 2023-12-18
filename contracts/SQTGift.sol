@@ -12,15 +12,13 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
-contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721URIStorageUpgradeable, ERC721EnumerableUpgradeable {
+import './interfaces/ISQTGift.sol';
 
-  struct RedeemRange {
-    uint256 startTokenId;
-    uint256 endTokenId;
-    uint256 sqtValue;
-  }
+contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721URIStorageUpgradeable, ERC721EnumerableUpgradeable, ISQTGift {
   
   address public sqtoken;
+  address public redeemer;
+
   uint256 public maxSupply;
   uint256 public maxSQT;
 
@@ -28,14 +26,11 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
   uint256 public totalRedeemableSQT;
   uint256 public totalRedeemedSQT;
 
-  bool public redeemable;
-
   RedeemRange[] public redeemRanges;
   mapping(address => bool) public allowlist;
   mapping(uint256 => uint256) public sqtRedeemableValue;
 
   event GiftMinted(address indexed to, uint256 indexed tokenId, string tokenURI, uint256 sqtValue);
-  event GiftRedeemed(address indexed to, uint256 indexed tokenId, uint256 sqtValue);
 
   function initialize(uint256 _maxSupply, uint256 _maxSQT, address _sqtoken) external initializer {
     __Ownable_init();
@@ -56,12 +51,12 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
     maxSQT = _maxSQT;
   }
 
-  function setDefaultSQTValue(uint256 _defaultSQTValue) external onlyOwner {
-    defaultSQTValue = _defaultSQTValue;
+  function setRedeemer(address _redeemer) external onlyOwner {
+    redeemer = _redeemer;
   }
 
-  function setRedeemable(bool _redeemable) external onlyOwner {
-    redeemable = _redeemable;
+  function setDefaultSQTValue(uint256 _defaultSQTValue) external onlyOwner {
+    defaultSQTValue = _defaultSQTValue;
   }
 
   function addToAllowlist(address _address) public onlyOwner {
@@ -76,14 +71,6 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
     redeemRanges.push(RedeemRange(startId, endId, sqtValue));
   }
 
-  function despositSQT(uint256 amount) public onlyOwner {
-    require(IERC20(sqtoken).transferFrom(msg.sender, address(this), amount), 'Failed to transfer SQT');
-  }
-
-  function withdrawSQT(uint256 amount) public onlyOwner {
-    require(IERC20(sqtoken).transfer(msg.sender, amount), 'Failed to transfer SQT');
-  }
-
   function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override(
     ERC721Upgradeable, 
     ERC721EnumerableUpgradeable
@@ -96,7 +83,7 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
     ERC721EnumerableUpgradeable,
     ERC721URIStorageUpgradeable
   ) returns (bool) {
-    return super.supportsInterface(interfaceId);
+    return interfaceId == type(ISQTGift).interfaceId || super.supportsInterface(interfaceId);
   }
 
   function tokenURI(uint256 tokenId) public view override(
@@ -143,19 +130,17 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
   }
 
   function redeem(uint256 tokenId) public {
-    require(redeemable, "Redeem not enabled");
-    require(_exists(tokenId), "Token ID does not exist");
-    require(ownerOf(tokenId) == msg.sender, "Not owner of token");
-    require(sqtRedeemableValue[tokenId] > 0, "Token not redeemable");
+    require(msg.sender == redeemer, "Not redeemer");
 
     uint256 sqtValue = sqtRedeemableValue[tokenId];
     sqtRedeemableValue[tokenId] = 0;
     totalRedeemableSQT -= sqtValue;
     totalRedeemedSQT += sqtValue;
-
-    require(IERC20(sqtoken).transfer(msg.sender, sqtValue), 'Failed to transfer SQT');
+    
     _burn(tokenId);
+  }
 
-    emit GiftRedeemed(msg.sender, tokenId, sqtValue);
+  function getSQTRedeemableValue(uint256 tokenId) external view returns (uint256) {
+    return sqtRedeemableValue[tokenId];
   }
 }
