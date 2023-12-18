@@ -238,7 +238,7 @@ export async function deployRootContracts(
 
         // deploy VTSQToken
         const vtSQToken = await deployContract<VTSQToken>('VTSQToken', 'root', {
-            deployConfig: [constants.AddressZero, ...config['SQToken']],
+            deployConfig: [constants.AddressZero, ...config['VTSQToken']],
         });
         logger?.info('🤞 VTSQToken');
 

@@ -14,6 +14,8 @@ jobs:
       with:
         node-version: 18
     - run: yarn
+    - name: clean cache
+      run: yarn clean
     - name: build
       run: yarn build
     - name: lint
