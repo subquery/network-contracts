@@ -234,16 +234,22 @@ export async function deployRootContracts(
         // setup minter
         let tx = await sqtToken.setMinter(inflationController.address);
         await tx.wait(confirms);
-
-        //deploy vesting contract
-        const vesting = await deployContract<Vesting>('Vesting', 'root', { deployConfig: [deployment.root.SQToken.address] });
-        logger?.info('🤞 Vesting');
+        logger?.info('🤞 Set SQToken minter');
 
         // deploy VTSQToken
         const vtSQToken = await deployContract<VTSQToken>('VTSQToken', 'root', {
-            deployConfig: [vesting.address, ...config['SQToken']],
+            deployConfig: [constants.AddressZero, ...config['SQToken']],
         });
         logger?.info('🤞 VTSQToken');
+
+        //deploy vesting contract
+        const vesting = await deployContract<Vesting>('Vesting', 'root', { deployConfig: [sqtToken.address, vtSQToken.address] });
+        logger?.info('🤞 Vesting');
+
+        // set vesting contract as the minter of vtSQToken
+        tx = await vtSQToken.setMinter(vesting.address);
+        await tx.wait(confirms);
+        logger?.info('🤞 Set VTSQToken minter');
 
         //deploy PolygonDestination contract
         const polygonDestination = await deployContract<PolygonDestination>('PolygonDestination' as any, 'root',

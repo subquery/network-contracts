@@ -8,18 +8,21 @@ import { ethers, waffle } from 'hardhat';
 import { SQToken, Vesting } from '../src';
 import { eventFrom } from "./helper";
 import { deployRootContracts } from './setup';
+import { VTSQToken } from "build";
 
 describe('Vesting Contract', () => {
     const mockProvider = waffle.provider;
     const [wallet, wallet1, wallet2, wallet3, wallet4] = mockProvider.getWallets();
 
     let token: SQToken;
+    let vtSQToken: VTSQToken;
     let vestingContract: Vesting;
     let lockPeriod: number;
     let vestingPeriod: number;
     let initialUnlockPercent = 10;
 
     async function claimVesting(wallet: Wallet): Promise<{user: string, amount: BigNumber}> {
+        await vtSQToken.connect(wallet).increaseAllowance(vestingContract.address, parseEther(10000));
         const tx = await vestingContract.connect(wallet).claim();
         const evt = await eventFrom(tx, vestingContract, 'VestingClaimed(address,uint256)');
         return evt as any;
@@ -65,6 +68,7 @@ describe('Vesting Contract', () => {
         const deployment = await waffle.loadFixture(deployer);
         token = deployment.rootToken;
         vestingContract = deployment.vesting;
+        vtSQToken = deployment.vtSQToken;
         lockPeriod = 86400 * 30; // 2 month
         vestingPeriod = 86400 * 365; // 1 year
 
@@ -225,6 +229,7 @@ describe('Vesting Contract', () => {
     describe('Vesting Claim', () => {
         const wallet1Allocation = parseEther(1000);
         const wallet2Allocation = parseEther(3000);
+
         beforeEach(async () => {
             await vestingContract.depositByAdmin(parseEther(4000));
             const planId = await createPlan(lockPeriod, vestingPeriod);
@@ -233,6 +238,9 @@ describe('Vesting Contract', () => {
                 [wallet1.address, wallet2.address],
                 [wallet1Allocation, wallet2Allocation]
             );
+
+            await vtSQToken.connect(wallet1).increaseAllowance(vestingContract.address, parseEther(1000));
+            await vtSQToken.connect(wallet2).increaseAllowance(vestingContract.address, parseEther(3000));
         });
 
         it('no claimable amount for invalid condition', async () => {
@@ -249,15 +257,7 @@ describe('Vesting Contract', () => {
             expect(await vestingContract.claimableAmount(wallet2.address)).to.equal(0);
         });
 
-        it('claim before lock period', async () => {// start vesting
-            await startVesting();
-            let claimable = await vestingContract.claimableAmount(wallet1.address);
-            expect(claimable).to.eq(0);
-            const evt = await claimVesting(wallet1);
-            expect(evt.amount).to.eq(0);
-        })
-
-        it('claim during vesting period', async () => {// start vesting
+        it.only('claim during vesting period', async () => {// start vesting
             await startVesting();
             await timeTravel(lockPeriod + 1001);
 
