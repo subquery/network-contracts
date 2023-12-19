@@ -43,6 +43,7 @@ import {
     TokenExchange,
     PolygonDestination,
     RootChainManager__factory,
+    Airdropper,
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -419,6 +420,10 @@ export async function deployContracts(
             initConfig: [10, 3600],
         });
 
+        //deploy Airdropper contract
+        const [settleDestination] = config['Airdropper'];
+        const airdropper = await deployContract<Airdropper>('Airdropper', 'child', { deployConfig: [settleDestination] });
+
         // Register addresses on settings contract
         // FIXME: failed to send this tx
         logger?.info('🤞 Set token addresses');
@@ -489,6 +494,7 @@ export async function deployContracts(
                 tokenExchange,
                 priceOracle,
                 consumerRegistry,
+                airdropper,
             },
         ];
     } catch (error) {
