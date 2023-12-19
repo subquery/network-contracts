@@ -78,7 +78,6 @@ contract Vesting is Ownable {
 
     function depositByAdmin(uint256 amount) external onlyOwner {
         require(amount > 0, "V007");
-        ISQToken(vtToken).mint(address(this), amount);
         require(IERC20(token).transferFrom(msg.sender, address(this), amount), "V008");
     }
 
