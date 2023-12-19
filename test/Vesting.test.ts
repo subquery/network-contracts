@@ -60,6 +60,7 @@ describe('Vesting Contract', () => {
     const checkAllocation = async (planId: number, user: string, allocation: number) => {
         expect(await vestingContract.userPlanId(user)).to.equal(planId);
         expect(await vestingContract.allocations(user)).to.equal(parseEther(allocation));
+        expect(await vtSQToken.balanceOf(user)).to.equal(parseEther(allocation));
     };
 
     const deployer = ()=>deployRootContracts(wallet, wallet1);
@@ -100,9 +101,14 @@ describe('Vesting Contract', () => {
                 'V001'
             );
         });
+
+        it('non admin should fail', async () => {
+            await expect(vestingContract.connect(wallet1).addVestingPlan(lockPeriod, vestingPeriod, 0))
+                .to.revertedWith('Ownable: caller is not the owner');
+        });
     });
 
-    describe('Allocate Vestring', () => {
+    describe('Allocate Vesting', () => {
         beforeEach(async () => {
             await vestingContract.addVestingPlan(lockPeriod, vestingPeriod, 10);
         });

@@ -4,7 +4,7 @@ export default {
     mainnet: {
         InflationController: [10000, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // inflationRate, inflationDestination
         SQToken: [utils.parseEther("10000000000")], // initial supply 10 billion
-        VTSQToken: [0], // initial supply 0
+        VTSQToken: [], // initial supply 0
         Staking: [1209600, 1e3], // lockPeriod, unbondFeeRate
         Airdropper: ['0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // settle destination
         EraManager: [604800], // 7 day
@@ -29,7 +29,7 @@ export default {
     testnet: {
         InflationController: [10000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
         SQToken: [utils.parseEther("10000000000")], // initial supply 10 billion
-        VTSQToken: [0], // initial supply 0
+        VTSQToken: [], // initial supply 0
         Staking: [1000, 1e3], // lockPeriod, unbondFeeRate
         Airdropper: ['0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // settle destination
         EraManager: [3600], // 1 hour
@@ -43,7 +43,7 @@ export default {
     local: {
         InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination
         SQToken: [utils.parseEther("10000000000")], // initial supply 10 billion
-        VTSQToken: [utils.parseEther("0")], // initial supply 0 billion
+        VTSQToken: [], // initial supply 0 billion
         Staking: [1000, 1e3], // lockPeriod, unbondFeeRate
         Airdropper: ['0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // settle destination
         EraManager: [60 * 60], // 1 hour

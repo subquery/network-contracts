@@ -17,9 +17,8 @@ contract VTSQToken is ERC20, Ownable, ERC20Burnable {
         _;
     }
 
-    constructor(address _minter, uint256 totalSupply) ERC20('VTSubQueryToken', 'vtSQT') Ownable() {
+    constructor(address _minter) ERC20('VTSubQueryToken', 'vtSQT') Ownable() {
         minter = _minter;
-        _mint(msg.sender, totalSupply);
     }
 
     function mint(address destination, uint256 amount) external isMinter {
