@@ -30,7 +30,8 @@ import StakingAllocation from './artifacts/contracts/StakingAllocation.sol/Staki
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
 import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import ChildERC20 from './artifacts/contracts/polygon/ChildERC20.sol/ChildERC20.json';
-import Vesting from './artifacts/contracts/Vesting.sol/Vesting.json';
+import Vesting from './artifacts/contracts/root/Vesting.sol/Vesting.json';
+import VTSQToken from './artifacts/contracts/root/VTSQToken.sol/VTSQToken.json';
 import PolygonDestination from './artifacts/contracts/root/PolygonDestination.sol/PolygonDestination.json';
 
 export default {
@@ -59,6 +60,7 @@ export default {
     PermissionedExchange,
     TokenExchange,
     Vesting,
+    VTSQToken,
     ConsumerHost,
     DisputeManager,
     PriceOracle,

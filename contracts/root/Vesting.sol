@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../interfaces/ISQToken.sol";
 
 contract Vesting is Ownable {
     using SafeERC20 for IERC20;
@@ -17,6 +18,7 @@ contract Vesting is Ownable {
     }
 
     address public token;
+    address public vtToken;
     uint256 public vestingStartDate;
     uint256 public totalAllocation;
     uint256 public totalClaimed;
@@ -30,8 +32,10 @@ contract Vesting is Ownable {
     event VestingAllocated(address indexed user, uint256 planId, uint256 allocation);
     event VestingClaimed(address indexed user, uint256 amount);
 
-    constructor(address _token) Ownable() {
+    constructor(address _token, address _vtToken) Ownable() {
         require(_token != address(0x0), "G009");
+        require(_vtToken != address(0x0), "G009");
+        vtToken = _vtToken;
         token = _token;
     }
 
@@ -57,6 +61,8 @@ contract Vesting is Ownable {
         userPlanId[addr] = planId;
         allocations[addr] = allocation;
         totalAllocation += allocation;
+
+        ISQToken(vtToken).mint(addr, allocation);
 
         emit VestingAllocated(addr, planId, allocation);
     }
@@ -94,15 +100,24 @@ contract Vesting is Ownable {
     function claim() external {
         require(allocations[msg.sender] != 0, "V011");
 
-        uint256 claimAmount = claimableAmount(msg.sender);
-        claimed[msg.sender] += claimAmount;
-        totalClaimed += claimAmount;
+        uint256 amount = claimableAmount(msg.sender);
+        require(amount > 0, "V012");
 
-        require(IERC20(token).transfer(msg.sender, claimAmount), "V008");
-        emit VestingClaimed(msg.sender, claimAmount);
+        ISQToken(vtToken).burnFrom(msg.sender, amount);
+        claimed[msg.sender] += amount;
+        totalClaimed += amount;
+
+        require(IERC20(token).transfer(msg.sender, amount), "V008");
+        emit VestingClaimed(msg.sender, amount);
     }
 
     function claimableAmount(address user) public view returns (uint256) {
+        uint256 amount = unlockedAmount(user);
+        uint256 vtSQTAmount = IERC20(vtToken).balanceOf(user);
+        return vtSQTAmount >= amount ? amount : vtSQTAmount;
+    }
+
+    function unlockedAmount(address user) public view returns (uint256) {
         // vesting start date is not set or allocation is empty
         if (vestingStartDate == 0 || allocations[user] == 0) {
             return 0;

@@ -6,20 +6,23 @@ import { expect } from 'chai';
 import { BigNumber } from "ethers";
 import { ethers, waffle } from 'hardhat';
 import { SQToken, Vesting } from '../src';
-import { eventFrom } from "./helper";
+import { etherParse, eventFrom } from "./helper";
 import { deployRootContracts } from './setup';
+import { VTSQToken } from "build";
 
 describe('Vesting Contract', () => {
     const mockProvider = waffle.provider;
     const [wallet, wallet1, wallet2, wallet3, wallet4] = mockProvider.getWallets();
 
-    let token: SQToken;
+    let sqToken: SQToken;
+    let vtSQToken: VTSQToken;
     let vestingContract: Vesting;
     let lockPeriod: number;
     let vestingPeriod: number;
     let initialUnlockPercent = 10;
 
     async function claimVesting(wallet: Wallet): Promise<{user: string, amount: BigNumber}> {
+        await vtSQToken.connect(wallet).increaseAllowance(vestingContract.address, parseEther(10000));
         const tx = await vestingContract.connect(wallet).claim();
         const evt = await eventFrom(tx, vestingContract, 'VestingClaimed(address,uint256)');
         return evt as any;
@@ -57,18 +60,20 @@ describe('Vesting Contract', () => {
     const checkAllocation = async (planId: number, user: string, allocation: number) => {
         expect(await vestingContract.userPlanId(user)).to.equal(planId);
         expect(await vestingContract.allocations(user)).to.equal(parseEther(allocation));
+        expect(await vtSQToken.balanceOf(user)).to.equal(parseEther(allocation));
     };
 
     const deployer = ()=>deployRootContracts(wallet, wallet1);
 
     beforeEach(async () => {
         const deployment = await waffle.loadFixture(deployer);
-        token = deployment.rootToken;
+        sqToken = deployment.rootToken;
         vestingContract = deployment.vesting;
+        vtSQToken = deployment.vtSQToken;
         lockPeriod = 86400 * 30; // 2 month
         vestingPeriod = 86400 * 365; // 1 year
 
-        await token.approve(vestingContract.address, parseEther(4000));
+        await sqToken.approve(vestingContract.address, parseEther(4000));
     });
 
     describe('Vesting Plan', () => {
@@ -96,9 +101,18 @@ describe('Vesting Contract', () => {
                 'V001'
             );
         });
+
+        it('non admin should fail', async () => {
+            await expect(vestingContract.connect(wallet1).addVestingPlan(lockPeriod, vestingPeriod, 0))
+                .to.revertedWith('Ownable: caller is not the owner');
+            await vestingContract.renounceOwnership();
+
+            await expect(vestingContract.addVestingPlan(lockPeriod, vestingPeriod, 0))
+                .to.revertedWith('Ownable: caller is not the owner');
+        });
     });
 
-    describe('Allocate Vestring', () => {
+    describe('Allocate Vesting', () => {
         beforeEach(async () => {
             await vestingContract.addVestingPlan(lockPeriod, vestingPeriod, 10);
         });
@@ -161,10 +175,12 @@ describe('Vesting Contract', () => {
     describe('Token Manangement By Admin', () => {
         it('deposit and widthdraw all by admin should work', async () => {
             await vestingContract.depositByAdmin(1000);
-            expect(await token.balanceOf(vestingContract.address)).to.eq(1000);
+            expect(await sqToken.balanceOf(vestingContract.address)).to.eq(1000);
+            expect(await vtSQToken.totalSupply()).to.eq(0);
 
             await vestingContract.withdrawAllByAdmin();
-            expect(await token.balanceOf(vestingContract.address)).to.eq(parseEther(0));
+            expect(await sqToken.balanceOf(vestingContract.address)).to.eq(parseEther(0));
+            expect(await vtSQToken.totalSupply()).to.eq(0);
         });
 
         it('deposit and widthdraw without owner should fail', async () => {
@@ -188,6 +204,12 @@ describe('Vesting Contract', () => {
             );
         });
 
+        it('mint vtSQToken should work', async () => {
+            expect(await vtSQToken.totalSupply()).to.equal(parseEther(4000));
+            expect(await vtSQToken.balanceOf(wallet1.address)).to.equal(parseEther(1000));
+            expect(await vtSQToken.balanceOf(wallet2.address)).to.equal(parseEther(3000));
+        });
+
         it('set incorrect vesting date should fail', async () => {
             const latestBlock = await mockProvider.getBlock('latest');
             await expect(vestingContract.startVesting(latestBlock.timestamp)).to.be.revertedWith(
@@ -196,7 +218,7 @@ describe('Vesting Contract', () => {
         });
 
         it('start vesting without enough balance should fail', async () => {
-            expect(await token.balanceOf(vestingContract.address)).to.equal(parseEther(0));
+            expect(await sqToken.balanceOf(vestingContract.address)).to.equal(parseEther(0));
             const latestBlock = await mockProvider.getBlock('latest');
             await expect(vestingContract.startVesting(latestBlock.timestamp + 1000)).to.be.revertedWith(
                 'V010'
@@ -225,6 +247,7 @@ describe('Vesting Contract', () => {
     describe('Vesting Claim', () => {
         const wallet1Allocation = parseEther(1000);
         const wallet2Allocation = parseEther(3000);
+
         beforeEach(async () => {
             await vestingContract.depositByAdmin(parseEther(4000));
             const planId = await createPlan(lockPeriod, vestingPeriod);
@@ -233,6 +256,9 @@ describe('Vesting Contract', () => {
                 [wallet1.address, wallet2.address],
                 [wallet1Allocation, wallet2Allocation]
             );
+
+            await vtSQToken.connect(wallet1).increaseAllowance(vestingContract.address, parseEther(1000));
+            await vtSQToken.connect(wallet2).increaseAllowance(vestingContract.address, parseEther(3000));
         });
 
         it('no claimable amount for invalid condition', async () => {
@@ -248,14 +274,6 @@ describe('Vesting Contract', () => {
             expect(await vestingContract.claimableAmount(wallet1.address)).to.equal(0);
             expect(await vestingContract.claimableAmount(wallet2.address)).to.equal(0);
         });
-
-        it('claim before lock period', async () => {// start vesting
-            await startVesting();
-            let claimable = await vestingContract.claimableAmount(wallet1.address);
-            expect(claimable).to.eq(0);
-            const evt = await claimVesting(wallet1);
-            expect(evt.amount).to.eq(0);
-        })
 
         it('claim during vesting period', async () => {// start vesting
             await startVesting();
@@ -279,7 +297,15 @@ describe('Vesting Contract', () => {
             evt = await claimVesting(wallet1);
             expect(evt.amount).to.gte(claimable);
             expect(evt.amount.sub(claimable)).to.lt(errorTolerance);
-        })
+            for (let i=0;i<9;i++) {
+                await timeTravel(vestingPeriod/10);
+                await claimVesting(wallet1);
+            }
+            claimable = await vestingContract.claimableAmount(wallet1.address);
+            expect(claimable).to.eq(0);
+            const claimed = await sqToken.balanceOf(wallet1.address);
+            expect(claimed).to.eq(wallet1Allocation);
+        });
 
         it('claim all together in once', async () => {// start vesting
             await startVesting();
@@ -307,7 +333,7 @@ describe('Vesting Contract', () => {
 
             // wallet1 claim
             await vestingContract.connect(wallet1).claim();
-            const balance1 = await token.balanceOf(wallet1.address);
+            const balance1 = await sqToken.balanceOf(wallet1.address);
             expect(balance1).to.gt(claimable1);
             expect(balance1).to.lt(claimable1.add(parseEther(0.001)));
             // claim after half vesting period
@@ -316,17 +342,62 @@ describe('Vesting Contract', () => {
             expect(claimable1).to.gte(parseEther(450));
             // wallet1 claim
             await vestingContract.connect(wallet1).claim();
-            expect(await token.balanceOf(wallet1.address)).to.gt(balance1.add(claimable1));
-            expect(await token.balanceOf(wallet1.address)).to.lt(balance1.add(claimable1).add(parseEther(0.001)));
+            expect(await sqToken.balanceOf(wallet1.address)).to.gt(balance1.add(claimable1));
+            expect(await sqToken.balanceOf(wallet1.address)).to.lt(balance1.add(claimable1).add(parseEther(0.001)));
             // claim after vesting period
             await timeTravel(vestingPeriod / 2);
             await vestingContract.connect(wallet1).claim();
-            expect(await token.balanceOf(wallet1.address)).to.eq(parseEther(1000));
+            expect(await sqToken.balanceOf(wallet1.address)).to.eq(parseEther(1000));
         });
 
-        it('claim on non-vesting account should fail', async () => {
+        it('should burn equal amount of vtSQToken for claimed SQT', async () => {
+            // start vesting
+            await startVesting();
+            await timeTravel(lockPeriod + 1001);
+            // wallet1 claim
+            expect(await sqToken.balanceOf(wallet1.address)).to.eq(0);
+            expect(await vtSQToken.balanceOf(wallet1.address)).to.eq(parseEther(1000));
+            await vestingContract.connect(wallet1).claim();
+            const sqtBalance = await sqToken.balanceOf(wallet1.address);
+            expect(await vtSQToken.balanceOf(wallet1.address)).to.eq(parseEther(1000).sub(sqtBalance));
+        });
+
+        it('should only claim max amount of VTSQToken', async () => {
+            // start vesting
+            await startVesting();
+            await timeTravel(lockPeriod + 1001);
+            // wallet1
+            expect(await sqToken.balanceOf(wallet1.address)).to.eq(0);
+            const unlockAmount = await vestingContract.unlockedAmount(wallet1.address);
+            // transfer VTSQToken to wallet2
+            await vtSQToken.connect(wallet1).transfer(wallet2.address, etherParse('999'));
+            // unlockAmount > 1 SQT, vtSQToken balance = 1 vtSQT
+            expect(unlockAmount.gt(etherParse('1'))).to.be.true;
+            const claimableAmount = etherParse('1');
+            expect(await vestingContract.claimableAmount(wallet1.address)).to.eq(claimableAmount);
+        
+            // check SQT and VTSQT balance
+            await vestingContract.connect(wallet1).claim();
+            expect(await sqToken.balanceOf(wallet1.address)).to.eq(claimableAmount);
+            expect(await vtSQToken.balanceOf(wallet1.address)).to.eq(0);
+        });
+
+        it('claim with invalid condition should fail', async () => {
+            // claim on non-vesting account should fail
             await expect(vestingContract.connect(wallet3).claim()).to.be.revertedWith(
                 'V011'
+            );
+            // claim with zero claimable amount should fail 
+            // # case 1 (not start vesting)
+            await expect(vestingContract.connect(wallet1).claim()).to.be.revertedWith(
+                'V012'
+            );
+            // # case 2 (not enough vtSQT)
+            await startVesting();
+            await timeTravel(lockPeriod + 1001);
+            await vtSQToken.connect(wallet1).transfer(wallet2.address, etherParse('1000'));
+            await expect(vestingContract.connect(wallet1).claim()).to.be.revertedWith(
+                'V012'
             );
         });
     });

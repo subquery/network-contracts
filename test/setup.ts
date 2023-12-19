@@ -57,6 +57,7 @@ export const deployRootContracts = async (wallet: Wallet, wallet1: Wallet) => {
         {
             InflationController: [1000, wallet1.address],
             SQToken: [etherParse("10000000000").toString()],
+            VTSQToken: [0], 
         }
     );
 
