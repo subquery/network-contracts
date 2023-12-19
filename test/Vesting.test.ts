@@ -166,9 +166,11 @@ describe('Vesting Contract', () => {
         it('deposit and widthdraw all by admin should work', async () => {
             await vestingContract.depositByAdmin(1000);
             expect(await SQToken.balanceOf(vestingContract.address)).to.eq(1000);
+            expect(await vtSQToken.totalSupply()).to.eq(0);
 
             await vestingContract.withdrawAllByAdmin();
             expect(await SQToken.balanceOf(vestingContract.address)).to.eq(parseEther(0));
+            expect(await vtSQToken.totalSupply()).to.eq(0);
         });
 
         it('deposit and widthdraw without owner should fail', async () => {
