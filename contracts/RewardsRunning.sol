@@ -13,7 +13,6 @@ import './interfaces/IEraManager.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/ISQToken.sol';
-import './interfaces/IProjectRegistry.sol';
 import './interfaces/IRewardsDistributer.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
@@ -79,8 +78,6 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
     mapping(uint256 => EraPool) private pools;
     /// @notice project shares in all rewards
     mapping(uint256 => uint256) public projectShares;
-    /// @notice project type shares in all rewards
-    mapping(ProjectType => uint256) public projectTypeShares;
     /// @notice Allowlist reporters
     mapping(address => bool) public reporters;
 
@@ -141,21 +138,6 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice update the project type shares
-     * @param types all project types
-     * @param shares project types shares
-     */
-    function setProjectTypeShare(ProjectType[] calldata types, uint256[] calldata shares) external onlyOwner {
-        require(types.length == shares.length, 'RR005');
-        uint256 totalShare = 0;
-        for(uint256 i = 0; i < types.length; i++) {
-            projectTypeShares[types[i]] = shares[i];
-            totalShare += shares[i];
-        }
-        require(totalShare == 100, 'RR006');
-    }
-
-    /**
      * @notice update the reporter status
      * @param reporter reporter address
      * @param allow reporter allow or not
@@ -187,9 +169,7 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
         EraPool storage eraPool = pools[era];
         ProjectPool storage pool = eraPool.pools[projectId];
 
-        IProjectRegistry projectRegistry = IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry));
-        ProjectType projectType = projectRegistry.projectInfo(projectId).projectType;
-        uint256 totalReward = pool.extraReward + eraPool.inflationReward * projectShares[projectId] / 100 * projectTypeShares[projectType] / 100;
+        uint256 totalReward = pool.extraReward + eraPool.inflationReward * projectShares[projectId] / 100;
 
         return (pool.labor[indexer], totalReward);
     }
@@ -329,9 +309,7 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
 
         // calc total reward for this project if it is first time to collect
         if (pool.totalReward == 0) {
-            IProjectRegistry projectRegistry = IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry));
-            ProjectType projectType = projectRegistry.projectInfo(projectId).projectType;
-            pool.totalReward = pool.extraReward + eraPool.inflationReward * projectShares[projectId] / 100 * projectTypeShares[projectType] / 100;
+            pool.totalReward = pool.extraReward + eraPool.inflationReward * projectShares[projectId] / 100;
             pool.unclaimReward = pool.totalReward;
         }
 

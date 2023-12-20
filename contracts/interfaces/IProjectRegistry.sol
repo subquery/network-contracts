@@ -24,7 +24,6 @@ struct DeploymentInfo {
 }
 
 interface IProjectRegistry {
-    function projectInfo(uint256 projectId) external view returns (ProjectInfo memory);
 
     function numberOfDeployments(address _address) external view returns (uint256);
 
