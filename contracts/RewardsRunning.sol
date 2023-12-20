@@ -322,6 +322,8 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
 
     /// @notice work for collect() and collectEra()
     function _collect(uint256 era, uint256 projectId, address indexer) private {
+        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+
         EraPool storage eraPool = pools[era];
         ProjectPool storage pool = eraPool.pools[projectId];
 
@@ -338,12 +340,13 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
 
         uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[indexer], pool.stake[indexer], pool.totalStake);
 
-        // TODO reward send to distribute or staking
+        // reward send to distribute
         address rewardDistributer = settings.getContractAddress(SQContracts.RewardsDistributer);
         IRewardsDistributer distributer = IRewardsDistributer(rewardDistributer);
         IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(rewardDistributer, amount);
         if (amount > 0) {
-            distributer.addInstantRewards(indexer, address(this), amount, era);
+            // reward send to CURRENT era
+            distributer.addInstantRewards(indexer, address(this), amount, currentEra);
         }
 
         // update indexer project list
@@ -367,7 +370,6 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
         if (pool.unclaimTotalLabor == 0) {
             // the remained send to current era
             if (pool.unclaimReward > 0) {
-                uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
                 EraPool storage nextEraPool = pools[currentEra];
                 ProjectPool storage nextPool = nextEraPool.pools[projectId];
                 nextPool.extraReward += pool.unclaimReward;
