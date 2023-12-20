@@ -91,6 +91,13 @@ task('publishRoot', "verify and publish contracts on etherscan")
                 address: deployment.Vesting.address,
                 constructorArguments: [deployment.SQToken.address],
             });
+            //VTSQToken
+            console.log(`verify VTSQToken`);
+            await hre.run("verify:verify", {
+                address: deployment.VTSQToken.address,
+                contract: 'contracts/root/VTSQToken.sol:VTSQToken',
+                constructorArguments: [constants.AddressZero],
+            });
             //Settings
             console.log(`verify Settings`);
             await hre.run("verify:verify", {

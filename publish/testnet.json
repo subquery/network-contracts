@@ -41,6 +41,12 @@
             "address": "0x3519c8939b73EAA440A5b626D6090275add4bD69",
             "bytecodeHash": "895a73f782b2930ee15d1ae0ccbfa751df049bd647ed5a23b7f42d22c441ba8b",
             "lastUpdate": "Fri, 15 Dec 2023 00:26:14 GMT"
+        },
+        "VTSQToken": {
+            "innerAddress": "",
+            "address": "0x0D5A4266573975222292601686f2C3CF02E2120A",
+            "bytecodeHash": "1a3fdb466834f7139e72a865a759a82189da9dd342ec1fbfbbc9d62397bd109f",
+            "lastUpdate": "Tue, 19 Dec 2023 05:12:39 GMT"
         }
     },
     "child": {

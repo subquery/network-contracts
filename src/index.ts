@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 export * from './sdk';
+export * from './rootSdk';
 export * from './polygonSDK';
 export * from './typechain';
 export * from './types';
