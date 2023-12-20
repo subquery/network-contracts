@@ -29,7 +29,12 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
   /// @notice tokenId => Gift
   mapping(uint256 => Gift) public gifts;
 
+  event AllownlistAdded(address indexed account, uint256 indexed seriesId);
+  event AllownlistRemoved(address indexed account, uint256 indexed seriesId);
+
   event SeriesCreated(uint256 indexed seriesId, uint256 maxSupply, uint256 maxSQT, uint256 defaultValue, uint256 minValue, uint256 maxValue, string tokenURI);
+  event SeriesRedeemableUpdated(uint256 indexed seriesId, bool redeemable);
+  event SeriesActiveUpdated(uint256 indexed seriesId, bool active);
 
   event GiftMinted(address indexed to, uint256 seriesId, uint256 indexed tokenId, string tokenURI, uint256 sqtValue);
 
@@ -49,11 +54,15 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
   function addToAllowlist(uint256 _seriesId, address _address) public onlyOwner {
     require(series[_seriesId].maxSupply > 0, "Series not found");
     allowlist[_address][_seriesId] += 1;
+
+    emit AllownlistAdded(_address, _seriesId);
   }
 
   function removeFromAllowlist(uint256 _seriesId, address _address) public onlyOwner {
     require(series[_seriesId].maxSupply > 0, "Series not found");
     allowlist[_address][_seriesId] += 1;
+
+    emit AllownlistRemoved(_address, _seriesId);
   }
 
   function createSeries(
@@ -95,11 +104,15 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
   function setSeriesRedeemable(uint256 _seriesId, bool _redeemable) external onlyOwner {
     require(series[_seriesId].maxSupply > 0, "Series not found");
     series[_seriesId].redeemable = _redeemable;
+
+    emit SeriesRedeemableUpdated(_seriesId, _redeemable);
   }
 
   function setSeriesActive(uint256 _seriesId, bool _active) external onlyOwner {
     require(series[_seriesId].maxSupply > 0, "Series not found");
     series[_seriesId].active = _active;
+
+    emit SeriesActiveUpdated(_seriesId, _active);
   }
 
   function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override(
