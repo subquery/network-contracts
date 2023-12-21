@@ -187,6 +187,7 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
 
         BoosterProject storage project = boosterProjectStakings[projectId];
         project.amount += amount;
+        project.lastTime = block.number;
         if (project.owner == address(0)) {
             project.owner = msg.sender;
         }
