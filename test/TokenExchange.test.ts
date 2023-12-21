@@ -3,11 +3,10 @@
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-import { ERC20, SQToken__factory, Settings, SQContracts } from '../src';
+import { deployContracts } from './setup';
+import { ERC20, SQToken__factory, Settings, TokenExchange } from '../src';
 import { ZERO_ADDRESS } from './constants';
 import { etherParse, revertrMsg } from './helper';
-import { deployContracts } from './setup';
-import { TokenExchange } from 'build';
 
 describe('TokenExchange Contract', () => {
     let wallet_0, wallet_1;
@@ -15,7 +14,7 @@ describe('TokenExchange Contract', () => {
     let settings: Settings;
     let ksqtAddress: string;
     let kSQToken: ERC20;
-    let SQToken: ERC20;
+    let sqToken: ERC20;
     let sqtAddress: string;
 
     const deployer = ()=>deployContracts(wallet_0, wallet_0);
@@ -26,17 +25,17 @@ describe('TokenExchange Contract', () => {
     beforeEach(async () => {
         const deployment = await waffle.loadFixture(deployer);
         tokenExchange = deployment.tokenExchange;
-        kSQToken = deployment.token;
+        kSQToken = deployment.token as unknown as ERC20;
         settings = deployment.settings;
-        ksqtAddress = await settings.getContractAddress(SQContracts.SQToken);
+        ksqtAddress = await settings.getSQToken();
 
         //deploy SQToken
-        SQToken = await new SQToken__factory(wallet_0).deploy(ZERO_ADDRESS, etherParse('10000000000000'));
-        await SQToken.deployTransaction.wait();
-        sqtAddress = SQToken.address;
+        sqToken = await new SQToken__factory(wallet_0).deploy(ZERO_ADDRESS, etherParse('10000000000000')) as unknown as ERC20;
+        await sqToken.deployTransaction.wait();
+        sqtAddress = sqToken.address;
 
         await kSQToken.transfer(wallet_1.address, etherParse('1000'));
-        await SQToken.increaseAllowance(tokenExchange.address, etherParse('3000'));
+        await sqToken.increaseAllowance(tokenExchange.address, etherParse('3000'));
         await kSQToken.connect(wallet_1).increaseAllowance(tokenExchange.address, etherParse('1000'));
     });
 
@@ -57,7 +56,7 @@ describe('TokenExchange Contract', () => {
             expect(order.amountGet).to.be.eq(etherParse('2'));
             expect(order.amountGive).to.be.eq(etherParse('1'));
             expect(order.tokenGiveBalance).to.be.eq(etherParse('3000'));
-            expect(await SQToken.balanceOf(tokenExchange.address)).to.be.eq(etherParse('3000'));
+            expect(await sqToken.balanceOf(tokenExchange.address)).to.be.eq(etherParse('3000'));
             expect(await tokenExchange.nextOrderId()).to.be.eq(2);
         });
 
@@ -96,7 +95,7 @@ describe('TokenExchange Contract', () => {
               .to.be.emit(tokenExchange, 'OrderSettled')
               .withArgs(1, sqtAddress, ksqtAddress, etherParse('3000'));
             
-            expect(await SQToken.balanceOf(tokenExchange.address)).to.be.eq(etherParse('0'));
+            expect(await sqToken.balanceOf(tokenExchange.address)).to.be.eq(etherParse('0'));
             expect((await tokenExchange.orders(1)).sender).to.be.eq(ZERO_ADDRESS);
             await expect(tokenExchange.cancelOrder(1)).to.be.revertedWith("TE002");
         });
@@ -119,8 +118,8 @@ describe('TokenExchange Contract', () => {
             .withArgs(1, sqtAddress, ksqtAddress, etherParse('500'), etherParse('1000'));
 
           expect((await tokenExchange.orders(1)).tokenGiveBalance).to.be.eq(etherParse('2500'));
-          expect(await SQToken.balanceOf(tokenExchange.address)).to.be.eq(etherParse('2500'));
-          expect(await SQToken.balanceOf(wallet_1.address)).to.be.eq(etherParse('500'));
+          expect(await sqToken.balanceOf(tokenExchange.address)).to.be.eq(etherParse('2500'));
+          expect(await sqToken.balanceOf(wallet_1.address)).to.be.eq(etherParse('500'));
           expect(await kSQToken.balanceOf(tokenExchange.address)).to.be.eq(etherParse('0'));
           expect(await kSQToken.balanceOf(wallet_1.address)).to.be.eq(etherParse('0'));
           expect(await kSQToken.totalSupply()).to.be.eq(totalKSQT.sub(etherParse('1000')));

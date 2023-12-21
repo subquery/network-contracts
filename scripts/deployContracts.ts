@@ -336,7 +336,6 @@ export async function deployContracts(
         });
         // deploy tokenExchange
         const tokenExchange = await deployContract<TokenExchange>('TokenExchange', { initConfig: [] });
-        await tokenExchange.transferOwnership('0x5C7cA657EB87F2BEFC33D35978c6c9e3f9C76cCf');
 
         // Register addresses on settings contract
         getLogger('SettingContract').info('🤞 Set token addresses');
