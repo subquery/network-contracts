@@ -72,6 +72,12 @@ task('publish', "verify and publish contracts on etherscan")
             //     constructorArguments: [],
             // });
 
+            //TokenExchange
+            await hre.run("verify:verify", {
+                address: deployment.TokenExchange.address,
+                constructorArguments: [],
+            });
+
             //Airdropper
             await hre.run("verify:verify", {
                 address: deployment.Airdropper.address,

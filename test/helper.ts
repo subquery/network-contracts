@@ -147,3 +147,8 @@ export async function deploySUSD(siger: SignerWithAddress) {
 
     return USDC;
 }
+
+export const revertrMsg = {
+    notOwner: 'Ownable: caller is not the owner',
+    insufficientAllowance: 'ERC20: insufficient allowance',
+}

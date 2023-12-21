@@ -28,6 +28,7 @@ import {
     VSQToken__factory,
     PriceOracle__factory,
     ConsumerRegistry__factory,
+    TokenExchange__factory,
 } from './typechain';
 import type CONTRACTS from './contracts';
 
@@ -98,4 +99,5 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     DisputeManager: DisputeManager__factory,
     PriceOracle: PriceOracle__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
+    TokenExchange: TokenExchange__factory,
 };

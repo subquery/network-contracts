@@ -27,6 +27,7 @@ import {
     StateChannel,
     VSQToken,
     Vesting,
+    TokenExchange,
 } from './typechain';
 import { CONTRACT_FACTORY, ContractDeployment, ContractName, FactoryContstructor, SdkOptions } from './types';
 
@@ -64,6 +65,7 @@ export class ContractSDK {
     readonly consumerRegistry!: ConsumerRegistry;
     readonly priceOracle!: PriceOracle;
     readonly vSQToken!: VSQToken;
+    readonly tokenExchange!: TokenExchange;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options: SdkOptions) {
         this._contractDeployments = this.options.deploymentDetails ?? DEPLOYMENT_DETAILS[options.network];

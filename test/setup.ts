@@ -41,6 +41,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
             Vesting: [],
             ConsumerRegistry: [],
             PriceOracle: [],
+            TokenExchange: [],
         }
     );
 

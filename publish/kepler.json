@@ -148,5 +148,11 @@
         "address": "0x6545061e147a7Fa065eD9d9DB648d42b558650dB",
         "bytecodeHash": "d95aa2638edb0b1ce643f883a60435b44390ac9e78035b6c0579ba1b50b54a33",
         "lastUpdate": "Wed, 13 Sep 2023 01:00:41 GMT"
+    },
+    "TokenExchange": {
+        "innerAddress": "",
+        "address": "0x6fa8966D8a00f47Afe14f6547E236B86Ca04701b",
+        "bytecodeHash": "061145bd7b5008d0da2b7c119ba5c553b47dcac1a87f52b375be7642d9718ebb",
+        "lastUpdate": "Thu, 21 Dec 2023 04:14:17 GMT"
     }
 }
