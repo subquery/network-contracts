@@ -42,6 +42,7 @@ import {
     StateChannel,
     VSQToken,
     Vesting,
+    TokenExchange,
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -328,11 +329,14 @@ export async function deployContracts(
             initConfig: [settingsAddress],
         });
 
-        // delpoy PriceOracle contract
+        // deploy PriceOracle contract
         const priceOracle = await deployContract<PriceOracle>('PriceOracle', {
             proxyAdmin,
             initConfig: [10, 3600],
         });
+        // deploy tokenExchange
+        const tokenExchange = await deployContract<TokenExchange>('TokenExchange', { initConfig: [] });
+        await tokenExchange.transferOwnership('0x5C7cA657EB87F2BEFC33D35978c6c9e3f9C76cCf');
 
         // Register addresses on settings contract
         getLogger('SettingContract').info('🤞 Set token addresses');
@@ -398,6 +402,7 @@ export async function deployContracts(
                 disputeManager,
                 priceOracle,
                 consumerRegistry,
+                tokenExchange,
             },
         ];
     } catch (error) {

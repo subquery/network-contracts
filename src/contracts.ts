@@ -23,6 +23,7 @@ import StakingManager from './artifacts/contracts/StakingManager.sol/StakingMana
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
 import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import Vesting from './artifacts/contracts/Vesting.sol/Vesting.json';
+import TokenExchange from './artifacts/contracts/TokenExchange.sol/TokenExchange.json';
 
 
 export default {
@@ -51,4 +52,5 @@ export default {
     DisputeManager,
     PriceOracle,
     ConsumerRegistry,
+    TokenExchange,
 };

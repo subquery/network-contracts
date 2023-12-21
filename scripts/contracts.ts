@@ -56,6 +56,8 @@ import {
     VSQToken__factory,
     Vesting,
     Vesting__factory,
+    TokenExchange,
+    TokenExchange__factory,
 } from '../src';
 
 export interface FactoryContstructor {
@@ -90,6 +92,7 @@ export type Contracts = {
     disputeManager: DisputeManager;
     consumerRegistry: ConsumerRegistry;
     priceOracle: PriceOracle;
+    tokenExchange: TokenExchange;
 };
 
 export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ bytecode: string }, FactoryContstructor]>> =
@@ -143,6 +146,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     DisputeManager: DisputeManager__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
     PriceOracle: PriceOracle__factory,
+    TokenExchange: TokenExchange__factory,
 };
 
 export type Config = number | string | BigNumber | string[];
