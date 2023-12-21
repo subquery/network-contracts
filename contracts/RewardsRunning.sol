@@ -60,27 +60,53 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
 
     /// @notice Era Reward Pool
     struct EraPool {
-        // total reward for all project by inflation
-        uint256 inflationReward;
+        // total basic reward for all project by inflation
+        uint256 basicInflationReward;
+        // total booster reward for all project by inflation
+        uint256 boosterInflationReward;
         // record the unclaimed project
         uint256 unclaimProject;
+        // record the reward unactived project for update shares
+        uint256 unactivedProject;
         // record the indexer joined projects, and check if all is claimed
         mapping(address => IndexerProject) indexerUnclaimProjects;
         // storage all pools by project: project id => ProjectPool
         mapping(uint256 => ProjectPool) pools;
     }
 
+
+    /// @notice The booster project
+    struct BoosterProject {
+        // the owner/first staking person is owner
+        address owner;
+        // total staking amount
+        uint256 amount;
+        // last time when changed the staking
+        uint256 lastTime;
+    }
+
     /// @dev ### STATES
     /// @notice Settings info
     ISettings public settings;
 
+    /// @notice record the latest actived era for update shares
+    uint256 public latestActivedEra;
+    /// @notice record the total staking of booster projects
+    uint256 public totalBoosterProjectStaking;
+
     /// @notice Era Rewards Pools: era => Era Pool
     mapping(uint256 => EraPool) private pools;
     /// @notice project shares in all rewards
-    mapping(uint256 => uint256) public projectShares;
+    mapping(uint256 => uint256) public basicProjectShares;
+    /// @notice booster project shares in all rewards
+    mapping(uint256 => BoosterProject) public boosterProjectStakings;
     /// @notice Allowlist reporters
     mapping(address => bool) public reporters;
 
+    ///@notice the block number limit when change staking
+    uint256 public blockLimit;
+    /// @notice the booster projects pool proportion of all inflation reward.
+    uint256 public boosterProjectShare;
     /// @notice the numerator of Percentage of the stake and labor (1-alpha) in the total
     int32 public alphaNumerator;
     /// @notice the denominator of the alpha
@@ -93,6 +119,8 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
     event Labor(uint256 era, uint256 projectId, address indexer, uint256 labor, uint256 total);
     /// @notice Emitted when collect reward (stake) from era pool
     event Collect(uint256 era, uint256 projectId, address indexer, uint256 reward);
+    /// @notice Emitted when inflation reward to the era pool
+    event InflationReward(uint256 era, uint256 basicProjectAmount, uint256 boosterProjectAmount);
     /// @notice Emitted when extra reward to the era project pool
     event ExtraReward(uint256 era, uint256 projectId, address sender, uint256 amount);
 
@@ -101,9 +129,11 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
      * @notice Initialize the contract, setup the alphaNumerator, alphaDenominator
      * @param _settings settings contract address
      */
-    function initialize(ISettings _settings) external initializer {
+    function initialize(ISettings _settings, uint256 _boosterProjectShare, uint256 _blockLimit) external initializer {
         __Ownable_init();
 
+        blockLimit = _blockLimit;
+        boosterProjectShare = _boosterProjectShare;
         alphaNumerator = 1;
         alphaDenominator = 3;
         settings = _settings;
@@ -125,15 +155,88 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
      */
     function setProjectShare(uint256[] calldata projects, uint256[] calldata shares, uint256[] calldata deleted) external onlyOwner {
         require(projects.length == shares.length, 'RR003');
+
+        // check latest actived era
+        uint256 era = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        require(era == latestActivedEra + 1, 'RR010');
+
         uint256 totalShare = 0;
         for(uint256 i = 0; i < projects.length; i++) {
-            projectShares[projects[i]] = shares[i];
+            require(shares[i] > 0, 'RR011');
+            basicProjectShares[projects[i]] = shares[i];
             totalShare += shares[i];
         }
         require(totalShare == 100, 'RR004');
 
         for(uint256 i = 0; i < deleted.length; i++) {
-            delete projectShares[deleted[i]];
+            delete basicProjectShares[deleted[i]];
+        }
+    }
+
+    /**
+     * @notice add booster project staking
+     * @param projectId the project id
+     * @param amount the added amount
+     */
+    function addProjectStaking(uint256 projectId, uint256 amount) external {
+        // check latest actived era
+        uint256 era = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        require(era == latestActivedEra + 1, 'RR010');
+
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), amount);
+
+        BoosterProject storage project = boosterProjectStakings[projectId];
+        project.amount += amount;
+        if (project.owner == address(0)) {
+            project.owner = msg.sender;
+        }
+        totalBoosterProjectStaking += amount;
+    }
+
+    /**
+     * @notice add booster project staking
+     * @param projectId the project id
+     * @param amount the added amount
+     */
+    function subProjectStaking(uint256 projectId, uint256 amount) external {
+        // check latest actived era
+        uint256 era = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        require(era == latestActivedEra + 1, 'RR010');
+
+        BoosterProject storage project = boosterProjectStakings[projectId];
+        require(project.lastTime + blockLimit < block.number, 'RR020');
+
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(address(this), project.owner, amount);
+
+        project.amount -= amount;
+        project.lastTime = block.number;
+        totalBoosterProjectStaking -= amount;
+    }
+
+    /**
+     * @notice active next era project shares, call it before change project shares
+     * @param projects need actived projects
+     */
+    function activeProjectShare(uint256[] calldata projects) external {
+        // check latest actived era
+        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        require(latestActivedEra < currentEra, 'RR012');
+        EraPool storage eraPool = pools[latestActivedEra+1];
+
+        for(uint256 i = 0; i < projects.length; i++) {
+            require(basicProjectShares[projects[i]] > 0 || boosterProjectStakings[projects[i]].amount > 0, 'RR015');
+            ProjectPool storage pool = eraPool.pools[projects[i]];
+
+            if (pool.totalReward == 0) {
+                uint256 basicInflationReward = eraPool.basicInflationReward * basicProjectShares[projects[i]] / 100;
+                uint256 boosterInflationReward = eraPool.boosterInflationReward * boosterProjectStakings[projects[i]].amount / totalBoosterProjectStaking;
+                pool.totalReward = pool.extraReward + basicInflationReward + boosterInflationReward;
+                pool.unclaimReward = pool.totalReward;
+                eraPool.unactivedProject -= 1;
+            }
+        }
+        if (eraPool.unactivedProject == 0) {
+            latestActivedEra += 1;
         }
     }
 
@@ -160,6 +263,23 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
     }
 
     /**
+     * @notice Update waiting time when change staking
+     * @param _blockLimit the time when do next change
+     */
+    function setBlockLimit(uint256 _blockLimit) public onlyOwner {
+        blockLimit = _blockLimit;
+    }
+
+    /**
+     * @notice Update the booster projects pool proportion of all inflation reward.
+     * @param share the proportion of reward
+     */
+    function setBoosterProjectShare(uint256 share) public onlyOwner {
+        require(share <= 100 && share >= 0, 'RR014');
+        boosterProjectShare = share;
+    }
+
+    /**
      * @notice get the Pool reward by projectId, era and indexer. returns my labor and total reward
      * @param era era number
      * @param projectId project id
@@ -169,9 +289,28 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
         EraPool storage eraPool = pools[era];
         ProjectPool storage pool = eraPool.pools[projectId];
 
-        uint256 totalReward = pool.extraReward + eraPool.inflationReward * projectShares[projectId] / 100;
+        uint256 totalReward = pool.extraReward + eraPool.basicInflationReward * basicProjectShares[projectId] / 100;
 
         return (pool.labor[indexer], totalReward);
+    }
+
+    /**
+     * @notice receive and distribute inflation reward
+     * @param amount the total amount of inflation reward
+     */
+    function inflationReward(uint256 amount) external {
+        require(amount > 0, 'RR013');
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), amount);
+
+        uint256 boosterProjectAmount = amount * boosterProjectShare / 100;
+        uint256 basicProjectAmount = amount - boosterProjectAmount;
+
+        uint256 era = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        EraPool storage eraPool = pools[era];
+        eraPool.basicInflationReward = basicProjectAmount;
+        eraPool.boosterInflationReward = boosterProjectAmount;
+
+        emit InflationReward(era, basicProjectAmount, boosterProjectAmount);
     }
 
     /**
@@ -181,6 +320,8 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
      */
     function extraReward(uint256 projectId, uint256 amount) external {
         require(amount > 0, 'RR002');
+        require(basicProjectShares[projectId] > 0 || boosterProjectStakings[projectId].amount > 0, 'RR015');
+
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), amount);
 
         uint256 era = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
@@ -199,6 +340,9 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
     function labor(uint256 projectId, address[] calldata indexers) external {
         require(reporters[msg.sender], 'RR007');
 
+        // check project is in basic or booster
+        require(basicProjectShares[projectId] > 0 || boosterProjectStakings[projectId].amount > 0, 'RR015');
+
         uint256 era = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
         EraPool storage eraPool = pools[era];
         ProjectPool storage pool = eraPool.pools[projectId];
@@ -206,6 +350,7 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
         // project created firstly.
         if (pool.totalLabor == 0) {
             eraPool.unclaimProject += 1;
+            eraPool.unactivedProject += 1;
         }
 
         for(uint256 i = 0; i < indexers.length; i++) {
@@ -302,6 +447,8 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
 
     /// @notice work for collect() and collectEra()
     function _collect(uint256 era, uint256 projectId, address indexer) private {
+        require(basicProjectShares[projectId] > 0 || boosterProjectStakings[projectId].amount > 0, 'RR015');
+
         uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
 
         EraPool storage eraPool = pools[era];
@@ -309,8 +456,16 @@ contract RewardsRunning is Initializable, OwnableUpgradeable {
 
         // calc total reward for this project if it is first time to collect
         if (pool.totalReward == 0) {
-            pool.totalReward = pool.extraReward + eraPool.inflationReward * projectShares[projectId] / 100;
+            uint256 basicInflationReward = eraPool.basicInflationReward * basicProjectShares[projectId] / 100;
+            uint256 boosterInflationReward = eraPool.boosterInflationReward * boosterProjectStakings[projectId].amount / totalBoosterProjectStaking;
+            pool.totalReward = pool.extraReward + basicInflationReward + boosterInflationReward;
             pool.unclaimReward = pool.totalReward;
+            eraPool.unactivedProject -= 1;
+        }
+
+        // check if all project share had been actived
+        if (eraPool.unactivedProject == 0) {
+            latestActivedEra += 1;
         }
 
         // this is to prevent duplicated collect
