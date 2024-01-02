@@ -52,14 +52,15 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
   }
 
   function addToAllowlist(uint256 _seriesId, address _address) public onlyOwner {
-    require(series[_seriesId].maxSupply > 0, "Series not found");
+    require(series[_seriesId].maxSupply > 0, "SQG001");
     allowlist[_address][_seriesId] += 1;
 
     emit AllownlistAdded(_address, _seriesId);
   }
 
   function removeFromAllowlist(uint256 _seriesId, address _address) public onlyOwner {
-    require(series[_seriesId].maxSupply > 0, "Series not found");
+    require(series[_seriesId].maxSupply > 0, "SQG001");
+    require(allowlist[_address][_seriesId] > 0, "SQG002");
     allowlist[_address][_seriesId] -= 1;
 
     emit AllownlistRemoved(_address, _seriesId);
@@ -73,13 +74,13 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
     uint256 _maxValue,
     string memory _tokenURI
   ) external onlyOwner {
-    require(_maxSupply > 0, "Max supply must be greater than 0");
-    require(_maxSQT > 0, "Max SQT must be greater than 0");
+    require(_maxSupply > 0, "SQG003");
+    require(_maxSQT > 0, "SQG004");
 
     if (_defaultValue == 0) {
-      require(_minValue > 0, "Min value must be greater than 0");
-      require(_maxValue > 0, "Max value must be greater than 0");
-      require(_maxValue - _minValue > 0, "Max value must be greater than min value");
+      require(_minValue > 0, "SQG005");
+      require(_maxValue > 0, "SQG006");
+      require(_maxValue - _minValue > 0, "SQG007");
     }
 
     series[seriesId] = GiftSeries({
@@ -102,14 +103,14 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
   }
 
   function setSeriesRedeemable(uint256 _seriesId, bool _redeemable) external onlyOwner {
-    require(series[_seriesId].maxSupply > 0, "Series not found");
+    require(series[_seriesId].maxSupply > 0, "SQG001");
     series[_seriesId].redeemable = _redeemable;
 
     emit SeriesRedeemableUpdated(_seriesId, _redeemable);
   }
 
   function setSeriesActive(uint256 _seriesId, bool _active) external onlyOwner {
-    require(series[_seriesId].maxSupply > 0, "Series not found");
+    require(series[_seriesId].maxSupply > 0, "SQG001");
     series[_seriesId].active = _active;
 
     emit SeriesActiveUpdated(_seriesId, _active);
@@ -158,16 +159,16 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
 
   function mint(uint256 _seriesId) public {
     GiftSeries memory giftSerie = series[_seriesId];
-    require(giftSerie.active, "Series not active");
-    require(allowlist[msg.sender][_seriesId] > 0, "Not on allowlist");
+    require(giftSerie.active, "SQG008");
+    require(allowlist[msg.sender][_seriesId] > 0, "SQG002");
 
-    require(giftSerie.totalSupply < giftSerie.maxSupply, "Max gift supply reached");
+    require(giftSerie.totalSupply < giftSerie.maxSupply, "SQG009");
     series[_seriesId].totalSupply += 1;
 
     uint256 tokenId = totalSupply() + 1;
     uint256 sqtValue = _getSQTValueForTokenId(_seriesId);
     series[_seriesId].totalRedeemableSQT += sqtValue;
-    require(giftSerie.totalRedeemableSQT <= giftSerie.maxSQT, "Max SQT reached");
+    require(giftSerie.totalRedeemableSQT <= giftSerie.maxSQT, "SQG010");
     
     gifts[tokenId].seriesId = _seriesId;
     gifts[tokenId].sqtValue = sqtValue;
@@ -181,7 +182,7 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
   }
 
   function afterTokenRedeem(uint256 tokenId) external {
-    require(msg.sender == redeemer, "Not redeemer");
+    require(msg.sender == redeemer, "SQG011");
 
     Gift memory gift = gifts[tokenId];
     uint256 sqtValue = gift.sqtValue;
