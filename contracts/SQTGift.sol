@@ -60,7 +60,7 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
 
   function removeFromAllowlist(uint256 _seriesId, address _address) public onlyOwner {
     require(series[_seriesId].maxSupply > 0, "Series not found");
-    allowlist[_address][_seriesId] += 1;
+    allowlist[_address][_seriesId] -= 1;
 
     emit AllownlistRemoved(_address, _seriesId);
   }
