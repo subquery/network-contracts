@@ -180,7 +180,6 @@
     "TE002": "order not exist",
     "TE003": "trade amount exceed order balance",
     "PD001": "RootChainManager is undefined",
-    
     "SQG001": "Series not found",
     "SQG002": "Not on allowlist",
     "SQG003": "Max supply must be greater than 0",
@@ -191,5 +190,13 @@
     "SQG008": "Series not active",
     "SQG009": "Max gift supply reached",
     "SQG010": "Max SQT reached",
-    "SQG011": "Not redeemer"
+    "SQG011": "Not redeemer",
+
+    "SQR001": "Failed to transfer SQT",
+    "SQR002": "Redeem not enabled",
+    "SQR003": "NFT not allowed to redeem",
+    "SQR004": "NFT does not support ISQTGift",
+    "SQR005": "Gift not redeemable",
+    "SQR006": "Not owner of token",
+    "SQR007": "No SQT to redeem"
 }

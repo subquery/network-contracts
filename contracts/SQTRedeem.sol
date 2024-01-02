@@ -27,11 +27,11 @@ contract SQTRedeem is Initializable, OwnableUpgradeable {
   }
  
   function desposit(uint256 amount) public onlyOwner {
-    require(IERC20(sqtoken).transferFrom(msg.sender, address(this), amount), 'Failed to transfer SQT');
+    require(IERC20(sqtoken).transferFrom(msg.sender, address(this), amount), 'SQR001');
   }
 
   function withdraw(uint256 amount) public onlyOwner {
-    require(IERC20(sqtoken).transfer(msg.sender, amount), 'Failed to transfer SQT');
+    require(IERC20(sqtoken).transfer(msg.sender, amount), 'SQR001');
   }
 
   function addToAllowlist(address _address) public onlyOwner {
@@ -47,20 +47,20 @@ contract SQTRedeem is Initializable, OwnableUpgradeable {
   }
 
   function redeem(address nft, uint256 tokenId) public {
-    require(redeemable, "Redeem not enabled");
-    require(allowlist[nft], "nft not allowed to redeem");
+    require(redeemable, "SQR002");
+    require(allowlist[nft], "SQR003");
 
     IERC165Upgradeable nftContract = IERC165Upgradeable(nft);
-    require(nftContract.supportsInterface(type(ISQTGift).interfaceId), "NFT does not support ISQTGift");
+    require(nftContract.supportsInterface(type(ISQTGift).interfaceId), "SQR004");
     
     ISQTGift sqtGift = ISQTGift(nft);
-    require(sqtGift.getGiftRedeemable(tokenId), "Gift not redeemable");
-    require(sqtGift.ownerOf(tokenId) == msg.sender, "Not owner of token");
+    require(sqtGift.getGiftRedeemable(tokenId), "SQG005");
+    require(sqtGift.ownerOf(tokenId) == msg.sender, "SQG006");
     uint256 sqtValue = sqtGift.getSQTRedeemableValue(tokenId);
-    require(sqtValue > 0, "No SQT to redeem");
+    require(sqtValue > 0, "SQG007");
     sqtGift.afterTokenRedeem(tokenId);
 
-    require(IERC20(sqtoken).transfer(msg.sender, sqtValue), 'Failed to transfer SQT');
+    require(IERC20(sqtoken).transfer(msg.sender, sqtValue), "SQR001");
 
     emit SQTRedeemed(msg.sender, nft, tokenId, sqtValue);
   }
