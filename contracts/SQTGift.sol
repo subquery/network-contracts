@@ -36,7 +36,7 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
   event SeriesRedeemableUpdated(uint256 indexed seriesId, bool redeemable);
   event SeriesActiveUpdated(uint256 indexed seriesId, bool active);
 
-  event GiftMinted(address indexed to, uint256 seriesId, uint256 indexed tokenId, string tokenURI, uint256 sqtValue);
+  event GiftMinted(address indexed to, uint256 indexed seriesId, uint256 indexed tokenId, string tokenURI, uint256 sqtValue);
 
   function initialize(address _sqtoken) external initializer {
     __Ownable_init();
