@@ -15,189 +15,140 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import './interfaces/ISQTGift.sol';
 
 contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721URIStorageUpgradeable, ERC721EnumerableUpgradeable, ISQTGift {
-  
-  address public sqtoken;
-  address public redeemer;
-  uint256 public seriesId;
 
-  /// @notice seriesId => GiftSeries
-  mapping(uint256 => GiftSeries) public series;
+    address public sqtoken;
+    uint256 public nextSeriesId;
 
-  /// @notice account => seriesId => gift count
-  mapping(address => mapping(uint256 => uint8)) public allowlist;
+    /// @notice seriesId => GiftSeries
+    mapping(uint256 => GiftSeries) public series;
 
-  /// @notice tokenId => Gift
-  mapping(uint256 => Gift) public gifts;
+    /// @notice account => seriesId => gift count
+    mapping(address => mapping(uint256 => uint8)) public allowlist;
 
-  event AllownlistAdded(address indexed account, uint256 indexed seriesId);
-  event AllownlistRemoved(address indexed account, uint256 indexed seriesId);
+    /// @notice tokenId => Gift
+    mapping(uint256 => Gift) public gifts;
 
-  event SeriesCreated(uint256 indexed seriesId, uint256 maxSupply, uint256 maxSQT, uint256 defaultValue, uint256 minValue, uint256 maxValue, string tokenURI);
-  event SeriesRedeemableUpdated(uint256 indexed seriesId, bool redeemable);
-  event SeriesActiveUpdated(uint256 indexed seriesId, bool active);
+    event AllowListAdded(address indexed account, uint256 indexed seriesId, uint8 amount);
+    event AllowListRemoved(address indexed account, uint256 indexed seriesId, uint8 amount);
 
-  event GiftMinted(address indexed to, uint256 indexed seriesId, uint256 indexed tokenId, string tokenURI, uint256 sqtValue);
+    event SeriesCreated(uint256 indexed seriesId, uint256 maxSupply, string tokenURI);
+    event SeriesActiveUpdated(uint256 indexed seriesId, bool active);
 
-  function initialize(address _sqtoken) external initializer {
-    __Ownable_init();
-    __ERC721_init("SQT Gift", "SQTG");
-    __ERC721URIStorage_init();
-    __ERC721Enumerable_init();
+    event GiftMinted(address indexed to, uint256 indexed seriesId, uint256 indexed tokenId, string tokenURI);
 
-    sqtoken = _sqtoken;
-  }
+    function initialize(address _sqtoken) external initializer {
+        __Ownable_init();
+        __ERC721_init("SQT Gift", "SQTG");
+        __ERC721URIStorage_init();
+        __ERC721Enumerable_init();
 
-  function setRedeemer(address _redeemer) external onlyOwner {
-    redeemer = _redeemer;
-  }
-
-  function addToAllowlist(uint256 _seriesId, address _address) public onlyOwner {
-    require(series[_seriesId].maxSupply > 0, "SQG001");
-    allowlist[_address][_seriesId] += 1;
-
-    emit AllownlistAdded(_address, _seriesId);
-  }
-
-  function removeFromAllowlist(uint256 _seriesId, address _address) public onlyOwner {
-    require(series[_seriesId].maxSupply > 0, "SQG001");
-    require(allowlist[_address][_seriesId] > 0, "SQG002");
-    allowlist[_address][_seriesId] -= 1;
-
-    emit AllownlistRemoved(_address, _seriesId);
-  }
-
-  function createSeries(
-    uint256 _maxSupply,
-    uint256 _maxSQT,
-    uint256 _defaultValue,
-    uint256 _minValue,
-    uint256 _maxValue,
-    string memory _tokenURI
-  ) external onlyOwner {
-    require(_maxSupply > 0, "SQG003");
-    require(_maxSQT > 0, "SQG004");
-
-    if (_defaultValue == 0) {
-      require(_minValue > 0, "SQG005");
-      require(_maxValue > 0, "SQG006");
-      require(_maxValue - _minValue > 0, "SQG007");
+        sqtoken = _sqtoken;
     }
 
-    series[seriesId] = GiftSeries({
-      maxSupply: _maxSupply,
-      maxSQT: _maxSQT,
-      defaultValue: _defaultValue,
-      minValue: _minValue,
-      maxValue: _maxValue,
-      totalSupply: 0,
-      totalRedeemableSQT: 0,
-      totalRedeemedSQT: 0,
-      active: true,
-      redeemable: false,
-      tokenURI: _tokenURI
-    });
+    function batchAddToAllowlist(uint256[] calldata _seriesId, address[] calldata _address, uint8[] calldata _amount) public onlyOwner {
+        require(_seriesId.length == _address.length, 'SQG003');
+        require(_seriesId.length == _amount.length, 'SQG003');
+        for (uint256 i = 0; i < _seriesId.length; i++) {
+            addToAllowlist(_seriesId[i], _address[i], _amount[i]);
+        }
+    }
 
-    seriesId += 1;
+    function addToAllowlist(uint256 _seriesId, address _address, uint8 _amount) public onlyOwner {
+        require(series[_seriesId].maxSupply > 0, "SQG001");
+        allowlist[_address][_seriesId] += _amount;
 
-    emit SeriesCreated(seriesId - 1, _maxSupply, _maxSQT, _defaultValue, _minValue, _maxValue, _tokenURI);
-  }
+        emit AllowListAdded(_address, _seriesId, _amount);
+    }
 
-  function setSeriesRedeemable(uint256 _seriesId, bool _redeemable) external onlyOwner {
-    require(series[_seriesId].maxSupply > 0, "SQG001");
-    series[_seriesId].redeemable = _redeemable;
+    function removeFromAllowlist(uint256 _seriesId, address _address, uint8 _amount) public onlyOwner {
+        require(series[_seriesId].maxSupply > 0, "SQG001");
+        require(allowlist[_address][_seriesId] >= _amount, "SQG002");
+        allowlist[_address][_seriesId] -= _amount;
 
-    emit SeriesRedeemableUpdated(_seriesId, _redeemable);
-  }
+        emit AllowListRemoved(_address, _seriesId, _amount);
+    }
 
-  function setSeriesActive(uint256 _seriesId, bool _active) external onlyOwner {
-    require(series[_seriesId].maxSupply > 0, "SQG001");
-    series[_seriesId].active = _active;
+    function createSeries(
+        uint256 _maxSupply,
+        string memory _tokenURI
+    ) external onlyOwner {
+        require(_maxSupply > 0, "SQG006");
+        series[nextSeriesId] = GiftSeries({
+            maxSupply: _maxSupply,
+            totalSupply: 0,
+            active: true,
+            tokenURI: _tokenURI
+        });
 
-    emit SeriesActiveUpdated(_seriesId, _active);
-  }
+        emit SeriesCreated(nextSeriesId, _maxSupply, _tokenURI);
 
-  function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override(
-    ERC721Upgradeable, 
+        nextSeriesId += 1;
+
+    }
+
+    function setSeriesActive(uint256 _seriesId, bool _active) external onlyOwner {
+        require(series[_seriesId].maxSupply > 0, "SQG001");
+        series[_seriesId].active = _active;
+
+        emit SeriesActiveUpdated(_seriesId, _active);
+    }
+
+    function setMaxSupply(uint256 _seriesId, uint256 _maxSupply) external onlyOwner {
+        require(_maxSupply > 0, "SQG006");
+        series[_seriesId].maxSupply = _maxSupply;
+    }
+
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override(
+    ERC721Upgradeable,
     ERC721EnumerableUpgradeable
-  ) {
-      super._beforeTokenTransfer(from, to, tokenId, batchSize);
-  }
+    ) {
+        super._beforeTokenTransfer(from, to, tokenId, batchSize);
+    }
 
-  function supportsInterface(bytes4 interfaceId) public view override(
+    function supportsInterface(bytes4 interfaceId) public view override(
     IERC165Upgradeable,
     ERC721Upgradeable,
     ERC721EnumerableUpgradeable,
     ERC721URIStorageUpgradeable
-  ) returns (bool) {
-    return interfaceId == type(ISQTGift).interfaceId || super.supportsInterface(interfaceId);
-  }
-
-  function tokenURI(uint256 tokenId) public view override(
-    ERC721Upgradeable, 
-    ERC721URIStorageUpgradeable
-  ) returns (string memory) {
-      return super.tokenURI(tokenId);
-  }
-
-  function _burn(uint256 tokenId) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
-      super._burn(tokenId);
-  }
-
-  function _baseURI() internal view virtual override returns (string memory) {
-    return "ipfs://";
-  }
-
-  function _getSQTValueForTokenId(uint256 _seriesId) private view returns (uint256) {
-    GiftSeries memory gift = series[_seriesId];
-    if (gift.defaultValue > 0) {
-      return gift.defaultValue;
+    ) returns (bool) {
+        return interfaceId == type(ISQTGift).interfaceId || super.supportsInterface(interfaceId);
     }
-    
-    uint256 random = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % (gift.maxValue - gift.minValue + 1);
-    return gift.minValue + random;
-  }
 
-  function mint(uint256 _seriesId) public {
-    GiftSeries memory giftSerie = series[_seriesId];
-    require(giftSerie.active, "SQG008");
-    require(allowlist[msg.sender][_seriesId] > 0, "SQG002");
+    function tokenURI(uint256 tokenId) public view override(
+    ERC721Upgradeable,
+    ERC721URIStorageUpgradeable
+    ) returns (string memory) {
+        return super.tokenURI(tokenId);
+    }
 
-    require(giftSerie.totalSupply < giftSerie.maxSupply, "SQG009");
-    series[_seriesId].totalSupply += 1;
+    function _burn(uint256 tokenId) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
+        super._burn(tokenId);
+    }
 
-    uint256 tokenId = totalSupply() + 1;
-    uint256 sqtValue = _getSQTValueForTokenId(_seriesId);
-    series[_seriesId].totalRedeemableSQT += sqtValue;
-    require(giftSerie.totalRedeemableSQT <= giftSerie.maxSQT, "SQG010");
-    
-    gifts[tokenId].seriesId = _seriesId;
-    gifts[tokenId].sqtValue = sqtValue;
+    function _baseURI() internal view virtual override returns (string memory) {
+        return "ipfs://";
+    }
 
-    _safeMint(msg.sender, tokenId);
-    _setTokenURI(tokenId, giftSerie.tokenURI);
+    function mint(uint256 _seriesId) public {
+        GiftSeries memory giftSerie = series[_seriesId];
+        require(giftSerie.active, "SQG004");
+        require(allowlist[msg.sender][_seriesId] > 0, "SQG002");
 
-    allowlist[msg.sender][_seriesId]--;
+        require(giftSerie.totalSupply < giftSerie.maxSupply, "SQG005");
+        series[_seriesId].totalSupply += 1;
 
-    emit GiftMinted(msg.sender, _seriesId, tokenId, giftSerie.tokenURI, sqtValue);
-  }
+        uint256 tokenId = totalSupply() + 1;
+        gifts[tokenId].seriesId = _seriesId;
 
-  function afterTokenRedeem(uint256 tokenId) external {
-    require(msg.sender == redeemer, "SQG011");
+        _safeMint(msg.sender, tokenId);
+        _setTokenURI(tokenId, giftSerie.tokenURI);
 
-    Gift memory gift = gifts[tokenId];
-    uint256 sqtValue = gift.sqtValue;
-    series[gift.seriesId].totalRedeemedSQT += sqtValue;
+        allowlist[msg.sender][_seriesId]--;
 
-    delete gifts[tokenId];
-    
-    _burn(tokenId);
-  }
+        emit GiftMinted(msg.sender, _seriesId, tokenId, giftSerie.tokenURI);
+    }
 
-  function getGiftRedeemable(uint256 tokenId) external view returns (bool) {
-    return series[gifts[tokenId].seriesId].redeemable;
-  }
-
-  function getSQTRedeemableValue(uint256 tokenId) external view returns (uint256) {
-    return gifts[tokenId].sqtValue;
-  }
+    function getSeries(uint256 tokenId) external view returns (uint256) {
+        return gifts[tokenId].seriesId;
+    }
 }
