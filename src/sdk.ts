@@ -31,7 +31,7 @@ import {
     StateChannel,
     VSQToken,
     Vesting,
-    TokenExchange
+    TokenExchange, SQTGift
 } from './typechain';
 import {
     CONTRACT_FACTORY,
@@ -45,6 +45,7 @@ import assert from "assert";
 // HOTFIX: Contract names are not consistent between deployments and privous var names
 const contractNameConversion: Record<string, string> = {
     sQToken: 'sqToken',
+    sQTGift: 'sqtGift',
     rewardsDistributer: 'rewardsDistributor',
 };
 
@@ -78,6 +79,7 @@ export class ContractSDK {
     readonly priceOracle!: PriceOracle;
     readonly vSQToken!: VSQToken;
     readonly tokenExchange!: TokenExchange;
+    readonly sqtGift!: SQTGift;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options: SdkOptions) {
         assert(this.options.deploymentDetails || DEPLOYMENT_DETAILS[options.network],' missing contract deployment info');

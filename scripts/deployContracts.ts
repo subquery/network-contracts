@@ -42,7 +42,7 @@ import {
     TransparentUpgradeableProxy__factory,
     TokenExchange,
     PolygonDestination,
-    RootChainManager__factory,
+    RootChainManager__factory, SQTGift,
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -419,8 +419,14 @@ export async function deployContracts(
             initConfig: [10, 3600],
         });
 
+
+        // delpoy PriceOracle contract
+        const sqtGift = await deployContract<SQTGift>('SQTGift', 'child', {
+            proxyAdmin,
+            initConfig: [],
+        });
+
         // Register addresses on settings contract
-        // FIXME: failed to send this tx
         logger?.info('🤞 Set token addresses');
         const txToken = await settings.setBatchAddress([
             SQContracts.SQToken,
