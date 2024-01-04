@@ -16,7 +16,6 @@ import './interfaces/ISQTGift.sol';
 
 contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721URIStorageUpgradeable, ERC721EnumerableUpgradeable, ISQTGift {
 
-    address public sqtoken;
     uint256 public nextSeriesId;
 
     /// @notice seriesId => GiftSeries
@@ -36,13 +35,11 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
 
     event GiftMinted(address indexed to, uint256 indexed seriesId, uint256 indexed tokenId, string tokenURI);
 
-    function initialize(address _sqtoken) external initializer {
+    function initialize() external initializer {
         __Ownable_init();
         __ERC721_init("SQT Gift", "SQTG");
         __ERC721URIStorage_init();
         __ERC721Enumerable_init();
-
-        sqtoken = _sqtoken;
     }
 
     function batchAddToAllowlist(uint256[] calldata _seriesId, address[] calldata _address, uint8[] calldata _amount) public onlyOwner {
