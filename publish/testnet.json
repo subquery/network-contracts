@@ -187,6 +187,12 @@
             "address": "0x77D39058F48F84D355Aaf0328719B5c8843b601C",
             "bytecodeHash": "58b29e3ecad69575fb0ea5f4699ff93df771c4ec78c857f0f6f711840f2192b3",
             "lastUpdate": "Fri, 15 Dec 2023 06:11:39 GMT"
+        },
+        "Airdropper": {
+            "innerAddress": "",
+            "address": "0xD01AE239CFDf49d88F1c3ab6d2c82b7f411C71b1",
+            "bytecodeHash": "265cafc4a199e1a350c3c09155f419b629bdfd09b2de7d973c8c78e7e30ef5bf",
+            "lastUpdate": "Tue, 19 Dec 2023 04:20:12 GMT"
         }
     }
 }

@@ -43,6 +43,7 @@ import {
     TokenExchange,
     PolygonDestination,
     RootChainManager__factory,
+    Airdropper,
     VTSQToken,
     RewardsBooster,
     StakingAllocation,
@@ -437,6 +438,10 @@ export async function deployContracts(
             initConfig: [10, 3600],
         });
 
+        //deploy Airdropper contract
+        const [settleDestination] = config['Airdropper'];
+        const airdropper = await deployContract<Airdropper>('Airdropper', 'child', { deployConfig: [settleDestination] });
+
         // deploy rewardsBooster contract
         const rewardsBooster = await deployContract<RewardsBooster>('RewardsBooster', 'child', {
             proxyAdmin,
@@ -524,6 +529,7 @@ export async function deployContracts(
                 tokenExchange,
                 priceOracle,
                 consumerRegistry,
+                airdropper,
                 stakingAllocation,
             },
         ];
