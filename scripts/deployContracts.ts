@@ -43,6 +43,7 @@ import {
     TokenExchange,
     PolygonDestination,
     RootChainManager__factory,
+    SQTGift,
     Airdropper,
     VTSQToken,
 } from '../src';
@@ -436,13 +437,18 @@ export async function deployContracts(
             initConfig: [10, 3600],
         });
 
+        // delpoy PriceOracle contract
+        const sqtGift = await deployContract<SQTGift>('SQTGift', 'child', {
+            proxyAdmin,
+            initConfig: [],
+        });
+
         //deploy Airdropper contract
         const [settleDestination] = config['Airdropper'];
         const airdropper = await deployContract<Airdropper>('Airdropper', 'child', { deployConfig: [settleDestination] });
 
         // Register addresses on settings contract
-        // FIXME: failed to send this tx
-        logger?.info('🤞 Set token addresses');
+        logger?.info('🤞 Set settings addresses');
         const txToken = await settings.setBatchAddress([
             SQContracts.SQToken,
             SQContracts.Staking,
@@ -510,6 +516,7 @@ export async function deployContracts(
                 tokenExchange,
                 priceOracle,
                 consumerRegistry,
+                sqtGift,
                 airdropper,
             },
         ];

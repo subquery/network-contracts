@@ -36,6 +36,7 @@ import {
     ChildERC20__factory,
     TokenExchange__factory,
     PolygonDestination__factory,
+    SQTGift__factory,
 } from './typechain';
 
 export type SubqueryNetwork = 'testnet' | 'mainnet' | 'local';
@@ -125,6 +126,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ConsumerRegistry: ConsumerRegistry__factory,
     ChildERC20: ChildERC20__factory,
     PolygonDestination: PolygonDestination__factory,
+    SQTGift: SQTGift__factory,
 };
 
 export enum SQContracts {

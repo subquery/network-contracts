@@ -31,6 +31,7 @@ import ChildERC20 from './artifacts/contracts/polygon/ChildERC20.sol/ChildERC20.
 import Vesting from './artifacts/contracts/root/Vesting.sol/Vesting.json';
 import VTSQToken from './artifacts/contracts/root/VTSQToken.sol/VTSQToken.json';
 import PolygonDestination from './artifacts/contracts/root/PolygonDestination.sol/PolygonDestination.json';
+import SQTGift from "./artifacts/contracts/SQTGift.sol/SQTGift.json";
 
 export default {
     Settings,
@@ -63,4 +64,5 @@ export default {
     ConsumerRegistry,
     ChildERC20,
     PolygonDestination,
+    SQTGift,
 };
