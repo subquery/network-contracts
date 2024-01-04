@@ -36,6 +36,7 @@ import {
     ChildERC20__factory,
     TokenExchange__factory,
     PolygonDestination__factory,
+    SQTGift__factory,
     RewardsBooster__factory,
     StakingAllocation__factory,
 } from './typechain';
@@ -129,6 +130,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ConsumerRegistry: ConsumerRegistry__factory,
     ChildERC20: ChildERC20__factory,
     PolygonDestination: PolygonDestination__factory,
+    SQTGift: SQTGift__factory,
 };
 
 export enum SQContracts {
@@ -152,8 +154,8 @@ export enum SQContracts {
     ConsumerRegistry,
     PriceOracle,
     RootChainManager,
-    RewardsBooster,
     Treasury,
+    RewardsBooster,
     StakingAllocation,
 }
 
