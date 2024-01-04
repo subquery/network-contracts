@@ -40,19 +40,18 @@ describe('SQT Gift Nft', () => {
         it('add allowList', async () => {
             await nft.createSeries(100, "abc");
             const tx = await nft.addToAllowlist(0, wallet_1.address,1);
-            const event = await eventFrom(tx, nft,'AllowListAdded(address,uint256)');
+            const event = await eventFrom(tx, nft,'AllowListAdded(address,uint256,uint8)');
             expect(event.account).to.eq(wallet_1.address);
             expect(event.seriesId).to.eq(0);
         });
         it('add allowList for non exist series', async () => {
-            // await nft.createSeries(100, "abc");
             await expect(nft.addToAllowlist(0, wallet_1.address,1)).to.revertedWith('SQG001');
             await nft.createSeries(100, "abc");
             await expect(nft.addToAllowlist(0, wallet_1.address,1)).not.reverted;
         });
     });
 
-    describe.only('Mint Tokens', () => {
+    describe('Mint Tokens', () => {
         beforeEach(async ()=>{
             await nft.createSeries(100, "series0");
             await nft.createSeries(50, "series1");
@@ -72,6 +71,8 @@ describe('SQT Gift Nft', () => {
             await expect(nft.connect(wallet_1).mint(0)).to.revertedWith('SQG002');
             await nft.addToAllowlist(0, wallet_1.address,1);
             await nft.connect(wallet_1).mint(0);
+            const token2Series = await nft.getSeries(1);
+            expect(token2Series).to.eq(0);
         });
         it('can not mint when exceed max supply', async () => {
             // series 2
