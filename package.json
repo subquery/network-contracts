@@ -8,6 +8,7 @@
         "build:ts": "scripts/build.sh",
         "build:abi": "ts-node --transpileOnly scripts/abi.ts",
         "build": "yarn build:contract && yarn build:ts && yarn build:abi",
+        "clean": "rm -rf build artifacts",
         "lint": "solhint contracts/**/*.sol --fix",
         "test": "hardhat test",
         "test:all": "hardhat test ./test/*.test.ts",

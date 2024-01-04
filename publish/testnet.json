@@ -41,6 +41,12 @@
             "address": "0x3519c8939b73EAA440A5b626D6090275add4bD69",
             "bytecodeHash": "895a73f782b2930ee15d1ae0ccbfa751df049bd647ed5a23b7f42d22c441ba8b",
             "lastUpdate": "Fri, 15 Dec 2023 00:26:14 GMT"
+        },
+        "VTSQToken": {
+            "innerAddress": "",
+            "address": "0x0D5A4266573975222292601686f2C3CF02E2120A",
+            "bytecodeHash": "1a3fdb466834f7139e72a865a759a82189da9dd342ec1fbfbbc9d62397bd109f",
+            "lastUpdate": "Tue, 19 Dec 2023 05:12:39 GMT"
         }
     },
     "child": {
@@ -187,6 +193,12 @@
             "address": "0xCe008ea6ef4B7C5712B8B8DF7A4ca021859ab266",
             "bytecodeHash": "3d7cdd1cbad232b4d9d6804bffbdf9f64804c89c0fab972e8a5839b6b51ee34a",
             "lastUpdate": "Thu, 04 Jan 2024 02:58:39 GMT"
+        },
+        "Airdropper": {
+            "innerAddress": "",
+            "address": "0xD01AE239CFDf49d88F1c3ab6d2c82b7f411C71b1",
+            "bytecodeHash": "265cafc4a199e1a350c3c09155f419b629bdfd09b2de7d973c8c78e7e30ef5bf",
+            "lastUpdate": "Tue, 19 Dec 2023 04:20:12 GMT"
         }
     }
 }

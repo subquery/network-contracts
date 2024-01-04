@@ -58,7 +58,6 @@ export class ContractSDK {
     readonly stakingManager!: StakingManager;
     readonly indexerRegistry!: IndexerRegistry;
     readonly projectRegistry!: ProjectRegistry;
-    readonly inflationController!: InflationController;
     readonly serviceAgreementRegistry!: ServiceAgreementRegistry;
     readonly serviceAgreementExtra!: ServiceAgreementExtra;
     readonly eraManager!: EraManager;
@@ -70,11 +69,9 @@ export class ContractSDK {
     readonly purchaseOfferMarket!: PurchaseOfferMarket;
     readonly stateChannel!: StateChannel;
     readonly airdropper!: Airdropper;
-    readonly permissionedExchange!: PermissionedExchange;
     readonly consumerHost!: ConsumerHost;
     readonly disputeManager!: DisputeManager;
     readonly proxyAdmin!: ProxyAdmin;
-    readonly vesting!: Vesting;
     readonly consumerRegistry!: ConsumerRegistry;
     readonly priceOracle!: PriceOracle;
     readonly vSQToken!: VSQToken;
