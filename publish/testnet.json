@@ -20,7 +20,7 @@
         },
         "SQToken": {
             "innerAddress": "",
-            "address": "0xAFD07FAB547632d574b38A72EDAE93fA23d1E7d7",
+            "address": "r",
             "bytecodeHash": "b36d78daa299ef0902228a52e74c6016998ac240026c54624ba882e15d4a29cc",
             "lastUpdate": "Mon, 11 Dec 2023 07:37:28 GMT"
         },
@@ -181,6 +181,12 @@
             "address": "0x77D39058F48F84D355Aaf0328719B5c8843b601C",
             "bytecodeHash": "58b29e3ecad69575fb0ea5f4699ff93df771c4ec78c857f0f6f711840f2192b3",
             "lastUpdate": "Fri, 15 Dec 2023 06:11:39 GMT"
+        },
+        "SQTGift": {
+            "innerAddress": "0x05fC60d66d4386C14145c88f3b92Fb55642452c0",
+            "address": "0xCe008ea6ef4B7C5712B8B8DF7A4ca021859ab266",
+            "bytecodeHash": "3d7cdd1cbad232b4d9d6804bffbdf9f64804c89c0fab972e8a5839b6b51ee34a",
+            "lastUpdate": "Thu, 04 Jan 2024 02:58:39 GMT"
         }
     }
 }

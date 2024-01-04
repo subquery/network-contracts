@@ -145,6 +145,16 @@ contract SQTGift is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721
         emit GiftMinted(msg.sender, _seriesId, tokenId, giftSerie.tokenURI);
     }
 
+    function batchMint(uint256 _seriesId) external {
+        GiftSeries memory giftSerie = series[_seriesId];
+        require(giftSerie.active, "SQG004");
+        uint8 allowAmount = allowlist[msg.sender][_seriesId];
+        require(allowAmount > 0, "SQG002");
+        for (uint256 i = 0; i < allowAmount; i++) {
+            mint(_seriesId);
+        }
+    }
+
     function getSeries(uint256 tokenId) external view returns (uint256) {
         return gifts[tokenId].seriesId;
     }

@@ -3,22 +3,19 @@
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-import { eventFrom } from './helper';
-import { deployProxy } from "../scripts/deployContracts";
+import { eventFrom, eventsFrom } from './helper';
 import { deployContracts } from "./setup";
-import { ProxyAdmin__factory, SQTGift, SQTGift__factory } from '../src';
+import { SQTGift } from '../src';
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 describe('SQT Gift Nft', () => {
     const mockProvider = waffle.provider;
-    let wallet_0, wallet_1, wallet_2;
+    let wallet_0: SignerWithAddress, wallet_1: SignerWithAddress, wallet_2: SignerWithAddress;
     let nft: SQTGift;
 
     const deployer = async () => {
         const deployment = await deployContracts(wallet_0, wallet_1);
-        const proxyAdmin = await new ProxyAdmin__factory(wallet_0).deploy();
-        const [_nft] = await deployProxy<SQTGift>(proxyAdmin, SQTGift__factory, wallet_0, 1);
-        await _nft.initialize();
-        return _nft;
+        return deployment.sqtGift;
     };
     before(async () => {
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
@@ -48,6 +45,20 @@ describe('SQT Gift Nft', () => {
             await nft.createSeries(100, "abc");
             await expect(nft.addToAllowlist(0, wallet_1.address, 1)).not.reverted;
         });
+        it('batch add allowList', async () => {
+            await nft.createSeries(100, "token0");
+            await nft.createSeries(100, "token1");
+            const tx = await nft.batchAddToAllowlist(
+                [0,0,1,0],
+                [wallet_1.address,wallet_2.address,wallet_1.address,wallet_1.address],
+                [1,2,1,5]);
+            const events = await eventsFrom(tx, nft, 'AllowListAdded(address,uint256,uint8)');
+            expect(events.length).to.eq(4);
+            expect(await nft.allowlist(wallet_1.address,0)).to.eq(6);
+            expect(await nft.allowlist(wallet_1.address,1)).to.eq(1);
+            expect(await nft.allowlist(wallet_2.address,0)).to.eq(2);
+            expect(await nft.allowlist(wallet_2.address,1)).to.eq(0);
+        })
     });
 
     describe('Mint Tokens', () => {
@@ -88,5 +99,10 @@ describe('SQT Gift Nft', () => {
             await nft.setSeriesActive(0, true);
             await expect(nft.connect(wallet_1).mint(0)).not.reverted;
         });
+        it('can batch mint token', async () => {
+            await nft.addToAllowlist(0, wallet_2.address, 10);
+            await nft.connect(wallet_2).batchMint(0);
+            expect(await nft.balanceOf(wallet_2.address)).to.eq(10);
+        })
     });
 });

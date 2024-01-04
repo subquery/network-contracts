@@ -328,6 +328,15 @@ task('publishChild', "verify and publish contracts on etherscan")
                 address: deployment.TokenExchange.address,
                 constructorArguments: [],
             });
+            //SQTGift
+            await hre.run("verify:verify", {
+                address: deployment.SQTGift.address,
+                constructorArguments: [deployment.SQTGift.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.SQTGift.innerAddress,
+                constructorArguments: [],
+            });
 
         } catch (err) {
             console.log(err);

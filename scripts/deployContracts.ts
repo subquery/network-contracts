@@ -427,7 +427,7 @@ export async function deployContracts(
         });
 
         // Register addresses on settings contract
-        logger?.info('🤞 Set token addresses');
+        logger?.info('🤞 Set settings addresses');
         const txToken = await settings.setBatchAddress([
             SQContracts.SQToken,
             SQContracts.Staking,
@@ -495,6 +495,7 @@ export async function deployContracts(
                 tokenExchange,
                 priceOracle,
                 consumerRegistry,
+                sqtGift,
             },
         ];
     } catch (error) {
