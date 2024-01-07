@@ -6,6 +6,7 @@ pragma solidity 0.8.15;
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
@@ -43,6 +44,8 @@ import './utils/MathUtil.sol';
  * we will charge the penalty fee.
  */
 contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOfferMarket {
+    using SafeERC20 for IERC20;
+
     /**
      * @notice Purchase Offer information.
      */
@@ -241,7 +244,8 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
             if (penaltyDestination != ZERO_ADDRESS) {
                 IERC20(settings.getContractAddress(SQContracts.SQToken)).transfer(penaltyDestination, penalty);
             } else {
-                ISQToken(settings.getContractAddress(SQContracts.SQToken)).burn(penalty);
+                address treasury = settings.getContractAddress(SQContracts.Treasury);
+                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(treasury, penalty);
             }
         }
 

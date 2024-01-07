@@ -358,17 +358,18 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
 
         uint256 amount = unbondingAmount[_source][_index].amount;
         if (amount > 0) {
-            // burn specific percentage
-            uint256 burnAmount = MathUtil.mulDiv(unbondFeeRate, amount, PER_MILL);
-            uint256 availableAmount = amount - burnAmount;
+            // take specific percentage for fee
+            uint256 feeAmount = MathUtil.mulDiv(unbondFeeRate, amount, PER_MILL);
+            uint256 availableAmount = amount - feeAmount;
 
             address SQToken = settings.getContractAddress(SQContracts.SQToken);
-            ISQToken(SQToken).burn(burnAmount);
+            address treasury = settings.getContractAddress(SQContracts.Treasury);
+            IERC20(SQToken).safeTransfer(treasury, feeAmount);
             IERC20(SQToken).safeTransfer(_source, availableAmount);
 
             lockedAmount[_source] -= amount;
 
-            emit UnbondWithdrawn(_source, availableAmount, burnAmount, _index);
+            emit UnbondWithdrawn(_source, availableAmount, feeAmount, _index);
         }
     }
 
