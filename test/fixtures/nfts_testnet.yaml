@@ -1,0 +1,30 @@
+- kind: SQTGiftAllowList
+  seriesId: 0
+  list:
+    - address: "0x5e15cE35a3821e15d36988D9E0DD181c7c371A07"
+      amount: 1
+    - address: "0x142811C55F47e6e5FDa281a522D42308527f7262"
+      amount: 2
+    - address: "0x6604aBf2E71C4d407C853e0AD62D9366D7Fe593A"
+      amount: 3
+- kind: SQTGiftAllowList
+  seriesId: 1
+  list:
+    - address: "0x5e15cE35a3821e15d36988D9E0DD181c7c371A07"
+      amount: 1
+    - address: "0x142811C55F47e6e5FDa281a522D42308527f7262"
+      amount: 2
+    - address: "0x6604aBf2E71C4d407C853e0AD62D9366D7Fe593A"
+      amount: 3
+- kind: SQTGiftAllowList
+  seriesId: 2
+  list:
+    - address: "0x5e15cE35a3821e15d36988D9E0DD181c7c371A07"
+      amount: 1
+- kind: Account
+  name: user1
+#  address: 0x142811C55F47e6e5FDa281a522D42308527f7262
+  pk: "79d52073c2c9d0ce0c1f0db4db638b0e66f6a0924b866e378984ce5f1481b7e7"
+- kind: SQTGiftClaim
+  seriesId: 0
+  user: user1

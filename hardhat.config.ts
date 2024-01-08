@@ -399,6 +399,7 @@ const config: HardhatUserConfig = {
         apiKey: {
             polygonMumbai: process.env.POLYGONSCAN_API_KEY,
             goerli: process.env.ETHERSCAN_API_KEY,
+            polygon: process.env.POLYGONSCAN_API_KEY,
         },
     },
     typechain: {

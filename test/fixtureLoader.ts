@@ -14,8 +14,9 @@ function cidToBytes32(cid: string): string {
 
 export interface AccountInput {
     name: string;
-    seed: string;
-    derive: string;
+    seed?: string;
+    derive?: string;
+    pk?: string;
 }
 
 export interface FaucetInput {
@@ -61,6 +62,22 @@ export interface PlanTemplateInput {
     metadata: object;
 }
 
+export interface SQTGiftSeriesInput {
+    seriesId: number;
+    maxSupply: number;
+    metadata: object;
+}
+
+export interface SQTGiftSeriesAllowList {
+    seriesId: number;
+    list: { address: string; amount: number }[];
+}
+
+export interface SQTGiftSeriesClaim {
+    seriesId: number;
+    user: string;
+}
+
 export interface Context {
     sdk: ContractSDK;
     provider: Provider;
@@ -75,8 +92,12 @@ export function createWallet(seed: string, derive: string, provider: Provider): 
 }
 
 export const loaders = {
-    Account: function ({ name, derive, seed }: AccountInput, context: Context) {
-        context.accounts[name] = createWallet(seed, derive, context.provider);
+    Account: function ({ name, derive, seed, pk }: AccountInput, context: Context) {
+        if (seed) {
+            context.accounts[name] = createWallet(seed, derive, context.provider);
+        } else if (pk) {
+            context.accounts[name] = new Wallet(pk, context.provider);
+        }
     },
     Faucet: async function ({ amounts, account }: FaucetInput, context: Context) {
         console.log(`Faucet Start for account ${account}`);
@@ -209,4 +230,52 @@ export const loaders = {
         await tx.wait();
         console.log(`PlanTemplate Complete`);
     },
+    SQTGiftSeries: async function (
+        { seriesId, maxSupply, metadata }: SQTGiftSeriesInput,
+        { ipfs, sdk, rootAccount }: Context
+    ) {
+        console.log(`SQTGiftSeries Start`);
+        const series = await sdk.sqtGift.series(seriesId);
+        if (!series.maxSupply?.toNumber()) {
+            console.log(`SQTGiftSeries: Create Series`);
+            const { cid: metadataCid } = await ipfs.add(JSON.stringify(metadata), { pin: true });
+            console.log(`SQTGiftSeries Metadata: ${metadataCid}`);
+            const tx = await sdk.sqtGift.connect(rootAccount).createSeries(maxSupply, metadataCid.toString());
+            await tx.wait();
+        } else if (series.maxSupply.toNumber() !== maxSupply) {
+            console.log(`SQTGiftSeries: Update maxSupply ${series.maxSupply.toNumber()} => ${maxSupply}`);
+            const tx = await sdk.sqtGift.connect(rootAccount).setMaxSupply(seriesId, maxSupply);
+            await tx.wait();
+        }
+        console.log(`SQTGiftSeries Complete`);
+    },
+    SQTGiftAllowList: async function (
+        { seriesId, list }: SQTGiftSeriesAllowList,
+        { ipfs, sdk, rootAccount }: Context
+    ) {
+        console.log(`SQTGiftAllowList Start`);
+
+        const tx = await sdk.sqtGift.connect(rootAccount).batchAddToAllowlist(
+            list.map(()=>seriesId),
+            list.map(i=>i.address),
+            list.map(i=>i.amount),
+        )
+        console.log(`SQTGiftAllowList tx: ${tx.hash}`);
+        await tx.wait();
+        console.log(`SQTGiftAllowList Complete`);
+    },
+    SQTGiftClaim: async function (
+        { seriesId, user }: SQTGiftSeriesClaim,
+        { ipfs, sdk, rootAccount, accounts }: Context
+    ) {
+        console.log(`SQTGiftClaim Start`);
+        const wallet = accounts[user];
+        if (!wallet) {
+            console.log(`account ${user} not found`);
+            return;
+        }
+        const tx = await sdk.sqtGift.connect(wallet).mint(seriesId);
+        await tx.wait();
+        console.log(`SQTGiftClaim Complete`);
+    }
 };
