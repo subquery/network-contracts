@@ -139,5 +139,18 @@
             "lastUpdate": ""
         }
     },
-    "child": {}
+    "child": {
+        "ProxyAdmin": {
+            "innerAddress": "",
+            "address": "0x07e8e4008d31AEB2678E43e43A76F42129BD7f8c",
+            "bytecodeHash": "a783cb98d79d784d0854c6b3a00a01ffc6e8249d30986940ae1060ee4e2bafee",
+            "lastUpdate": "Mon, 08 Jan 2024 03:59:26 GMT"
+        },
+        "SQTGift": {
+            "innerAddress": "0x27d5c0d94a4FcFB24e0998cdDA4BcB1E3e528903",
+            "address": "0x8845CEefA2914172E81b40E8Cc2534259D7BA966",
+            "bytecodeHash": "3d7cdd1cbad232b4d9d6804bffbdf9f64804c89c0fab972e8a5839b6b51ee34a",
+            "lastUpdate": "Mon, 08 Jan 2024 04:02:03 GMT"
+        }
+    }
 }
