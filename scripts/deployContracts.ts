@@ -318,124 +318,124 @@ export async function deployContracts(
     try {
         const proxyAdmin = await deployContract<ProxyAdmin>('ProxyAdmin', 'child');
 
-        const settings = await deployContract<Settings>('Settings', 'child', { proxyAdmin, initConfig: [] });
-        const settingsAddress = settings.address;
-
-        // We don't need to deploy ChildErc20, polygon team will do it for us when we request tokenMapping
-        // deploy SQToken contract
-        let sqtToken;
-        if (network === 'local') {
-            sqtToken = await deployContract<SQToken>('SQToken', 'child', {
-                deployConfig: [...config['SQToken']],
-            });
-        } else {
-            sqtToken = ChildERC20__factory.connect(deployment.child.SQToken.address, wallet);
-        }
-        // deploy VSQToken contract
-        const vsqtToken = await deployContract<VSQToken>('VSQToken', 'child', { proxyAdmin, initConfig: [settingsAddress] });
-
-        // deploy Staking contract
-        const staking = await deployContract<Staking>('Staking', 'child', { proxyAdmin, initConfig: [settingsAddress] });
-
-        // deploy StakingManager contract
-        const stakingManager = await deployContract<StakingManager>('StakingManager', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        // deploy Era manager
-        const eraManager = await deployContract<EraManager>('EraManager', 'child', { proxyAdmin, initConfig: [settingsAddress] });
-
-        // deploy IndexerRegistry contract
-        const indexerRegistry = await deployContract<IndexerRegistry>('IndexerRegistry', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        // deploy ProjectRegistry contract
-        const projectRegistry = await deployContract<ProjectRegistry>('ProjectRegistry', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        // deploy PlanManager contract
-        const planManager = await deployContract<PlanManager>('PlanManager', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        // deploy PurchaseOfferMarket contract
-        const purchaseOfferMarket = await deployContract<PurchaseOfferMarket>('PurchaseOfferMarket', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        // deploy ServiceAgreementRegistry contract
-        const serviceAgreementRegistry = await deployContract<ServiceAgreementRegistry>('ServiceAgreementRegistry', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress, [planManager.address, purchaseOfferMarket.address]],
-        });
-
-        const serviceAgreementExtra = await deployContract<ServiceAgreementExtra>('ServiceAgreementExtra', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        const tokenExchange = await deployContract<TokenExchange>('TokenExchange', 'child', { initConfig: [] });
-
-        // deploy RewardsDistributer contract
-        const rewardsDistributer = await deployContract<RewardsDistributer>('RewardsDistributer', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        // deploy RewardsPool contract
-        const rewardsPool = await deployContract<RewardsPool>('RewardsPool', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        // deploy RewardsStaking contract
-        const rewardsStaking = await deployContract<RewardsStaking>('RewardsStaking', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        // deploy RewardsHelper contract
-        const rewardsHelper = await deployContract<RewardsHelper>('RewardsHelper', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        // deploy stateChannel contract
-        const stateChannel = await deployContract<StateChannel>('StateChannel', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        // deploy ConsumerHost contract
-        const consumerHost = await deployContract<ConsumerHost>('ConsumerHost', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress, sqtToken.address, stateChannel.address],
-        });
-
-        // deploy DisputeManager contract
-        const disputeManager = await deployContract<DisputeManager>('DisputeManager', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        // deploy ConsumerRegistry contract
-        const consumerRegistry = await deployContract<ConsumerRegistry>('ConsumerRegistry', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
-        // delpoy PriceOracle contract
-        const priceOracle = await deployContract<PriceOracle>('PriceOracle', 'child', {
-            proxyAdmin,
-            initConfig: [10, 3600],
-        });
+        // const settings = await deployContract<Settings>('Settings', 'child', { proxyAdmin, initConfig: [] });
+        // const settingsAddress = settings.address;
+        //
+        // // We don't need to deploy ChildErc20, polygon team will do it for us when we request tokenMapping
+        // // deploy SQToken contract
+        // let sqtToken;
+        // if (network === 'local') {
+        //     sqtToken = await deployContract<SQToken>('SQToken', 'child', {
+        //         deployConfig: [...config['SQToken']],
+        //     });
+        // } else {
+        //     sqtToken = ChildERC20__factory.connect(deployment.child.SQToken.address, wallet);
+        // }
+        // // deploy VSQToken contract
+        // const vsqtToken = await deployContract<VSQToken>('VSQToken', 'child', { proxyAdmin, initConfig: [settingsAddress] });
+        //
+        // // deploy Staking contract
+        // const staking = await deployContract<Staking>('Staking', 'child', { proxyAdmin, initConfig: [settingsAddress] });
+        //
+        // // deploy StakingManager contract
+        // const stakingManager = await deployContract<StakingManager>('StakingManager', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // // deploy Era manager
+        // const eraManager = await deployContract<EraManager>('EraManager', 'child', { proxyAdmin, initConfig: [settingsAddress] });
+        //
+        // // deploy IndexerRegistry contract
+        // const indexerRegistry = await deployContract<IndexerRegistry>('IndexerRegistry', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // // deploy ProjectRegistry contract
+        // const projectRegistry = await deployContract<ProjectRegistry>('ProjectRegistry', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // // deploy PlanManager contract
+        // const planManager = await deployContract<PlanManager>('PlanManager', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // // deploy PurchaseOfferMarket contract
+        // const purchaseOfferMarket = await deployContract<PurchaseOfferMarket>('PurchaseOfferMarket', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // // deploy ServiceAgreementRegistry contract
+        // const serviceAgreementRegistry = await deployContract<ServiceAgreementRegistry>('ServiceAgreementRegistry', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress, [planManager.address, purchaseOfferMarket.address]],
+        // });
+        //
+        // const serviceAgreementExtra = await deployContract<ServiceAgreementExtra>('ServiceAgreementExtra', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // const tokenExchange = await deployContract<TokenExchange>('TokenExchange', 'child', { initConfig: [] });
+        //
+        // // deploy RewardsDistributer contract
+        // const rewardsDistributer = await deployContract<RewardsDistributer>('RewardsDistributer', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // // deploy RewardsPool contract
+        // const rewardsPool = await deployContract<RewardsPool>('RewardsPool', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // // deploy RewardsStaking contract
+        // const rewardsStaking = await deployContract<RewardsStaking>('RewardsStaking', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // // deploy RewardsHelper contract
+        // const rewardsHelper = await deployContract<RewardsHelper>('RewardsHelper', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // // deploy stateChannel contract
+        // const stateChannel = await deployContract<StateChannel>('StateChannel', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // // deploy ConsumerHost contract
+        // const consumerHost = await deployContract<ConsumerHost>('ConsumerHost', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress, sqtToken.address, stateChannel.address],
+        // });
+        //
+        // // deploy DisputeManager contract
+        // const disputeManager = await deployContract<DisputeManager>('DisputeManager', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // // deploy ConsumerRegistry contract
+        // const consumerRegistry = await deployContract<ConsumerRegistry>('ConsumerRegistry', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [settingsAddress],
+        // });
+        //
+        // // delpoy PriceOracle contract
+        // const priceOracle = await deployContract<PriceOracle>('PriceOracle', 'child', {
+        //     proxyAdmin,
+        //     initConfig: [10, 3600],
+        // });
 
         // delpoy PriceOracle contract
         const sqtGift = await deployContract<SQTGift>('SQTGift', 'child', {
@@ -443,81 +443,81 @@ export async function deployContracts(
             initConfig: [],
         });
 
-        //deploy Airdropper contract
-        const [settleDestination] = config['Airdropper'];
-        const airdropper = await deployContract<Airdropper>('Airdropper', 'child', { deployConfig: [settleDestination] });
-
-        // Register addresses on settings contract
-        logger?.info('🤞 Set settings addresses');
-        const txToken = await settings.setBatchAddress([
-            SQContracts.SQToken,
-            SQContracts.Staking,
-            SQContracts.StakingManager,
-            SQContracts.RewardsDistributer,
-            SQContracts.RewardsPool,
-            SQContracts.RewardsStaking,
-            SQContracts.RewardsHelper,
-            SQContracts.PriceOracle,
-            SQContracts.IndexerRegistry,
-            SQContracts.ProjectRegistry,
-            SQContracts.EraManager,
-            SQContracts.PlanManager,
-            SQContracts.ServiceAgreementRegistry,
-            SQContracts.ServiceAgreementExtra,
-            SQContracts.DisputeManager,
-            SQContracts.StateChannel,
-            SQContracts.ConsumerRegistry,
-        ],[
-            sqtToken.address,
-            staking.address,
-            stakingManager.address,
-            rewardsDistributer.address,
-            rewardsPool.address,
-            rewardsStaking.address,
-            rewardsHelper.address,
-            priceOracle.address,
-            indexerRegistry.address,
-            projectRegistry.address,
-            eraManager.address,
-            planManager.address,
-            serviceAgreementRegistry.address,
-            serviceAgreementExtra.address,
-            disputeManager.address,
-            stateChannel.address,
-            consumerRegistry.address,
-        ]);
-
-        await txToken.wait(confirms);
-        logger?.info('🚀  Set settings success');
+        // //deploy Airdropper contract
+        // const [settleDestination] = config['Airdropper'];
+        // const airdropper = await deployContract<Airdropper>('Airdropper', 'child', { deployConfig: [settleDestination] });
+        //
+        // // Register addresses on settings contract
+        // logger?.info('🤞 Set settings addresses');
+        // const txToken = await settings.setBatchAddress([
+        //     SQContracts.SQToken,
+        //     SQContracts.Staking,
+        //     SQContracts.StakingManager,
+        //     SQContracts.RewardsDistributer,
+        //     SQContracts.RewardsPool,
+        //     SQContracts.RewardsStaking,
+        //     SQContracts.RewardsHelper,
+        //     SQContracts.PriceOracle,
+        //     SQContracts.IndexerRegistry,
+        //     SQContracts.ProjectRegistry,
+        //     SQContracts.EraManager,
+        //     SQContracts.PlanManager,
+        //     SQContracts.ServiceAgreementRegistry,
+        //     SQContracts.ServiceAgreementExtra,
+        //     SQContracts.DisputeManager,
+        //     SQContracts.StateChannel,
+        //     SQContracts.ConsumerRegistry,
+        // ],[
+        //     sqtToken.address,
+        //     staking.address,
+        //     stakingManager.address,
+        //     rewardsDistributer.address,
+        //     rewardsPool.address,
+        //     rewardsStaking.address,
+        //     rewardsHelper.address,
+        //     priceOracle.address,
+        //     indexerRegistry.address,
+        //     projectRegistry.address,
+        //     eraManager.address,
+        //     planManager.address,
+        //     serviceAgreementRegistry.address,
+        //     serviceAgreementExtra.address,
+        //     disputeManager.address,
+        //     stateChannel.address,
+        //     consumerRegistry.address,
+        // ]);
+        //
+        // await txToken.wait(confirms);
+        // logger?.info('🚀  Set settings success');
 
         return [
             deployment,
             {
-                settings,
-                token: sqtToken,
-                vtoken: vsqtToken,
-                staking,
-                stakingManager,
-                eraManager,
-                indexerRegistry,
-                projectRegistry,
-                planManager,
-                purchaseOfferMarket,
-                serviceAgreementRegistry,
-                serviceAgreementExtra,
-                rewardsDistributer,
-                rewardsPool,
-                rewardsStaking,
-                rewardsHelper,
-                proxyAdmin,
-                stateChannel,
-                consumerHost,
-                disputeManager,
-                tokenExchange,
-                priceOracle,
-                consumerRegistry,
-                sqtGift,
-                airdropper,
+                // settings,
+                // token: sqtToken,
+                // vtoken: vsqtToken,
+                // staking,
+                // stakingManager,
+                // eraManager,
+                // indexerRegistry,
+                // projectRegistry,
+                // planManager,
+                // purchaseOfferMarket,
+                // serviceAgreementRegistry,
+                // serviceAgreementExtra,
+                // rewardsDistributer,
+                // rewardsPool,
+                // rewardsStaking,
+                // rewardsHelper,
+                // proxyAdmin,
+                // stateChannel,
+                // consumerHost,
+                // disputeManager,
+                // tokenExchange,
+                // priceOracle,
+                // consumerRegistry,
+                // sqtGift,
+                // airdropper,
             },
         ];
     } catch (error) {

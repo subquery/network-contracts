@@ -22,7 +22,7 @@
         "upgrade": "ts-node --transpileOnly scripts/upgrade.ts",
         "setup": "ts-node --transpileOnly scripts/startup.ts",
         "verify": "ts-node --transpileOnly scripts/verify.ts",
-        "seed": "node -r ts-node/register/transpile-only scripts/seed.ts",
+        "seed": "node -r ts-node/register/transpile-only -r dotenv/config scripts/seed.ts",
         "kepler-e2e-test": "node -r ts-node/register/transpile-only test/e2e/kepler.e2e.ts"
     },
     "devDependencies": {

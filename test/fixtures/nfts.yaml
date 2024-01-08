@@ -1,0 +1,33 @@
+- kind: SQTGiftSeries
+  seriesId: 0
+  maxSupply: 1000
+  metadata: {
+    "description": "This NFT grants the holder the right for USD $10 of SQT when the SQT token is distributed",
+    "external_url": "https://subquery.network",
+    "image": "https://static.subquery.network/token/sqt-nft/sqt-nft-10.png",
+    "name": "SubQuery $10 SQT Airdrop"
+  }
+- kind: SQTGiftSeries
+  seriesId: 1
+  maxSupply: 1000
+  metadata: {
+    "description": "This NFT grants the holder the right for USD $20 of SQT when the SQT token is distributed",
+    "external_url": "https://subquery.network",
+    "image": "https://static.subquery.network/token/sqt-nft/sqt-nft-20.png",
+    "name": "SubQuery $20 SQT Airdrop"
+  }
+- kind: SQTGiftSeries
+  seriesId: 2
+  maxSupply: 1000
+  metadata: {
+    "description": "This NFT grants the holder the right for USD $50 of SQT when the SQT token is distributed",
+    "external_url": "https://subquery.network",
+    "image": "https://static.subquery.network/token/sqt-nft/sqt-nft-50.png",
+    "name": "SubQuery $50 SQT Airdrop"
+  }
+
+#- kind: SQTGift_AllowList
+#  series: 0
+#  list:
+#    - address: 0x
+#      amount: 1
