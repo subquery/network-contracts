@@ -14,6 +14,7 @@ import './interfaces/IEraManager.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IDisputeManager.sol';
+import './interfaces/IStakingAllocation.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
 
@@ -195,6 +196,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
         _reflectStakingAmount(eraNumber, delegation[_source][_indexer]);
         _reflectStakingAmount(eraNumber, totalStakingAmount[_indexer]);
+        IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation)).update(_indexer, totalStakingAmount[_indexer].valueAt);
     }
 
     function _reflectStakingAmount(uint256 eraNumber, StakingAmount storage stakeAmount) private {
@@ -273,6 +275,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
             totalStakingAmount[_indexer].valueAt = _amount;
             delegation[_source][_indexer].valueAfter = _amount;
             totalStakingAmount[_indexer].valueAfter = _amount;
+            IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation)).update(_indexer, totalStakingAmount[_indexer].valueAt);
         } else {
             delegation[_source][_indexer].valueAfter += _amount;
             totalStakingAmount[_indexer].valueAfter += _amount;
@@ -397,6 +400,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
             totalStakingAmount[_indexer].valueAt -= amount;
             delegation[_indexer][_indexer].valueAfter -= amount;
             totalStakingAmount[_indexer].valueAfter -= amount;
+            IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation)).update(_indexer, totalStakingAmount[_indexer].valueAt);
         }
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(settings.getContractAddress(SQContracts.DisputeManager), _amount);

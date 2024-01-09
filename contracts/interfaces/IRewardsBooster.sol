@@ -21,10 +21,7 @@ interface IRewardsBooster {
 
     // max labor = block.timestamp - startTime
     // actual labor = block.timestamp - startTime - missedLabor
-    struct Allocation {
-        address indexer;
-        bytes32 deploymentId;
-        uint256 amount;
+    struct IndexerDeploymentReward {
         uint256 startTime;
         uint256 startEra;
         uint256 accRewardsPerToken;
@@ -62,7 +59,11 @@ interface IRewardsBooster {
     view
     returns (uint256, uint256);
 
-    function getRewards(uint256 _allocationId) external view returns (uint256);
+    function getRewards(address indexer, bytes32 deployment) external view returns (uint256);
+
+    function settleReward(address indexer, bytes32 deployment) external;
+
+    function updateDeploymentAllocated(bytes32 deployment, uint256 changed, bool isAdd) external;
 
 //    function getQueryFund(bytes32 deploymentId, address user) external returns (uint256);
 //

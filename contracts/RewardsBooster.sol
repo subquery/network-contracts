@@ -14,7 +14,8 @@ import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IRewardsDistributer.sol';
-import "./interfaces/IRewardsBooster.sol";
+import './interfaces/IRewardsBooster.sol';
+import './interfaces/IStakingAllocation.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
@@ -62,20 +63,15 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     mapping(uint8 => uint256) public boosterQueryRewardRate;
     // --------- booster end
 
-    // --------- allocation
-    // TODO: can be replaced to address to make it disperse
-    uint256 public nextAllocationId;
-    mapping(uint256 => Allocation) public allocations;
-    // permill, max: 1e6 (100%)
-    mapping(address => uint256) public indexerAllocated;
-    // --------- allocation end
+    // --------- indexer deployment reward
+    mapping(address => mapping(bytes32 => IndexerDeploymentReward)) public indexerDeploymentRewards;
 
     /// @dev ### EVENTS
     /// @notice Emitted when update the alpha for cobb-douglas function
     event Alpha(int32 alphaNumerator, int32 alphaDenominator);
     /// @notice Emitted when add Labor(reward) for current era pool
     event MissedLabor(bytes32 deploymentId, address indexer, uint256 labor);
-    event StakeAllocated(uint256 allocationId,bytes32 deploymentId, address indexer, uint256 amount);
+
 //    /// @notice Emitted when collect reward (stake) from era pool
 //    event Collect(uint256 era, uint256 projectId, address indexer, uint256 reward);
 
@@ -151,48 +147,33 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         return 0;
     }
 
-    function getCapacity(address _indexer) view public returns (uint256)  {
-        IStakingManager staking = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
-        return MathUtil.diffOrZero(staking.getTotalStakingAmount(_indexer), indexerAllocated[_indexer]);
-    }
+    function settleReward(address indexer, bytes32 deployment) external {
+        IStakingAllocation sa = IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation));
+        if (sa.isSuspended(indexer)) {
+            // TODO if sender is stakingallocation: return, if others: revert.
+            return;
+        }
 
-    function allocate(bytes32 deployment, address indexer, uint256 amount) external {
-        require(msg.sender == indexer, "not indexer");
-        uint256 capacity = getCapacity(indexer);
-        require(capacity >= amount, "not enough capacity");
         IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
         uint256 era = eraManager.safeUpdateAndGetEra();
-        DeploymentPool storage deploymentPool = deploymentPools[deployment];
-        uint256 allocationId = deploymentPool.indexerAllocations[indexer];
 
-        if (allocationId == 0) {
-            allocations[nextAllocationId] = Allocation({
-                indexer: indexer,
-                deploymentId: deployment,
-                amount: 0,
-                missedLabor: 0,
-                accRewardsPerToken: onAllocationUpdate(deployment),
-                startEra: era,
-                startTime: block.timestamp
-            });
-            allocationId = nextAllocationId;
-            nextAllocationId += 1;
-        }
-        emit StakeAllocated(allocationId, deployment, indexer, amount);
+        IndexerDeploymentReward storage idr = indexerDeploymentRewards[indexer][deployment];
+        idr.accRewardsPerToken = onAllocationUpdate(deployment);
+        idr.startEra = era;
+        idr.startTime = block.timestamp;
+
         // collect reward
-//        _collectReward(indexer, allocations[allocationId].accRewardsPerToken, accRewardsPerToken);
-        deploymentPool.totalAllocatedToken += amount;
-        allocations[allocationId].amount += amount;
+//        _collectReward(indexer, indexerDeploymentRewards[allocationId].accRewardsPerToken, accRewardsPerToken);
     }
 
-    function removeAllocation(uint256 _allocationId, uint256 _amount) external {
-        Allocation storage allocation = allocations[_allocationId];
-        require(allocation.startTime > 0, "allocation not exist");
-        require(allocation.amount >= _amount, "not enough allocation");
-        DeploymentPool storage deploymentPool = deploymentPools[allocation.deploymentId];
-        // collect rewards
-        deploymentPool.totalAllocatedToken -= _amount;
-        allocation.amount -= _amount;
+    function updateDeploymentAllocated(bytes32 deployment, uint256 changed, bool isAdd) external {
+        require(msg.sender == settings.getContractAddress(SQContracts.StakingAllocation), 'RB00');
+        DeploymentPool storage deploymentPool = deploymentPools[deployment];
+        if (isAdd) {
+            deploymentPool.totalAllocatedToken += changed;
+        } else {
+            deploymentPool.totalAllocatedToken -= changed;
+        }
     }
 
     /**
@@ -234,21 +215,23 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 //    }
 
     /**
-    * @dev Calculate current rewards for a given allocation on demand.
-     * @param _allocationId Allocation
+    * @dev Calculate current rewards for a given indexer & deployment on demand.
+     * @param indexer idexer address
+     * @param deployment deployment id
      * @return Rewards amount for an allocation
      */
-    function getRewards(uint256 _allocationId) external view override returns (uint256) {
+    function getRewards(address indexer, bytes32 deployment) external view override returns (uint256) {
+        IStakingAllocation sa = IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation));
+        uint256 allocAmount = sa.allocation(indexer, deployment);
 
-        Allocation memory alloc = allocations[_allocationId];
+        (uint256 accRewardsPerAllocatedToken, ) = getAccRewardsPerAllocatedToken(deployment);
 
-        (uint256 accRewardsPerAllocatedToken, ) = getAccRewardsPerAllocatedToken(
-            alloc.deploymentId
-        );
+        IndexerDeploymentReward memory idr = indexerDeploymentRewards[indexer][deployment];
+
         return
             _calcRewards(
-            alloc.amount,
-            alloc.accRewardsPerToken,
+            allocAmount,
+            idr.accRewardsPerToken,
             accRewardsPerAllocatedToken
         );
     }
@@ -256,8 +239,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     /**
      * @dev Calculate current rewards for a given allocation.
      * @param _tokens Tokens allocated
-     * @param _startAccRewardsPerAllocatedToken Allocation start accumulated rewards
-     * @param _endAccRewardsPerAllocatedToken Allocation end accumulated rewards
+     * @param _startAccRewardsPerAllocatedToken IndexerDeploymentReward start accumulated rewards
+     * @param _endAccRewardsPerAllocatedToken IndexerDeploymentReward end accumulated rewards
      * @return Rewards amount
      */
     function _calcRewards(
@@ -434,9 +417,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
         for (uint256 i = 0; i < _indexers.length; i++) {
             DeploymentPool storage deployment = deploymentPools[_deploymentIds[i]];
-            uint256 allocationId = deployment.indexerAllocations[_indexers[i]];
-            Allocation storage allocation = allocations[allocationId];
-            allocation.missedLabor = _missedLabors[i];
+            IndexerDeploymentReward storage idr = indexerDeploymentRewards[_indexers[i]][_deploymentIds[i]];
+            idr.missedLabor = _missedLabors[i];
             emit MissedLabor(_deploymentIds[i], _indexers[i], _missedLabors[i]);
         }
 
