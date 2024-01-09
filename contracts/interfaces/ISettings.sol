@@ -23,7 +23,8 @@ enum SQContracts {
     StateChannel,
     ConsumerRegistry,
     PriceOracle,
-    RootChainManager
+    RootChainManager,
+    RewardsBooster
 }
 
 interface ISettings {

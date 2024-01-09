@@ -42,7 +42,7 @@ import {
     TransparentUpgradeableProxy__factory,
     TokenExchange,
     PolygonDestination,
-    RootChainManager__factory,
+    RootChainManager__factory, RewardsBooster,
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -419,6 +419,12 @@ export async function deployContracts(
             initConfig: [10, 3600],
         });
 
+        // delpoy rewardsBooster contract
+        const rewardsBooster = await deployContract<RewardsBooster>('RewardsBooster', 'child', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // Register addresses on settings contract
         // FIXME: failed to send this tx
         logger?.info('🤞 Set token addresses');
@@ -440,6 +446,7 @@ export async function deployContracts(
             SQContracts.DisputeManager,
             SQContracts.StateChannel,
             SQContracts.ConsumerRegistry,
+            SQContracts.RewardsBooster,
         ],[
             sqtToken.address,
             staking.address,
@@ -458,6 +465,7 @@ export async function deployContracts(
             disputeManager.address,
             stateChannel.address,
             consumerRegistry.address,
+            rewardsBooster.address,
         ]);
 
         await txToken.wait(confirms);
@@ -482,6 +490,7 @@ export async function deployContracts(
                 rewardsPool,
                 rewardsStaking,
                 rewardsHelper,
+                rewardsBooster,
                 proxyAdmin,
                 stateChannel,
                 consumerHost,

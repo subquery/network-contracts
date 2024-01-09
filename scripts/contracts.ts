@@ -42,6 +42,8 @@ import {
     RewardsPool__factory,
     RewardsStaking,
     RewardsStaking__factory,
+    RewardsBooster,
+    RewardsBooster__factory,
     ERC20,
     SQToken,
     SQToken__factory,
@@ -92,6 +94,7 @@ export type Contracts = {
     rewardsPool: RewardsPool;
     rewardsStaking: RewardsStaking;
     rewardsHelper: RewardsHelper;
+    rewardsBooster: RewardsBooster;
     stateChannel: StateChannel;
     airdropper: Airdropper;
     permissionedExchange: PermissionedExchange;
@@ -114,6 +117,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ byt
     RewardsPool: [CONTRACTS.RewardsPool, RewardsPool__factory],
     RewardsStaking: [CONTRACTS.RewardsStaking, RewardsStaking__factory],
     RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
+    RewardsBooster: [CONTRACTS.RewardsBooster, RewardsBooster__factory],
     ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
     ServiceAgreementExtra: [CONTRACTS.ServiceAgreementExtra, ServiceAgreementExtra__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
@@ -151,6 +155,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     RewardsPool: RewardsPool__factory,
     RewardsStaking: RewardsStaking__factory,
     RewardsHelper: RewardsHelper__factory,
+    RewardsBooster: RewardsBooster__factory,
     StateChannel: StateChannel__factory,
     PermissionedExchange: PermissionedExchange__factory,
     TokenExchange: TokenExchange__factory,

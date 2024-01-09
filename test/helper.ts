@@ -25,8 +25,9 @@ export async function timeTravel(provider: MockProvider, seconds: number) {
     await provider.send('evm_mine', []);
 }
 
-export async function blockTravel(provider: MockProvider, blocks: number) {
+export async function blockTravel(provider: MockProvider, blocks: number, interval = 6) {
     for (let i = 0; i < blocks; i++) {
+        await provider.send('evm_increaseTime', [interval]);
         await provider.send('evm_mine', []);
     }
 }

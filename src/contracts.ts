@@ -19,6 +19,7 @@ import RewardsDistributer from './artifacts/contracts/RewardsDistributer.sol/Rew
 import RewardsHelper from './artifacts/contracts/RewardsHelper.sol/RewardsHelper.json';
 import RewardsPool from './artifacts/contracts/RewardsPool.sol/RewardsPool.json';
 import RewardsStaking from './artifacts/contracts/RewardsStaking.sol/RewardsStaking.json';
+import RewardsBooster from "./artifacts/contracts/RewardsBooster.sol/RewardsBooster.json";
 import SQToken from './artifacts/contracts/root/SQToken.sol/SQToken.json';
 import ServiceAgreementExtra from './artifacts/contracts/ServiceAgreementExtra.sol/ServiceAgreementExtra.json';
 import ServiceAgreementRegistry from './artifacts/contracts/ServiceAgreementRegistry.sol/ServiceAgreementRegistry.json';
@@ -49,6 +50,7 @@ export default {
     RewardsPool,
     RewardsStaking,
     RewardsHelper,
+    RewardsBooster,
     ProxyAdmin,
     StateChannel,
     Airdropper,

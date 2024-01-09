@@ -35,6 +35,7 @@ import {
     ChildERC20__factory,
     TokenExchange__factory,
     PolygonDestination__factory,
+    RewardsBooster__factory,
 } from './typechain';
 
 export type SubqueryNetwork = 'testnet' | 'mainnet' | 'local';
@@ -114,6 +115,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     RewardsPool: RewardsPool__factory,
     RewardsStaking: RewardsStaking__factory,
     RewardsHelper: RewardsHelper__factory,
+    RewardsBooster: RewardsBooster__factory,
     StateChannel: StateChannel__factory,
     PermissionedExchange: PermissionedExchange__factory,
     TokenExchange: TokenExchange__factory,
@@ -146,6 +148,7 @@ export enum SQContracts {
     ConsumerRegistry,
     PriceOracle,
     RootChainManager,
+    RewardsBooster,
 }
 
 export enum ServiceStatus {
