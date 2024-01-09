@@ -78,7 +78,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
             uint256 minimumStakingAmount = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).minimumStakingAmount();
             uint256 stakingAmountAfter = this.getAfterDelegationAmount(_indexer, _indexer) - _amount;
             require(stakingAmountAfter >= minimumStakingAmount, 'S008');
-            (,,uint256 totalStakingAmount) = staking.totalStakingAmount(_indexer);
+            (,,,uint256 totalStakingAmount) = staking.totalStakingAmount(_indexer);
             require(stakingAmountAfter * staking.indexerLeverageLimit() >= totalStakingAmount - _amount, 'S008');
         }
         staking.startUnbond(_indexer, _indexer, _amount, UnbondType.Unstake);
@@ -154,12 +154,12 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         }
     }
 
-    function slashIndexer(address _indexer, uint256 _amount) external {
+    function slashIndexer(address _indexer, bytes32 _deployment, uint256 _amount) external {
         require(msg.sender == settings.getContractAddress(SQContracts.DisputeManager), 'G005');
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        require(_amount <= this.getSlashableAmount(_indexer), 'S010');
+        require(_amount <= this.getSlashableAmount(_indexer, _deployment), 'S010');
 
-        staking.slashIndexer(_indexer, _amount);
+        staking.slashIndexer(_indexer, _deployment, _amount);
     }
 
     // -- Views --
@@ -167,14 +167,14 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
     function getTotalStakingAmount(address _indexer) external view override returns (uint256) {
         uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager)).eraNumber();
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        (uint256 era, uint256 valueAt, uint256 valueAfter) = staking.totalStakingAmount(_indexer);
-        StakingAmount memory sm = StakingAmount(era, valueAt, valueAfter);
+        (uint256 era, uint256 valueAt, uint256 valueAfter, uint256 idle) = staking.totalStakingAmount(_indexer);
+        StakingAmount memory sm = StakingAmount(era, valueAt, valueAfter, idle);
         return StakingUtil.currentStaking(sm, eraNumber);
     }
 
     function getAfterDelegationAmount(address _source, address _indexer) external view override returns (uint256) {
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        (,,uint256 amount) = staking.delegation(_source, _indexer);
+        (,,uint256 amount,) = staking.delegation(_source, _indexer);
         return amount;
     }
 
@@ -194,9 +194,12 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         return unbondAmounts;
     }
 
-    function getSlashableAmount(address _indexer) external view returns (uint256) {
+    function getSlashableAmount(address _indexer, bytes32 _deployment) external view returns (uint256) {
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        (,,uint256 slashableAmount) = staking.delegation(_indexer, _indexer);
+        uint256 slashableAmount = staking.stakingAllocations(_indexer, _deployment);
+        (,,,uint256 idleAmount) = staking.delegation(_indexer, _indexer);
+        slashableAmount += idleAmount;
+
         uint256 withdrawingLength = staking.unbondingLength(_indexer) - staking.withdrawnLength(_indexer);
         uint256 latestWithdrawnLength = staking.withdrawnLength(_indexer);
         for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {

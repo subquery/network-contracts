@@ -117,6 +117,9 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
     // Staking indexer lengths
     mapping(address => uint256) public stakingIndexerLengths;
 
+    // The staking allocated by indexer to different projects(deployments)
+    mapping(address => mapping(bytes32 => uint256)) public stakingAllocations;
+
     // -- Events --
 
     /**
@@ -201,6 +204,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         if (stakeAmount.era < eraNumber) {
             stakeAmount.era = eraNumber;
             stakeAmount.valueAt = stakeAmount.valueAfter;
+            if (stakeAmount.valueAt <= stakeAmount.valueAfter) {
+                stakeAmount.idle += stakeAmount.valueAfter - stakeAmount.valueAt;
+            } else {
+                stakeAmount.idle -= stakeAmount.valueAt - stakeAmount.valueAfter;
+            }
         }
     }
 
@@ -273,6 +281,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
             totalStakingAmount[_indexer].valueAt = _amount;
             delegation[_source][_indexer].valueAfter = _amount;
             totalStakingAmount[_indexer].valueAfter = _amount;
+            delegation[_source][_indexer].idle = _amount;
+            totalStakingAmount[_indexer].idle = _amount;
         } else {
             delegation[_source][_indexer].valueAfter += _amount;
             totalStakingAmount[_indexer].valueAfter += _amount;
@@ -300,6 +310,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
     ) external {
         require(msg.sender == settings.getContractAddress(SQContracts.StakingManager) || msg.sender == address(this), 'G008');
         require(delegation[_source][_indexer].valueAfter >= _amount && _amount > 0, 'S005');
+        require(delegation[_source][_indexer].idle >= _amount, 'S011');
 
         delegation[_source][_indexer].valueAfter -= _amount;
         totalStakingAmount[_indexer].valueAfter -= _amount;
@@ -372,7 +383,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         }
     }
 
-    function slashIndexer(address _indexer, uint256 _amount) external onlyStakingManager {
+    function slashIndexer(address _indexer, bytes32 _deployment, uint256 _amount) external onlyStakingManager {
         uint256 amount = _amount;
 
         for (uint256 i = withdrawnLength[_indexer]; i < unbondingLength[_indexer]; i++) {
@@ -392,11 +403,24 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
             }
         }
 
+        uint256 slashableAmount = stakingAllocations[_indexer][_deployment];
+        if (slashableAmount > 0) {
+            if (slashableAmount > amount) {
+                stakingAllocations[_indexer][_deployment] -= amount;
+                amount = 0;
+            } else {
+                stakingAllocations[_indexer][_deployment] = 0;
+                amount -= slashableAmount;
+            }
+        }
+
         if (amount > 0) {
             delegation[_indexer][_indexer].valueAt -= amount;
             totalStakingAmount[_indexer].valueAt -= amount;
             delegation[_indexer][_indexer].valueAfter -= amount;
             totalStakingAmount[_indexer].valueAfter -= amount;
+            delegation[_indexer][_indexer].idle -= amount;
+            totalStakingAmount[_indexer].idle -= amount;
         }
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(settings.getContractAddress(SQContracts.DisputeManager), _amount);
@@ -406,6 +430,24 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsDistributer), 'G003');
         lockedAmount[_indexer] += _amount;
         this.startUnbond(_indexer, _indexer, _amount, UnbondType.Commission);
+    }
+
+    function allocate(address _indexer, bytes32 _deployment, uint256 _amount) external onlyStakingManager {
+        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        _reflectStakingAmount(eraNumber, totalStakingAmount[_indexer]);
+
+        uint256 oldAmount = stakingAllocations[_indexer][_deployment];
+        if (oldAmount > _amount) {
+            uint256 extra = oldAmount - _amount;
+            totalStakingAmount[_indexer].idle += extra;
+        } else {
+            uint256 extra = _amount - oldAmount;
+            require(totalStakingAmount[_indexer].idle >= extra, 'S010');
+            totalStakingAmount[_indexer].idle -= extra;
+        }
+        stakingAllocations[_indexer][_deployment] = _amount;
+
+        // TODO Settle the rewards
     }
 
     // -- Views --

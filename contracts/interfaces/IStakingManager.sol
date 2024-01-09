@@ -8,7 +8,7 @@ interface IStakingManager {
 
     function unstake(address _indexer, uint256 _amount) external;
 
-    function slashIndexer(address _indexer, uint256 _amount) external;
+    function slashIndexer(address _indexer, bytes32 _deployment, uint256 _amount) external;
 
     function getTotalStakingAmount(address _indexer) external view returns (uint256);
 

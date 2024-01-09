@@ -103,7 +103,7 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
             require(newDeposit > dispute.depositAmount, 'D005');
             uint256 rewardAmount = newDeposit - dispute.depositAmount;
             require(rewardAmount <= indexerSlashAmount, 'D005');
-            IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).slashIndexer(dispute.indexer, indexerSlashAmount);
+            IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).slashIndexer(dispute.indexer, dispute.deploymentId, indexerSlashAmount);
         } else if (state == DisputeState.Rejected) {
             //reject dispute, slash fisherman
             require(newDeposit < dispute.depositAmount, 'D005');

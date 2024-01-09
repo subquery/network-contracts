@@ -11,6 +11,7 @@ struct StakingAmount {
     uint256 era;         // last update era
     uint256 valueAt;     // value at the era
     uint256 valueAfter;  // value to be refreshed from next era
+    uint256 idle;        // not allocate to projects
 }
 
 /**
