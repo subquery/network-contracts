@@ -309,7 +309,7 @@ describe('RewardsBooster Contract', () => {
             expect(allocReward1I0).to.eq(allocReward1I1);
         });
 
-        it.only("claim allocation reward, multiple indexer", async () => {
+        it("claim allocation reward, multiple indexer", async () => {
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await rewardsBooster.connect(indexer0)
                 .allocate(deploymentId2, indexer0.address, etherParse('1000'));

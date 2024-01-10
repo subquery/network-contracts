@@ -267,13 +267,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             alloc.deploymentId
         );
 
-        ProjectType projectType = IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).getDeploymentProjectType(_deploymentId);
-        uint256 allocateRewardRate = PER_MILL - boosterQueryRewardRate[projectType];
         uint256 totalRewards = _calcRewards(
             alloc.amount,
             alloc.accRewardsPerToken,
-            accRewardsPerAllocatedToken,
-            allocateRewardRate
+            accRewardsPerAllocatedToken
         );
         return _fixRewardsWithMissedLabor(totalRewards, alloc);
     }
@@ -307,14 +304,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     function _calcRewards(
         uint256 _tokens,
         uint256 _startAccRewardsPerAllocatedToken,
-        uint256 _endAccRewardsPerAllocatedToken,
-        uint256 _allocateRewardRate
+        uint256 _endAccRewardsPerAllocatedToken
     ) private pure returns (uint256) {
-//        return MathUtil.mulDiv(accRewards, allocateRewardRate, PER_MILL);
-
         uint256 newAccrued = _endAccRewardsPerAllocatedToken - _startAccRewardsPerAllocatedToken;
-        uint256 fixedNewAccrued = MathUtil.mulDiv(newAccrued, _allocateRewardRate, PER_MILL);
-        return MathUtil.mulDiv(fixedNewAccrued, _tokens, FIXED_POINT_SCALING_FACTOR);
+        return MathUtil.mulDiv(newAccrued,_tokens,FIXED_POINT_SCALING_FACTOR);
     }
 
     /**
@@ -394,23 +387,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     /**
-     * @dev Gets the accumulated rewards for the deployment. including query rewards and allocation rewards
-     * @param _deploymentId deployment
-     * @return Accumulated rewards for deployment
-     */
-    function getAccAllocationRewardsForDeployment(bytes32 _deploymentId)
-    public
-    view
-    returns (uint256)
-    {
-        uint256 accRewards = getAccRewardsForDeployment(_deploymentId);
-
-        ProjectType projectType = IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).getDeploymentProjectType(_deploymentId);
-        uint256 allocateRewardRate = PER_MILL - boosterQueryRewardRate[projectType];
-        return MathUtil.mulDiv(accRewards, allocateRewardRate, PER_MILL);
-    }
-
-    /**
      * @dev Triggers an update of rewards for a deployment.
      * Must be called before booster changes.
      * @param _deploymentId deployment
@@ -470,6 +446,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
 
         uint256 accRewardsForDeployment = getAccRewardsForDeployment(_deploymentId);
+
         uint256 newRewardsForDeployment = MathUtil.diffOrZero(
             accRewardsForDeployment,
             deployment.accRewardsForDeploymentSnapshot
@@ -480,9 +457,14 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             return (0, accRewardsForDeployment);
         }
 
-        uint256 newRewardsPerAllocatedToken = MathUtil.mulDiv(newRewardsForDeployment
+        ProjectType projectType = IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).getDeploymentProjectType(_deploymentId);
+        uint256 allocateRewardRate = PER_MILL - boosterQueryRewardRate[projectType];
+        uint256 newAllocRewardsForDeployment = MathUtil.mulDiv(newRewardsForDeployment, allocateRewardRate, PER_MILL);
+
+        uint256 newRewardsPerAllocatedToken = MathUtil.mulDiv(newAllocRewardsForDeployment
             , FIXED_POINT_SCALING_FACTOR
             , deploymentAllocatedTokens);
+
         return (
             deployment.accRewardsPerAllocatedToken + newRewardsPerAllocatedToken,
             accRewardsForDeployment
@@ -558,14 +540,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         uint256 _allocationId = deployment.indexerAllocations[_indexer];
         Allocation storage alloc = allocations[_allocationId];
 
-        ProjectType projectType = IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).getDeploymentProjectType(_deploymentId);
-        uint256 allocateRewardRate = PER_MILL - boosterQueryRewardRate[projectType];
-
         uint256 reward = _calcRewards(
             alloc.amount,
             alloc.accRewardsPerToken,
-            accRewardsPerAllocatedToken,
-            allocateRewardRate
+            accRewardsPerAllocatedToken
         );
 
         alloc.accRewardsPerToken = accRewardsPerAllocatedToken;
