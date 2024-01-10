@@ -4,9 +4,18 @@
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { deployContracts } from './setup';
-import { EraManager, ERC20, IndexerRegistry, ProjectType, RewardsBooster, SQContracts, Staking } from '../src';
-import { deploymentIds, METADATA_HASH } from './constants';
-import { blockTravel, etherParse, eventFrom, eventsFrom, time } from './helper';
+import {
+    EraManager,
+    ERC20,
+    IndexerRegistry,
+    ProjectRegistry,
+    ProjectType,
+    RewardsBooster,
+    SQContracts,
+    Staking
+} from '../src';
+import { deploymentIds, deploymentMetadatas, METADATA_HASH, projectMetadatas } from './constants';
+import { blockTravel, etherParse, eventFrom, time } from './helper';
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
 
@@ -16,16 +25,18 @@ describe('RewardsBooster Contract', () => {
     const deploymentId0 = deploymentIds[0];
     const deploymentId1 = deploymentIds[1];
     const deploymentId2 = deploymentIds[2];
+    const deploymentId3 = deploymentIds[3];
 
     const mockProvider = waffle.provider;
     let root: SignerWithAddress, indexer0: SignerWithAddress, indexer1: SignerWithAddress, indexer2: SignerWithAddress,
-        delegator0: SignerWithAddress, delegator1: SignerWithAddress;
+        consumer0: SignerWithAddress, consumer1: SignerWithAddress;
 
     let token: ERC20;
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
     let eraManager: EraManager;
     let rewardsBooster: RewardsBooster;
+    let projectRegistry: ProjectRegistry;
 
     // Rewrite registerIndexer to register indexer with stakeAmount and commission rate.
     const registerIndexer = async (rootWallet, wallet, amount, rate) => {
@@ -39,8 +50,21 @@ describe('RewardsBooster Contract', () => {
         await rewardsBooster.connect(signer).boostDeployment(deployment, amount);
     }
 
+    const createProject = (wallet, projectMetadata, deploymentMetadata, deploymentId, projectType: ProjectType) => {
+        return projectRegistry.connect(wallet).createProject(
+            projectMetadata,
+            deploymentMetadata,
+            deploymentId,
+            projectType,
+        );
+    };
+
     const getAllocationReward = (deploymentReward: BigNumber, queryRewardRatePerMill: BigNumber): BigNumber => {
         return deploymentReward.mul(PER_MILL.sub(queryRewardRatePerMill)).div(PER_MILL);
+    }
+
+    const getQueryReward = (deploymentReward: BigNumber, queryRewardRatePerMill: BigNumber): BigNumber => {
+        return deploymentReward.mul(queryRewardRatePerMill).div(PER_MILL);
     }
 
     const getStats = async () => {
@@ -75,7 +99,7 @@ describe('RewardsBooster Contract', () => {
 
     const deployer = () => deployContracts(root, root);
     before(async () => {
-        [root, indexer0, indexer1, indexer2, delegator0, delegator1] = await ethers.getSigners();
+        [root, indexer0, indexer1, indexer2, consumer0, consumer1] = await ethers.getSigners();
     });
 
     beforeEach(async () => {
@@ -85,6 +109,7 @@ describe('RewardsBooster Contract', () => {
         token = deployment.token;
         eraManager = deployment.eraManager;
         rewardsBooster = deployment.rewardsBooster;
+        projectRegistry = deployment.projectRegistry;
         await deployment.settings.setContractAddress(SQContracts.Treasury, root.address);
 
         // config rewards booster
@@ -92,14 +117,20 @@ describe('RewardsBooster Contract', () => {
         await rewardsBooster.setBoosterQueryRewardRate(ProjectType.RPC, 9e5); // 90%
         await rewardsBooster.setReporter(root.address, true);
 
+        // createProject
+        await createProject(root, projectMetadatas[0], deploymentMetadatas[0], deploymentIds[0], ProjectType.SUBQUERY);
+        await createProject(root, projectMetadatas[1], deploymentMetadatas[1], deploymentIds[1], ProjectType.SUBQUERY);
+        await createProject(root, projectMetadatas[2], deploymentMetadatas[2], deploymentIds[2], ProjectType.SUBQUERY);
+        await createProject(root, projectMetadatas[3], deploymentMetadatas[3], deploymentIds[3], ProjectType.RPC);
+
         // Init indexer and delegator account.
         await token.connect(root).transfer(indexer0.address, etherParse('100000'));
         await token.connect(root).transfer(indexer1.address, etherParse('100000'));
         await token.connect(root).transfer(indexer2.address, etherParse('100000'));
-        await token.connect(root).transfer(delegator0.address, etherParse('100000'));
-        await token.connect(root).transfer(delegator1.address, etherParse('100000'));
-        await token.connect(delegator0).increaseAllowance(staking.address, etherParse('100000'));
-        await token.connect(delegator1).increaseAllowance(staking.address, etherParse('100000'));
+        await token.connect(root).transfer(consumer0.address, etherParse('100000'));
+        await token.connect(root).transfer(consumer1.address, etherParse('100000'));
+        await token.connect(consumer0).increaseAllowance(staking.address, etherParse('100000'));
+        await token.connect(consumer1).increaseAllowance(staking.address, etherParse('100000'));
 
         // Setup era period be 1 days.
         await eraManager.connect(root).updateEraPeriod(time.duration.days(1).toString());
@@ -167,16 +198,22 @@ describe('RewardsBooster Contract', () => {
             expect(reward0.add(reward1).add(reward2)).to.eq(perBlockReward.mul(1000));
         })
 
-        describe("free query from deployment booster", () => {
-            it('can query entitled free query quota', () => {
+        describe.only("free query from deployment booster", () => {
+            it('can query entitled free query quota', async () => {
+                const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.RPC);
                 // booster a deployment
+                await boosterDeployment(consumer0, deploymentId3, etherParse('10000'));
                 // wait some blocks
+                await blockTravel(mockProvider, 1000);
                 // query free query quota
+                const queryReward = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
+                const reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
+                expect(queryReward).to.eq(getQueryReward(reward0, queryRewardRatePerMill));
                 // remove booster
                 // free query quota become 0
             })
 
-            it('can spend free query in state channel', () => {
+            it.skip('can spend free query in state channel', () => {
 
             })
         })

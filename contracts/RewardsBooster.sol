@@ -115,20 +115,20 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     /**
      * @notice add booster deployment staking
      * modify eraPool and deployment map
-     * @param deployment the deployment id
-     * @param amount the added amount
+     * @param _deploymentId the deployment id
+     * @param _amount the added amount
      */
-    function boostDeployment(bytes32 deployment, uint256 amount) external {
-        DeploymentPool storage deploymentPool = deploymentPools[deployment];
-        onDeploymentBoosterUpdate(deployment);
-        deploymentPool.boosterPoint += amount;
-        deploymentPool.accountBooster[msg.sender] += amount;
+    function boostDeployment(bytes32 _deploymentId, uint256 _amount) external {
+        DeploymentPool storage deploymentPool = deploymentPools[_deploymentId];
+        onDeploymentBoosterUpdate(_deploymentId);
+        deploymentPool.boosterPoint += _amount;
+        deploymentPool.accountBooster[msg.sender] += _amount;
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
         // totalBoosterPoints
-        totalBoosterPoint += amount;
+        totalBoosterPoint += _amount;
 
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), amount);
-        emit DeploymentBoosterAdded(deployment, msg.sender, amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), _amount);
+        emit DeploymentBoosterAdded(_deploymentId, msg.sender, _amount);
     }
 
     /**
@@ -353,7 +353,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     /**
-     * @notice Updates the accumulated rewards per signal and save checkpoint block number.
+     * @notice Updates the accumulated rewards per booster and save checkpoint block number.
      * Must be called before `issuancePerBlock` or `total signalled GRT` changes
      * Called from the Curation contract on mint() and burn()
      * @return Accumulated rewards per signal
@@ -404,6 +404,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
         deployment.accRewardsForDeployment = getAccRewardsForDeployment(_deploymentId);
         deployment.accRewardsPerBoosterSnapshot = accRewardsPerBooster;
+        // FIXME
+        deployment.accQueryRewardsPerBooster = getAccQueryRewardsPerBooster(_deploymentId);
 
         return deployment.accRewardsForDeployment;
     }
@@ -557,7 +559,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         }
     }
 
-    function getAccQueryRewardsForDeployment(bytes32 _deploymentId, address _account) external returns (uint256) {
+    function getAccQueryRewardsPerBooster(bytes32 _deploymentId) public view returns (uint256) {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
 
         uint256 accRewardsForDeployment = getAccRewardsForDeployment(_deploymentId);
@@ -571,9 +573,24 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             return 0;
         }
 
-        uint256 newRewardsPerBooster = MathUtil.mulDiv(newRewardsForDeployment
+        ProjectType projectType = IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).getDeploymentProjectType(_deploymentId);
+        uint256 newQueryRewardsForDeployment = MathUtil.mulDiv(newRewardsForDeployment, boosterQueryRewardRate[projectType], PER_MILL);
+
+        uint256 newQueryRewardsPerBooster = MathUtil.mulDiv(newQueryRewardsForDeployment
             , FIXED_POINT_SCALING_FACTOR
             , deploymentBoostedToken);
-        return deployment.accQueryRewardsPerBooster + newRewardsPerBooster;
+        return deployment.accQueryRewardsPerBooster + newQueryRewardsPerBooster;
+    }
+
+    function getQueryRewards(bytes32 _deploymentId, address _account) external view returns (uint256) {
+        DeploymentPool storage deployment = deploymentPools[_deploymentId];
+
+        uint256 accQueryRewardsPerBoostedToken = getAccQueryRewardsPerBooster(_deploymentId);
+
+        return _calcRewards(
+            deployment.accountBooster[_account],
+            deployment.accQueryRewardsPerBooster,
+            accQueryRewardsPerBoostedToken
+        );
     }
 }

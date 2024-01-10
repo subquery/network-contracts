@@ -247,6 +247,11 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     }
 
     function getDeploymentProjectType(bytes32 _deploymentId) external view returns (ProjectType) {
+        require(isDeploymentRegistered(_deploymentId), "PR011");
         return projectInfos[deploymentInfos[_deploymentId].projectId].projectType;
+    }
+
+    function isDeploymentRegistered(bytes32 _deploymentId) public view returns (bool) {
+        return deploymentInfos[_deploymentId].projectId > 0;
     }
 }

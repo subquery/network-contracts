@@ -42,4 +42,6 @@ interface IProjectRegistry {
     function stopService(bytes32 deploymentId) external;
 
     function getDeploymentProjectType(bytes32 deploymentId) external view returns (ProjectType);
+
+    function isDeploymentRegistered(bytes32 deploymentId) external view returns (bool);
 }
