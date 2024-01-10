@@ -149,6 +149,7 @@ export enum SQContracts {
     PriceOracle,
     RootChainManager,
     RewardsBooster,
+    Treasury,
 }
 
 export enum ServiceStatus {

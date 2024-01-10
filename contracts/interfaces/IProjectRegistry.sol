@@ -40,4 +40,6 @@ interface IProjectRegistry {
     function startService(bytes32 deploymentId) external;
 
     function stopService(bytes32 deploymentId) external;
+
+    function getDeploymentProjectType(bytes32 deploymentId) external view returns (ProjectType);
 }

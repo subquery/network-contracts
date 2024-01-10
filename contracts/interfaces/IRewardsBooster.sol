@@ -6,17 +6,32 @@ pragma solidity ^0.8.15;
 interface IRewardsBooster {
     /// @notice Project Running Reward Pool
     struct DeploymentPool {
-        uint256 boosterPoints;
-        mapping(address => uint256) boosterMap;
-        // snapshot for claimed
-        uint256 accRewardsPerBooster;
+        // total booster for the deployment
+        uint256 boosterPoint;
+        // account => booster points staked
+        mapping(address => uint256) accountBooster;
+        // account => query rewards
+        mapping(address => BoosterQueryReward) boosterQueryRewards;
         uint256 totalAllocatedToken;
         // current
         mapping(address => uint256) indexerAllocations;
+        // update when booster point changed, to calculate deployment rewards, including allocation and query reward
         uint256 accRewardsForDeployment;
+        // update when allocation changed, so new allocation are not entitled for earlier rewards, for allocation only
         uint256 accRewardsForDeploymentSnapshot;
+        // ?? not sure if needed?? update when booster point changed, including allocation and query reward
+        uint256 accRewardsPerBooster;
+        // update when booster changed, snapshot for claimed
         uint256 accRewardsPerBoosterSnapshot;
+        // update when allocation changed, so new allocation are not entitled for earlier rewards
         uint256 accRewardsPerAllocatedToken;
+        // update when booster changed, used to calc query booster rewards
+        uint256 accQueryRewardsPerBooster;
+    }
+
+    struct BoosterQueryReward {
+        // update when booster changed
+        uint256 accQueryRewardsPerBoosterSnapshot;
     }
 
     // max labor = block.timestamp - startTime
@@ -27,15 +42,11 @@ interface IRewardsBooster {
         uint256 amount;
         uint256 startTime;
         uint256 startEra;
+        // update when claimed
         uint256 accRewardsPerToken;
         uint256 missedLabor;
-    }
-
-    struct DeploymentReward {
-        uint256 accRewardsForDeployment;
-        uint256 accRewardsForDeploymentSnapshot;
-        uint256 accRewardsPerBoosterSnapshot;
-        uint256 accRewardsPerAllocatedToken;
+        // the block number allocation reward was last claimed
+        uint256 lastClaimedAt;
     }
 
     function getNewRewardsPerBooster() external view returns (uint256);
@@ -62,7 +73,7 @@ interface IRewardsBooster {
     view
     returns (uint256, uint256);
 
-    function getRewards(uint256 _allocationId) external view returns (uint256);
+    function getRewards(bytes32 _deploymentId, address _indexer) external view returns (uint256, uint256);
 
 //    function getQueryFund(bytes32 deploymentId, address user) external returns (uint256);
 //

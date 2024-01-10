@@ -245,4 +245,8 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     function isServiceAvailable(bytes32 deploymentId, address indexer) external view returns (bool) {
         return deploymentStatusByIndexer[deploymentId][indexer] == ServiceStatus.READY;
     }
+
+    function getDeploymentProjectType(bytes32 _deploymentId) external view returns (ProjectType) {
+        return projectInfos[deploymentInfos[_deploymentId].projectId].projectType;
+    }
 }

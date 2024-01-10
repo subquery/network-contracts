@@ -9,12 +9,14 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 
+import './Constants.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IRewardsDistributer.sol';
 import "./interfaces/IRewardsBooster.sol";
+import "./interfaces/IProjectRegistry.sol";
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
@@ -53,13 +55,13 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     // --------- booster
 
     uint256 public accSQTPerStake;
-    uint256 public totalBoosterPoints;
+    uint256 public totalBoosterPoint;
     mapping(bytes32 => DeploymentPool) public deploymentPools;
 
     uint256 public accRewardsPerBooster;
     uint256 public accRewardsPerBoosterLastBlockUpdated;
     // @notice projectType => rate (per_mill)
-    mapping(uint8 => uint256) public boosterQueryRewardRate;
+    mapping(ProjectType => uint256) public boosterQueryRewardRate;
     // --------- booster end
 
     // --------- allocation
@@ -73,9 +75,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     /// @dev ### EVENTS
     /// @notice Emitted when update the alpha for cobb-douglas function
     event Alpha(int32 alphaNumerator, int32 alphaDenominator);
+    event DeploymentBoosterAdded(bytes32 deploymentId, address account, uint256 amount);
+    event DeploymentBoosterRemoved(bytes32 deploymentId, address account, uint256 amount);
     /// @notice Emitted when add Labor(reward) for current era pool
     event MissedLabor(bytes32 deploymentId, address indexer, uint256 labor);
-    event StakeAllocated(uint256 allocationId,bytes32 deploymentId, address indexer, uint256 amount);
+    event StakeAllocated(uint256 allocationId, bytes32 deploymentId, address indexer, uint256 amount);
 //    /// @notice Emitted when collect reward (stake) from era pool
 //    event Collect(uint256 era, uint256 projectId, address indexer, uint256 reward);
 
@@ -92,6 +96,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         settings = _settings;
         issuancePerBlock = _issuancePerBlock;
         minimumDeploymentBooster = _minimumDeploymentBooster;
+        nextAllocationId = 1;
     }
 
     /**
@@ -102,6 +107,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         settings = _settings;
     }
 
+    function setBoosterQueryRewardRate(ProjectType _type, uint256 _rate) external onlyOwner {
+        require(_rate < PER_MILL, "invalid boosterQueryRewardRate");
+        boosterQueryRewardRate[_type] = _rate;
+    }
+
     /**
      * @notice add booster deployment staking
      * modify eraPool and deployment map
@@ -110,16 +120,15 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      */
     function boostDeployment(bytes32 deployment, uint256 amount) external {
         DeploymentPool storage deploymentPool = deploymentPools[deployment];
-        uint256 accRewardsPerBooster = onDeploymentBoosterUpdate(deployment);
-        // collect
-        uint256 reward = _pullReward(deployment, deploymentPool.accRewardsPerBooster, accRewardsPerBooster);
-        deploymentPool.boosterPoints += amount;
-        deploymentPool.boosterMap[msg.sender] += amount;
+        onDeploymentBoosterUpdate(deployment);
+        deploymentPool.boosterPoint += amount;
+        deploymentPool.accountBooster[msg.sender] += amount;
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
         // totalBoosterPoints
-        totalBoosterPoints += amount;
+        totalBoosterPoint += amount;
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), amount);
+        emit DeploymentBoosterAdded(deployment, msg.sender, amount);
     }
 
     /**
@@ -129,22 +138,23 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      */
     function removeBoosterDeployment(bytes32 deployment, uint256 amount) external {
         DeploymentPool storage deploymentPool = deploymentPools[deployment];
-        require(deploymentPool.boosterMap[msg.sender] >= amount, "not enough");
+        require(deploymentPool.accountBooster[msg.sender] >= amount, "not enough");
 
-        uint256 accRewardsPerBooster = onDeploymentBoosterUpdate(deployment);
-        // collect
+        onDeploymentBoosterUpdate(deployment);
+        // TODO: reset free query
         uint256 reward = _pullReward(deployment, deploymentPool.accRewardsPerBooster, accRewardsPerBooster);
-        deploymentPool.boosterPoints -= amount;
-        deploymentPool.boosterMap[msg.sender] -= amount;
+        deploymentPool.boosterPoint -= amount;
+        deploymentPool.accountBooster[msg.sender] -= amount;
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
         // totalBoosterPoints
-        totalBoosterPoints -= amount;
+        totalBoosterPoint -= amount;
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, amount);
+        emit DeploymentBoosterRemoved(deployment, msg.sender, amount);
     }
 
     function getIndexerDeploymentBooster(bytes32 _deploymentId, address _indexer) public view returns (uint256) {
-        return deploymentPools[_deploymentId].boosterMap[_indexer];
+        return deploymentPools[_deploymentId].accountBooster[_indexer];
     }
 
     function _pullReward(bytes32 _deploymentId, uint256 previousAccRewards, uint256 newAccRewards) internal returns (uint256) {
@@ -156,35 +166,42 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         return MathUtil.diffOrZero(staking.getTotalStakingAmount(_indexer), indexerAllocated[_indexer]);
     }
 
-    function allocate(bytes32 deployment, address indexer, uint256 amount) external {
-        require(msg.sender == indexer, "not indexer");
-        uint256 capacity = getCapacity(indexer);
-        require(capacity >= amount, "not enough capacity");
+    function allocate(bytes32 _deployment, address _indexer, uint256 _amount) external {
+        require(msg.sender == _indexer, "not indexer");
+        uint256 capacity = getCapacity(_indexer);
+        require(capacity >= _amount, "not enough capacity");
         IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
         uint256 era = eraManager.safeUpdateAndGetEra();
-        DeploymentPool storage deploymentPool = deploymentPools[deployment];
-        uint256 allocationId = deploymentPool.indexerAllocations[indexer];
+        DeploymentPool storage deploymentPool = deploymentPools[_deployment];
+        uint256 allocationId = deploymentPool.indexerAllocations[_indexer];
 
         if (allocationId == 0) {
             allocations[nextAllocationId] = Allocation({
-                indexer: indexer,
-                deploymentId: deployment,
+                indexer: _indexer,
+                deploymentId: _deployment,
                 amount: 0,
                 missedLabor: 0,
-                accRewardsPerToken: onAllocationUpdate(deployment),
+                accRewardsPerToken: onAllocationUpdate(_deployment),
                 startEra: era,
-                startTime: block.timestamp
+                startTime: block.timestamp,
+                lastClaimedAt: block.number
             });
             allocationId = nextAllocationId;
+            deploymentPool.indexerAllocations[_indexer] = allocationId;
             nextAllocationId += 1;
+        } else {
+            // Add allocation
+            // FIXME
+            _collectAllocationReward(_deployment, _indexer);
         }
-        emit StakeAllocated(allocationId, deployment, indexer, amount);
+        emit StakeAllocated(allocationId, _deployment, _indexer, _amount);
         // collect reward
 //        _collectReward(indexer, allocations[allocationId].accRewardsPerToken, accRewardsPerToken);
-        deploymentPool.totalAllocatedToken += amount;
-        allocations[allocationId].amount += amount;
+        deploymentPool.totalAllocatedToken += _amount;
+        allocations[allocationId].amount += _amount;
     }
 
+    // FIXME
     function removeAllocation(uint256 _allocationId, uint256 _amount) external {
         Allocation storage allocation = allocations[_allocationId];
         require(allocation.startTime > 0, "allocation not exist");
@@ -234,23 +251,50 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 //    }
 
     /**
-    * @dev Calculate current rewards for a given allocation on demand.
-     * @param _allocationId Allocation
+     * @notice Calculate current rewards for a given allocation on demand.
+     *         rewards after over_allocation block are ignored
+     * @param _deploymentId _deploymentId
+     * @param _indexer _indexer
      * @return Rewards amount for an allocation
+     * @return Rewards burnt due to missedLabor
      */
-    function getRewards(uint256 _allocationId) external view override returns (uint256) {
-
+    function getRewards(bytes32 _deploymentId, address _indexer) external view override returns (uint256, uint256) {
+        DeploymentPool storage deployment = deploymentPools[_deploymentId];
+        uint256 _allocationId = deployment.indexerAllocations[_indexer];
         Allocation memory alloc = allocations[_allocationId];
 
-        (uint256 accRewardsPerAllocatedToken, ) = getAccRewardsPerAllocatedToken(
+        (uint256 accRewardsPerAllocatedToken,) = getAccRewardsPerAllocatedToken(
             alloc.deploymentId
         );
-        return
-            _calcRewards(
+
+        ProjectType projectType = IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).getDeploymentProjectType(_deploymentId);
+        uint256 allocateRewardRate = PER_MILL - boosterQueryRewardRate[projectType];
+        uint256 totalRewards = _calcRewards(
             alloc.amount,
             alloc.accRewardsPerToken,
-            accRewardsPerAllocatedToken
+            accRewardsPerAllocatedToken,
+            allocateRewardRate
         );
+        return _fixRewardsWithMissedLabor(totalRewards, alloc);
+    }
+
+    /**
+     * @notice Fix reward considering missed labor
+     * @param _reward reward before fix
+     * @param _alloc allocation
+     * @return Rewards amount for an allocation
+     * @return Rewards burnt due to missedLabor
+     */
+    function _fixRewardsWithMissedLabor(uint256 _reward, Allocation memory _alloc) internal view returns (uint256, uint256)  {
+        uint256 rewardPeriod = block.number - _alloc.lastClaimedAt;
+        if (_reward == 0) {
+            return (0, 0);
+        }
+        if (rewardPeriod == 0) {
+            return (0, 0);
+        }
+        uint256 fixedReward = MathUtil.mulDiv(_reward, rewardPeriod - _alloc.missedLabor, rewardPeriod);
+        return (fixedReward, _reward - fixedReward);
     }
 
     /**
@@ -263,10 +307,14 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     function _calcRewards(
         uint256 _tokens,
         uint256 _startAccRewardsPerAllocatedToken,
-        uint256 _endAccRewardsPerAllocatedToken
+        uint256 _endAccRewardsPerAllocatedToken,
+        uint256 _allocateRewardRate
     ) private pure returns (uint256) {
+//        return MathUtil.mulDiv(accRewards, allocateRewardRate, PER_MILL);
+
         uint256 newAccrued = _endAccRewardsPerAllocatedToken - _startAccRewardsPerAllocatedToken;
-        return MathUtil.mulDiv(newAccrued,_tokens,FIXED_POINT_SCALING_FACTOR);
+        uint256 fixedNewAccrued = MathUtil.mulDiv(newAccrued, _allocateRewardRate, PER_MILL);
+        return MathUtil.mulDiv(fixedNewAccrued, _tokens, FIXED_POINT_SCALING_FACTOR);
     }
 
     /**
@@ -292,7 +340,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             return 0;
         }
 
-        if (totalBoosterPoints == 0) {
+        if (totalBoosterPoint == 0) {
             return 0;
         }
 
@@ -300,7 +348,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
         // Get the new issuance per booster token
         // We multiply the decimals to keep the precision as fixed-point number
-        return MathUtil.mulDiv(x, FIXED_POINT_SCALING_FACTOR, totalBoosterPoints);
+        return MathUtil.mulDiv(x, FIXED_POINT_SCALING_FACTOR, totalBoosterPoint);
     }
 
     /**
@@ -324,9 +372,9 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     /**
-     * @dev Gets the accumulated rewards for the subgraph.
+     * @dev Gets the accumulated rewards for the deployment. including query rewards and allocation rewards
      * @param _deploymentId deployment
-     * @return Accumulated rewards for subgraph
+     * @return Accumulated rewards for deployment
      */
     function getAccRewardsForDeployment(bytes32 _deploymentId)
     public
@@ -337,12 +385,29 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
 
         // Only accrue rewards if over a threshold
-        uint256 newRewards = (deployment.boosterPoints >= minimumDeploymentBooster) // Accrue new rewards since last snapshot
+        uint256 newRewards = (deployment.boosterPoint >= minimumDeploymentBooster) // Accrue new rewards since last snapshot
             ? MathUtil.mulDiv(getAccRewardsPerBooster() - deployment.accRewardsPerBoosterSnapshot
-                , deployment.boosterPoints
+                , deployment.boosterPoint
                 , FIXED_POINT_SCALING_FACTOR)
             : 0;
         return deployment.accRewardsForDeployment + newRewards;
+    }
+
+    /**
+     * @dev Gets the accumulated rewards for the deployment. including query rewards and allocation rewards
+     * @param _deploymentId deployment
+     * @return Accumulated rewards for deployment
+     */
+    function getAccAllocationRewardsForDeployment(bytes32 _deploymentId)
+    public
+    view
+    returns (uint256)
+    {
+        uint256 accRewards = getAccRewardsForDeployment(_deploymentId);
+
+        ProjectType projectType = IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).getDeploymentProjectType(_deploymentId);
+        uint256 allocateRewardRate = PER_MILL - boosterQueryRewardRate[projectType];
+        return MathUtil.mulDiv(accRewards, allocateRewardRate, PER_MILL);
     }
 
     /**
@@ -359,20 +424,21 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         // Called since `total boosted token` will change
         updateAccRewardsPerBooster();
 
-        // Updates the accumulated rewards for a subgraph
+        // Updates the accumulated rewards
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
         deployment.accRewardsForDeployment = getAccRewardsForDeployment(_deploymentId);
         deployment.accRewardsPerBoosterSnapshot = accRewardsPerBooster;
+
         return deployment.accRewardsForDeployment;
     }
 
     /**
-     * @dev Triggers an update of rewards for a subgraph.
+     * @dev Triggers an update of rewards for a deployment.
      * Must be called before allocation on a subgraph changes.
      * NOTE: Hook called from the Staking contract on allocate() and close()
      *
      * @param _deploymentId deployment
-     * @return Accumulated rewards per allocated token for a subgraph
+     * @return Accumulated rewards per allocated token for a deployment
      */
     function onAllocationUpdate(bytes32 _deploymentId)
     public
@@ -390,10 +456,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     /**
-    * @dev Gets the accumulated rewards per allocated token for the subgraph.
+    * @dev Gets the accumulated rewards per allocated token for the deployment.
      * @param _deploymentId deployment
      * @return Accumulated rewards per allocated token for the deployment
-     * @return Accumulated rewards for deployment
+     * @return Accumulated allocation rewards for deployment
      */
     function getAccRewardsPerAllocatedToken(bytes32 _deploymentId)
     public
@@ -419,7 +485,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             , deploymentAllocatedTokens);
         return (
             deployment.accRewardsPerAllocatedToken + newRewardsPerAllocatedToken,
-            newRewardsForDeployment
+            accRewardsForDeployment
         );
     }
 
@@ -427,7 +493,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      * @notice Add Labor(online status) for current era project pool
      * @param _deploymentIds deployment id
      * @param _indexers all indexer addresses
-     * @param _missedLabors all missed labor
+     * @param _missedLabors all missed blocks
      */
     function setMissedLabor(bytes32[] calldata _deploymentIds, address[] calldata _indexers, uint256[] calldata _missedLabors) external {
         require(reporters[msg.sender], 'RR007');
@@ -443,180 +509,93 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
 //    /**
-//     * @notice Collect reward (stake) from previous era Pool
-//     * @param projectId deployment id
-//     * @param indexer indexer address
+//    * @dev Gets the accumulated rewards per allocated token for the subgraph.
+//     * @param _deploymentId deployment
+//     * @return Accumulated rewards per allocated token for the deployment
+//     * @return Accumulated rewards for deployment
 //     */
-//    function collect(uint256 projectId, address indexer) external {
-//        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
-//        _collect(currentEra - 1, projectId, indexer);
-//    }
+//    function getAccQueryRewardsPerBoostedToken(bytes32 _deploymentId)
+//    public view override returns (uint256, uint256)
+//    {
+//        DeploymentPool storage deployment = deploymentPools[_deploymentId];
 //
-//    /**
-//     * @notice Collect reward (stake) from era pool
-//     * @param era era number
-//     * @param projectId deployment id
-//     * @param indexer indexer address
-//     */
-//    function collectEra(uint256 era, uint256 projectId, address indexer) external {
-//        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
-//        require(currentEra > era, 'RR008');
-//        _collect(era, projectId, indexer);
-//    }
+//        uint256 accRewardsForDeployment = getAccRewardsForDeployment(_deploymentId);
+//        uint256 newRewardsForDeployment = MathUtil.diffOrZero(
+//            accRewardsForDeployment,
+//            deployment.accRewardsForDeploymentSnapshot
+//        );
 //
-//    /**
-//     * @notice Batch collect all deployments from previous era Pool
-//     * @param indexer indexer address
-//     */
-//    function batchCollect(address indexer) external {
-//        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
-//        EraPool storage eraPool = pools[currentEra - 1];
-//        IndexerProject storage indexerProject = eraPool.indexerUnclaimProjects[indexer];
-//        uint lastIndex = indexerProject.unclaim;
-//        for (uint i = lastIndex; i > 0; i--) {
-//            uint256 projectId = indexerProject.projects[i];
-//            _collect(currentEra - 1, projectId, indexer);
-//        }
-//    }
-//
-//    /**
-//     * @notice Determine is the pool claimed on the era
-//     * @param era era number
-//     * @param indexer indexer address
-//     * @return bool is claimed or not
-//     */
-//    function isClaimed(uint256 era, address indexer) external view returns (bool) {
-//        return pools[era].indexerUnclaimProjects[indexer].unclaim == 0;
-//    }
-//
-//    /**
-//     * @notice Get unclaim deployments for the era
-//     * @param era era number
-//     * @param indexer indexer address
-//     * @return uint256List list of projectIds
-//     */
-//    function getUnclaimDeployments(uint256 era, address indexer) external view returns (uint256[] memory) {
-//        return pools[era].indexerUnclaimProjects[indexer].projects;
-//    }
-//
-//    /// @notice work for collect() and collectEra()
-//    function _collect(uint256 era, uint256 projectId, address indexer) private {
-//        require(basicProjectShares[projectId] > 0 || boosterProjectStakings[projectId].amount > 0, 'RR015');
-//
-//        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
-//
-//        EraPool storage eraPool = pools[era];
-//        ProjectPool storage pool = eraPool.pools[projectId];
-//
-//        // calc total reward for this project if it is first time to collect
-//        if (pool.totalReward == 0) {
-//            uint256 basicInflationReward = eraPool.basicInflationReward * basicProjectShares[projectId] / 100;
-//            uint256 boosterInflationReward = eraPool.boosterInflationReward * boosterProjectStakings[projectId].amount / totalBoosterProjectStaking;
-//            pool.totalReward = pool.extraReward + basicInflationReward + boosterInflationReward;
-//            pool.unclaimReward = pool.totalReward;
-//            eraPool.unactivedProject -= 1;
+//        uint256 deploymentBoostedToken = deployment.boosterPoint;
+//        if (deploymentBoostedToken == 0) {
+//            return (0, accRewardsForDeployment);
 //        }
 //
-//        // check if all project share had been actived
-//        if (eraPool.unactivedProject == 0) {
-//            latestActivedEra += 1;
-//        }
+//        // calc the slice of newRewardsForDeployment for allocation reward
+//        ProjectType projectType = IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).getDeploymentProjectType(_deploymentId);
+//        uint256 allocateRewardRate = PER_MILL - boosterQueryRewardRate[projectType];
+//        uint256 newAllocRewardsForDeployment = MathUtil.mulDiv(newRewardsForDeployment, allocateRewardRate, PER_MILL);
 //
-//        // this is to prevent duplicated collect
-//        require(pool.totalStake > 0 && pool.totalReward > 0 && pool.labor[indexer] > 0, 'RR009');
-//
-//        uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[indexer], pool.stake[indexer], pool.totalStake);
-//
-//        // reward send to distribute
-//        address rewardDistributer = settings.getContractAddress(SQContracts.RewardsDistributer);
-//        IRewardsDistributer distributer = IRewardsDistributer(rewardDistributer);
-//        IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(rewardDistributer, amount);
-//        if (amount > 0) {
-//            // reward send to CURRENT era
-//            distributer.addInstantRewards(indexer, address(this), amount, currentEra);
-//        }
-//
-//        // update indexer project list
-//        IndexerProject storage indexerProject = eraPool.indexerUnclaimProjects[indexer];
-//        uint index = indexerProject.index[projectId];
-//        uint256 lastProject = indexerProject.projects[indexerProject.unclaim];
-//        indexerProject.projects[index] = lastProject;
-//        indexerProject.projects.pop();
-//        indexerProject.index[lastProject] = index;
-//        delete indexerProject.index[projectId];
-//        indexerProject.unclaim -= 1;
-//        if (indexerProject.unclaim == 0) {
-//            delete eraPool.indexerUnclaimProjects[indexer];
-//        }
-//
-//        pool.unclaimTotalLabor -= pool.labor[indexer];
-//        pool.unclaimReward -= amount;
-//        delete pool.labor[indexer];
-//        delete pool.stake[indexer];
-//
-//        if (pool.unclaimTotalLabor == 0) {
-//            // the remained send to current era
-//            if (pool.unclaimReward > 0) {
-//                EraPool storage nextEraPool = pools[currentEra];
-//                ProjectPool storage nextPool = nextEraPool.pools[projectId];
-//                nextPool.extraReward += pool.unclaimReward;
-//            }
-//
-//            delete eraPool.pools[projectId];
-//            eraPool.unclaimProject -= 1;
-//
-//            // if unclaimed pool == 0, delete the era
-//            if (eraPool.unclaimProject == 0) {
-//                delete pools[era];
-//            }
-//        }
-//
-//        emit Collect(era, projectId, indexer, amount);
+//        uint256 newRewardsPerAllocatedToken = MathUtil.mulDiv(newAllocRewardsForDeployment
+//            , FIXED_POINT_SCALING_FACTOR
+//            , deploymentAllocatedTokens);
+//        return (
+//            deployment.accRewardsPerAllocatedToken + newRewardsPerAllocatedToken,
+//            newAllocRewardsForDeployment
+//        );
 //    }
 
-    /// @notice The cobb-doublas function has the form:
-    /// @notice `reward * feeRatio ^ alpha * stakeRatio ^ (1-alpha)`
-    /// @notice This is equivalent to:
-    /// @notice `reward * stakeRatio * e^(alpha * (ln(feeRatio / stakeRatio)))`
-    /// @notice However, because `ln(x)` has the domain of `0 < x < 1`
-    /// @notice and `exp(x)` has the domain of `x < 0`,
-    /// @notice and fixed-point math easily overflows with multiplication,
-    /// @notice we will choose the following if `stakeRatio > feeRatio`:
-    /// @notice `reward * stakeRatio / e^(alpha * (ln(stakeRatio / feeRatio)))`
-    function _cobbDouglas(uint256 reward, uint256 myLabor, uint256 myStake, uint256 totalStake) private view returns (uint256) {
-        if (myStake == totalStake) {
-            return reward;
+    // for test purpose
+    function collectAllocationReward(bytes32 _deploymentId, address _indexer) external {
+        require(msg.sender == _indexer, "not allowed");
+        _collectAllocationReward(_deploymentId, _indexer);
+    }
+
+    function _collectAllocationReward(bytes32 _deploymentId, address _indexer) internal {
+        uint256 accRewardsPerAllocatedToken = onAllocationUpdate(
+            _deploymentId
+        );
+        DeploymentPool storage deployment = deploymentPools[_deploymentId];
+        uint256 _allocationId = deployment.indexerAllocations[_indexer];
+        Allocation storage alloc = allocations[_allocationId];
+
+        ProjectType projectType = IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).getDeploymentProjectType(_deploymentId);
+        uint256 allocateRewardRate = PER_MILL - boosterQueryRewardRate[projectType];
+
+        uint256 reward = _calcRewards(
+            alloc.amount,
+            alloc.accRewardsPerToken,
+            accRewardsPerAllocatedToken,
+            allocateRewardRate
+        );
+
+        alloc.accRewardsPerToken = accRewardsPerAllocatedToken;
+        uint256 burnt;
+        (reward, burnt) = _fixRewardsWithMissedLabor(reward, alloc);
+
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, reward);
+        if (burnt > 0) {
+            address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(treasury, burnt);
         }
+    }
 
-        int256 feeRatio = FixedMath.toFixed(myLabor, reward);
-        int256 stakeRatio = FixedMath.toFixed(myStake, totalStake);
-        if (feeRatio == 0 || stakeRatio == 0) {
+    function getAccQueryRewardsForDeployment(bytes32 _deploymentId, address _account) external returns (uint256) {
+        DeploymentPool storage deployment = deploymentPools[_deploymentId];
+
+        uint256 accRewardsForDeployment = getAccRewardsForDeployment(_deploymentId);
+        uint256 newRewardsForDeployment = MathUtil.diffOrZero(
+            accRewardsForDeployment,
+            deployment.accRewardsForDeploymentSnapshot
+        );
+
+        uint256 deploymentBoostedToken = deployment.boosterPoint;
+        if (deploymentBoostedToken == 0) {
             return 0;
         }
 
-        // Compute
-        // `e^(alpha * ln(feeRatio/stakeRatio))` if feeRatio <= stakeRatio
-        // or
-        // `e^(alpa * ln(stakeRatio/feeRatio))` if feeRatio > stakeRatio
-        int256 n = feeRatio <= stakeRatio
-            ? FixedMath.div(feeRatio, stakeRatio)
-            : FixedMath.div(stakeRatio, feeRatio);
-        n = FixedMath.exp(
-            FixedMath.mulDiv(
-                FixedMath.ln(n),
-                int256(alphaNumerator),
-                int256(alphaDenominator)
-            )
-        );
-        // Compute
-        // `reward * n` if feeRatio <= stakeRatio
-        // or
-        // `reward / n` if stakeRatio > feeRatio
-        // depending on the choice we made earlier.
-        n = feeRatio <= stakeRatio
-            ? FixedMath.mul(stakeRatio, n)
-            : FixedMath.div(stakeRatio, n);
-        // Multiply the above with reward.
-        return FixedMath.uintMul(n, reward);
+        uint256 newRewardsPerBooster = MathUtil.mulDiv(newRewardsForDeployment
+            , FIXED_POINT_SCALING_FACTOR
+            , deploymentBoostedToken);
+        return deployment.accQueryRewardsPerBooster + newRewardsPerBooster;
     }
 }

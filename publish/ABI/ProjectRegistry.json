@@ -501,6 +501,25 @@
     {
         "inputs": [
             {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getDeploymentProjectType",
+        "outputs": [
+            {
+                "internalType": "enum ProjectType",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "contract ISettings",
                 "name": "_settings",
                 "type": "address"
