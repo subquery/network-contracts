@@ -36,7 +36,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
     // --------- configs
 
-    /// @dev ### STATES
+    /// @notice ### STATES
     /// @notice Settings info
     ISettings public settings;
 
@@ -73,7 +73,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     mapping(address => uint256) public indexerAllocated;
     // --------- allocation end
 
-    /// @dev ### EVENTS
+    /// @notice ### EVENTS
     /// @notice Emitted when update the alpha for cobb-douglas function
     event Alpha(int32 alphaNumerator, int32 alphaDenominator);
     event DeploymentBoosterAdded(bytes32 deploymentId, address account, uint256 amount);
@@ -85,7 +85,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 //    event Collect(uint256 era, uint256 projectId, address indexer, uint256 reward);
 
     /**
-     * @dev ### FUNCTIONS
+     * @notice ### FUNCTIONS
      * @notice Initialize the contract, setup the alphaNumerator, alphaDenominator
      * @param _settings settings contract address
      */
@@ -297,7 +297,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     /**
-     * @dev Calculate current rewards for a given allocation.
+     * @notice Calculate current rewards for a given allocation.
      * @param _tokens Tokens allocated
      * @param _startAccRewardsPerAllocatedToken Allocation start accumulated rewards
      * @param _endAccRewardsPerAllocatedToken Allocation end accumulated rewards
@@ -313,7 +313,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     /**
-     * @dev Gets the issuance of rewards per signal since last updated.
+     * @notice Gets the issuance of rewards per signal since last updated.
      *
      * Linear formula: `x = r * t`
      *
@@ -347,7 +347,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     /**
-     * @dev Gets the currently accumulated rewards per signal.
+     * @notice Gets the currently accumulated rewards per signal.
      * @return Currently accumulated rewards per signal
      */
     function getAccRewardsPerBooster() public view override returns (uint256) {
@@ -356,9 +356,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
     /**
      * @notice Updates the accumulated rewards per booster and save checkpoint block number.
-     * Must be called before `issuancePerBlock` or `total signalled GRT` changes
-     * Called from the Curation contract on mint() and burn()
-     * @return Accumulated rewards per signal
+     * Must be called before `issuancePerBlock` or `total booster` changes
+     * @return Accumulated rewards per boosted token
      */
     function updateAccRewardsPerBooster() public override returns (uint256) {
         accRewardsPerBooster = getAccRewardsPerBooster();
@@ -367,7 +366,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     /**
-     * @dev Gets the accumulated rewards for the deployment. including query rewards and allocation rewards
+     * @notice Gets the accumulated rewards for the deployment. including query rewards and allocation rewards
      * @param _deploymentId deployment
      * @return Accumulated rewards for deployment
      */
@@ -389,7 +388,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     /**
-     * @dev Triggers an update of rewards for a deployment.
+     * @notice Triggers an update of rewards for a deployment.
      * Must be called before booster changes.
      * @param _deploymentId deployment
      * @return Accumulated rewards for deployment
@@ -423,9 +422,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     /**
-     * @dev Triggers an update of rewards for a deployment.
-     * Must be called before allocation on a subgraph changes.
-     * NOTE: Hook called from the Staking contract on allocate() and close()
+     * @notice Triggers an update of rewards for a deployment.
+     * Must be called before allocation on a deployment changes.
      *
      * @param _deploymentId deployment
      * @return Accumulated rewards per allocated token for a deployment
@@ -446,7 +444,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     /**
-    * @dev Gets the accumulated rewards per allocated token for the deployment.
+    * @notice Gets the accumulated rewards per allocated token for the deployment.
      * @param _deploymentId deployment
      * @return Accumulated rewards per allocated token for the deployment
      * @return Accumulated allocation rewards for deployment
