@@ -150,6 +150,7 @@ export enum SQContracts {
     ConsumerRegistry,
     PriceOracle,
     RootChainManager,
+    Treasury,
 }
 
 export enum ServiceStatus {

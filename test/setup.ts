@@ -10,6 +10,7 @@ import { ZERO_ADDRESS } from './constants';
 import { Wallet, etherParse } from './helper';
 
 import { deployContracts as deploy, deployRootContracts as deployRoot } from '../scripts/deployContracts';
+import { SQContracts } from "../src";
 
 export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
     const signer = wallet as EthWallet;
@@ -45,6 +46,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
             PriceOracle: [],
         }
     );
+    await contracts.settings.setContractAddress(SQContracts.Treasury, wallet.address);
 
     return contracts;
 };
