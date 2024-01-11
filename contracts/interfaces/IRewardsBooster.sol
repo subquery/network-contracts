@@ -27,11 +27,15 @@ interface IRewardsBooster {
         uint256 accRewardsPerAllocatedToken;
         // update when booster changed, used to calc query booster rewards
         uint256 accQueryRewardsPerBooster;
+        uint256 accQueryRewardsForDeploymentSnapshot;
     }
 
     struct BoosterQueryReward {
         // update when booster changed
         uint256 accQueryRewardsPerBoosterSnapshot;
+        // add when booster change
+        uint256 accQueryRewards;
+        uint256 spentQueryRewards;
     }
 
     // max labor = block.timestamp - startTime
@@ -60,7 +64,7 @@ interface IRewardsBooster {
     view
     returns (uint256);
 
-    function onDeploymentBoosterUpdate(bytes32 _deploymentId)
+    function onDeploymentBoosterUpdate(bytes32 _deploymentId, address _account)
     external
     returns (uint256);
 

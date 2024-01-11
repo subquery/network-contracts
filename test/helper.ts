@@ -32,6 +32,23 @@ export async function blockTravel(provider: MockProvider, blocks: number, interv
     }
 }
 
+export async function stopAutoMine(provider: MockProvider) {
+    await provider.send("evm_setAutomine", [false]);
+}
+
+export async function resumeAutoMine(provider: MockProvider, increaseTime = 0) {
+    if (increaseTime) {
+        await provider.send('evm_increaseTime', [increaseTime]);
+    }
+    await provider.send("evm_setAutomine", [true]);
+    await provider.send('evm_mine', []);
+}
+
+export async function wrapTxs(provider: MockProvider, callFn: ()=>Promise<void>) {
+    await stopAutoMine(provider);
+    await callFn().finally(()=> resumeAutoMine(provider))
+}
+
 export async function lastestBlock(provider: MockProvider | StaticJsonRpcProvider) {
     const blockBefore = await provider.send('eth_getBlockByNumber', ['latest', false]);
     return blockBefore;
