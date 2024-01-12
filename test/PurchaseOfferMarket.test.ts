@@ -39,7 +39,7 @@ describe('Purchase Offer Market Contract', () => {
     const planTemplateId = 0;
     let offerId: BigNumber;
 
-    const deployer = ()=>deployContracts(wallet_0, wallet_1);
+    const deployer = ()=>deployContracts(wallet_0, wallet_1, wallet_2);
     before(async ()=>{
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
     });
@@ -158,7 +158,8 @@ describe('Purchase Offer Market Contract', () => {
                 const rest = amount.sub(penalty);
                 expect(await token.balanceOf(purchaseOfferMarket.address)).to.equal(offerMarketBalance.sub(amount));
                 expect(await token.balanceOf(wallet_0.address)).to.equal(consumerBalance.add(rest));
-                expect(await token.totalSupply()).to.equal(totalSupply.sub(penalty));
+                // not burnt
+                // expect(await token.totalSupply()).to.equal(totalSupply.sub(penalty));
             });
 
             it('setPenaltyRate should work', async () => {

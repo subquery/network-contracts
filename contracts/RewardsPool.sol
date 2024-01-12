@@ -292,8 +292,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
         if (pool.unclaimTotalLabor == 0) {
             // burn the remained
             if (pool.unclaimReward > 0) {
-                ISQToken token = ISQToken(settings.getContractAddress(SQContracts.SQToken));
-                token.burn(pool.unclaimReward);
+                address treasury = settings.getContractAddress(SQContracts.Treasury);
+                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(treasury, pool.unclaimReward);
             }
 
             delete eraPool.pools[deploymentId];
