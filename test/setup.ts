@@ -10,8 +10,9 @@ import { ZERO_ADDRESS } from './constants';
 import { Wallet, etherParse } from './helper';
 
 import { deployContracts as deploy, deployRootContracts as deployRoot } from '../scripts/deployContracts';
+import { SQContracts } from "../src";
 
-export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
+export const deployContracts = async (wallet: Wallet, wallet1: Wallet, treasury=wallet) => {
     const signer = wallet as EthWallet;
     const [_, contracts] = await deploy(
         signer,
@@ -46,6 +47,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet) => {
             RewardsBooster: [utils.parseEther("10").toString(), utils.parseEther("10000").toString()], // _issuancePerBlock, _minimumDeploymentBooster
         }
     );
+    await contracts.settings.setContractAddress(SQContracts.Treasury, treasury.address);
 
     return contracts;
 };

@@ -11,7 +11,7 @@ import { deployContracts } from './setup';
 
 describe('StateChannel Contract', () => {
     const deploymentId = deploymentIds[0];
-    let wallet_0, indexer, consumer, indexer2, indexer3;
+    let wallet_0, indexer, consumer, indexer2, indexer3, treasury;
 
     let token: ERC20;
     let staking: Staking;
@@ -115,9 +115,9 @@ describe('StateChannel Contract', () => {
         };
     };
 
-    const deployer = ()=>deployContracts(wallet_0, indexer);
+    const deployer = ()=>deployContracts(wallet_0, indexer, treasury);
     before(async ()=>{
-        [wallet_0, indexer, consumer, indexer2, indexer3] = await ethers.getSigners();
+        [wallet_0, indexer, consumer, indexer2, indexer3, treasury] = await ethers.getSigners();
     });
 
     beforeEach(async () => {
@@ -477,14 +477,14 @@ describe('StateChannel Contract', () => {
             await rewardsHelper.connect(indexer).indexerCatchup(indexer.address);
 
             const evts = await eventsFrom(tx2, token, 'Transfer(address,address,uint256)');
-            const burn = evts.find(evt=>evt.to==='0x0000000000000000000000000000000000000000');
+            const fee = evts.find(evt=>evt.to===treasury.address);
             const indexerReward = await rewardsDistributor.userRewards(indexer.address, indexer.address);
             expect(indexerReward).to.eq(0);
             const indexerReward2 = await rewardsDistributor.userRewards(indexer2.address, indexer2.address);
             const indexerReward3 = await rewardsDistributor.userRewards(indexer3.address, indexer3.address);
             // due to math in the rewardDistributor, we will lose some token as deviation
             const deviation = 1e10;
-            expect(etherParse('1').sub(indexerReward2).sub(indexerReward3).sub(burn.value)).to.lt(deviation);
+            expect(etherParse('1').sub(indexerReward2).sub(indexerReward3).sub(fee.value)).to.lt(deviation);
             const reward2 = await rewardsPool.getReward(deploymentId,era.toNumber()-1, indexer2.address);
             expect(reward2[0]).to.eq(0);
             expect(reward2[1]).to.eq(0);
