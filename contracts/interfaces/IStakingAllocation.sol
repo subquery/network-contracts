@@ -3,10 +3,22 @@
 
 pragma solidity 0.8.15;
 
+struct IndexerAllocation {
+    uint256 total;
+    uint256 used;
+    uint256 startTime;
+    uint256 overflowTime;
+    uint256 overflowAt;
+}
+
 interface IStakingAllocation {
     function update(address _indexer, uint256 _amount) external;
 
     function allocation(address _indexer, bytes32 _deployment) external view returns (uint256);
+
+    function indexer(address _indexer) external view returns (IndexerAllocation memory);
+
+    function overflowTime(address _indexer) external view returns (uint256);
 
     function isSuspended(address _indexer) external view returns (bool);
 }

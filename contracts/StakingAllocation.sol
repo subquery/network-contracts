@@ -12,20 +12,16 @@ import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IRewardsBooster.sol';
+import './interfaces/IStakingAllocation.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
-
-struct IndexerAllocation {
-    uint256 total;
-    uint256 used;
-}
 
 /**
  * @title Staking Allocation Contract
  * @notice ### Overview
  * The staking allocated by indexer to different projects(deployments)
  */
-contract StakingAllocation is Initializable, OwnableUpgradeable {
+contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
@@ -58,33 +54,60 @@ contract StakingAllocation is Initializable, OwnableUpgradeable {
 
     function update(address _indexer, uint256 _amount) external {
         require(msg.sender == settings.getContractAddress(SQContracts.Staking), 'SA00');
-        indexers[_indexer].total = _amount;
+        IndexerAllocation storage ia = indexers[_indexer];
+        uint256 oldTotal = ia.total;
+        ia.total = _amount;
+
+        if (oldTotal >= ia.used && ia.total < ia.used) {
+            // new overflow
+            ia.overflowAt = block.timestamp;
+        } else if(oldTotal < ia.used && ia.total >= ia.used) {
+            // recover overflow
+            ia.overflowTime += block.timestamp - ia.overflowAt;
+        }
     }
 
     function allocate(bytes32 _deployment, uint256 _amount) external {
-        // Settle old rewards
-        IRewardsBooster rb = IRewardsBooster(settings.getContractAddress(SQContracts.RewardsBooster));
-        rb.settleReward(msg.sender, _deployment);
-
         uint256 oldAmount = allocations[msg.sender][_deployment];
+        IndexerAllocation storage ia = indexers[msg.sender];
+
+        // create new allocation
+        if (ia.startTime == 0) {
+            ia.startTime = block.timestamp;
+        }
+
         uint256 extra = 0;
 
         if (oldAmount > _amount) {
             extra = oldAmount - _amount;
-            indexers[msg.sender].used -= extra;
+            ia.used -= extra;
         } else {
             extra = _amount - oldAmount;
-            require(indexers[msg.sender].total - indexers[msg.sender].used >= extra, 'SA01');
-            indexers[msg.sender].used += extra;
+            require(ia.total - ia.used >= extra, 'SA01');
+            ia.used += extra;
         }
         allocations[msg.sender][_deployment] = _amount;
 
         // Update new total staking
+        IRewardsBooster rb = IRewardsBooster(settings.getContractAddress(SQContracts.RewardsBooster));
         rb.updateDeploymentAllocated(_deployment, extra, oldAmount < _amount);
     }
 
     function allocation(address _indexer, bytes32 _deployment) external view returns (uint256) {
         return allocations[_indexer][_deployment];
+    }
+
+    function indexer(address _indexer) external view returns (IndexerAllocation memory) {
+        return indexers[_indexer];
+    }
+
+    function overflowTime(address _indexer) external view returns (uint256) {
+        IndexerAllocation memory ia = indexers[_indexer];
+        if (ia.total < ia.used) {
+            return ia.overflowTime + block.timestamp - ia.overflowAt;
+        } else {
+            return ia.overflowTime;
+        }
     }
 
     function isSuspended(address _indexer) external view returns (bool) {
