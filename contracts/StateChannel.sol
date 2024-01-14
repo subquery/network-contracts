@@ -447,7 +447,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         bool isFinish2 = isFinish1 || block.timestamp > channels[query.channelId].expiredAt;
 
         // finalise channel if meet the requirements
-        if (isFinish3) {
+        if (isFinish2) {
             _finalize(query.channelId);
         }
     }
