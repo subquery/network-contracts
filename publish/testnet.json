@@ -153,10 +153,10 @@
             "lastUpdate": "Fri, 15 Dec 2023 06:11:27 GMT"
         },
         "StateChannel": {
-            "innerAddress": "0x3f7A0F2217EEF98B4634a62f42c262d850fa2F4E",
+            "innerAddress": "0x1df60f14d90c3819b4471C06FC85A1062C6641dE",
             "address": "0x4BCd439E0cE238a48BeCCee236Fe402A676Cdea9",
-            "bytecodeHash": "39adf67d8a95d299bb492c1b7fa5c038e9b32b96a9ee1df1e0f1e23125e25c53",
-            "lastUpdate": "Mon, 11 Dec 2023 08:21:33 GMT"
+            "bytecodeHash": "de6c15669af6a94cf3865ff9f06abb861c6400f8d9bab5b68f9099319d325b81",
+            "lastUpdate": "Sun, 14 Jan 2024 23:48:37 GMT"
         },
         "DisputeManager": {
             "innerAddress": "0x5708667beEF0498be8148F33D7d261dffCbDCa89",
