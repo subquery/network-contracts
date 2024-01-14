@@ -275,10 +275,10 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
 
-        // update channel state
-        _settlement(query);
-
         emit ChannelCheckpoint(query.channelId, query.spent);
+
+        // update channel state
+        _settlement(query, false);
     }
 
     /**
@@ -310,9 +310,6 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             require(!query.isFinal, 'SC006');
         }
 
-        // update channel state.
-        _settlement(query);
-
         // set state to terminate
         state.status = ChannelStatus.Terminating;
         uint256 expiration = block.timestamp + terminateExpiration;
@@ -320,6 +317,9 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         state.terminateByIndexer = isIndexer;
 
         emit ChannelTerminate(query.channelId, query.spent, expiration, isIndexer);
+
+        // update channel state.
+        _settlement(query, false);
     }
 
     /**
@@ -349,10 +349,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
 
         // update channel state
-        _settlement(query);
-
-        // finalize the channel status
-        _finalize(query.channelId);
+        _settlement(query, true);
     }
 
     /**
@@ -420,7 +417,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /// @notice Settlement the new state
-    function _settlement(QueryState calldata query) private {
+    function _settlement(QueryState calldata query, bool finalize) private {
         // update channel state
         uint256 amount = query.spent - channels[query.channelId].spent;
 
@@ -444,11 +441,10 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         // check is finish
         bool isFinish1 = query.isFinal;
-        bool isFinish2 = isFinish1 || amount == 0;
-        bool isFinish3 = isFinish2 || block.timestamp > channels[query.channelId].expiredAt;
+        bool isFinish2 = isFinish1 || block.timestamp > channels[query.channelId].expiredAt;
 
         // finalise channel if meet the requirements
-        if (isFinish3) {
+        if (finalize || isFinish2) {
             _finalize(query.channelId);
         }
     }
