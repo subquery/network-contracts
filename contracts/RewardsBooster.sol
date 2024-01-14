@@ -200,12 +200,12 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     function claimRewards(address indexer, bytes32 deployment) external {
         uint256 totalRewards = _calcRewards(indexer, deployment);
 
-        if (realRewards > 0) {
+        if (totalRewards > 0) {
             // claim from Inflation reward contract
-            _pullRewards(indexer, realRewards);
+            _pullRewards(indexer, totalRewards);
 
             IndexerDeploymentReward storage idr = indexerDeploymentRewards[indexer][deployment];
-            idr.claimedRewards = totalRewards;
+            idr.claimedRewards += totalRewards;
         }
     }
 
