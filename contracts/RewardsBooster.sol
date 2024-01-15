@@ -187,9 +187,9 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
             // calc rewards by labor time & staking
             // the inflation of rewardsTime * inflation
-            uint256 totalRewards = rewardsTime * inflation_rate; // TODO
+            uint256 totalRewards = rewardsTime * 1; //inflation_rate; // TODO
             uint256 deploymentRewards = totalRewards / INIT_ACC_RATE * accBooster * bi.staking;
-            uint256 indexerRewards = deploymentRewrds / INIT_ACC_RATE * * bi.accIndexer * indexerStaking;
+            uint256 indexerRewards = deploymentRewards / INIT_ACC_RATE * bi.accIndexer * indexerStaking;
 
             return indexerRewards - idr.claimedRewards;
         } else {

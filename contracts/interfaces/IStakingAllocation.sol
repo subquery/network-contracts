@@ -16,6 +16,8 @@ interface IStakingAllocation {
 
     function allocation(address _indexer, bytes32 _deployment) external view returns (uint256);
 
+    function overflowClear(address _indexer, bytes32 _deployment) external;
+
     function indexer(address _indexer) external view returns (IndexerAllocation memory);
 
     function overflowTime(address _indexer) external view returns (uint256);

@@ -93,6 +93,15 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         rb.updateDeploymentAllocated(_deployment, extra, oldAmount < _amount);
     }
 
+    function overflowClear(address _indexer, bytes32 _deployment) external {
+        require(msg.sender == settings.getContractAddress(SQContracts.RewardsBooster), 'SA02');
+
+        IndexerAllocation storage ia = indexers[_indexer];
+        ia.startTime = block.timestamp;
+        ia.overflowAt = block.timestamp;
+        ia.overflowTime = 0;
+    }
+
     function allocation(address _indexer, bytes32 _deployment) external view returns (uint256) {
         return allocations[_indexer][_deployment];
     }
