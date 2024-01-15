@@ -42,7 +42,7 @@ import {
     TransparentUpgradeableProxy__factory,
     TokenExchange,
     PolygonDestination,
-    RootChainManager__factory, RewardsBooster,
+    RootChainManager__factory, RewardsBooster, StakingAllocation,
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -413,14 +413,20 @@ export async function deployContracts(
             initConfig: [settingsAddress],
         });
 
-        // delpoy PriceOracle contract
+        // deploy PriceOracle contract
         const priceOracle = await deployContract<PriceOracle>('PriceOracle', 'child', {
             proxyAdmin,
             initConfig: [10, 3600],
         });
 
-        // delpoy rewardsBooster contract
+        // deploy rewardsBooster contract
         const rewardsBooster = await deployContract<RewardsBooster>('RewardsBooster', 'child', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
+        // deploy StakingAllocation contract
+        const stakingAllocation = await deployContract<StakingAllocation>('StakingAllocation', 'child', {
             proxyAdmin,
             initConfig: [settingsAddress],
         });
@@ -447,6 +453,7 @@ export async function deployContracts(
             SQContracts.StateChannel,
             SQContracts.ConsumerRegistry,
             SQContracts.RewardsBooster,
+            SQContracts.StakingAllocation,
         ],[
             sqtToken.address,
             staking.address,
@@ -466,6 +473,7 @@ export async function deployContracts(
             stateChannel.address,
             consumerRegistry.address,
             rewardsBooster.address,
+            stakingAllocation.address,
         ]);
 
         await txToken.wait(confirms);
@@ -498,6 +506,7 @@ export async function deployContracts(
                 tokenExchange,
                 priceOracle,
                 consumerRegistry,
+                stakingAllocation,
             },
         ];
     } catch (error) {

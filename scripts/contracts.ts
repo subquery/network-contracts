@@ -1,6 +1,6 @@
 import { Provider } from '@ethersproject/abstract-provider';
 import { Wallet } from '@ethersproject/wallet';
-import { BaseContract, BigNumber, ContractFactory, Signer } from 'ethers';
+import { BaseContract, ContractFactory, Signer } from 'ethers';
 
 import CONTRACTS from '../src/contracts';
 
@@ -54,9 +54,11 @@ import {
     Settings,
     Settings__factory,
     Staking,
+    Staking__factory,
     StakingManager,
     StakingManager__factory,
-    Staking__factory,
+    StakingAllocation,
+    StakingAllocation__factory,
     StateChannel,
     StateChannel__factory,
     VSQToken,
@@ -83,6 +85,7 @@ export type Contracts = {
     vtoken: VSQToken;
     staking: Staking;
     stakingManager: StakingManager;
+    stakingAllocation: StakingAllocation;
     eraManager: EraManager;
     indexerRegistry: IndexerRegistry;
     projectRegistry: ProjectRegistry;
@@ -122,6 +125,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ byt
     ServiceAgreementExtra: [CONTRACTS.ServiceAgreementExtra, ServiceAgreementExtra__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
     StakingManager: [CONTRACTS.StakingManager, StakingManager__factory],
+    StakingAllocation: [CONTRACTS.StakingAllocation, StakingAllocation__factory],
     EraManager: [CONTRACTS.EraManager, EraManager__factory],
     PurchaseOfferMarket: [CONTRACTS.PurchaseOfferMarket, PurchaseOfferMarket__factory],
     StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
@@ -144,6 +148,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     Vesting: Vesting__factory,
     Staking: Staking__factory,
     StakingManager: StakingManager__factory,
+    StakingAllocation: StakingAllocation__factory,
     EraManager: EraManager__factory,
     IndexerRegistry: IndexerRegistry__factory,
     ProjectRegistry: ProjectRegistry__factory,

@@ -26,6 +26,7 @@ import ServiceAgreementRegistry from './artifacts/contracts/ServiceAgreementRegi
 import Settings from './artifacts/contracts/Settings.sol/Settings.json';
 import Staking from './artifacts/contracts/Staking.sol/Staking.json';
 import StakingManager from './artifacts/contracts/StakingManager.sol/StakingManager.json';
+import StakingAllocation from './artifacts/contracts/StakingAllocation.sol/StakingAllocation.json';
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
 import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import ChildERC20 from './artifacts/contracts/polygon/ChildERC20.sol/ChildERC20.json';
@@ -38,6 +39,7 @@ export default {
     VSQToken,
     Staking,
     StakingManager,
+    StakingAllocation,
     IndexerRegistry,
     ProjectRegistry,
     InflationController,
