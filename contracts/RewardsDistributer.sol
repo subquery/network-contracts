@@ -289,10 +289,11 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
             uint256 commission = MathUtil.mulDiv(commissionRate, rewardInfo.eraReward, PER_MILL);
 
             info[indexer].accSQTPerStake += MathUtil.mulDiv(rewardInfo.eraReward - commission, PER_TRILL, totalStake);
-
-            // add commission to unbonding request
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(settings.getContractAddress(SQContracts.Staking), commission);
-            IStaking(settings.getContractAddress(SQContracts.Staking)).unbondCommission(indexer, commission);
+            if (commission > 0) {
+                // add commission to unbonding request
+                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(settings.getContractAddress(SQContracts.Staking), commission);
+                IStaking(settings.getContractAddress(SQContracts.Staking)).unbondCommission(indexer, commission);
+            }
 
             emit DistributeRewards(indexer, rewardInfo.lastClaimEra, rewardInfo.eraReward, commission);
         }
