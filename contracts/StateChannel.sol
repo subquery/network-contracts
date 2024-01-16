@@ -364,13 +364,6 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         bool isClaimable1 = channels[channelId].status == ChannelStatus.Terminating &&
             channels[channelId].terminatedAt < block.timestamp;
 
-        // if channel is finalized, and status not change, just return
-        if (isClaimable1 && channels[channelId].indexer == address(0)) {
-            delete channels[channelId];
-            emit ChannelFinalize(channelId, 0, 0);
-            return;
-        }
-
         // check if channel expiration
         bool isClaimable2 = isClaimable1 ||
             (channels[channelId].status == ChannelStatus.Open && channels[channelId].expiredAt < block.timestamp);
