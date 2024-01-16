@@ -15,6 +15,7 @@ import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IConsumerRegistry.sol';
+import './interfaces/IRewardsBooster.sol';
 
 /**
  * @title State Channel Contract
@@ -43,6 +44,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         ChannelStatus status;
         address indexer;
         address consumer;
+        uint256 realTotal;
         uint256 total;
         uint256 spent;
         uint256 expiredAt;
@@ -181,6 +183,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         state.indexer = indexer;
         state.consumer = consumer;
         state.expiredAt = block.timestamp + expiration;
+        state.realTotal = amount;
         state.total = amount;
         state.spent = 0;
         state.terminatedAt = 0;
@@ -254,7 +257,32 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         // transfer the balance to contract
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(consumer, address(this), amount);
+
+        channels[channelId].realTotal += amount;
         channels[channelId].total += amount;
+
+        emit ChannelFund(channelId, channels[channelId].total);
+    }
+
+    function fundRewards(uint256 channelId, uint256 amount) external {
+        require(
+            channels[channelId].status == ChannelStatus.Open && channels[channelId].expiredAt > block.timestamp,
+            'SC003'
+        );
+
+        address consumer = channels[channelId].consumer;
+        if (msg.sender != consumer) {
+            bool isController = IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(consumer, msg.sender);
+            require(isController, 'SC012');
+        }
+
+        // TODO: transfer the balance to contract
+        IRewardsBooster rb = IRewardsBooster(settings.getContractAddress(SQContracts.RewardsBooster));
+        // rb.spent(consumer, amount);
+        // IERC20().safeTransferFrom(consumer, address(this), amount);
+
+        channels[channelId].total += amount;
+
         emit ChannelFund(channelId, channels[channelId].total);
     }
 
@@ -453,10 +481,14 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     function _finalize(uint256 channelId) private {
         // claim the rest of amount to balance
         address consumer = channels[channelId].consumer;
+        uint256 realTotal = channels[channelId].realTotal;
         uint256 total = channels[channelId].total;
         uint256 remain = total - channels[channelId].spent;
 
         if (remain > 0) {
+            if (remain > realTotal) {
+                remain = realTotal;
+            }
             IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(consumer, remain);
         }
 
