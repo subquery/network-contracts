@@ -25,7 +25,8 @@ enum SQContracts {
     PriceOracle,
     RootChainManager,
     RewardsBooster,
-    Treasury
+    Treasury,
+    StakingAllocation
 }
 
 interface ISettings {

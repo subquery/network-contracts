@@ -12,9 +12,7 @@ interface IRewardsBooster {
         mapping(address => uint256) accountBooster;
         // account => query rewards
         mapping(address => BoosterQueryReward) boosterQueryRewards;
-        uint256 totalAllocatedToken;
-        // current
-        mapping(address => uint256) indexerAllocations;
+        mapping(address => IndexerDeploymentReward) indexerAllocationRewards;
         // update when booster point changed, to calculate deployment rewards, including allocation and query reward
         uint256 accRewardsForDeployment;
         // update when allocation changed, so new allocation are not entitled for earlier rewards, for allocation only
@@ -38,18 +36,10 @@ interface IRewardsBooster {
         uint256 spentQueryRewards;
     }
 
-    // max labor = block.timestamp - startTime
-    // actual labor = block.timestamp - startTime - missedLabor
-    struct Allocation {
-        address indexer;
-        bytes32 deploymentId;
-        uint256 amount;
-        uint256 startTime;
-        uint256 startEra;
-        // update when claimed
+
+    struct IndexerDeploymentReward {
+        uint256 missedLaborTime;
         uint256 accRewardsPerToken;
-        uint256 missedLabor;
-        // the block number allocation reward was last claimed
         uint256 lastClaimedAt;
     }
 
@@ -79,7 +69,6 @@ interface IRewardsBooster {
 
     function getRewards(bytes32 _deploymentId, address _indexer) external view returns (uint256, uint256);
 
-//    function getQueryFund(bytes32 deploymentId, address user) external returns (uint256);
-//
-//    function claimQueryFund(bytes32 deploymentId, address user, uint256 channelId) external;
+    function collectAllocationReward(bytes32 _deploymentId, address _indexer) external;
+
 }

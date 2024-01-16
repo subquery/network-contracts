@@ -36,6 +36,7 @@ import {
     TokenExchange__factory,
     PolygonDestination__factory,
     RewardsBooster__factory,
+    StakingAllocation__factory,
 } from './typechain';
 
 export type SubqueryNetwork = 'testnet' | 'mainnet' | 'local';
@@ -104,6 +105,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     Vesting: Vesting__factory,
     Staking: Staking__factory,
     StakingManager: StakingManager__factory,
+    StakingAllocation: StakingAllocation__factory,
     EraManager: EraManager__factory,
     IndexerRegistry: IndexerRegistry__factory,
     ProjectRegistry: ProjectRegistry__factory,
@@ -150,6 +152,7 @@ export enum SQContracts {
     RootChainManager,
     RewardsBooster,
     Treasury,
+    StakingAllocation,
 }
 
 export enum ServiceStatus {

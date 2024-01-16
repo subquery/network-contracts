@@ -15,6 +15,7 @@ import './interfaces/IRewardsDistributer.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
+import './interfaces/IStakingAllocation.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
@@ -136,6 +137,10 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             emit StakeChanged(_indexer, _indexer, newDelegation);
             emit ICRChanged(_indexer, newCommissionRate);
             emit SettledEraUpdated(_indexer, currentEra - 1);
+
+            // notify stake allocation
+            IStakingAllocation stakingAllocation = IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation));
+            stakingAllocation.update(_indexer, totalStakingAmount[_indexer]);
         } else {
             require(rewardsDistributer.collectAndDistributeEraRewards(currentEra, _indexer) == currentEra - 1, 'RS002');
             IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(_indexer);
@@ -199,6 +204,10 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
 
         _updateTotalStakingAmount(stakingManager, indexer, lastClaimEra);
         emit StakeChanged(indexer, staker, newDelegation);
+
+        // notify stake allocation
+        IStakingAllocation stakingAllocation = IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation));
+        stakingAllocation.update(indexer, totalStakingAmount[indexer]);
     }
 
     /**
