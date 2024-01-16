@@ -78,7 +78,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     /// @notice Emitted when extend the channel
     event ChannelExtend(uint256 indexed channelId, uint256 expiredAt);
     /// @notice Emitted when deposit more amount to the channel
-    event ChannelFund(uint256 indexed channelId, uint256 total);
+    event ChannelFund(uint256 indexed channelId, uint256 realTotal, uint256 total);
     /// @notice Emitted when indexer send a checkpoint to claim the part-amount
     event ChannelCheckpoint(uint256 indexed channelId, uint256 spent, bool isFinal);
     /// @notice Emitted when consumer start a terminate on channel to finalize in advance
@@ -261,7 +261,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         channels[channelId].realTotal += amount;
         channels[channelId].total += amount;
 
-        emit ChannelFund(channelId, channels[channelId].total);
+        emit ChannelFund(channelId, channels[channelId].realTotal, channels[channelId].total);
     }
 
     function fundRewards(uint256 channelId, uint256 amount) external {
@@ -283,7 +283,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         channels[channelId].total += amount;
 
-        emit ChannelFund(channelId, channels[channelId].total);
+        emit ChannelFund(channelId, channels[channelId].realTotal, channels[channelId].total);
     }
 
     /**
