@@ -269,7 +269,7 @@ describe('PlanManger Contract', () => {
             await checkAcceptPlan(2, DEPLOYMENT_ID);
         });
 
-        it.only('accept plan with invalid params should fail', async () => {
+        it('accept plan with invalid params should fail', async () => {
             // inactive plan
             await expect(planManager.acceptPlan(2, DEPLOYMENT_ID)).to.be.revertedWith(
                 'PM009'
@@ -295,7 +295,7 @@ describe('PlanManger Contract', () => {
             // inactive planTemplate
             await eraManager.disableMaintenance();
             await planManager.updatePlanTemplateStatus(0, false);
-            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
+            await expect(planManager.acceptPlan(1, deploymentIds[1])).to.be.revertedWith(
                 'PM006'
             );
         });
