@@ -30,10 +30,10 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     ISettings public settings;
 
     // The idle staking need allocated to projects
-    mapping(address => IndexerAllocation) public indexers;
+    mapping(address => IndexerAllocation) private indexers;
 
     // The staking allocated by indexer to different projects(deployments)
-    mapping(address => mapping(bytes32 => uint256)) public allocations;
+    mapping(address => mapping(bytes32 => uint256)) private allocations;
 
     // total allocation on the deployment
     mapping(bytes32 => uint256) public deploymentAllocations;
@@ -93,16 +93,24 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     function removeAllocation(bytes32 _deployment, address _indexer, uint256 _amount) external {
         // TODO: allow controller to call
         require(_indexer == msg.sender, "not indexer");
+        require(allocations[_indexer][_deployment] >= _amount, 'SA04');
+
         // collect rewards (if any) before change allocation
         IRewardsBooster rb = IRewardsBooster(settings.getContractAddress(SQContracts.RewardsBooster));
         rb.collectAllocationReward(_deployment, _indexer);
 
         IndexerAllocation storage ia = indexers[_indexer];
 
+        uint256 oldUsed = ia.used;
         ia.used -= _amount;
         // TODO: split to add and remove
         deploymentAllocations[_deployment] -= _amount;
         allocations[_indexer][_deployment] -= _amount;
+
+        if (ia.total < oldUsed && ia.total >= ia.used) {
+            // collectAllocationReward had beed overflowClear, so just set overflowAt
+            ia.overflowAt = 0;
+        }
 
         emit StakeAllocationRemoved(_deployment, _indexer, _amount);
     }
