@@ -15,6 +15,7 @@ import './interfaces/IRewardsBooster.sol';
 import './interfaces/IStakingAllocation.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
+import "./interfaces/IIndexerRegistry.sol";
 
 /**
  * @title Staking Allocation Contract
@@ -57,7 +58,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     }
 
     function update(address _indexer, uint256 _amount) external {
-        require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'SA00');
+        require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'SAL01');
         IndexerAllocation storage ia = indexers[_indexer];
         uint256 oldTotal = ia.total;
         ia.total = _amount;
@@ -73,8 +74,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     }
 
     function addAllocation(bytes32 _deployment, address _indexer, uint256 _amount) external {
-        // TODO: allow controller to call
-        require(_indexer == msg.sender, "not indexer");
+        require(_isAuth(_indexer), "SAL02");
 
         // collect rewards (if any) before change allocation
         IRewardsBooster rb = IRewardsBooster(settings.getContractAddress(SQContracts.RewardsBooster));
@@ -82,7 +82,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
 
         IndexerAllocation storage ia = indexers[_indexer];
 
-        require(ia.total - ia.used >= _amount, 'SA01');
+        require(ia.total - ia.used >= _amount, 'SAL03');
         ia.used += _amount;
         deploymentAllocations[_deployment] += _amount;
         allocations[_indexer][_deployment] += _amount;
@@ -91,9 +91,8 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     }
 
     function removeAllocation(bytes32 _deployment, address _indexer, uint256 _amount) external {
-        // TODO: allow controller to call
-        require(_indexer == msg.sender, "not indexer");
-        require(allocations[_indexer][_deployment] >= _amount, 'SA04');
+        require(_isAuth(_indexer), "SAL02");
+        require(allocations[_indexer][_deployment] >= _amount, 'SAL04');
 
         // collect rewards (if any) before change allocation
         IRewardsBooster rb = IRewardsBooster(settings.getContractAddress(SQContracts.RewardsBooster));
@@ -116,7 +115,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     }
 
     function overflowClear(address _indexer, bytes32 _deployment) external {
-        require(msg.sender == settings.getContractAddress(SQContracts.RewardsBooster), 'SA02');
+        require(msg.sender == settings.getContractAddress(SQContracts.RewardsBooster), 'SAL05');
 
         IndexerAllocation storage ia = indexers[_indexer];
 //        ia.lastClaimedAt = block.timestamp;
@@ -146,5 +145,11 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
 
     function isSuspended(address _indexer) external view returns (bool) {
         return indexers[_indexer].total < indexers[_indexer].used;
+    }
+
+    function _isAuth(address _runner) private view returns (bool) {
+        IIndexerRegistry indexerRegistry = IIndexerRegistry(ISettings(settings).getContractAddress(SQContracts.IndexerRegistry));
+        address controller = indexerRegistry.getController(_runner);
+        return msg.sender == _runner || msg.sender == controller;
     }
 }

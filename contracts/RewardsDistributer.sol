@@ -88,6 +88,10 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
     event ClaimRewards(address indexed indexer, address indexed delegator, uint256 rewards);
     /// @notice Emitted when the rewards change, such as when rewards coming from new agreement.
     event RewardsChanged(address indexed indexer, uint256 indexed eraIdx, uint256 additions, uint256 removals);
+    /// @notice Emitted when rewards arrive via addInstantRewards()
+    event InstantRewards(address indexed indexer, uint256 indexed eraIdx, uint256 token);
+    /// @notice Emitted when rewards arrive via increaseAgreementRewards()
+    event AgreementRewards(address indexed indexer, uint256 agreementId, uint256 token);
 
     modifier onlyRewardsStaking() {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'G014');
@@ -218,6 +222,8 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
 
         // Next era will always change
         _emitRewardsChangedEvent(indexer, agreementStartEra + 1, rewardInfo);
+
+        emit AgreementRewards(indexer, agreementId, agreementValue);
     }
 
     /**
@@ -236,6 +242,8 @@ contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgrad
         RewardInfo storage rewardInfo = info[indexer];
         rewardInfo.eraRewardAddTable[era] += amount;
         rewardInfo.eraRewardRemoveTable[era + 1] += amount;
+
+        emit InstantRewards(indexer, era, amount);
 
         // Current era will always change
         _emitRewardsChangedEvent(indexer, era, rewardInfo);

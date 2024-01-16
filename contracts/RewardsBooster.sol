@@ -66,12 +66,13 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     // --------- allocation end
 
     /// @notice ### EVENTS
-    event DeploymentBoosterAdded(bytes32 deploymentId, address account, uint256 amount);
-    event DeploymentBoosterRemoved(bytes32 deploymentId, address account, uint256 amount);
+    event DeploymentBoosterAdded(bytes32 indexed deploymentId, address indexed account, uint256 amount);
+    event DeploymentBoosterRemoved(bytes32 indexed deploymentId, address indexed account, uint256 amount);
     /// @notice Emitted when add Labor(reward) for current era pool
-    event MissedLabor(bytes32 deploymentId, address indexer, uint256 labor);
-    event StakeAllocated(uint256 allocationId, bytes32 deploymentId, address indexer, uint256 amount);
-
+    event MissedLabor(bytes32 indexed deploymentId, address indexed indexer, uint256 labor);
+//    event StakeAllocated(uint256 allocationId, bytes32 deploymentId, address indexer, uint256 amount);
+    event AllocationRewardsGiven(bytes32 indexed deploymentId, address indexed indexer, uint256 amount);
+    event AllocationRewardsBurnt(bytes32 indexed deploymentId, address indexed indexer, uint256 amount);
     /**
      * @notice ### FUNCTIONS
      * @notice Initialize the contract
@@ -83,6 +84,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         settings = _settings;
         issuancePerBlock = _issuancePerBlock;
         minimumDeploymentBooster = _minimumDeploymentBooster;
+    }
+
+    function setTokenApproval() external onlyOwner {
+        IERC20(settings.getContractAddress(SQContracts.SQToken))
+            .approve(ISettings(settings).getContractAddress(SQContracts.RewardsDistributer), MAX_UINT256);
     }
 
     /**
@@ -398,7 +404,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         for (uint256 i = 0; i < _indexers.length; i++) {
             DeploymentPool storage deployment = deploymentPools[_deploymentIds[i]];
             IndexerDeploymentReward storage indexerDeplReward = deployment.indexerAllocationRewards[_indexers[i]];
-//            uint256 allocationId = deployment.indexerAllocations[_indexers[i]];
             indexerDeplReward.missedLaborTime = _missedLabors[i];
             emit MissedLabor(_deploymentIds[i], _indexers[i], _missedLabors[i]);
         }
@@ -431,10 +436,16 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         sa.overflowClear(_indexer, _deploymentId);
         indexerDeplReward.lastClaimedAt = block.timestamp;
 
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, reward);
+        address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
+        IRewardsDistributer rewardsDistributer = IRewardsDistributer(ISettings(settings).getContractAddress(SQContracts.RewardsDistributer));
+        IEraManager eraManager = IEraManager(ISettings(settings).getContractAddress(SQContracts.EraManager));
+//        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(treasury, msg.sender, reward);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(treasury, address(this), reward);
+        rewardsDistributer.addInstantRewards(_indexer, address(this), reward, eraManager.safeUpdateAndGetEra());
+        emit AllocationRewardsGiven(_deploymentId, _indexer, reward);
         if (burnt > 0) {
-            address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(treasury, burnt);
+//            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(treasury, treasury, burnt);
+             emit AllocationRewardsBurnt(_deploymentId, _indexer, burnt);
         }
     }
 

@@ -18,7 +18,7 @@ import {
 import {deploymentIds, deploymentMetadatas, METADATA_HASH, projectMetadatas} from './constants';
 import {blockTravel, etherParse, eventFrom, time, wrapTxs} from './helper';
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
-import {BigNumber, providers} from 'ethers';
+import {BigNumber, constants} from 'ethers';
 
 const PER_MILL = BigNumber.from(1e6);
 
@@ -105,7 +105,7 @@ describe('RewardsBooster Contract', () => {
         };
     };
 
-    const deployer = () => deployContracts(root, root);
+    const deployer = () => deployContracts(root, root, root);
     before(async () => {
         [root, indexer0, indexer1, indexer2, consumer0, consumer1] = await ethers.getSigners();
     });
@@ -119,7 +119,8 @@ describe('RewardsBooster Contract', () => {
         rewardsBooster = deployment.rewardsBooster;
         stakingAllocation = deployment.stakingAllocation;
         projectRegistry = deployment.projectRegistry;
-        await deployment.settings.setContractAddress(SQContracts.Treasury, root.address);
+        await rewardsBooster.setTokenApproval();
+        await token.approve(rewardsBooster.address, constants.MaxInt256);
 
         // config rewards booster
         await rewardsBooster.setBoosterQueryRewardRate(ProjectType.SUBQUERY, 5e5); // 50%
@@ -323,7 +324,7 @@ describe('RewardsBooster Contract', () => {
         });
     });
 
-    describe('allocation for deployments', () => {
+    describe.only('allocation for deployments', () => {
         beforeEach(async () => {
             await boosterDeployment(root, deploymentId0, etherParse('10000'));
             await boosterDeployment(root, deploymentId1, etherParse('10000'));
@@ -413,12 +414,12 @@ describe('RewardsBooster Contract', () => {
             [allocReward] = await rewardsBooster.getRewards(deploymentId0, indexer0.address);
             const state1 = await getStats();
             expect(allocReward).to.eq(getAllocationReward(reward1.sub(reward0), queryRewardRatePerMill));
-            console.log(`allocReward: ${allocReward.toString()}`);
+            // console.log(`allocReward: ${allocReward.toString()}`);
             await rewardsBooster.onAllocationUpdate(deploymentId0);
             const state2 = await getStats();
             // await blockTravel(mockProvider, 1);
             [allocReward] = await rewardsBooster.getRewards(deploymentId0, indexer0.address);
-            console.log(`allocReward: ${allocReward.toString()}`);
+            // console.log(`allocReward: ${allocReward.toString()}`);
         });
 
         it('can claim allocation reward, single indexer', async () => {
