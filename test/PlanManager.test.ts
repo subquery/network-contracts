@@ -293,8 +293,9 @@ describe('PlanManger Contract', () => {
                 'G019'
             );
             // inactive planTemplate
+            await eraManager.disableMaintenance();
             await planManager.updatePlanTemplateStatus(0, false);
-            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
+            await expect(planManager.acceptPlan(1, deploymentIds[1])).to.be.revertedWith(
                 'PM006'
             );
         });
