@@ -78,7 +78,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     /// @notice Emitted when deposit more amount to the channel
     event ChannelFund(uint256 indexed channelId, uint256 total);
     /// @notice Emitted when indexer send a checkpoint to claim the part-amount
-    event ChannelCheckpoint(uint256 indexed channelId, uint256 spent);
+    event ChannelCheckpoint(uint256 indexed channelId, uint256 spent, bool isFinal);
     /// @notice Emitted when consumer start a terminate on channel to finalize in advance
     event ChannelTerminate(uint256 indexed channelId, uint256 spent, uint256 terminatedAt, bool terminateByIndexer);
     /// @notice Emitted when finalize the channel
@@ -275,7 +275,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
 
-        emit ChannelCheckpoint(query.channelId, query.spent);
+        emit ChannelCheckpoint(query.channelId, query.spent, query.isFinal);
 
         // update channel state
         _settlement(query, false);
