@@ -119,7 +119,6 @@ describe('RewardsBooster Contract', () => {
         rewardsBooster = deployment.rewardsBooster;
         stakingAllocation = deployment.stakingAllocation;
         projectRegistry = deployment.projectRegistry;
-        await rewardsBooster.setTokenApproval();
         await token.approve(rewardsBooster.address, constants.MaxInt256);
 
         // config rewards booster
@@ -324,7 +323,7 @@ describe('RewardsBooster Contract', () => {
         });
     });
 
-    describe.only('allocation for deployments', () => {
+    describe('allocation for deployments', () => {
         beforeEach(async () => {
             await boosterDeployment(root, deploymentId0, etherParse('10000'));
             await boosterDeployment(root, deploymentId1, etherParse('10000'));

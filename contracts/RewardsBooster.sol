@@ -86,11 +86,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         minimumDeploymentBooster = _minimumDeploymentBooster;
     }
 
-    function setTokenApproval() external onlyOwner {
-        IERC20(settings.getContractAddress(SQContracts.SQToken))
-            .approve(ISettings(settings).getContractAddress(SQContracts.RewardsDistributer), MAX_UINT256);
-    }
-
     /**
      * @notice update the settings
      * @param _settings settings contract address
@@ -440,12 +435,15 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         IRewardsDistributer rewardsDistributer = IRewardsDistributer(ISettings(settings).getContractAddress(SQContracts.RewardsDistributer));
         IEraManager eraManager = IEraManager(ISettings(settings).getContractAddress(SQContracts.EraManager));
 //        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(treasury, msg.sender, reward);
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(treasury, address(this), reward);
+        IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
+        sqToken.safeTransferFrom(treasury, address(this), reward);
+        sqToken.safeIncreaseAllowance(address(rewardsDistributer), reward);
         rewardsDistributer.addInstantRewards(_indexer, address(this), reward, eraManager.safeUpdateAndGetEra());
         emit AllocationRewardsGiven(_deploymentId, _indexer, reward);
         if (burnt > 0) {
 //            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(treasury, treasury, burnt);
-             emit AllocationRewardsBurnt(_deploymentId, _indexer, burnt);
+            // since rewards is pulled from treasury, and burn returns rewards to treasury, we don't need to do anything here
+            emit AllocationRewardsBurnt(_deploymentId, _indexer, burnt);
         }
     }
 
