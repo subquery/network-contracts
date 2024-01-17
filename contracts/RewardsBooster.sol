@@ -552,37 +552,49 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     /**
      * FIXME: for testing purpose
      */
-    function spendQueryRewards(bytes32 _deploymentId, uint256 _amount) external {
-        address spender = msg.sender;
-        require(getQueryRewards(_deploymentId, spender) >= _amount, "no enough query rewards");
-        DeploymentPool storage deployment = deploymentPools[_deploymentId];
-        BoosterQueryReward storage boosterQueryRewards = deployment.boosterQueryRewards[spender];
-        boosterQueryRewards.spentQueryRewards += _amount;
-
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, _amount);
-    }
+//    function spendQueryRewards(bytes32 _deploymentId, address _spender, uint256 _amount) external {
+//        address spender = msg.sender;
+//        require(getQueryRewards(_deploymentId, spender) >= _amount, "no enough query rewards");
+//        DeploymentPool storage deployment = deploymentPools[_deploymentId];
+//        BoosterQueryReward storage boosterQueryRewards = deployment.boosterQueryRewards[spender];
+//        boosterQueryRewards.spentQueryRewards += _amount;
+//
+//        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, _amount);
+//    }
 
     function getBoosterQueryRewards(bytes32 _deploymentId, address _account) view external returns (BoosterQueryReward memory)  {
         return deploymentPools[_deploymentId].boosterQueryRewards[_account];
     }
 
-    function spendQueryRewards(address _indexer, uint256 amount) external returns (uint256) {
+    function spendQueryRewards(bytes32 _deploymentId, address _spender, uint256 _amount) external returns (uint256) {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB01');
+        uint256 queryRewards = getQueryRewards(_deploymentId, _spender);
+//        require(queryRewards >= _amount, "no enough query rewards");
 
         // TODO check balance & amount
-        uint256 balance = IERC20(settings.getContractAddress(SQContracts.SQToken)).balanceOf(address(this)); // MOCK
-        if (balance < amount) {
-            amount = balance;
+//        uint256 balance = IERC20(settings.getContractAddress(SQContracts.SQToken)).balanceOf(address(this)); // MOCK
+        if (queryRewards < _amount) {
+            _amount = queryRewards;
         }
-
+        DeploymentPool storage deployment = deploymentPools[_deploymentId];
+        BoosterQueryReward storage boosterQueryRewards = deployment.boosterQueryRewards[_spender];
+        boosterQueryRewards.spentQueryRewards += _amount;
+        // pull rewards
+        IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
+        sqToken.safeTransferFrom(ISettings(settings).getContractAddress(SQContracts.Treasury), address(this), _amount);
         // Allowance
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(msg.sender, amount);
-
-        return amount;
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(msg.sender, _amount);
+        return _amount;
     }
 
-    function refundQueryRewards(address _indexer, uint256 amount) external {
+    function refundQueryRewards(bytes32 _deploymentId, address _spender, uint256 _amount) external {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB01');
-        // TODO
+
+        DeploymentPool storage deployment = deploymentPools[_deploymentId];
+        BoosterQueryReward storage boosterQueryRewards = deployment.boosterQueryRewards[_spender];
+        require(boosterQueryRewards.spentQueryRewards >= _amount, "RB02");
+        boosterQueryRewards.spentQueryRewards -= _amount;
+
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(ISettings(settings).getContractAddress(SQContracts.Treasury), _amount);
     }
 }
