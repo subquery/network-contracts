@@ -1,16 +1,28 @@
 // Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { expect } from 'chai';
-import { BigNumber, BigNumberish, BytesLike, Wallet } from 'ethers';
-import { ethers, waffle } from 'hardhat';
-import { EraManager, IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsPool, ERC20, Staking, StateChannel } from '../src';
-import { deploymentIds } from './constants';
-import { delay, etherParse, eventFrom, eventsFrom, registerIndexer, startNewEra, time } from './helper';
-import { deployContracts } from './setup';
+import {expect} from 'chai';
+import {BigNumber, BigNumberish, BytesLike, Wallet} from 'ethers';
+import {ethers, waffle} from 'hardhat';
+import {
+    EraManager,
+    IndexerRegistry,
+    RewardsDistributer,
+    RewardsHelper,
+    RewardsPool,
+    ERC20,
+    Staking,
+    StateChannel,
+    RewardsBooster,
+} from '../src';
+import {deploymentIds} from './constants';
+import {delay, etherParse, eventFrom, eventsFrom, registerIndexer, startNewEra, time} from './helper';
+import {deployContracts} from './setup';
 
 describe('StateChannel Contract', () => {
     const deploymentId = deploymentIds[0];
+    const defaultChannelId = ethers.utils.randomBytes(32);
+
     let wallet_0, indexer, consumer, indexer2, indexer3, treasury;
 
     let token: ERC20;
@@ -20,6 +32,7 @@ describe('StateChannel Contract', () => {
     let rewardsDistributor: RewardsDistributer;
     let rewardsHelper: RewardsHelper;
     let rewardsPool: RewardsPool;
+    let rewardsBooster: RewardsBooster;
     let stateChannel: StateChannel;
 
     const openChannel = async (
@@ -115,8 +128,8 @@ describe('StateChannel Contract', () => {
         };
     };
 
-    const deployer = ()=>deployContracts(wallet_0, indexer, treasury);
-    before(async ()=>{
+    const deployer = () => deployContracts(wallet_0, indexer, treasury);
+    before(async () => {
         [wallet_0, indexer, consumer, indexer2, indexer3, treasury] = await ethers.getSigners();
     });
 
@@ -128,6 +141,7 @@ describe('StateChannel Contract', () => {
         rewardsDistributor = deployment.rewardsDistributer;
         rewardsHelper = deployment.rewardsHelper;
         rewardsPool = deployment.rewardsPool;
+        rewardsBooster = deployment.rewardsBooster;
         eraManager = deployment.eraManager;
         stateChannel = deployment.stateChannel;
     });
@@ -232,6 +246,38 @@ describe('StateChannel Contract', () => {
         });
     });
 
+    describe('State Channel Rewards Fund', () => {
+        beforeEach(async () => {
+            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '2000');
+            await token.connect(wallet_0).transfer(consumer.address, etherParse('5'));
+            await token.connect(consumer).increaseAllowance(stateChannel.address, etherParse('5'));
+
+            await openChannel(defaultChannelId, indexer, consumer, etherParse('1'), etherParse('1'), 60);
+            expect((await stateChannel.channel(defaultChannelId)).realTotal).to.equal(etherParse('1'));
+            expect((await stateChannel.channel(defaultChannelId)).total).to.equal(etherParse('1'));
+
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('4'));
+
+            await token.connect(wallet_0).transfer(rewardsBooster.address, etherParse('5'));
+            await stateChannel.connect(consumer).fundRewards(defaultChannelId, etherParse('1'));
+            expect((await stateChannel.channel(defaultChannelId)).realTotal).to.equal(etherParse('1'));
+            expect((await stateChannel.channel(defaultChannelId)).total).to.equal(etherParse('2'));
+        });
+
+        it('spent more than rewards', async () => {
+            const query = await buildQueryState(defaultChannelId, indexer, consumer, etherParse('1.5'), true);
+            await stateChannel.checkpoint(query);
+            expect((await stateChannel.channel(defaultChannelId)).status).to.equal(0);
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('4.5'));
+        });
+        it('spent less than rewards', async () => {
+            const query = await buildQueryState(defaultChannelId, indexer, consumer, etherParse('0.5'), true);
+            await stateChannel.checkpoint(query);
+            expect((await stateChannel.channel(defaultChannelId)).status).to.equal(0);
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('5'));
+        });
+    });
+
     describe('State Channel Terminate', () => {
         beforeEach(async () => {
             await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '2000');
@@ -283,7 +329,7 @@ describe('StateChannel Contract', () => {
             const balance2 = await token.balanceOf(consumer.address);
             expect(balance2).to.equal(etherParse('4.9'));
 
-            await startNewEra(waffle.provider, eraManager)
+            await startNewEra(waffle.provider, eraManager);
             await rewardsHelper.connect(indexer).indexerCatchup(indexer.address);
             const indexerReward = await rewardsDistributor.userRewards(indexer.address, indexer.address);
 
@@ -367,13 +413,20 @@ describe('StateChannel Contract', () => {
             await stateChannel.setTerminateExpiration(5); // 5s
             const channelId = ethers.utils.randomBytes(32);
             const balanceBefore = await token.balanceOf(consumer.address);
-            await openChannel(channelId, indexer, consumer, etherParse('1'), etherParse('0.1'), time.duration.days(5).toNumber());
+            await openChannel(
+                channelId,
+                indexer,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                time.duration.days(5).toNumber()
+            );
             let balanceAfter = await token.balanceOf(consumer.address);
             expect(balanceBefore.sub(balanceAfter)).to.eq(etherParse('1'));
             const query1 = await buildQueryState(channelId, indexer, consumer, etherParse('0.4'), false);
 
             await indexerRegistry.connect(indexer).unregisterIndexer();
-            await startNewEra(waffle.provider, eraManager)
+            await startNewEra(waffle.provider, eraManager);
             // unregister take effect, indexer's stake becomes 0
             // terminate should work, reward goes to pool, but indexer's labor is marked 0
             await stateChannel.connect(indexer).terminate(query1);
@@ -384,9 +437,9 @@ describe('StateChannel Contract', () => {
 
             // start new era so we can try collect the channel reward
             const era = await startNewEra(waffle.provider, eraManager);
-            const unclaimed = await rewardsPool.getUnclaimDeployments(era.toNumber()-1, indexer.address);
+            const unclaimed = await rewardsPool.getUnclaimDeployments(era.toNumber() - 1, indexer.address);
             expect(unclaimed).to.be.empty;
-            const reward = await rewardsPool.getReward(deploymentId,era.toNumber()-1, indexer.address);
+            const reward = await rewardsPool.getReward(deploymentId, era.toNumber() - 1, indexer.address);
             expect(reward[0]).to.be.eq(0);
             expect(reward[1]).to.be.eq(etherParse('0.4'));
 
@@ -404,15 +457,29 @@ describe('StateChannel Contract', () => {
             const channelId = ethers.utils.randomBytes(32);
             const channelId2 = ethers.utils.randomBytes(32);
             const balanceBefore = await token.balanceOf(consumer.address);
-            await openChannel(channelId, indexer, consumer, etherParse('1'), etherParse('0.1'), time.duration.days(5).toNumber());
-            await openChannel(channelId2, indexer2, consumer, etherParse('1'), etherParse('0.1'), time.duration.days(5).toNumber());
+            await openChannel(
+                channelId,
+                indexer,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                time.duration.days(5).toNumber()
+            );
+            await openChannel(
+                channelId2,
+                indexer2,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                time.duration.days(5).toNumber()
+            );
             let balanceAfter = await token.balanceOf(consumer.address);
             expect(balanceBefore.sub(balanceAfter)).to.eq(etherParse('2'));
             const query1 = await buildQueryState(channelId, indexer, consumer, etherParse('0.4'), false);
             const query2 = await buildQueryState(channelId2, indexer2, consumer, etherParse('0.3'), false);
 
             await indexerRegistry.connect(indexer).unregisterIndexer();
-            await startNewEra(waffle.provider, eraManager)
+            await startNewEra(waffle.provider, eraManager);
             // unregister take effect, indexer's stake becomes 0
             // terminate should work, reward goes to pool, but indexer's labor is marked 0
             await stateChannel.connect(indexer).terminate(query1);
@@ -427,13 +494,13 @@ describe('StateChannel Contract', () => {
             await rewardsHelper.connect(indexer).indexerCatchup(indexer.address);
             const tx = await rewardsHelper.connect(indexer2).indexerCatchup(indexer2.address);
             const evts = await eventsFrom(tx, token, 'Transfer(address,address,uint256)');
-            const burn = evts.find(evt=>evt.to==='0x0000000000000000000000000000000000000000');
+            const burn = evts.find((evt) => evt.to === '0x0000000000000000000000000000000000000000');
             expect(burn).to.be.undefined;
             const indexerReward = await rewardsDistributor.userRewards(indexer.address, indexer.address);
             expect(indexerReward).to.eq(0);
             const indexerReward2 = await rewardsDistributor.userRewards(indexer2.address, indexer2.address);
             expect(indexerReward2).to.be.eq(etherParse('0.7'));
-            const reward2 = await rewardsPool.getReward(deploymentId,era.toNumber()-1, indexer2.address);
+            const reward2 = await rewardsPool.getReward(deploymentId, era.toNumber() - 1, indexer2.address);
             expect(reward2[0]).to.eq(0);
             expect(reward2[1]).to.eq(0);
         });
@@ -448,9 +515,30 @@ describe('StateChannel Contract', () => {
             const channelId2 = ethers.utils.randomBytes(32);
             const channelId3 = ethers.utils.randomBytes(32);
             const balanceBefore = await token.balanceOf(consumer.address);
-            await openChannel(channelId, indexer, consumer, etherParse('1'), etherParse('0.1'), time.duration.days(5).toNumber());
-            await openChannel(channelId2, indexer2, consumer, etherParse('1'), etherParse('0.1'), time.duration.days(5).toNumber());
-            await openChannel(channelId3, indexer3, consumer, etherParse('1'), etherParse('0.1'), time.duration.days(5).toNumber());
+            await openChannel(
+                channelId,
+                indexer,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                time.duration.days(5).toNumber()
+            );
+            await openChannel(
+                channelId2,
+                indexer2,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                time.duration.days(5).toNumber()
+            );
+            await openChannel(
+                channelId3,
+                indexer3,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                time.duration.days(5).toNumber()
+            );
             let balanceAfter = await token.balanceOf(consumer.address);
             expect(balanceBefore.sub(balanceAfter)).to.eq(etherParse('3'));
             const query1 = await buildQueryState(channelId, indexer, consumer, etherParse('0.4'), false);
@@ -458,7 +546,7 @@ describe('StateChannel Contract', () => {
             const query3 = await buildQueryState(channelId3, indexer3, consumer, etherParse('0.3'), false);
 
             await indexerRegistry.connect(indexer).unregisterIndexer();
-            await startNewEra(waffle.provider, eraManager)
+            await startNewEra(waffle.provider, eraManager);
             // unregister take effect, indexer's stake becomes 0
             // terminate should work, reward goes to pool, but indexer's labor is marked 0
             await stateChannel.connect(indexer).terminate(query1);
@@ -477,7 +565,7 @@ describe('StateChannel Contract', () => {
             await rewardsHelper.connect(indexer).indexerCatchup(indexer.address);
 
             const evts = await eventsFrom(tx2, token, 'Transfer(address,address,uint256)');
-            const fee = evts.find(evt=>evt.to===treasury.address);
+            const fee = evts.find((evt) => evt.to === treasury.address);
             const indexerReward = await rewardsDistributor.userRewards(indexer.address, indexer.address);
             expect(indexerReward).to.eq(0);
             const indexerReward2 = await rewardsDistributor.userRewards(indexer2.address, indexer2.address);
@@ -485,10 +573,10 @@ describe('StateChannel Contract', () => {
             // due to math in the rewardDistributor, we will lose some token as deviation
             const deviation = 1e10;
             expect(etherParse('1').sub(indexerReward2).sub(indexerReward3).sub(fee.value)).to.lt(deviation);
-            const reward2 = await rewardsPool.getReward(deploymentId,era.toNumber()-1, indexer2.address);
+            const reward2 = await rewardsPool.getReward(deploymentId, era.toNumber() - 1, indexer2.address);
             expect(reward2[0]).to.eq(0);
             expect(reward2[1]).to.eq(0);
-            const reward3 = await rewardsPool.getReward(deploymentId,era.toNumber()-1, indexer3.address);
+            const reward3 = await rewardsPool.getReward(deploymentId, era.toNumber() - 1, indexer3.address);
             expect(reward3[0]).to.eq(0);
             expect(reward3[1]).to.eq(0);
         });

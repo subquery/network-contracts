@@ -277,9 +277,9 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         }
 
         // TODO: transfer the balance to contract
-        IRewardsBooster rb = IRewardsBooster(settings.getContractAddress(SQContracts.RewardsBooster));
-        // rb.spent(consumer, amount);
-        // IERC20().safeTransferFrom(consumer, address(this), amount);
+        address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
+        IRewardsBooster(rbAddress).spent(consumer, amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(rbAddress, address(this), amount);
 
         channels[channelId].total += amount;
 
