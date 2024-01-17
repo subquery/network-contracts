@@ -218,7 +218,7 @@ describe('RewardsBooster Contract', () => {
                 const reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
                 expect(queryReward).to.eq(getQueryReward(reward0, queryRewardRatePerMill));
                 // spend query rewards
-                const tx = await rewardsBooster.connect(consumer0).spendQueryRewards(deploymentId3, queryReward);
+                const tx = await rewardsBooster.connect(consumer0).spendQueryRewards(deploymentId3, consumer0.address, queryReward);
                 const {value: spent} = await eventFrom(tx, token, 'Transfer(address,address,uint256)');
                 const queryReward1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
                 const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
