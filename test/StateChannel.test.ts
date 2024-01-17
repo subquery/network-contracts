@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import {expect} from 'chai';
-import {BigNumber, BigNumberish, BytesLike, Wallet} from 'ethers';
+import { BigNumber, BigNumberish, BytesLike, constants, Wallet } from 'ethers';
 import {ethers, waffle} from 'hardhat';
+import {deployContracts} from './setup';
 import {
     EraManager,
     IndexerRegistry,
@@ -13,11 +14,20 @@ import {
     ERC20,
     Staking,
     StateChannel,
-    RewardsBooster,
+    RewardsBooster, ProjectType, ProjectRegistry,
 } from '../src';
-import {deploymentIds} from './constants';
-import {delay, etherParse, eventFrom, eventsFrom, registerIndexer, startNewEra, time} from './helper';
-import {deployContracts} from './setup';
+import { deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
+import {
+    blockTravel,
+    delay,
+    etherParse,
+    eventFrom,
+    eventsFrom,
+    registerIndexer,
+    startNewEra,
+    time
+} from './helper';
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 describe('StateChannel Contract', () => {
     const deploymentId = deploymentIds[0];
@@ -34,6 +44,7 @@ describe('StateChannel Contract', () => {
     let rewardsPool: RewardsPool;
     let rewardsBooster: RewardsBooster;
     let stateChannel: StateChannel;
+    let projectRegistry: ProjectRegistry;
 
     const openChannel = async (
         channelId: Uint8Array,
@@ -128,6 +139,17 @@ describe('StateChannel Contract', () => {
         };
     };
 
+    const boosterDeployment = async (signer: SignerWithAddress, deployment: string, amount) => {
+        await token.connect(signer).increaseAllowance(rewardsBooster.address, amount);
+        await rewardsBooster.connect(signer).boostDeployment(deployment, amount);
+    };
+
+    const createProject = (wallet, projectMetadata, deploymentMetadata, deploymentId, projectType: ProjectType) => {
+        return projectRegistry
+            .connect(wallet)
+            .createProject(projectMetadata, deploymentMetadata, deploymentId, projectType);
+    };
+
     const deployer = () => deployContracts(wallet_0, indexer, treasury);
     before(async () => {
         [wallet_0, indexer, consumer, indexer2, indexer3, treasury] = await ethers.getSigners();
@@ -144,6 +166,12 @@ describe('StateChannel Contract', () => {
         rewardsBooster = deployment.rewardsBooster;
         eraManager = deployment.eraManager;
         stateChannel = deployment.stateChannel;
+        projectRegistry = deployment.projectRegistry;
+
+        // createProject
+        await createProject(wallet_0, projectMetadatas[0], deploymentMetadatas[0], deploymentIds[0], ProjectType.SUBQUERY);
+        await rewardsBooster.setBoosterQueryRewardRate(ProjectType.SUBQUERY, 5e5); // 50%
+        await token.connect(treasury).approve(rewardsBooster.address, constants.MaxInt256);
     });
 
     describe('State Channel Config', () => {
@@ -247,17 +275,25 @@ describe('StateChannel Contract', () => {
     });
 
     describe('State Channel Rewards Fund', () => {
+        const consumerInit = etherParse(20000);
         beforeEach(async () => {
             await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '2000');
-            await token.connect(wallet_0).transfer(consumer.address, etherParse('5'));
+            await token.connect(wallet_0).transfer(treasury.address, etherParse(100000));
+            await token.connect(wallet_0).transfer(consumer.address, consumerInit);
             await token.connect(consumer).increaseAllowance(stateChannel.address, etherParse('5'));
             await token.connect(wallet_0).transfer(rewardsBooster.address, etherParse('5'));
 
-            await openChannel(defaultChannelId, indexer, consumer, etherParse('1'), etherParse('1'), 60);
+            await openChannel(defaultChannelId, indexer, consumer, etherParse('1'), etherParse('1'), time.duration.days(1).toString());
             expect((await stateChannel.channel(defaultChannelId)).realTotal).to.equal(etherParse('1'));
             expect((await stateChannel.channel(defaultChannelId)).total).to.equal(etherParse('1'));
-            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('4'));
+            expect(await token.balanceOf(consumer.address)).to.equal(consumerInit.sub(1));
 
+            await boosterDeployment(consumer, deploymentId, etherParse(10000));
+        });
+
+        it('can spend from query rewards', async ()=>{
+            await blockTravel(waffle.provider, 1000);
+            const queryRewards = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
             const abi = ethers.utils.defaultAbiCoder;
             const msg = abi.encode(
                 ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
@@ -269,7 +305,7 @@ describe('StateChannel Contract', () => {
 
             expect((await stateChannel.channel(defaultChannelId)).realTotal).to.equal(etherParse('1'));
             expect((await stateChannel.channel(defaultChannelId)).total).to.equal(etherParse('2'));
-        });
+        })
 
         it('spent more than rewards', async () => {
             const query = await buildQueryState(defaultChannelId, indexer, consumer, etherParse('1.5'), true);
