@@ -119,7 +119,6 @@ describe('RewardsBooster Contract', () => {
         rewardsBooster = deployment.rewardsBooster;
         stakingAllocation = deployment.stakingAllocation;
         projectRegistry = deployment.projectRegistry;
-        await rewardsBooster.setTokenApproval();
         await token.approve(rewardsBooster.address, constants.MaxInt256);
 
         // config rewards booster
@@ -324,7 +323,7 @@ describe('RewardsBooster Contract', () => {
         });
     });
 
-    describe.only('allocation for deployments', () => {
+    describe('allocation for deployments', () => {
         beforeEach(async () => {
             await boosterDeployment(root, deploymentId0, etherParse('10000'));
             await boosterDeployment(root, deploymentId1, etherParse('10000'));
@@ -543,20 +542,26 @@ describe('RewardsBooster Contract', () => {
                 .connect(indexer0)
                 .addAllocation(deploymentId3, indexer0.address, etherParse('2000'));
             const {value: collectedRewardsI0} = await eventFrom(tx, token, 'Transfer(address,address,uint256)');
-            await blockTravel(mockProvider, 299);
+            await blockTravel(mockProvider, 199);
             await wrapTxs(mockProvider, async () => {
                 await boosterDeployment(consumer0, deploymentId3, etherParse('20000'));
             });
-            await blockTravel(mockProvider, 500);
+            await blockTravel(mockProvider, 600);
             // verify results
+            // for allocation
             // first 1200: indexer0 : indexer1 = 6:6
             // next 800: indexer0 : indexer1 = 6:2
             // indexer0 : indexer 1 = 12:8
             const [allocReward2I0] = await rewardsBooster.getRewards(deploymentId3, indexer0.address);
             const [allocReward2I1] = await rewardsBooster.getRewards(deploymentId3, indexer1.address);
+            expect(collectedRewardsI0.add(allocReward2I0).mul(8)).to.eq(allocReward2I1.mul(12));
+            // for query rewards
+            // first 1400: consumer0:consumer1 = 7:7
+            // next 600: consumer0 : consumer 1 4.5:1.5
+            // consumer0 : consumer 1 = 11.5 : 8.5 = 23 : 17
             const queryReward2C0 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
             const queryReward2C1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer1.address);
-            expect(collectedRewardsI0.add(allocReward2I0).mul(8)).to.eq(allocReward2I1.mul(12));
+            expect(queryReward2C0.mul(17)).to.eq(queryReward2C1.mul(23));
         });
     });
 });

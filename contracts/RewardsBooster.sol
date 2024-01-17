@@ -66,6 +66,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     // --------- allocation end
 
     /// @notice ### EVENTS
+    event ParameterUpdated(string param);
+    //
     event DeploymentBoosterAdded(bytes32 indexed deploymentId, address indexed account, uint256 amount);
     event DeploymentBoosterRemoved(bytes32 indexed deploymentId, address indexed account, uint256 amount);
     /// @notice Emitted when add Labor(reward) for current era pool
@@ -86,11 +88,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         minimumDeploymentBooster = _minimumDeploymentBooster;
     }
 
-    function setTokenApproval() external onlyOwner {
-        IERC20(settings.getContractAddress(SQContracts.SQToken))
-            .approve(ISettings(settings).getContractAddress(SQContracts.RewardsDistributer), MAX_UINT256);
-    }
-
     /**
      * @notice update the settings
      * @param _settings settings contract address
@@ -102,6 +99,20 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     function setBoosterQueryRewardRate(ProjectType _type, uint256 _rate) external onlyOwner {
         require(_rate < PER_MILL, "invalid boosterQueryRewardRate");
         boosterQueryRewardRate[_type] = _rate;
+    }
+
+    /**
+     * @notice Sets the token issuance per block.
+     * The issuance is defined as a fixed amount of rewards per block in SQT.
+     * Whenever this function is called in child chain, the inflation rate also need to update from root chain
+     * @param _issuancePerBlock Issuance expressed in SQT per block (scaled by 1e18)
+     */
+    function setIssuancePerBlock(uint256 _issuancePerBlock) external override onlyOwner {
+        // Called since `issuance per block` will change
+        updateAccRewardsPerBooster();
+
+        issuancePerBlock = _issuancePerBlock;
+        emit ParameterUpdated("issuancePerBlock");
     }
 
     /**
@@ -324,7 +335,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         boosterQueryReward.accQueryRewards = getAccQueryRewards(_deploymentId, _account);// getAccQueryRewards(_deploymentId, _account);
         boosterQueryReward.accQueryRewardsPerBoosterSnapshot = accQueryRewardsPerBooster;
         deployment.accQueryRewardsPerBooster = accQueryRewardsPerBooster;
-        deployment.accQueryRewardsForDeploymentSnapshot = accRewardsForDeploymentSnapshot;
+        // also update perAllocatedToken
+        (uint256 accRewardsPerAllocatedToken,) = getAccRewardsPerAllocatedToken(_deploymentId);
+        deployment.accRewardsPerAllocatedToken = accRewardsPerAllocatedToken;
+        // end
+        deployment.accRewardsForDeploymentSnapshot = accRewardsForDeploymentSnapshot;
 
         return deployment.accRewardsForDeployment;
     }
@@ -347,6 +362,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             uint256 accRewardsForDeployment
         ) = getAccRewardsPerAllocatedToken(_deploymentId);
         deployment.accRewardsPerAllocatedToken = accRewardsPerAllocatedToken;
+        // also update for booster
+        (uint256 accQueryRewardsPerBooster,) = getAccQueryRewardsPerBooster(_deploymentId);
+        deployment.accQueryRewardsPerBooster = accQueryRewardsPerBooster;
+        // end
         deployment.accRewardsForDeploymentSnapshot = accRewardsForDeployment;
         return deployment.accRewardsPerAllocatedToken;
     }
@@ -440,12 +459,15 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         IRewardsDistributer rewardsDistributer = IRewardsDistributer(ISettings(settings).getContractAddress(SQContracts.RewardsDistributer));
         IEraManager eraManager = IEraManager(ISettings(settings).getContractAddress(SQContracts.EraManager));
 //        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(treasury, msg.sender, reward);
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(treasury, address(this), reward);
+        IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
+        sqToken.safeTransferFrom(treasury, address(this), reward);
+        sqToken.safeIncreaseAllowance(address(rewardsDistributer), reward);
         rewardsDistributer.addInstantRewards(_indexer, address(this), reward, eraManager.safeUpdateAndGetEra());
         emit AllocationRewardsGiven(_deploymentId, _indexer, reward);
         if (burnt > 0) {
 //            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(treasury, treasury, burnt);
-             emit AllocationRewardsBurnt(_deploymentId, _indexer, burnt);
+            // since rewards is pulled from treasury, and burn returns rewards to treasury, we don't need to do anything here
+            emit AllocationRewardsBurnt(_deploymentId, _indexer, burnt);
         }
     }
 
@@ -463,7 +485,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 //        );
         uint256 newRewardsForDeployment = MathUtil.diffOrZero(
             accRewardsForDeployment,
-            deployment.accQueryRewardsForDeploymentSnapshot
+            deployment.accRewardsForDeploymentSnapshot
         );
 //        console.log(
 //            "3)newRewardsForDeployment %s",

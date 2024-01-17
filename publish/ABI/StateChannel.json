@@ -13,6 +13,12 @@
                 "internalType": "uint256",
                 "name": "spent",
                 "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "bool",
+                "name": "isFinal",
+                "type": "bool"
             }
         ],
         "name": "ChannelCheckpoint",
