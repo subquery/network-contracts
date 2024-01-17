@@ -25,7 +25,6 @@ interface IRewardsBooster {
         uint256 accRewardsPerAllocatedToken;
         // update when booster changed, used to calc query booster rewards
         uint256 accQueryRewardsPerBooster;
-        uint256 accQueryRewardsForDeploymentSnapshot;
     }
 
     struct BoosterQueryReward {
@@ -42,6 +41,8 @@ interface IRewardsBooster {
         uint256 accRewardsPerToken;
         uint256 lastClaimedAt;
     }
+
+    function setIssuancePerBlock(uint256 _issuancePerBlock) external;
 
     function getNewRewardsPerBooster() external view returns (uint256);
 
