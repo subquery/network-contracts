@@ -544,12 +544,23 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         return deploymentPools[_deploymentId].boosterQueryRewards[_account];
     }
 
-    function spent(address _indexer, uint256 amount) external {
+    function spendQueryRewards(address _indexer, uint256 amount) external returns (uint256) {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB01');
 
         // TODO check balance & amount
+        uint256 balance = IERC20(settings.getContractAddress(SQContracts.SQToken)).balanceOf(address(this)); // MOCK
+        if (balance < amount) {
+            amount = balance;
+        }
 
         // Allowance
         IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(msg.sender, amount);
+
+        return amount;
+    }
+
+    function refundQueryRewards(address _indexer, uint256 amount) external {
+        require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB01');
+        // TODO
     }
 }

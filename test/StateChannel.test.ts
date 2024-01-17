@@ -251,15 +251,22 @@ describe('StateChannel Contract', () => {
             await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '2000');
             await token.connect(wallet_0).transfer(consumer.address, etherParse('5'));
             await token.connect(consumer).increaseAllowance(stateChannel.address, etherParse('5'));
+            await token.connect(wallet_0).transfer(rewardsBooster.address, etherParse('5'));
 
             await openChannel(defaultChannelId, indexer, consumer, etherParse('1'), etherParse('1'), 60);
             expect((await stateChannel.channel(defaultChannelId)).realTotal).to.equal(etherParse('1'));
             expect((await stateChannel.channel(defaultChannelId)).total).to.equal(etherParse('1'));
-
             expect(await token.balanceOf(consumer.address)).to.equal(etherParse('4'));
 
-            await token.connect(wallet_0).transfer(rewardsBooster.address, etherParse('5'));
-            await stateChannel.connect(consumer).fundRewards(defaultChannelId, etherParse('1'));
+            const abi = ethers.utils.defaultAbiCoder;
+            const msg = abi.encode(
+                ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
+                [defaultChannelId, indexer.address, consumer.address, etherParse('1'), etherParse('1'), '0x']
+            );
+            let payload = ethers.utils.keccak256(msg);
+            let sign = await consumer.signMessage(ethers.utils.arrayify(payload));
+            await stateChannel.fund(defaultChannelId, etherParse('1'), etherParse('1'), '0x', sign);
+
             expect((await stateChannel.channel(defaultChannelId)).realTotal).to.equal(etherParse('1'));
             expect((await stateChannel.channel(defaultChannelId)).total).to.equal(etherParse('2'));
         });
@@ -269,12 +276,34 @@ describe('StateChannel Contract', () => {
             await stateChannel.checkpoint(query);
             expect((await stateChannel.channel(defaultChannelId)).status).to.equal(0);
             expect(await token.balanceOf(consumer.address)).to.equal(etherParse('4.5'));
+            expect(await token.balanceOf(rewardsBooster.address)).to.equal(etherParse('4'));
         });
+
         it('spent less than rewards', async () => {
             const query = await buildQueryState(defaultChannelId, indexer, consumer, etherParse('0.5'), true);
             await stateChannel.checkpoint(query);
             expect((await stateChannel.channel(defaultChannelId)).status).to.equal(0);
             expect(await token.balanceOf(consumer.address)).to.equal(etherParse('5'));
+            expect(await token.balanceOf(rewardsBooster.address)).to.equal(etherParse('4.5'));
+        });
+
+        it('fund more than rewards', async () => {
+            const abi = ethers.utils.defaultAbiCoder;
+            const msg = abi.encode(
+                ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
+                [defaultChannelId, indexer.address, consumer.address, etherParse('2'), etherParse('5'), '0x']
+            );
+            let payload = ethers.utils.keccak256(msg);
+            let sign = await consumer.signMessage(ethers.utils.arrayify(payload));
+            await stateChannel.fund(defaultChannelId, etherParse('2'), etherParse('5'), '0x', sign); // 4 + 1
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('3'));
+            expect(await token.balanceOf(rewardsBooster.address)).to.equal(0);
+
+            const query = await buildQueryState(defaultChannelId, indexer, consumer, etherParse('1.5'), true);
+            await stateChannel.checkpoint(query);
+            expect((await stateChannel.channel(defaultChannelId)).status).to.equal(0);
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('5'));
+            expect(await token.balanceOf(rewardsBooster.address)).to.equal(etherParse('3.5')); // 7 - 1.5 - 2
         });
     });
 

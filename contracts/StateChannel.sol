@@ -245,41 +245,31 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address indexer = channels[channelId].indexer;
         address consumer = channels[channelId].consumer;
         bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, preTotal, amount, callback));
+        address realConsumer = consumer;
 
         // check sign
         if (_isContract(consumer)) {
             IConsumer cConsumer = IConsumer(consumer);
             require(cConsumer.checkSign(channelId, payload, sign), 'C006');
             cConsumer.paid(channelId, msg.sender, amount, callback);
+            realConsumer = cConsumer.channelConsumer(channelId);
         } else {
             _checkSign(payload, sign, consumer, false);
         }
 
-        // transfer the balance to contract
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(consumer, address(this), amount);
-
-        channels[channelId].realTotal += amount;
-        channels[channelId].total += amount;
-
-        emit ChannelFund(channelId, channels[channelId].realTotal, channels[channelId].total);
-    }
-
-    function fundRewards(uint256 channelId, uint256 amount) external {
-        require(
-            channels[channelId].status == ChannelStatus.Open && channels[channelId].expiredAt > block.timestamp,
-            'SC003'
-        );
-
-        address consumer = channels[channelId].consumer;
-        if (msg.sender != consumer) {
-            bool isController = IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(consumer, msg.sender);
-            require(isController, 'SC012');
+        // transfer the rewards to channel
+        address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
+        uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(realConsumer, amount);
+        if (rewardsAmount > 0) {
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(rbAddress, address(this), rewardsAmount);
         }
 
-        // TODO: transfer the balance to contract
-        address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
-        IRewardsBooster(rbAddress).spent(consumer, amount);
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(rbAddress, address(this), amount);
+        if (rewardsAmount < amount) {
+            // transfer the balance to contract
+            uint256 realAmount = amount - rewardsAmount;
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(consumer, address(this), realAmount);
+            channels[channelId].realTotal += realAmount;
+        }
 
         channels[channelId].total += amount;
 
@@ -484,16 +474,27 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         uint256 realTotal = channels[channelId].realTotal;
         uint256 total = channels[channelId].total;
         uint256 remain = total - channels[channelId].spent;
+        uint256 realRemain = remain;
+        address realConsumer = consumer;
 
         if (remain > 0) {
             if (remain > realTotal) {
-                remain = realTotal;
+                if (_isContract(consumer)) {
+                    realConsumer = IConsumer(consumer).channelConsumer(channelId);
+                }
+
+                uint256 rewardsRemain = remain - realTotal;
+                address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
+                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(rbAddress, rewardsRemain);
+                IRewardsBooster(rbAddress).refundQueryRewards(realConsumer, rewardsRemain);
+
+                realRemain = realTotal;
             }
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(consumer, remain);
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(consumer, realRemain);
         }
 
         if (_isContract(consumer)) {
-            IConsumer(consumer).claimed(channelId, remain);
+            IConsumer(consumer).claimed(channelId, realRemain);
         }
 
         // delete the channel
