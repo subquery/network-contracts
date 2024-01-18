@@ -66,6 +66,8 @@ import {
     ChildERC20__factory,
     SQTGift__factory,
     SQTGift,
+    SQTRedeem__factory,
+    SQTRedeem,
     VTSQToken,
     VTSQToken__factory,
 } from '../src';
@@ -108,6 +110,7 @@ export type Contracts = {
     priceOracle: PriceOracle;
     polygonDestination: PolygonDestination;
     sqtGift: SQTGift;
+    sqtRedeem: SQTRedeem;
 };
 
 export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ bytecode: string }, FactoryContstructor]>> =
@@ -168,6 +171,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ChildERC20: ChildERC20__factory,
     PolygonDestination: PolygonDestination__factory,
     SQTGift: SQTGift__factory,
+    SQTRedeem: SQTRedeem__factory,
 };
 
 export type Config = number | string | string[];

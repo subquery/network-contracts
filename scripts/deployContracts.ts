@@ -44,6 +44,7 @@ import {
     PolygonDestination,
     RootChainManager__factory,
     SQTGift,
+    SQTRedeem,
     Airdropper,
     VTSQToken,
 } from '../src';
@@ -437,10 +438,16 @@ export async function deployContracts(
             initConfig: [10, 3600],
         });
 
-        // delpoy PriceOracle contract
+        // delpoy SQTGift (NFT) contract
         const sqtGift = await deployContract<SQTGift>('SQTGift', 'child', {
             proxyAdmin,
             initConfig: [],
+        });
+
+        // deploy SQTRedeem (NFT redeem) contract
+        const sqtRedeem = await deployContract<SQTRedeem>('SQTRedeem', 'child', {
+            proxyAdmin,
+            initConfig: [sqtToken.address],
         });
 
         //deploy Airdropper contract
@@ -517,6 +524,7 @@ export async function deployContracts(
                 priceOracle,
                 consumerRegistry,
                 sqtGift,
+                sqtRedeem,
                 airdropper,
             },
         ];

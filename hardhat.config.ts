@@ -1,3 +1,4 @@
+import { SQTRedeem } from './src/typechain/contracts/SQTRedeem';
 import * as dotenv from 'dotenv';
 import util from 'util';
 import '@nomiclabs/hardhat-etherscan';
@@ -342,6 +343,15 @@ task('publishChild', "verify and publish contracts on etherscan")
             });
             await hre.run("verify:verify", {
                 address: deployment.SQTGift.innerAddress,
+                constructorArguments: [],
+            });
+            //RedeemGift
+            await hre.run("verify:verify", {
+                address: deployment.SQTRedeem.address,
+                constructorArguments: [deployment.SQTRedeem.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.SQTRedeem.innerAddress,
                 constructorArguments: [],
             });
 
