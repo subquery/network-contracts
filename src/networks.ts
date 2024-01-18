@@ -72,6 +72,37 @@ export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
             }
         }
     },
+    'testnet-base': {
+        root: {
+            chainId: '0xaa36a7',
+            chainName: 'Sepolia',
+            rpcUrls: [
+                'https://eth-sepolia.public.blastapi.io',
+                'https://rpc.sepolia.org'
+            ],
+            iconUrls: [],
+            blockExplorerUrls: ['https://sepolia.etherscan.io'],
+            nativeCurrency: {
+                name: 'ETH',
+                symbol: 'ETH',
+                decimals: 18
+            }
+        },
+        child: {
+            chainId: '0x14a34',
+            chainName: 'Base Sepolia',
+            rpcUrls: [
+                'https://sepolia.base.org',
+            ],
+            iconUrls: [],
+            blockExplorerUrls: ['https://sepolia.basescan.org'],
+            nativeCurrency: {
+                name: 'ETH',
+                symbol: 'ETH',
+                decimals: 18
+            }
+        }
+    },
     local: {
         root: {
             chainId: '0x7A69',

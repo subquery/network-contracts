@@ -26,6 +26,7 @@
         "kepler-e2e-test": "node -r ts-node/register/transpile-only test/e2e/kepler.e2e.ts"
     },
     "devDependencies": {
+        "@eth-optimism/contracts": "^0.6.0",
         "@ethersproject/abstract-provider": "~5.5.1",
         "@ethersproject/address": "~5.5.0",
         "@ethersproject/bignumber": "~5.5.0",

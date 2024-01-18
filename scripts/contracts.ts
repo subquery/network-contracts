@@ -49,8 +49,6 @@ import {
     SQToken__factory,
     ServiceAgreementRegistry,
     ServiceAgreementRegistry__factory,
-    ServiceAgreementExtra,
-    ServiceAgreementExtra__factory,
     Settings,
     Settings__factory,
     Staking,
@@ -74,6 +72,8 @@ import {
     SQTRedeem,
     VTSQToken,
     VTSQToken__factory,
+    L2SQToken,
+    L2SQToken__factory,
 } from '../src';
 
 export interface FactoryContstructor {
@@ -165,7 +165,6 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PlanManager: PlanManager__factory,
     PurchaseOfferMarket: PurchaseOfferMarket__factory,
     ServiceAgreementRegistry: ServiceAgreementRegistry__factory,
-    ServiceAgreementExtra: ServiceAgreementExtra__factory,
     RewardsDistributor: RewardsDistributor__factory,
     RewardsPool: RewardsPool__factory,
     RewardsStaking: RewardsStaking__factory,
@@ -182,6 +181,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PolygonDestination: PolygonDestination__factory,
     SQTGift: SQTGift__factory,
     SQTRedeem: SQTRedeem__factory,
+    L2SQToken: L2SQToken__factory,
 };
 
 export type Config = number | string | string[];

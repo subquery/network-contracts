@@ -34,6 +34,7 @@ import VTSQToken from './artifacts/contracts/root/VTSQToken.sol/VTSQToken.json';
 import PolygonDestination from './artifacts/contracts/root/PolygonDestination.sol/PolygonDestination.json';
 import SQTGift from "./artifacts/contracts/SQTGift.sol/SQTGift.json";
 import SQTRedeem from "./artifacts/contracts/SQTRedeem.sol/SQTRedeem.json";
+import L2SQToken from './artifacts/contracts/l2/L2SQToken.sol/L2SQToken.json';
 
 export default {
     Settings,
@@ -69,4 +70,5 @@ export default {
     PolygonDestination,
     SQTGift,
     SQTRedeem,
+    L2SQToken,
 };

@@ -48,6 +48,7 @@ import {
     VTSQToken,
     RewardsBooster,
     StakingAllocation,
+    L2SQToken,
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -78,9 +79,10 @@ function codeToHash(code: string) {
 }
 
 async function getOverrides(): Promise<Overrides> {
-    const price = await wallet.provider.getGasPrice();
-    // const gasPrice = price.add(20000000000); // add extra 15 gwei
-    return { gasPrice: price, gasLimit: 6000000 };
+    let price = await wallet.provider.getGasPrice();
+    // console.log(`gasprice: ${price.toString()}`)
+    // price = price.add(15000000000); // add extra 15 gwei
+    return { gasPrice: price, gasLimit: 3000000 };
 }
 
 export function saveDeployment(name: string, deployment: Partial<ContractDeployment>) {
@@ -234,11 +236,11 @@ export async function deployRootContracts(
             proxyAdmin,
         });
         logger?.info('🤞 InflationController');
-
+        let tx
         // setup minter
-        let tx = await sqtToken.setMinter(inflationController.address);
-        await tx.wait(confirms);
-        logger?.info('🤞 Set SQToken minter');
+        // let tx = await sqtToken.setMinter(inflationController.address);
+        // await tx.wait(confirms);
+        // logger?.info('🤞 Set SQToken minter');
 
         // deploy VTSQToken
         const vtSQToken = await deployContract<VTSQToken>('VTSQToken', 'root', {
@@ -246,38 +248,42 @@ export async function deployRootContracts(
         });
         logger?.info('🤞 VTSQToken');
 
-        //deploy vesting contract
-        const vesting = await deployContract<Vesting>('Vesting', 'root', { deployConfig: [sqtToken.address, vtSQToken.address] });
-        logger?.info('🤞 Vesting');
+        if (network !== "testnet-base") {
+            //deploy vesting contract
+            const vesting = await deployContract<Vesting>('Vesting', 'root', {deployConfig: [sqtToken.address, vtSQToken.address]});
+            logger?.info('🤞 Vesting');
 
-        // set vesting contract as the minter of vtSQToken
-        tx = await vtSQToken.setMinter(vesting.address);
-        await tx.wait(confirms);
-        logger?.info('🤞 Set VTSQToken minter');
-
-        //deploy PolygonDestination contract
-        const polygonDestination = await deployContract<PolygonDestination>('PolygonDestination' as any, 'root',
-            { deployConfig: [settingsAddress, constants.AddressZero] });
-
-        let rootChainManager;
-        if (network === 'local') {
-            // deploy MockRootChainManager
-            rootChainManager = await new RootChainManager__factory(wallet).deploy();
+            // set vesting contract as the minter of vtSQToken
+            tx = await vtSQToken.setMinter(vesting.address);
+            await tx.wait(confirms);
+            logger?.info('🤞 Set VTSQToken minter');
         }
 
-        logger?.info('🤞 PolygonDestination');
+        let rootChainManager;
+        if (network !== "testnet-base") {
+            //deploy PolygonDestination contract
+            const polygonDestination = await deployContract<PolygonDestination>('PolygonDestination' as any, 'root',
+                {deployConfig: [settingsAddress, constants.AddressZero]});
+
+            if (network === 'local') {
+                // deploy MockRootChainManager
+                rootChainManager = await new RootChainManager__factory(wallet).deploy();
+            }
+
+            logger?.info('🤞 PolygonDestination');
+        }
 
         logger?.info('🤞 Set addresses');
         tx = await settings.setBatchAddress([
             SQContracts.SQToken,
             SQContracts.InflationController,
-            SQContracts.Vesting,
-            SQContracts.RootChainManager,
+            // SQContracts.Vesting,
+            // SQContracts.RootChainManager,
         ],[
             sqtToken.address,
             inflationController.address,
-            vesting.address,
-            rootChainMananger[network]?.address ?? rootChainManager.address,
+            // vesting.address,
+            // rootChainMananger[network]?.address ?? rootChainManager.address,
         ]);
         await tx.wait(confirms);
 
@@ -289,8 +295,8 @@ export async function deployRootContracts(
                 rootToken: sqtToken,
                 vtSQToken,
                 proxyAdmin,
-                vesting,
-                polygonDestination,
+                // vesting,
+                // polygonDestination,
             },
         ];
     } catch (error) {
@@ -329,6 +335,10 @@ export async function deployContracts(
         if (network === 'local') {
             sqtToken = await deployContract<SQToken>('SQToken', 'child', {
                 deployConfig: [...config['SQToken']],
+            });
+        } else if (network === 'testnet-base') {
+            sqtToken = await deployContract<L2SQToken>('L2SQToken', 'child', {
+                deployConfig: [...config['L2SQToken']],
             });
         } else {
             sqtToken = ChildERC20__factory.connect(deployment.child.SQToken.address, wallet);
