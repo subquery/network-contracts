@@ -25,7 +25,7 @@ import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
 describe('StateChannel Contract', () => {
     const deploymentId = deploymentIds[0];
     const defaultChannelId = ethers.utils.randomBytes(32);
-    let queryRewards;
+    let queryRewards0;
 
     let wallet_0, indexer, consumer, indexer2, indexer3, treasury;
 
@@ -298,22 +298,23 @@ describe('StateChannel Contract', () => {
             await boosterDeployment(consumer, deploymentId, etherParse('10000'));
 
             await blockTravel(waffle.provider, 1000);
-            queryRewards = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
+            queryRewards0 = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
             const abi = ethers.utils.defaultAbiCoder;
             const msg = abi.encode(
                 ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
-                [defaultChannelId, indexer.address, consumer.address, etherParse('1'), queryRewards, '0x']
+                [defaultChannelId, indexer.address, consumer.address, etherParse('1'), queryRewards0, '0x']
             );
             let payload = ethers.utils.keccak256(msg);
             let sign = await consumer.signMessage(ethers.utils.arrayify(payload));
-            await stateChannel.fund(defaultChannelId, etherParse('1'), queryRewards, '0x', sign);
-            let consumerRewards = await rewardsBooster.getBoosterQueryRewards(deploymentId, consumer.address);
-            expect(consumerRewards.spentQueryRewards).to.equal(queryRewards);
+            await stateChannel.fund(defaultChannelId, etherParse('1'), queryRewards0, '0x', sign);
+
+            const consumerRewards = await rewardsBooster.getBoosterQueryRewards(deploymentId, consumer.address);
+            expect(consumerRewards.spentQueryRewards).to.equal(queryRewards0);
         });
 
         it('can spend from query rewards', async () => {
             expect((await stateChannel.channel(defaultChannelId)).realTotal).to.equal(etherParse('1'));
-            expect((await stateChannel.channel(defaultChannelId)).total).to.equal(queryRewards.add(etherParse('1')));
+            expect((await stateChannel.channel(defaultChannelId)).total).to.equal(queryRewards0.add(etherParse('1')));
         });
 
         it('spent more than rewards', async () => {
@@ -321,14 +322,14 @@ describe('StateChannel Contract', () => {
                 defaultChannelId,
                 indexer,
                 consumer,
-                queryRewards.add(etherParse('0.5')),
+                queryRewards0.add(etherParse('0.5')),
                 true
             );
             await stateChannel.checkpoint(query);
             expect((await stateChannel.channel(defaultChannelId)).status).to.equal(0);
             expect(await token.balanceOf(consumer.address)).to.equal(etherParse('4.5'));
             const consumerRewards = await rewardsBooster.getBoosterQueryRewards(deploymentId, consumer.address);
-            expect(consumerRewards.spentQueryRewards).to.equal(queryRewards);
+            expect(consumerRewards.spentQueryRewards).to.equal(queryRewards0);
         });
 
         it('spent less than rewards', async () => {
@@ -336,18 +337,17 @@ describe('StateChannel Contract', () => {
                 defaultChannelId,
                 indexer,
                 consumer,
-                queryRewards.sub(etherParse('0.5')),
+                queryRewards0.sub(etherParse('0.5')),
                 true
             );
             await stateChannel.checkpoint(query);
             expect((await stateChannel.channel(defaultChannelId)).status).to.equal(0);
             expect(await token.balanceOf(consumer.address)).to.equal(etherParse('5'));
             const consumerRewards = await rewardsBooster.getBoosterQueryRewards(deploymentId, consumer.address);
-            expect(consumerRewards.spentQueryRewards).to.equal(queryRewards.sub(etherParse('0.5')));
+            expect(consumerRewards.spentQueryRewards).to.equal(queryRewards0.sub(etherParse('0.5')));
         });
 
         it('fund more than rewards', async () => {
-            await blockTravel(waffle.provider, 1000);
             const queryRewards2 = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
             const consumerRewards0 = await rewardsBooster.getBoosterQueryRewards(deploymentId, consumer.address);
             const spentQueryRewards0 = consumerRewards0.spentQueryRewards;
@@ -356,21 +356,17 @@ describe('StateChannel Contract', () => {
             // use 1 block travel to get the reward
             await blockTravel(waffle.provider, 1);
             const queryRewards3 = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
-            const nextFund = queryRewards3
-                .sub(queryRewards2)
-                .mul(2)
-                .add(etherParse(1))
-                .add(queryRewards2.sub(spentQueryRewards0));
+            const nextFund = queryRewards3.sub(queryRewards2).mul(2).add(etherParse(1)).add(queryRewards2);
 
             const abi = ethers.utils.defaultAbiCoder;
             const msg = abi.encode(
                 ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
-                [defaultChannelId, indexer.address, consumer.address, queryRewards.add(etherParse(1)), nextFund, '0x']
+                [defaultChannelId, indexer.address, consumer.address, queryRewards0.add(etherParse(1)), nextFund, '0x']
             );
             let payload = ethers.utils.keccak256(msg);
             let sign = await consumer.signMessage(ethers.utils.arrayify(payload));
             expect(await token.balanceOf(consumer.address)).to.equal(etherParse('4'));
-            await stateChannel.fund(defaultChannelId, queryRewards.add(etherParse(1)), nextFund, '0x', sign);
+            await stateChannel.fund(defaultChannelId, queryRewards0.add(etherParse(1)), nextFund, '0x', sign);
 
             expect(await token.balanceOf(consumer.address)).to.equal(etherParse('3'));
             const consumerRewards1 = await rewardsBooster.getBoosterQueryRewards(deploymentId, consumer.address);

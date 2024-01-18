@@ -21,7 +21,7 @@ import {
 import {deploymentIds, deploymentMetadatas, METADATA_HASH, projectMetadatas} from './constants';
 import {blockTravel, etherParse, eventFrom, time, startNewEra, wrapTxs, timeTravel} from './helper';
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
-import {BigNumber, providers} from 'ethers';
+import {BigNumber, providers, constants} from 'ethers';
 
 const PER_MILL = BigNumber.from(1e6);
 
@@ -37,7 +37,8 @@ describe('StakingAllocation Contract', () => {
         indexer1: SignerWithAddress,
         indexer2: SignerWithAddress,
         consumer0: SignerWithAddress,
-        consumer1: SignerWithAddress;
+        consumer1: SignerWithAddress,
+        treasury: SignerWithAddress;
 
     let token: ERC20;
     let staking: Staking;
@@ -93,9 +94,9 @@ describe('StakingAllocation Contract', () => {
         await rewardsStaking.applyStakeChange(indexer.address, delegator.address);
     };
 
-    const deployer = () => deployContracts(root, root);
+    const deployer = () => deployContracts(root, root, treasury);
     before(async () => {
-        [root, indexer0, indexer1, indexer2, consumer0, consumer1] = await ethers.getSigners();
+        [root, indexer0, indexer1, indexer2, consumer0, consumer1, treasury] = await ethers.getSigners();
     });
 
     beforeEach(async () => {
@@ -115,6 +116,7 @@ describe('StakingAllocation Contract', () => {
         // config rewards booster
         await rewardsBooster.setBoosterQueryRewardRate(ProjectType.SUBQUERY, 5e5); // 50%
         await rewardsBooster.setBoosterQueryRewardRate(ProjectType.RPC, 9e5); // 90%
+        await token.connect(treasury).approve(rewardsBooster.address, constants.MaxInt256);
 
         // createProject
         await createProject(root, projectMetadatas[0], deploymentMetadatas[0], deploymentIds[0], ProjectType.SUBQUERY);
@@ -128,6 +130,7 @@ describe('StakingAllocation Contract', () => {
         await token.connect(root).transfer(indexer2.address, etherParse('100000'));
         await token.connect(root).transfer(consumer0.address, etherParse('100000'));
         await token.connect(root).transfer(consumer1.address, etherParse('100000'));
+        await token.connect(root).transfer(treasury.address, etherParse('100000'));
         await token.connect(consumer0).increaseAllowance(staking.address, etherParse('100000'));
         await token.connect(consumer1).increaseAllowance(staking.address, etherParse('100000'));
 
