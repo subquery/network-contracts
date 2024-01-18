@@ -190,9 +190,7 @@
 
     "SQR001": "Failed to transfer SQT",
     "SQR002": "Redeem not enabled",
-    "SQR003": "NFT not allowed to redeem",
-    "SQR004": "NFT does not support ISQTGift",
-    "SQR005": "Gift not redeemable",
-    "SQR006": "Not owner of token",
-    "SQR007": "No SQT to redeem"
+    "SQR003": "NFT does not support ISQTGift",
+    "SQR004": "Gift not redeemable",
+    "SQR005": "Not owner of token"
 }
