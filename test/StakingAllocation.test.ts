@@ -111,7 +111,6 @@ describe('StakingAllocation Contract', () => {
         rewardsDistributor = deployment.rewardsDistributer;
         stakingAllocation = deployment.stakingAllocation;
         projectRegistry = deployment.projectRegistry;
-        await deployment.settings.setContractAddress(SQContracts.Treasury, root.address);
 
         // config rewards booster
         await rewardsBooster.setBoosterQueryRewardRate(ProjectType.SUBQUERY, 5e5); // 50%
@@ -251,12 +250,12 @@ describe('StakingAllocation Contract', () => {
                 stakingAllocation
                     .connect(indexer0)
                     .addAllocation(deploymentIds[1], indexer0.address, etherParse('5001'))
-            ).to.be.revertedWith('SA01');
+            ).to.be.revertedWith('SAL03');
             await expect(
                 stakingAllocation
                     .connect(indexer0)
                     .removeAllocation(deploymentIds[1], indexer0.address, etherParse('2000'))
-            ).to.be.revertedWith('SA04');
+            ).to.be.revertedWith('SAL04');
 
             await stakingManager.connect(indexer1).unstake(indexer1.address, etherParse('1000'));
             await applyStaking(indexer1, indexer1);
