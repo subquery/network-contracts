@@ -12,7 +12,7 @@ interface IRewardsBooster {
         mapping(address => uint256) accountBooster;
         // account => query rewards
         mapping(address => BoosterQueryReward) boosterQueryRewards;
-        mapping(address => IndexerDeploymentReward) indexerAllocationRewards;
+        mapping(address => RunnerDeploymentReward) runnerAllocationRewards;
         // update when booster point changed, to calculate deployment rewards, including allocation and query reward
         uint256 accRewardsForDeployment;
         // update when allocation changed, so new allocation are not entitled for earlier rewards, for allocation only
@@ -36,7 +36,7 @@ interface IRewardsBooster {
     }
 
 
-    struct IndexerDeploymentReward {
+    struct RunnerDeploymentReward {
         uint256 missedLaborTime;
         uint256 accRewardsPerToken;
         uint256 lastClaimedAt;
@@ -68,8 +68,8 @@ interface IRewardsBooster {
     view
     returns (uint256, uint256);
 
-    function getRewards(bytes32 _deploymentId, address _indexer) external view returns (uint256, uint256);
+    function getAllocationRewards(bytes32 _deploymentId, address _runner) external view returns (uint256, uint256);
 
-    function collectAllocationReward(bytes32 _deploymentId, address _indexer) external;
+    function collectAllocationReward(bytes32 _deploymentId, address _runner) external;
 
 }

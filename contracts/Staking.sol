@@ -173,8 +173,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         lockPeriod = _lockPeriod;
     }
 
-    function setIndexerLeverageLimit(uint256 _indexerLeverageLimit) external onlyOwner {
-        indexerLeverageLimit = _indexerLeverageLimit;
+    function setIndexerLeverageLimit(uint256 _runnerLeverageLimit) external onlyOwner {
+        indexerLeverageLimit = _runnerLeverageLimit;
     }
 
     function setUnbondFeeRateBP(uint256 _unbondFeeRate) external onlyOwner {
@@ -191,10 +191,10 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
      * so later on we can update valueAfter without change current value
      * require it idempotent.
      */
-    function reflectEraUpdate(address _source, address _indexer) public {
+    function reflectEraUpdate(address _source, address _runner) public {
         uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
-        _reflectStakingAmount(eraNumber, delegation[_source][_indexer]);
-        _reflectStakingAmount(eraNumber, totalStakingAmount[_indexer]);
+        _reflectStakingAmount(eraNumber, delegation[_source][_runner]);
+        _reflectStakingAmount(eraNumber, totalStakingAmount[_runner]);
     }
 
     function _reflectStakingAmount(uint256 eraNumber, StakingAmount storage stakeAmount) private {
@@ -204,23 +204,23 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         }
     }
 
-    function checkDelegateLimitation(address _indexer, uint256 _amount) external view onlyStakingManager {
+    function checkDelegateLimitation(address _runner, uint256 _amount) external view onlyStakingManager {
         require(
-            delegation[_indexer][_indexer].valueAfter * indexerLeverageLimit >=
-                totalStakingAmount[_indexer].valueAfter + _amount,
+            delegation[_runner][_runner].valueAfter * indexerLeverageLimit >=
+                totalStakingAmount[_runner].valueAfter + _amount,
             'S002'
         );
     }
 
-    function addIndexer(address _indexer) external onlyStakingManager {
-        indexers[indexerLength] = _indexer;
-        indexerNo[_indexer] = indexerLength;
+    function addRunner(address _runner) external onlyStakingManager {
+        indexers[indexerLength] = _runner;
+        indexerNo[_runner] = indexerLength;
         indexerLength++;
     }
 
-    function removeIndexer(address _indexer) external onlyStakingManager {
-        indexers[indexerNo[_indexer]] = indexers[indexerLength - 1];
-        indexerNo[indexers[indexerLength - 1]] = indexerNo[_indexer];
+    function removeRunner(address _runner) external onlyStakingManager {
+        indexers[indexerNo[_runner]] = indexers[indexerLength - 1];
+        indexerNo[indexers[indexerLength - 1]] = indexerNo[_runner];
         indexerLength--;
     }
 
@@ -253,73 +253,73 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
 
     function addDelegation(
         address _source,
-        address _indexer,
+        address _runner,
         uint256 _amount
     ) external {
         require(msg.sender == settings.getContractAddress(SQContracts.StakingManager) || msg.sender == address(this), 'G008');
         require(_amount > 0, 'S003');
-        if (this.isEmptyDelegation(_source, _indexer)) {
-            stakingIndexerNos[_source][_indexer] = stakingIndexerLengths[_source];
-            stakingIndexers[_source][stakingIndexerLengths[_source]] = _indexer;
+        if (this.isEmptyDelegation(_source, _runner)) {
+            stakingIndexerNos[_source][_runner] = stakingIndexerLengths[_source];
+            stakingIndexers[_source][stakingIndexerLengths[_source]] = _runner;
             stakingIndexerLengths[_source]++;
         }
         // first stake from indexer
-        bool firstStake = this.isEmptyDelegation(_indexer, _indexer) &&
-            totalStakingAmount[_indexer].valueAt == 0 &&
-            totalStakingAmount[_indexer].valueAfter == 0;
+        bool firstStake = this.isEmptyDelegation(_runner, _runner) &&
+            totalStakingAmount[_runner].valueAt == 0 &&
+            totalStakingAmount[_runner].valueAfter == 0;
         if (firstStake) {
-            require(_source == _indexer, 'S004');
-            delegation[_source][_indexer].valueAt = _amount;
-            totalStakingAmount[_indexer].valueAt = _amount;
-            delegation[_source][_indexer].valueAfter = _amount;
-            totalStakingAmount[_indexer].valueAfter = _amount;
+            require(_source == _runner, 'S004');
+            delegation[_source][_runner].valueAt = _amount;
+            totalStakingAmount[_runner].valueAt = _amount;
+            delegation[_source][_runner].valueAfter = _amount;
+            totalStakingAmount[_runner].valueAfter = _amount;
         } else {
-            delegation[_source][_indexer].valueAfter += _amount;
-            totalStakingAmount[_indexer].valueAfter += _amount;
+            delegation[_source][_runner].valueAfter += _amount;
+            totalStakingAmount[_runner].valueAfter += _amount;
         }
         lockedAmount[_source] += _amount;
-        _onDelegationChange(_source, _indexer);
+        _onDelegationChange(_source, _runner);
 
-        emit DelegationAdded(_source, _indexer, _amount);
+        emit DelegationAdded(_source, _runner, _amount);
     }
 
     function delegateToIndexer(
         address _source,
-        address _indexer,
+        address _runner,
         uint256 _amount
     ) external onlyStakingManager {
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(_source, address(this), _amount);
 
-        this.addDelegation(_source, _indexer, _amount);
+        this.addDelegation(_source, _runner, _amount);
     }
 
     function removeDelegation(
         address _source,
-        address _indexer,
+        address _runner,
         uint256 _amount
     ) external {
         require(msg.sender == settings.getContractAddress(SQContracts.StakingManager) || msg.sender == address(this), 'G008');
-        require(delegation[_source][_indexer].valueAfter >= _amount && _amount > 0, 'S005');
+        require(delegation[_source][_runner].valueAfter >= _amount && _amount > 0, 'S005');
 
-        delegation[_source][_indexer].valueAfter -= _amount;
-        totalStakingAmount[_indexer].valueAfter -= _amount;
+        delegation[_source][_runner].valueAfter -= _amount;
+        totalStakingAmount[_runner].valueAfter -= _amount;
 
-        _onDelegationChange(_source, _indexer);
+        _onDelegationChange(_source, _runner);
 
-        emit DelegationRemoved(_source, _indexer, _amount);
+        emit DelegationRemoved(_source, _runner, _amount);
     }
 
     /**
      * @dev When the delegation change nodify rewardsStaking to deal with the change.
      */
-    function _onDelegationChange(address _source, address _indexer) internal {
+    function _onDelegationChange(address _source, address _runner) internal {
         IRewardsStaking rewardsStaking = IRewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
-        rewardsStaking.onStakeChange(_indexer, _source);
+        rewardsStaking.onStakeChange(_runner, _source);
     }
 
     function startUnbond(
         address _source,
-        address _indexer,
+        address _runner,
         uint256 _amount,
         UnbondType _type
     ) external {
@@ -330,7 +330,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         }
 
         if (_type != UnbondType.Commission) {
-            this.removeDelegation(_source, _indexer, _amount);
+            this.removeDelegation(_source, _runner, _amount);
         }
 
         if (nextIndex - withdrawnLength[_source] == maxUnbondingRequest) {
@@ -343,9 +343,9 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         UnbondAmount storage uamount = unbondingAmount[_source][nextIndex];
         uamount.amount += _amount;
         uamount.startTime = block.timestamp;
-        uamount.indexer = _indexer;
+        uamount.indexer = _runner;
 
-        emit UnbondRequested(_source, _indexer, _amount, nextIndex, _type);
+        emit UnbondRequested(_source, _runner, _amount, nextIndex, _type);
     }
 
     /**
@@ -373,45 +373,45 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         }
     }
 
-    function slashIndexer(address _indexer, uint256 _amount) external onlyStakingManager {
+    function slashRunner(address _runner, uint256 _amount) external onlyStakingManager {
         uint256 amount = _amount;
 
-        for (uint256 i = withdrawnLength[_indexer]; i < unbondingLength[_indexer]; i++) {
-            if (amount > unbondingAmount[_indexer][i].amount) {
-                amount -= unbondingAmount[_indexer][i].amount;
-                delete unbondingAmount[_indexer][i];
-                withdrawnLength[_indexer]++;
-            } else if (amount == unbondingAmount[_indexer][i].amount){
-                delete unbondingAmount[_indexer][i];
-                withdrawnLength[_indexer]++;
+        for (uint256 i = withdrawnLength[_runner]; i < unbondingLength[_runner]; i++) {
+            if (amount > unbondingAmount[_runner][i].amount) {
+                amount -= unbondingAmount[_runner][i].amount;
+                delete unbondingAmount[_runner][i];
+                withdrawnLength[_runner]++;
+            } else if (amount == unbondingAmount[_runner][i].amount){
+                delete unbondingAmount[_runner][i];
+                withdrawnLength[_runner]++;
                 amount = 0;
                 break;
             } else {
-                unbondingAmount[_indexer][i].amount -= amount;
+                unbondingAmount[_runner][i].amount -= amount;
                 amount = 0;
                 break;
             }
         }
 
         if (amount > 0) {
-            delegation[_indexer][_indexer].valueAt -= amount;
-            totalStakingAmount[_indexer].valueAt -= amount;
-            delegation[_indexer][_indexer].valueAfter -= amount;
-            totalStakingAmount[_indexer].valueAfter -= amount;
+            delegation[_runner][_runner].valueAt -= amount;
+            totalStakingAmount[_runner].valueAt -= amount;
+            delegation[_runner][_runner].valueAfter -= amount;
+            totalStakingAmount[_runner].valueAfter -= amount;
         }
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(settings.getContractAddress(SQContracts.DisputeManager), _amount);
     }
 
-    function unbondCommission(address _indexer, uint256 _amount) external {
+    function unbondCommission(address _runner, uint256 _amount) external {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsDistributer), 'G003');
-        lockedAmount[_indexer] += _amount;
-        this.startUnbond(_indexer, _indexer, _amount, UnbondType.Commission);
+        lockedAmount[_runner] += _amount;
+        this.startUnbond(_runner, _runner, _amount, UnbondType.Commission);
     }
 
     // -- Views --
 
-    function isEmptyDelegation(address _source, address _indexer) external view returns (bool) {
-        return delegation[_source][_indexer].valueAt == 0 && delegation[_source][_indexer].valueAfter == 0;
+    function isEmptyDelegation(address _source, address _runner) external view returns (bool) {
+        return delegation[_source][_runner].valueAt == 0 && delegation[_source][_runner].valueAfter == 0;
     }
 }

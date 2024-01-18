@@ -3,7 +3,7 @@
 
 pragma solidity 0.8.15;
 
-struct IndexerAllocation {
+struct RunnerAllocation {
     uint256 total;
     uint256 used;
     uint256 overflowTime;
@@ -11,17 +11,17 @@ struct IndexerAllocation {
 }
 
 interface IStakingAllocation {
-    function update(address _indexer, uint256 _amount) external;
+    function onStakeUpdate(address _runner, uint256 _amount) external;
 
-    function allocation(address _indexer, bytes32 _deployment) external view returns (uint256);
+    function allocatedTokens(address _runner, bytes32 _deployment) external view returns (uint256);
 
-    function overflowClear(address _indexer, bytes32 _deployment) external;
+    function overflowClear(address _runner, bytes32 _deployment) external;
 
-    function indexer(address _indexer) external view returns (IndexerAllocation memory);
+    function runnerAllocation(address _runner) external view returns (RunnerAllocation memory);
 
-    function overflowTime(address _indexer) external view returns (uint256);
+    function overflowTime(address _runner) external view returns (uint256);
 
-    function isSuspended(address _indexer) external view returns (bool);
+    function isSuspended(address _runner) external view returns (bool);
 
     // total allocations on the deployment
     function deploymentAllocations(bytes32 _deploymentId) external view returns (uint256);

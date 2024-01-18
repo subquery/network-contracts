@@ -140,7 +140,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
 
             // notify stake allocation
             IStakingAllocation stakingAllocation = IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation));
-            stakingAllocation.update(_indexer, totalStakingAmount[_indexer]);
+            stakingAllocation.onStakeUpdate(_indexer, totalStakingAmount[_indexer]);
         } else {
             require(rewardsDistributer.collectAndDistributeEraRewards(currentEra, _indexer) == currentEra - 1, 'RS002');
             IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(_indexer);
@@ -207,7 +207,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
 
         // notify stake allocation
         IStakingAllocation stakingAllocation = IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation));
-        stakingAllocation.update(indexer, totalStakingAmount[indexer]);
+        stakingAllocation.onStakeUpdate(indexer, totalStakingAmount[indexer]);
     }
 
     /**

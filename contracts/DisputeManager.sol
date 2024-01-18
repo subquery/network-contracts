@@ -31,7 +31,7 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
 
     struct Dispute {
         uint256 disputeId;
-        address indexer;                  // indexer address
+        address runner;                  // runner address
         address fisherman;                // fisherman address
         uint256 depositAmount;            // fisherman deposit amount
         bytes32 deploymentId;             // project deployment id
@@ -43,9 +43,9 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
     uint256 public nextDisputeId;
     uint256 public minimumDeposit;
     mapping(uint256 => Dispute) public disputes;
-    mapping(address => uint256[]) public disputeIdByIndexer;
+    mapping(address => uint256[]) public disputeIdByRunner;
 
-    event DisputeOpen(uint256 indexed disputeId, address fisherman, address indexer, DisputeType _type);
+    event DisputeOpen(uint256 indexed disputeId, address fisherman, address runner, DisputeType _type);
 
     event DisputeFinalized(uint256 indexed disputeId, DisputeState state, uint256 slashAmount, uint256 returnAmount);
 
@@ -70,40 +70,40 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
     }
 
     function createDispute(
-        address _indexer, 
+        address _runner,
         bytes32 _deploymentId,
         uint256 _deposit,  
         DisputeType _type
     ) external {
-        require(disputeIdByIndexer[_indexer].length <= 20, 'D001');
+        require(disputeIdByRunner[_runner].length <= 20, 'D001');
         require(_deposit >= minimumDeposit, 'D002');
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), _deposit);
 
         Dispute storage dispute = disputes[nextDisputeId];
         dispute.disputeId = nextDisputeId;
-        dispute.indexer = _indexer;
+        dispute.runner = _runner;
         dispute.fisherman = msg.sender;
         dispute.depositAmount = _deposit;
         dispute.deploymentId = _deploymentId;
         dispute.dtype = _type;
         dispute.state = DisputeState.Ongoing;
 
-        disputeIdByIndexer[_indexer].push(nextDisputeId);
+        disputeIdByRunner[_runner].push(nextDisputeId);
 
-        emit DisputeOpen(nextDisputeId, msg.sender, _indexer, _type);
+        emit DisputeOpen(nextDisputeId, msg.sender, _runner, _type);
         nextDisputeId++;
     }
 
-    function finalizeDispute(uint256 disputeId, DisputeState state, uint256 indexerSlashAmount, uint256 newDeposit) external onlyOwner {
+    function finalizeDispute(uint256 disputeId, DisputeState state, uint256 runnerSlashAmount, uint256 newDeposit) external onlyOwner {
         require(state != DisputeState.Ongoing, 'D003');
         Dispute storage dispute = disputes[disputeId];
         require(dispute.state == DisputeState.Ongoing, 'D004');
-        //accept dispute, slash indexer, reward fisherman
+        //accept dispute, slash runner, reward fisherman
         if (state == DisputeState.Accepted) {
             require(newDeposit > dispute.depositAmount, 'D005');
             uint256 rewardAmount = newDeposit - dispute.depositAmount;
-            require(rewardAmount <= indexerSlashAmount, 'D005');
-            IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).slashIndexer(dispute.indexer, indexerSlashAmount);
+            require(rewardAmount <= runnerSlashAmount, 'D005');
+            IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).slashRunner(dispute.runner, runnerSlashAmount);
         } else if (state == DisputeState.Rejected) {
             //reject dispute, slash fisherman
             require(newDeposit < dispute.depositAmount, 'D005');
@@ -115,18 +115,18 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
         dispute.state = state;
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(dispute.fisherman, newDeposit);
 
-        uint256[] memory ids = disputeIdByIndexer[dispute.indexer];
-        delete disputeIdByIndexer[dispute.indexer];
+        uint256[] memory ids = disputeIdByRunner[dispute.runner];
+        delete disputeIdByRunner[dispute.runner];
         for (uint256 i; i < ids.length; i++) {
             if (disputeId != ids[i]) {
-                disputeIdByIndexer[dispute.indexer].push(ids[i]);
+                disputeIdByRunner[dispute.runner].push(ids[i]);
             }
         }
 
-        emit DisputeFinalized(disputeId, state, indexerSlashAmount, newDeposit);
+        emit DisputeFinalized(disputeId, state, runnerSlashAmount, newDeposit);
     }
 
-    function isOnDispute(address indexer) external view returns (bool) {
-        return disputeIdByIndexer[indexer].length > 0;
+    function isOnDispute(address runner) external view returns (bool) {
+        return disputeIdByRunner[runner].length > 0;
     }
 }
