@@ -15,6 +15,7 @@ import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IConsumerRegistry.sol';
+import './interfaces/IRewardsBooster.sol';
 
 /**
  * @title State Channel Contract
@@ -43,6 +44,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         ChannelStatus status;
         address indexer;
         address consumer;
+        uint256 realTotal;
         uint256 total;
         uint256 spent;
         uint256 expiredAt;
@@ -76,7 +78,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     /// @notice Emitted when extend the channel
     event ChannelExtend(uint256 indexed channelId, uint256 expiredAt);
     /// @notice Emitted when deposit more amount to the channel
-    event ChannelFund(uint256 indexed channelId, uint256 total);
+    event ChannelFund(uint256 indexed channelId, uint256 realTotal, uint256 total);
     /// @notice Emitted when indexer send a checkpoint to claim the part-amount
     event ChannelCheckpoint(uint256 indexed channelId, uint256 spent, bool isFinal);
     /// @notice Emitted when consumer start a terminate on channel to finalize in advance
@@ -181,6 +183,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         state.indexer = indexer;
         state.consumer = consumer;
         state.expiredAt = block.timestamp + expiration;
+        state.realTotal = amount;
         state.total = amount;
         state.spent = 0;
         state.terminatedAt = 0;
@@ -242,20 +245,35 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         address indexer = channels[channelId].indexer;
         address consumer = channels[channelId].consumer;
         bytes32 payload = keccak256(abi.encode(channelId, indexer, consumer, preTotal, amount, callback));
+        address realConsumer = consumer;
 
         // check sign
         if (_isContract(consumer)) {
             IConsumer cConsumer = IConsumer(consumer);
             require(cConsumer.checkSign(channelId, payload, sign), 'C006');
             cConsumer.paid(channelId, msg.sender, amount, callback);
+            realConsumer = cConsumer.channelConsumer(channelId);
         } else {
             _checkSign(payload, sign, consumer, false);
         }
 
-        // transfer the balance to contract
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(consumer, address(this), amount);
+        // transfer the rewards to channel
+        address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
+        uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(channels[channelId].deploymentId, realConsumer, amount);
+        if (rewardsAmount > 0) {
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(rbAddress, address(this), rewardsAmount);
+        }
+
+        if (rewardsAmount < amount) {
+            // transfer the balance to contract
+            uint256 realAmount = amount - rewardsAmount;
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(consumer, address(this), realAmount);
+            channels[channelId].realTotal += realAmount;
+        }
+
         channels[channelId].total += amount;
-        emit ChannelFund(channelId, channels[channelId].total);
+
+        emit ChannelFund(channelId, channels[channelId].realTotal, channels[channelId].total);
     }
 
     /**
@@ -453,15 +471,30 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     function _finalize(uint256 channelId) private {
         // claim the rest of amount to balance
         address consumer = channels[channelId].consumer;
+        uint256 realTotal = channels[channelId].realTotal;
         uint256 total = channels[channelId].total;
         uint256 remain = total - channels[channelId].spent;
+        uint256 realRemain = remain;
+        address realConsumer = consumer;
 
         if (remain > 0) {
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(consumer, remain);
+            if (remain > realTotal) {
+                if (_isContract(consumer)) {
+                    realConsumer = IConsumer(consumer).channelConsumer(channelId);
+                }
+
+                uint256 rewardsRemain = remain - realTotal;
+                address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
+                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(rbAddress, rewardsRemain);
+                IRewardsBooster(rbAddress).refundQueryRewards(channels[channelId].deploymentId, realConsumer, rewardsRemain);
+
+                realRemain = realTotal;
+            }
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(consumer, realRemain);
         }
 
         if (_isContract(consumer)) {
-            IConsumer(consumer).claimed(channelId, remain);
+            IConsumer(consumer).claimed(channelId, realRemain);
         }
 
         // delete the channel

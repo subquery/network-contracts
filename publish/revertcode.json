@@ -200,5 +200,6 @@
     "SAL02": "Can only be called by runner or controller of runner",
     "SAL03": "Not enough staked token",
     "SAL04": "Not enough allocated token",
-    "SAL05": "Can only be called by RewardsBooster"
+    "SAL05": "Can only be called by RewardsBooster",
+    "RB02": "Query refund can not be larger than spent"
 }
