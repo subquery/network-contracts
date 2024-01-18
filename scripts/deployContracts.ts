@@ -26,7 +26,7 @@ import {
     ProxyAdmin,
     ProxyAdmin__factory,
     PurchaseOfferMarket,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsHelper,
     RewardsPool,
     RewardsStaking,
@@ -385,8 +385,8 @@ export async function deployContracts(
 
         const tokenExchange = await deployContract<TokenExchange>('TokenExchange', 'child', { initConfig: [] });
 
-        // deploy RewardsDistributer contract
-        const rewardsDistributer = await deployContract<RewardsDistributer>('RewardsDistributer', 'child', {
+        // deploy RewardsDistributor contract
+        const rewardsDistributor = await deployContract<RewardsDistributor>('RewardsDistributor', 'child', {
             proxyAdmin,
             initConfig: [settingsAddress],
         });
@@ -467,7 +467,7 @@ export async function deployContracts(
             SQContracts.SQToken,
             SQContracts.Staking,
             SQContracts.StakingManager,
-            SQContracts.RewardsDistributer,
+            SQContracts.RewardsDistributor,
             SQContracts.RewardsPool,
             SQContracts.RewardsStaking,
             SQContracts.RewardsHelper,
@@ -487,7 +487,7 @@ export async function deployContracts(
             sqtToken.address,
             staking.address,
             stakingManager.address,
-            rewardsDistributer.address,
+            rewardsDistributor.address,
             rewardsPool.address,
             rewardsStaking.address,
             rewardsHelper.address,
@@ -523,7 +523,7 @@ export async function deployContracts(
                 purchaseOfferMarket,
                 serviceAgreementRegistry,
                 serviceAgreementExtra,
-                rewardsDistributer,
+                rewardsDistributor,
                 rewardsPool,
                 rewardsStaking,
                 rewardsHelper,

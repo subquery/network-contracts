@@ -8,7 +8,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
-import './RewardsDistributer.sol';
+import './RewardsDistributor.sol';
 import './RewardsStaking.sol';
 import './utils/MathUtil.sol';
 
@@ -51,31 +51,31 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
     }
 
     function batchClaim(address delegator, address[] memory runners) public {
-        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
+        RewardsDistributor rewardsDistributor = RewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
         for (uint256 i = 0; i < runners.length; i++) {
-            rewardsDistributer.claimFrom(runners[i], delegator);
+            rewardsDistributor.claimFrom(runners[i], delegator);
         }
     }
 
     function batchCollectAndDistributeRewards(address runner, uint256 batchSize) public {
-        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
+        RewardsDistributor rewardsDistributor = RewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
         // check current era is after lastClaimEra
         IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
         uint256 currentEra = eraManager.safeUpdateAndGetEra();
-        uint256 loopCount = MathUtil.min(batchSize, currentEra - rewardsDistributer.getRewardInfo(runner).lastClaimEra - 1);
+        uint256 loopCount = MathUtil.min(batchSize, currentEra - rewardsDistributor.getRewardInfo(runner).lastClaimEra - 1);
         for (uint256 i = 0; i < loopCount; i++) {
-            rewardsDistributer.collectAndDistributeEraRewards(currentEra, runner);
+            rewardsDistributor.collectAndDistributeEraRewards(currentEra, runner);
         }
     }
 
     function indexerCatchup(address runner) public {
-        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
+        RewardsDistributor rewardsDistributor = RewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
         RewardsStaking rewardsStaking = RewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
         uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).eraNumber();
 
-        uint256 lastClaimEra = rewardsDistributer.getRewardInfo(runner).lastClaimEra;
+        uint256 lastClaimEra = rewardsDistributor.getRewardInfo(runner).lastClaimEra;
         if (rewardsStaking.getLastSettledEra(runner) >= lastClaimEra && lastClaimEra < currentEra - 1){
-            rewardsDistributer.collectAndDistributeRewards(runner);
+            rewardsDistributor.collectAndDistributeRewards(runner);
         }
 
         // apply all stakers' change of an runner
@@ -84,9 +84,9 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
             rewardsStaking.applyStakeChange(runner, staker);
         }
 
-        lastClaimEra = rewardsDistributer.getRewardInfo(runner).lastClaimEra;
+        lastClaimEra = rewardsDistributor.getRewardInfo(runner).lastClaimEra;
         if (rewardsStaking.getLastSettledEra(runner) >= lastClaimEra && lastClaimEra < currentEra - 1){
-            rewardsDistributer.collectAndDistributeRewards(runner);
+            rewardsDistributor.collectAndDistributeRewards(runner);
         }
 
         // apply runner's commission rate change
@@ -96,8 +96,8 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
         }
 
         // catch up current era
-        while(rewardsDistributer.getRewardInfo(runner).lastClaimEra < currentEra - 1){
-            rewardsDistributer.collectAndDistributeRewards(runner);
+        while(rewardsDistributor.getRewardInfo(runner).lastClaimEra < currentEra - 1){
+            rewardsDistributor.collectAndDistributeRewards(runner);
         }
     }
 
@@ -107,8 +107,8 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
             rewardsPool.collect(deployments[i], runner);
         }
 
-        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
-        rewardsDistributer.collectAndDistributeRewards(runner);
+        RewardsDistributor rewardsDistributor = RewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
+        rewardsDistributor.collectAndDistributeRewards(runner);
     }
 
     function getPendingStakers(address runner) public view returns (address[] memory) {
@@ -123,19 +123,19 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
     }
 
     function getRewardsAddTable(address runner, uint256 startEra, uint256 length) public view returns (uint256[] memory) {
-        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
+        RewardsDistributor rewardsDistributor = RewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
         uint256[] memory table = new uint256[](length);
         for (uint256 i = 0; i < length; i++) {
-            table[i] = rewardsDistributer.getRewardAddTable(runner, i + startEra);
+            table[i] = rewardsDistributor.getRewardAddTable(runner, i + startEra);
         }
         return table;
     }
 
     function getRewardsRemoveTable(address runner, uint256 startEra, uint256 length) public view returns (uint256[] memory) {
-        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
+        RewardsDistributor rewardsDistributor = RewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
         uint256[] memory table = new uint256[](length);
         for (uint256 i = 0; i < length; i++) {
-            table[i] = rewardsDistributer.getRewardRemoveTable(runner, i + startEra);
+            table[i] = rewardsDistributor.getRewardRemoveTable(runner, i + startEra);
         }
         return table;
     }

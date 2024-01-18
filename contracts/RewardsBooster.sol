@@ -16,7 +16,7 @@ import './interfaces/IStakingAllocation.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/ISQToken.sol';
-import './interfaces/IRewardsDistributer.sol';
+import './interfaces/IRewardsDistributor.sol';
 import "./interfaces/IRewardsBooster.sol";
 import "./interfaces/IProjectRegistry.sol";
 import './utils/FixedMath.sol';
@@ -455,12 +455,12 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         runnerDeplReward.lastClaimedAt = block.timestamp;
 
         address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
-        IRewardsDistributer rewardsDistributer = IRewardsDistributer(ISettings(settings).getContractAddress(SQContracts.RewardsDistributer));
+        IRewardsDistributor rewardsDistributor = IRewardsDistributor(ISettings(settings).getContractAddress(SQContracts.RewardsDistributor));
         IEraManager eraManager = IEraManager(ISettings(settings).getContractAddress(SQContracts.EraManager));
         IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
         sqToken.safeTransferFrom(treasury, address(this), reward);
-        sqToken.safeIncreaseAllowance(address(rewardsDistributer), reward);
-        rewardsDistributer.addInstantRewards(_runner, address(this), reward, eraManager.safeUpdateAndGetEra());
+        sqToken.safeIncreaseAllowance(address(rewardsDistributor), reward);
+        rewardsDistributor.addInstantRewards(_runner, address(this), reward, eraManager.safeUpdateAndGetEra());
         emit AllocationRewardsGiven(_deploymentId, _runner, reward);
         if (burnt > 0) {
             // since rewards is pulled from treasury, and burn returns rewards to treasury, we don't need to do anything here

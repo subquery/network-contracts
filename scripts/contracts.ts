@@ -34,8 +34,8 @@ import {
     ProxyAdmin__factory,
     PurchaseOfferMarket,
     PurchaseOfferMarket__factory,
-    RewardsDistributer,
-    RewardsDistributer__factory,
+    RewardsDistributor,
+    RewardsDistributor__factory,
     RewardsHelper,
     RewardsHelper__factory,
     RewardsPool,
@@ -97,7 +97,7 @@ export type Contracts = {
     purchaseOfferMarket: PurchaseOfferMarket;
     serviceAgreementRegistry: ServiceAgreementRegistry;
     serviceAgreementExtra: ServiceAgreementExtra;
-    rewardsDistributer: RewardsDistributer;
+    rewardsDistributor: RewardsDistributor;
     rewardsPool: RewardsPool;
     rewardsStaking: RewardsStaking;
     rewardsHelper: RewardsHelper;
@@ -122,7 +122,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ byt
     IndexerRegistry: [CONTRACTS.IndexerRegistry, IndexerRegistry__factory],
     PlanManager: [CONTRACTS.PlanManager, PlanManager__factory],
     ProjectRegistry: [CONTRACTS.ProjectRegistry, ProjectRegistry__factory],
-    RewardsDistributer: [CONTRACTS.RewardsDistributer, RewardsDistributer__factory],
+    RewardsDistributor: [CONTRACTS.RewardsDistributor, RewardsDistributor__factory],
     RewardsPool: [CONTRACTS.RewardsPool, RewardsPool__factory],
     RewardsStaking: [CONTRACTS.RewardsStaking, RewardsStaking__factory],
     RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
@@ -163,7 +163,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PurchaseOfferMarket: PurchaseOfferMarket__factory,
     ServiceAgreementRegistry: ServiceAgreementRegistry__factory,
     ServiceAgreementExtra: ServiceAgreementExtra__factory,
-    RewardsDistributer: RewardsDistributer__factory,
+    RewardsDistributor: RewardsDistributor__factory,
     RewardsPool: RewardsPool__factory,
     RewardsStaking: RewardsStaking__factory,
     RewardsHelper: RewardsHelper__factory,

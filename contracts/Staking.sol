@@ -404,7 +404,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
     }
 
     function unbondCommission(address _runner, uint256 _amount) external {
-        require(msg.sender == settings.getContractAddress(SQContracts.RewardsDistributer), 'G003');
+        require(msg.sender == settings.getContractAddress(SQContracts.RewardsDistributor), 'G003');
         lockedAmount[_runner] += _amount;
         this.startUnbond(_runner, _runner, _amount, UnbondType.Commission);
     }

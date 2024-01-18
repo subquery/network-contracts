@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import {ethers, waffle} from 'hardhat';
 import {deployContracts} from './setup';
 import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
-import {IndexerRegistry, RewardsPool, RewardsDistributer, EraManager, ERC20, Staking, StateChannel, StakingManager} from '../src';
+import {IndexerRegistry, RewardsPool, RewardsDistributor, EraManager, ERC20, Staking, StateChannel, StakingManager} from '../src';
 import {constants, registerRunner, startNewEra, time, delay, etherParse} from './helper';
 import {utils, Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
 import { MockProvider } from 'ethereum-waffle';
@@ -17,7 +17,7 @@ describe('StateChannel Workflow Tests', () => {
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
     let eraManager: EraManager;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let rewardsPool: RewardsPool;
     let stateChannel: StateChannel;
     let stakingManager: StakingManager;
@@ -136,7 +136,7 @@ describe('StateChannel Workflow Tests', () => {
         indexerRegistry = deployment.indexerRegistry;
         staking = deployment.staking;
         token = deployment.token;
-        rewardsDistributor = deployment.rewardsDistributer;
+        rewardsDistributor = deployment.rewardsDistributor;
         rewardsPool = deployment.rewardsPool;
         eraManager = deployment.eraManager;
         stateChannel = deployment.stateChannel;

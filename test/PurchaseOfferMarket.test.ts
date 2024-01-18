@@ -9,7 +9,7 @@ import {
     PlanManager,
     ProjectRegistry,
     PurchaseOfferMarket,
-    RewardsDistributer,
+    RewardsDistributor,
     ERC20,
     ServiceAgreementRegistry,
     Staking,
@@ -27,7 +27,7 @@ describe('Purchase Offer Market Contract', () => {
     let projectRegistry: ProjectRegistry;
     let staking: Staking;
     let token: ERC20;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let planManager: PlanManager;
 
     let futureDate;
@@ -53,7 +53,7 @@ describe('Purchase Offer Market Contract', () => {
         projectRegistry = deployment.projectRegistry;
         staking = deployment.staking;
         token = deployment.token;
-        rewardsDistributor = deployment.rewardsDistributer;
+        rewardsDistributor = deployment.rewardsDistributor;
         planManager = deployment.planManager;
         await planManager.createPlanTemplate(contractPeriod, 1000, 100, token.address, METADATA_HASH);
         offerId = await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);

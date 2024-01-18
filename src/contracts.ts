@@ -15,7 +15,7 @@ import PriceOracle from './artifacts/contracts/PriceOracle.sol/PriceOracle.json'
 import ProjectRegistry from './artifacts/contracts/ProjectRegistry.sol/ProjectRegistry.json';
 import ProxyAdmin from './artifacts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol/ProxyAdmin.json';
 import PurchaseOfferMarket from './artifacts/contracts/PurchaseOfferMarket.sol/PurchaseOfferMarket.json';
-import RewardsDistributer from './artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json';
+import RewardsDistributor from './artifacts/contracts/RewardsDistributor.sol/RewardsDistributor.json';
 import RewardsHelper from './artifacts/contracts/RewardsHelper.sol/RewardsHelper.json';
 import RewardsPool from './artifacts/contracts/RewardsPool.sol/RewardsPool.json';
 import RewardsStaking from './artifacts/contracts/RewardsStaking.sol/RewardsStaking.json';
@@ -50,7 +50,7 @@ export default {
     PlanManager,
     PurchaseOfferMarket,
     EraManager,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsPool,
     RewardsStaking,
     RewardsHelper,

@@ -10,7 +10,7 @@ import {
     PermissionedExchange,
     PlanManager,
     ProjectRegistry,
-    RewardsDistributer,
+    RewardsDistributor,
     SQToken,
     SUSD,
     SUSD__factory,
@@ -37,7 +37,7 @@ describe.skip('PermissionedExchange Contract', () => {
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
 
     beforeEach(async () => {
@@ -52,7 +52,7 @@ describe.skip('PermissionedExchange Contract', () => {
         indexerRegistry = deployment.indexerRegistry;
         planManager = deployment.planManager;
         eraManager = deployment.eraManager;
-        rewardsDistributor = deployment.rewardsDistributer;
+        rewardsDistributor = deployment.rewardsDistributor;
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
 
         //deploy usd

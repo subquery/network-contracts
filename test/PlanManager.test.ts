@@ -10,7 +10,7 @@ import {
     PlanManager,
     PriceOracle,
     ProjectRegistry,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsHelper,
     ERC20,
     ServiceAgreementExtra,
@@ -38,7 +38,7 @@ describe('PlanManger Contract', () => {
     let eraManager: EraManager;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
     let saExtra: ServiceAgreementExtra;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let rewardsHelper: RewardsHelper;
     let priceOracle: PriceOracle;
     let SUSD: Contract;
@@ -60,7 +60,7 @@ describe('PlanManger Contract', () => {
         saExtra = deployment.serviceAgreementExtra;
         staking = deployment.staking;
         token = deployment.token;
-        rewardsDistributor = deployment.rewardsDistributer;
+        rewardsDistributor = deployment.rewardsDistributor;
         rewardsHelper = deployment.rewardsHelper;
         eraManager = deployment.eraManager;
         priceOracle = deployment.priceOracle;
@@ -377,7 +377,7 @@ describe('PlanManger Contract', () => {
             expect(Number(utils.formatEther(sum))).to.eq(planPrice / planDays * 2);
         });
 
-        // TODO: move the following 2 tests to rewardsDistributer.test.ts
+        // TODO: move the following 2 tests to rewardsDistributor.test.ts
         it.skip('claim and distribute rewards by an indexer should work', async () => {
             await checkAcceptPlan(1, DEPLOYMENT_ID);
 

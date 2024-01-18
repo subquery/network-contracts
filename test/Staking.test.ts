@@ -9,7 +9,7 @@ import { PER_MILL } from './constants';
 import {
     EraManager,
     IndexerRegistry,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsStaking,
     ERC20,
     Staking,
@@ -26,7 +26,7 @@ describe('Staking Contract', () => {
     let stakingManager: StakingManager;
     let eraManager: EraManager;
     let indexerRegistry: IndexerRegistry;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let rewardsStaking: RewardsStaking;
 
     const amount = etherParse('2002');
@@ -70,7 +70,7 @@ describe('Staking Contract', () => {
         stakingManager = deployment.stakingManager;
         eraManager = deployment.eraManager;
         indexerRegistry = deployment.indexerRegistry;
-        rewardsDistributor = deployment.rewardsDistributer;
+        rewardsDistributor = deployment.rewardsDistributor;
         rewardsStaking = deployment.rewardsStaking;
         await configWallet();
     });

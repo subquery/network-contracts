@@ -12,7 +12,7 @@ import {
     ProjectType,
     RewardsBooster,
     RewardsStaking,
-    RewardsDistributer,
+    RewardsDistributor,
     Staking,
     StakingManager,
     StakingAllocation,
@@ -46,7 +46,7 @@ describe('StakingAllocation Contract', () => {
     let eraManager: EraManager;
     let rewardsBooster: RewardsBooster;
     let rewardsStaking: RewardsStaking;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let stakingAllocation: StakingAllocation;
     let projectRegistry: ProjectRegistry;
 
@@ -100,7 +100,7 @@ describe('StakingAllocation Contract', () => {
         eraManager = deployment.eraManager;
         rewardsBooster = deployment.rewardsBooster;
         rewardsStaking = deployment.rewardsStaking;
-        rewardsDistributor = deployment.rewardsDistributer;
+        rewardsDistributor = deployment.rewardsDistributor;
         stakingAllocation = deployment.stakingAllocation;
         projectRegistry = deployment.projectRegistry;
 

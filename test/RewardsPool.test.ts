@@ -3,7 +3,7 @@
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-import { EraManager, IndexerRegistry, RewardsDistributer, RewardsHelper, RewardsPool, ERC20, Staking } from '../src';
+import { EraManager, IndexerRegistry, RewardsDistributor, RewardsHelper, RewardsPool, ERC20, Staking } from '../src';
 import { METADATA_HASH, deploymentIds } from './constants';
 import { etherParse, registerRunner, startNewEra, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
@@ -20,7 +20,7 @@ describe('RewardsPool Contract', () => {
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
     let eraManager: EraManager;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let rewardsHelper: RewardsHelper;
     let rewardsPool: RewardsPool;
 
@@ -34,7 +34,7 @@ describe('RewardsPool Contract', () => {
         indexerRegistry = deployment.indexerRegistry;
         staking = deployment.staking;
         token = deployment.token;
-        rewardsDistributor = deployment.rewardsDistributer;
+        rewardsDistributor = deployment.rewardsDistributor;
         rewardsHelper = deployment.rewardsHelper;
         rewardsPool = deployment.rewardsPool;
         eraManager = deployment.eraManager;
@@ -104,7 +104,7 @@ describe('RewardsPool Contract', () => {
             expect(rewards5[1]).to.be.eq(0); // deleted
         });
 
-        it('Batch collect from RewardsDistributer', async () => {
+        it('Batch collect from RewardsDistributor', async () => {
             await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.collectAndDistributeRewards(runner0.address);
             const era = await eraManager.eraNumber();

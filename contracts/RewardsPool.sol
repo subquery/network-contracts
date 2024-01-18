@@ -13,7 +13,7 @@ import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IRewardsPool.sol';
-import './interfaces/IRewardsDistributer.sol';
+import './interfaces/IRewardsDistributor.sol';
 import './interfaces/ISQToken.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
@@ -265,8 +265,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
 
         uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[runner], pool.stake[runner], pool.totalStake);
 
-        address rewardDistributer = settings.getContractAddress(SQContracts.RewardsDistributer);
-        IRewardsDistributer distributer = IRewardsDistributer(rewardDistributer);
+        address rewardDistributer = settings.getContractAddress(SQContracts.RewardsDistributor);
+        IRewardsDistributor distributer = IRewardsDistributor(rewardDistributer);
         IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(rewardDistributer, amount);
         if (amount > 0) {
             distributer.addInstantRewards(runner, address(this), amount, era);

@@ -10,7 +10,7 @@ import {
     IndexerRegistry,
     PlanManager,
     ProjectRegistry,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsHelper,
     Staking,
     StakingManager,
@@ -22,7 +22,7 @@ import {deployContracts} from './setup';
 const BN = (value: string | number): BigNumber => BigNumber.from(value);
 
 // FIXME: fix test accuracy running on github action
-describe.skip('RewardsDistributer Contract', () => {
+describe.skip('RewardsDistributor Contract', () => {
     const mockProvider = waffle.provider;
     let root, runner, consumer, delegator1, delegator2;
 
@@ -33,7 +33,7 @@ describe.skip('RewardsDistributer Contract', () => {
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let rewardsHelper: RewardsHelper;
 
     let rewards: BigNumber;
@@ -68,7 +68,7 @@ describe.skip('RewardsDistributer Contract', () => {
             planManager = deployment.planManager;
             staking = deployment.staking;
             stakingManager = deployment.stakingManager;
-            rewardsDistributor = deployment.rewardsDistributer;
+            rewardsDistributor = deployment.rewardsDistributor;
             rewardsHelper = deployment.rewardsHelper;
             eraManager = deployment.eraManager;
 
@@ -171,7 +171,7 @@ describe.skip('RewardsDistributer Contract', () => {
             planManager = deployment.planManager;
             staking = deployment.staking;
             stakingManager = deployment.stakingManager;
-            rewardsDistributor = deployment.rewardsDistributer;
+            rewardsDistributor = deployment.rewardsDistributor;
 
             rewardsHelper = deployment.rewardsHelper;
             eraManager = deployment.eraManager;

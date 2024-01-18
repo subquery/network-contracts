@@ -16,7 +16,7 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import './interfaces/IServiceAgreementExtra.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
-import './interfaces/IRewardsDistributer.sol';
+import './interfaces/IRewardsDistributor.sol';
 import './interfaces/IPlanManager.sol';
 /**
  * @title Service Agreement Registry Contract
@@ -128,11 +128,11 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
 
         // approve token to reward distributor contract
         address SQToken = settings.getContractAddress(SQContracts.SQToken);
-        IERC20(SQToken).approve(settings.getContractAddress(SQContracts.RewardsDistributer), agreement.lockedAmount);
+        IERC20(SQToken).approve(settings.getContractAddress(SQContracts.RewardsDistributor), agreement.lockedAmount);
 
         // increase agreement rewards
-        IRewardsDistributer rewardsDistributer = IRewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
-        rewardsDistributer.increaseAgreementRewards(agreementId);
+        IRewardsDistributor rewardsDistributor = IRewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
+        rewardsDistributor.increaseAgreementRewards(agreementId);
 
         emit ClosedAgreementCreated(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
     }

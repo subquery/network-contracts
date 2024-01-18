@@ -8,7 +8,7 @@ import {deployContracts} from './setup';
 import {
     EraManager,
     IndexerRegistry,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsHelper,
     RewardsPool,
     ERC20,
@@ -43,7 +43,7 @@ describe('StateChannel Contract', () => {
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
     let eraManager: EraManager;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let rewardsHelper: RewardsHelper;
     let rewardsPool: RewardsPool;
     let rewardsBooster: RewardsBooster;
@@ -113,7 +113,7 @@ describe('StateChannel Contract', () => {
         indexerRegistry = deployment.indexerRegistry;
         staking = deployment.staking;
         token = deployment.token;
-        rewardsDistributor = deployment.rewardsDistributer;
+        rewardsDistributor = deployment.rewardsDistributor;
         rewardsHelper = deployment.rewardsHelper;
         rewardsPool = deployment.rewardsPool;
         rewardsBooster = deployment.rewardsBooster;
