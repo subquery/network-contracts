@@ -13,7 +13,7 @@ enum SQContracts {
     PlanManager,
     ServiceAgreementRegistry,
     ServiceAgreementExtra,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsPool,
     RewardsStaking,
     RewardsHelper,

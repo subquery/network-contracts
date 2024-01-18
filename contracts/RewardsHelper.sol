@@ -8,7 +8,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
-import './RewardsDistributer.sol';
+import './RewardsDistributor.sol';
 import './RewardsStaking.sol';
 import './utils/MathUtil.sol';
 
@@ -43,99 +43,99 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
     /**
      * @dev Apply a list of stakers' StakeChanges, call applyStakeChange one by one.
      */
-    function batchApplyStakeChange(address indexer, address[] memory stakers) public {
+    function batchApplyStakeChange(address runner, address[] memory stakers) public {
         RewardsStaking rewardsStaking = RewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
         for (uint256 i = 0; i < stakers.length; i++) {
-            rewardsStaking.applyStakeChange(indexer, stakers[i]);
+            rewardsStaking.applyStakeChange(runner, stakers[i]);
         }
     }
 
-    function batchClaim(address delegator, address[] memory indexers) public {
-        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
-        for (uint256 i = 0; i < indexers.length; i++) {
-            rewardsDistributer.claimFrom(indexers[i], delegator);
+    function batchClaim(address delegator, address[] memory runners) public {
+        RewardsDistributor rewardsDistributor = RewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
+        for (uint256 i = 0; i < runners.length; i++) {
+            rewardsDistributor.claimFrom(runners[i], delegator);
         }
     }
 
-    function batchCollectAndDistributeRewards(address indexer, uint256 batchSize) public {
-        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
+    function batchCollectAndDistributeRewards(address runner, uint256 batchSize) public {
+        RewardsDistributor rewardsDistributor = RewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
         // check current era is after lastClaimEra
         IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
         uint256 currentEra = eraManager.safeUpdateAndGetEra();
-        uint256 loopCount = MathUtil.min(batchSize, currentEra - rewardsDistributer.getRewardInfo(indexer).lastClaimEra - 1);
+        uint256 loopCount = MathUtil.min(batchSize, currentEra - rewardsDistributor.getRewardInfo(runner).lastClaimEra - 1);
         for (uint256 i = 0; i < loopCount; i++) {
-            rewardsDistributer.collectAndDistributeEraRewards(currentEra, indexer);
+            rewardsDistributor.collectAndDistributeEraRewards(currentEra, runner);
         }
     }
 
-    function indexerCatchup(address indexer) public {
-        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
+    function indexerCatchup(address runner) public {
+        RewardsDistributor rewardsDistributor = RewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
         RewardsStaking rewardsStaking = RewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
         uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).eraNumber();
 
-        uint256 lastClaimEra = rewardsDistributer.getRewardInfo(indexer).lastClaimEra;
-        if (rewardsStaking.getLastSettledEra(indexer) >= lastClaimEra && lastClaimEra < currentEra - 1){
-            rewardsDistributer.collectAndDistributeRewards(indexer);
+        uint256 lastClaimEra = rewardsDistributor.getRewardInfo(runner).lastClaimEra;
+        if (rewardsStaking.getLastSettledEra(runner) >= lastClaimEra && lastClaimEra < currentEra - 1){
+            rewardsDistributor.collectAndDistributeRewards(runner);
         }
 
-        // apply all stakers' change of an indexer
-        while(rewardsStaking.getPendingStakeChangeLength(indexer) > 0){
-            address staker = rewardsStaking.getPendingStaker(indexer, rewardsStaking.getPendingStakeChangeLength(indexer) - 1);
-            rewardsStaking.applyStakeChange(indexer, staker);
+        // apply all stakers' change of an runner
+        while(rewardsStaking.getPendingStakeChangeLength(runner) > 0){
+            address staker = rewardsStaking.getPendingStaker(runner, rewardsStaking.getPendingStakeChangeLength(runner) - 1);
+            rewardsStaking.applyStakeChange(runner, staker);
         }
 
-        lastClaimEra = rewardsDistributer.getRewardInfo(indexer).lastClaimEra;
-        if (rewardsStaking.getLastSettledEra(indexer) >= lastClaimEra && lastClaimEra < currentEra - 1){
-            rewardsDistributer.collectAndDistributeRewards(indexer);
+        lastClaimEra = rewardsDistributor.getRewardInfo(runner).lastClaimEra;
+        if (rewardsStaking.getLastSettledEra(runner) >= lastClaimEra && lastClaimEra < currentEra - 1){
+            rewardsDistributor.collectAndDistributeRewards(runner);
         }
 
-        // apply indexer's commission rate change
-        uint256 ICREra = rewardsStaking.getCommissionRateChangedEra(indexer);
+        // apply runner's commission rate change
+        uint256 ICREra = rewardsStaking.getCommissionRateChangedEra(runner);
         if (ICREra != 0 && ICREra <= currentEra){
-            rewardsStaking.applyICRChange(indexer);
+            rewardsStaking.applyICRChange(runner);
         }
 
         // catch up current era
-        while(rewardsDistributer.getRewardInfo(indexer).lastClaimEra < currentEra - 1){
-            rewardsDistributer.collectAndDistributeRewards(indexer);
+        while(rewardsDistributor.getRewardInfo(runner).lastClaimEra < currentEra - 1){
+            rewardsDistributor.collectAndDistributeRewards(runner);
         }
     }
 
-    function batchCollectWithPool(address indexer, bytes32[] memory deployments) public {
+    function batchCollectWithPool(address runner, bytes32[] memory deployments) public {
         IRewardsPool rewardsPool = IRewardsPool(settings.getContractAddress(SQContracts.RewardsPool));
         for (uint256 i = 0; i < deployments.length; i++) {
-            rewardsPool.collect(deployments[i], indexer);
+            rewardsPool.collect(deployments[i], runner);
         }
 
-        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
-        rewardsDistributer.collectAndDistributeRewards(indexer);
+        RewardsDistributor rewardsDistributor = RewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
+        rewardsDistributor.collectAndDistributeRewards(runner);
     }
 
-    function getPendingStakers(address indexer) public view returns (address[] memory) {
+    function getPendingStakers(address runner) public view returns (address[] memory) {
         RewardsStaking rewardsStaking = RewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
-        uint256 length = rewardsStaking.getPendingStakeChangeLength(indexer);
+        uint256 length = rewardsStaking.getPendingStakeChangeLength(runner);
         address[] memory _stakers = new address[](length);
         for (uint256 i = 0; i < length; i++) {
-            _stakers[i] = rewardsStaking.getPendingStaker(indexer, i);
+            _stakers[i] = rewardsStaking.getPendingStaker(runner, i);
         }
 
         return _stakers;
     }
 
-    function getRewardsAddTable(address indexer, uint256 startEra, uint256 length) public view returns (uint256[] memory) {
-        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
+    function getRewardsAddTable(address runner, uint256 startEra, uint256 length) public view returns (uint256[] memory) {
+        RewardsDistributor rewardsDistributor = RewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
         uint256[] memory table = new uint256[](length);
         for (uint256 i = 0; i < length; i++) {
-            table[i] = rewardsDistributer.getRewardAddTable(indexer, i + startEra);
+            table[i] = rewardsDistributor.getRewardAddTable(runner, i + startEra);
         }
         return table;
     }
 
-    function getRewardsRemoveTable(address indexer, uint256 startEra, uint256 length) public view returns (uint256[] memory) {
-        RewardsDistributer rewardsDistributer = RewardsDistributer(settings.getContractAddress(SQContracts.RewardsDistributer));
+    function getRewardsRemoveTable(address runner, uint256 startEra, uint256 length) public view returns (uint256[] memory) {
+        RewardsDistributor rewardsDistributor = RewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
         uint256[] memory table = new uint256[](length);
         for (uint256 i = 0; i < length; i++) {
-            table[i] = rewardsDistributer.getRewardRemoveTable(indexer, i + startEra);
+            table[i] = rewardsDistributor.getRewardRemoveTable(runner, i + startEra);
         }
         return table;
     }

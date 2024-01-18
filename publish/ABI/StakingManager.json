@@ -255,7 +255,7 @@
                 "type": "uint256"
             }
         ],
-        "name": "slashIndexer",
+        "name": "slashRunner",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -264,7 +264,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_indexer",
+                "name": "_runner",
                 "type": "address"
             },
             {

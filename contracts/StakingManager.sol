@@ -38,16 +38,16 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      * @dev Indexers stake to themself.
      * The caller can be either an existing indexer or IndexerRegistry contract. The staking change will be applied immediately if the caller is IndexerRegistry.
      */
-    function stake(address _indexer, uint256 _amount) external override {
+    function stake(address _runner, uint256 _amount) external override {
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        staking.reflectEraUpdate(_indexer, _indexer);
-        if (staking.isEmptyDelegation(_indexer, _indexer)) {
+        staking.reflectEraUpdate(_runner, _runner);
+        if (staking.isEmptyDelegation(_runner, _runner)) {
             require(msg.sender == settings.getContractAddress(SQContracts.IndexerRegistry), 'G001');
-            staking.addIndexer(_indexer);
+            staking.addRunner(_runner);
         } else {
-            require(msg.sender == _indexer, 'G002');
+            require(msg.sender == _runner, 'G002');
         }
-        staking.delegateToIndexer(_indexer, _indexer, _amount);
+        staking.delegateToIndexer(_runner, _runner, _amount);
     }
 
     /**
@@ -71,7 +71,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         staking.reflectEraUpdate(_indexer, _indexer);
         if (msg.sender == settings.getContractAddress(SQContracts.IndexerRegistry)) {
-            staking.removeIndexer(_indexer);
+            staking.removeRunner(_indexer);
         } else {
             require(msg.sender == _indexer, 'G002');
 
@@ -154,12 +154,12 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         }
     }
 
-    function slashIndexer(address _indexer, uint256 _amount) external {
+    function slashRunner(address _indexer, uint256 _amount) external {
         require(msg.sender == settings.getContractAddress(SQContracts.DisputeManager), 'G005');
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         require(_amount <= this.getSlashableAmount(_indexer), 'S010');
 
-        staking.slashIndexer(_indexer, _amount);
+        staking.slashRunner(_indexer, _amount);
     }
 
     // -- Views --

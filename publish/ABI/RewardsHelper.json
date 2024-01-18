@@ -35,7 +35,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "indexer",
+                "name": "runner",
                 "type": "address"
             },
             {
@@ -58,7 +58,7 @@
             },
             {
                 "internalType": "address[]",
-                "name": "indexers",
+                "name": "runners",
                 "type": "address[]"
             }
         ],
@@ -71,7 +71,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "indexer",
+                "name": "runner",
                 "type": "address"
             },
             {
@@ -89,7 +89,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "indexer",
+                "name": "runner",
                 "type": "address"
             },
             {
@@ -107,7 +107,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "indexer",
+                "name": "runner",
                 "type": "address"
             }
         ],
@@ -126,7 +126,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "indexer",
+                "name": "runner",
                 "type": "address"
             },
             {
@@ -155,7 +155,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "indexer",
+                "name": "runner",
                 "type": "address"
             },
             {
@@ -184,7 +184,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "indexer",
+                "name": "runner",
                 "type": "address"
             }
         ],

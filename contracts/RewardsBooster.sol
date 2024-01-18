@@ -16,7 +16,7 @@ import './interfaces/IStakingAllocation.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/ISQToken.sol';
-import './interfaces/IRewardsDistributer.sol';
+import './interfaces/IRewardsDistributor.sol';
 import "./interfaces/IRewardsBooster.sol";
 import "./interfaces/IProjectRegistry.sol";
 import './utils/FixedMath.sol';
@@ -44,7 +44,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     /// @notice Allowlist reporters
     mapping(address => bool) public reporters;
 
-    // @notice token issued for indexer rewards per block
+    // @notice token issued for runner rewards per block
     uint256 public issuancePerBlock;
     uint256 public minimumDeploymentBooster;
 
@@ -67,14 +67,13 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
     /// @notice ### EVENTS
     event ParameterUpdated(string param);
-    //
+    // Booster changes
     event DeploymentBoosterAdded(bytes32 indexed deploymentId, address indexed account, uint256 amount);
     event DeploymentBoosterRemoved(bytes32 indexed deploymentId, address indexed account, uint256 amount);
     /// @notice Emitted when add Labor(reward) for current era pool
-    event MissedLabor(bytes32 indexed deploymentId, address indexed indexer, uint256 labor);
-//    event StakeAllocated(uint256 allocationId, bytes32 deploymentId, address indexer, uint256 amount);
-    event AllocationRewardsGiven(bytes32 indexed deploymentId, address indexed indexer, uint256 amount);
-    event AllocationRewardsBurnt(bytes32 indexed deploymentId, address indexed indexer, uint256 amount);
+    event MissedLabor(bytes32 indexed deploymentId, address indexed runner, uint256 labor);
+    event AllocationRewardsGiven(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
+    event AllocationRewardsBurnt(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
     /**
      * @notice ### FUNCTIONS
      * @notice Initialize the contract
@@ -155,8 +154,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         emit DeploymentBoosterRemoved(deployment, msg.sender, amount);
     }
 
-    function getIndexerDeploymentBooster(bytes32 _deploymentId, address _indexer) public view returns (uint256) {
-        return deploymentPools[_deploymentId].accountBooster[_indexer];
+    function getRunnerDeploymentBooster(bytes32 _deploymentId, address _runner) public view returns (uint256) {
+        return deploymentPools[_deploymentId].accountBooster[_runner];
     }
 
     /**
@@ -172,37 +171,37 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      * @notice Calculate current rewards for a given allocation on demand.
      *         rewards after over_allocation block are ignored
      * @param _deploymentId _deploymentId
-     * @param _indexer _indexer
+     * @param _runner _runner
      * @return Rewards amount for an allocation
      * @return Rewards burnt due to missedLabor
      */
-    function getRewards(bytes32 _deploymentId, address _indexer) external view override returns (uint256, uint256) {
+    function getAllocationRewards(bytes32 _deploymentId, address _runner) external view override returns (uint256, uint256) {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
         IStakingAllocation sa = IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation));
-        uint256 indexerAllocAmount = sa.allocation(_indexer, _deploymentId);
+        uint256 runnerAllocAmount = sa.allocatedTokens(_runner, _deploymentId);
 
-        IndexerDeploymentReward memory indexerDeplReward = deployment.indexerAllocationRewards[_indexer];
+        RunnerDeploymentReward memory runnerDeplReward = deployment.runnerAllocationRewards[_runner];
 
         (uint256 accRewardsPerAllocatedToken,) = getAccRewardsPerAllocatedToken(_deploymentId);
 
         uint256 totalRewards = _calcRewards(
-            indexerAllocAmount,
-            indexerDeplReward.accRewardsPerToken,
+            runnerAllocAmount,
+            runnerDeplReward.accRewardsPerToken,
             accRewardsPerAllocatedToken
         );
 
-        return _fixRewardsWithMissedLaborAndOverflow(totalRewards, indexerDeplReward, sa.overflowTime(_indexer));
+        return _fixRewardsWithMissedLaborAndOverflow(totalRewards, runnerDeplReward, sa.overflowTime(_runner));
     }
 
     /**
      * @notice Fix reward considering missed labor
      * @param _reward reward before fix
-     * @param _indexerDepReward IndexerDeploymentReward
+     * @param _runnerDepReward RunnerDeploymentReward
      * @return Rewards amount for an allocation
      * @return Rewards burnt due to missedLabor
      */
-    function _fixRewardsWithMissedLaborAndOverflow(uint256 _reward, IndexerDeploymentReward memory _indexerDepReward, uint256 overflowTime) internal view returns (uint256, uint256)  {
-        uint256 rewardPeriod = block.timestamp - _indexerDepReward.lastClaimedAt;
+    function _fixRewardsWithMissedLaborAndOverflow(uint256 _reward, RunnerDeploymentReward memory _runnerDepReward, uint256 overflowTime) internal view returns (uint256, uint256)  {
+        uint256 rewardPeriod = block.timestamp - _runnerDepReward.lastClaimedAt;
         if (_reward == 0) {
             return (0, 0);
         }
@@ -210,7 +209,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             return (0, 0);
         }
 
-        uint256 fixedRewardByMissedLabor = MathUtil.mulDiv(_reward, rewardPeriod - _indexerDepReward.missedLaborTime, rewardPeriod);
+        uint256 fixedRewardByMissedLabor = MathUtil.mulDiv(_reward, rewardPeriod - _runnerDepReward.missedLaborTime, rewardPeriod);
         uint256 fixedReward = MathUtil.mulDiv(fixedRewardByMissedLabor, rewardPeriod - overflowTime, rewardPeriod);
         return (fixedReward, _reward - fixedReward);
     }
@@ -414,58 +413,58 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     /**
      * @notice Add Labor(online status) for current era project pool
      * @param _deploymentIds deployment id
-     * @param _indexers all indexer addresses
+     * @param _runners all runner addresses
      * @param _missedLabors all missed labor seconds
      */
-    function setMissedLabor(bytes32[] calldata _deploymentIds, address[] calldata _indexers, uint256[] calldata _missedLabors) external {
+    function setMissedLabor(bytes32[] calldata _deploymentIds, address[] calldata _runners, uint256[] calldata _missedLabors) external {
         require(reporters[msg.sender], 'RR007');
 
-        for (uint256 i = 0; i < _indexers.length; i++) {
+        for (uint256 i = 0; i < _runners.length; i++) {
             DeploymentPool storage deployment = deploymentPools[_deploymentIds[i]];
-            IndexerDeploymentReward storage indexerDeplReward = deployment.indexerAllocationRewards[_indexers[i]];
-            indexerDeplReward.missedLaborTime = _missedLabors[i];
-            emit MissedLabor(_deploymentIds[i], _indexers[i], _missedLabors[i]);
+            RunnerDeploymentReward storage runnerDeplReward = deployment.runnerAllocationRewards[_runners[i]];
+            runnerDeplReward.missedLaborTime = _missedLabors[i];
+            emit MissedLabor(_deploymentIds[i], _runners[i], _missedLabors[i]);
         }
 
     }
 
     // for test purpose
-    function collectAllocationReward(bytes32 _deploymentId, address _indexer) override external {
-        require(msg.sender == _indexer || msg.sender == settings.getContractAddress(SQContracts.StakingAllocation), "not allowed");
-        _collectAllocationReward(_deploymentId, _indexer);
+    function collectAllocationReward(bytes32 _deploymentId, address _runner) override external {
+        require(msg.sender == _runner || msg.sender == settings.getContractAddress(SQContracts.StakingAllocation), "not allowed");
+        _collectAllocationReward(_deploymentId, _runner);
     }
 
-    function _collectAllocationReward(bytes32 _deploymentId, address _indexer) internal {
+    function _collectAllocationReward(bytes32 _deploymentId, address _runner) internal {
         uint256 accRewardsPerAllocatedToken = onAllocationUpdate(
             _deploymentId
         );
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
         IStakingAllocation sa = IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation));
-        uint256 indexerAllocAmount = sa.allocation(_indexer, _deploymentId);
-        IndexerDeploymentReward storage indexerDeplReward = deployment.indexerAllocationRewards[_indexer];
+        uint256 runnerAllocAmount = sa.allocatedTokens(_runner, _deploymentId);
+        RunnerDeploymentReward storage runnerDeplReward = deployment.runnerAllocationRewards[_runner];
         uint256 reward = _calcRewards(
-            indexerAllocAmount,
-            indexerDeplReward.accRewardsPerToken,
+            runnerAllocAmount,
+            runnerDeplReward.accRewardsPerToken,
             accRewardsPerAllocatedToken
         );
 
-        indexerDeplReward.accRewardsPerToken = accRewardsPerAllocatedToken;
+        runnerDeplReward.accRewardsPerToken = accRewardsPerAllocatedToken;
         uint256 burnt;
-        (reward, burnt) = _fixRewardsWithMissedLaborAndOverflow(reward, indexerDeplReward, sa.overflowTime(_indexer));
-        sa.overflowClear(_indexer, _deploymentId);
-        indexerDeplReward.lastClaimedAt = block.timestamp;
+        (reward, burnt) = _fixRewardsWithMissedLaborAndOverflow(reward, runnerDeplReward, sa.overflowTime(_runner));
+        sa.overflowClear(_runner, _deploymentId);
+        runnerDeplReward.lastClaimedAt = block.timestamp;
 
         address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
-        IRewardsDistributer rewardsDistributer = IRewardsDistributer(ISettings(settings).getContractAddress(SQContracts.RewardsDistributer));
+        IRewardsDistributor rewardsDistributor = IRewardsDistributor(ISettings(settings).getContractAddress(SQContracts.RewardsDistributor));
         IEraManager eraManager = IEraManager(ISettings(settings).getContractAddress(SQContracts.EraManager));
         IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
         sqToken.safeTransferFrom(treasury, address(this), reward);
-        sqToken.safeIncreaseAllowance(address(rewardsDistributer), reward);
-        rewardsDistributer.addInstantRewards(_indexer, address(this), reward, eraManager.safeUpdateAndGetEra());
-        emit AllocationRewardsGiven(_deploymentId, _indexer, reward);
+        sqToken.safeIncreaseAllowance(address(rewardsDistributor), reward);
+        rewardsDistributor.addInstantRewards(_runner, address(this), reward, eraManager.safeUpdateAndGetEra());
+        emit AllocationRewardsGiven(_deploymentId, _runner, reward);
         if (burnt > 0) {
             // since rewards is pulled from treasury, and burn returns rewards to treasury, we don't need to do anything here
-            emit AllocationRewardsBurnt(_deploymentId, _indexer, burnt);
+            emit AllocationRewardsBurnt(_deploymentId, _runner, burnt);
         }
     }
 

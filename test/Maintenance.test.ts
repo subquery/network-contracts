@@ -11,7 +11,7 @@ import {
     PlanManager,
     ProjectRegistry,
     PurchaseOfferMarket,
-    RewardsDistributer,
+    RewardsDistributor,
     ERC20,
     ServiceAgreementRegistry,
     Settings,
@@ -33,7 +33,7 @@ describe('Maintenance Mode Test', () => {
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
     let consumerHost: ConsumerHost;
     let purchaseOfferMarket: PurchaseOfferMarket;
@@ -53,7 +53,7 @@ describe('Maintenance Mode Test', () => {
         indexerRegistry = deployment.indexerRegistry;
         planManager = deployment.planManager;
         eraManager = deployment.eraManager;
-        rewardsDistributor = deployment.rewardsDistributer;
+        rewardsDistributor = deployment.rewardsDistributor;
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         consumerHost = deployment.consumerHost;
         purchaseOfferMarket = deployment.purchaseOfferMarket;
@@ -164,7 +164,7 @@ describe('Maintenance Mode Test', () => {
         });
     });
 
-    describe('RewardsDistributer check', () => {
+    describe('RewardsDistributor check', () => {
         it('collectAndDistributeRewards should ban in maintenance mode', async () => {
             await expect(rewardsDistributor.collectAndDistributeRewards(wallet_0.address)).to.be.revertedWith('G019');
         });

@@ -33,7 +33,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet, treasury=
             StakingManager: [],
             ProjectRegistry: [],
             PlanManager: [],
-            RewardsDistributer: [],
+            RewardsDistributor: [],
             RewardsPool: [],
             RewardsStaking: [],
             RewardsHelper: [],

@@ -89,10 +89,10 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     }
 
     /**
-     * @notice Set the indexer plan limit.
+     * @notice Set plan limit.
      * @param _limit limit to set
      */
-    function setIndexerPlanLimit(uint256 _limit) external onlyOwner {
+    function setPlanLimit(uint256 _limit) external onlyOwner {
         limit = _limit;
     }
 
@@ -231,8 +231,8 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         return plans[planId];
     }
 
-    function getLimits(address indexer, bytes32 deploymentId) external view returns (uint256) {
-        return limits[indexer][deploymentId];
+    function getLimits(address runner, bytes32 deploymentId) external view returns (uint256) {
+        return limits[runner][deploymentId];
     }
 
     /**

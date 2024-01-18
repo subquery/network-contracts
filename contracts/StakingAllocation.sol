@@ -31,17 +31,18 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     ISettings public settings;
 
     // The idle staking need allocated to projects
-    mapping(address => IndexerAllocation) private indexers;
+    mapping(address => RunnerAllocation) private _runnerAllocations;
 
-    // The staking allocated by indexer to different projects(deployments)
-    mapping(address => mapping(bytes32 => uint256)) private allocations;
+    // The staking allocated by runner to different projects(deployments)
+    // runner => deployment => amount
+    mapping(address => mapping(bytes32 => uint256)) public allocatedTokens;
 
     // total allocation on the deployment
     mapping(bytes32 => uint256) public deploymentAllocations;
 
     // -- Events --
-    event StakeAllocationAdded(bytes32 deploymentId, address indexer, uint256 amount);
-    event StakeAllocationRemoved(bytes32 deploymentId, address indexer, uint256 amount);
+    event StakeAllocationAdded(bytes32 deploymentId, address runner, uint256 amount);
+    event StakeAllocationRemoved(bytes32 deploymentId, address runner, uint256 amount);
     // -- Functions --
 
     /**
@@ -57,9 +58,9 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         settings = _settings;
     }
 
-    function update(address _indexer, uint256 _amount) external {
+    function onStakeUpdate(address _runner, uint256 _amount) external {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'SAL01');
-        IndexerAllocation storage ia = indexers[_indexer];
+        RunnerAllocation storage ia = _runnerAllocations[_runner];
         uint256 oldTotal = ia.total;
         ia.total = _amount;
 
@@ -73,51 +74,51 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         }
     }
 
-    function addAllocation(bytes32 _deployment, address _indexer, uint256 _amount) external {
-        require(_isAuth(_indexer), "SAL02");
+    function addAllocation(bytes32 _deployment, address _runner, uint256 _amount) external {
+        require(_isAuth(_runner), "SAL02");
 
         // collect rewards (if any) before change allocation
         IRewardsBooster rb = IRewardsBooster(settings.getContractAddress(SQContracts.RewardsBooster));
-        rb.collectAllocationReward(_deployment, _indexer);
+        rb.collectAllocationReward(_deployment, _runner);
 
-        IndexerAllocation storage ia = indexers[_indexer];
+        RunnerAllocation storage ia = _runnerAllocations[_runner];
 
         require(ia.total - ia.used >= _amount, 'SAL03');
         ia.used += _amount;
         deploymentAllocations[_deployment] += _amount;
-        allocations[_indexer][_deployment] += _amount;
+        allocatedTokens[_runner][_deployment] += _amount;
 
-        emit StakeAllocationAdded(_deployment, _indexer, _amount);
+        emit StakeAllocationAdded(_deployment, _runner, _amount);
     }
 
-    function removeAllocation(bytes32 _deployment, address _indexer, uint256 _amount) external {
-        require(_isAuth(_indexer), "SAL02");
-        require(allocations[_indexer][_deployment] >= _amount, 'SAL04');
+    function removeAllocation(bytes32 _deployment, address _runner, uint256 _amount) external {
+        require(_isAuth(_runner), "SAL02");
+        require(allocatedTokens[_runner][_deployment] >= _amount, 'SAL04');
 
         // collect rewards (if any) before change allocation
         IRewardsBooster rb = IRewardsBooster(settings.getContractAddress(SQContracts.RewardsBooster));
-        rb.collectAllocationReward(_deployment, _indexer);
+        rb.collectAllocationReward(_deployment, _runner);
 
-        IndexerAllocation storage ia = indexers[_indexer];
+        RunnerAllocation storage ia = _runnerAllocations[_runner];
 
         uint256 oldUsed = ia.used;
         ia.used -= _amount;
         // TODO: split to add and remove
         deploymentAllocations[_deployment] -= _amount;
-        allocations[_indexer][_deployment] -= _amount;
+        allocatedTokens[_runner][_deployment] -= _amount;
 
         if (ia.total < oldUsed && ia.total >= ia.used) {
             // collectAllocationReward had beed overflowClear, so just set overflowAt
             ia.overflowAt = 0;
         }
 
-        emit StakeAllocationRemoved(_deployment, _indexer, _amount);
+        emit StakeAllocationRemoved(_deployment, _runner, _amount);
     }
 
-    function overflowClear(address _indexer, bytes32 _deployment) external {
+    function overflowClear(address _runner, bytes32 _deployment) external {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsBooster), 'SAL05');
 
-        IndexerAllocation storage ia = indexers[_indexer];
+        RunnerAllocation storage ia = _runnerAllocations[_runner];
 //        ia.lastClaimedAt = block.timestamp;
         if (ia.overflowAt > 0) {
             ia.overflowAt = block.timestamp;
@@ -126,16 +127,12 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
 
     }
 
-    function allocation(address _indexer, bytes32 _deployment) external view returns (uint256) {
-        return allocations[_indexer][_deployment];
+    function runnerAllocation(address _runner) external view returns (RunnerAllocation memory) {
+        return _runnerAllocations[_runner];
     }
 
-    function indexer(address _indexer) external view returns (IndexerAllocation memory) {
-        return indexers[_indexer];
-    }
-
-    function overflowTime(address _indexer) external view returns (uint256) {
-        IndexerAllocation memory ia = indexers[_indexer];
+    function overflowTime(address _runner) external view returns (uint256) {
+        RunnerAllocation memory ia = _runnerAllocations[_runner];
         if (ia.total < ia.used) {
             return ia.overflowTime + block.timestamp - ia.overflowAt;
         } else {
@@ -143,8 +140,8 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         }
     }
 
-    function isSuspended(address _indexer) external view returns (bool) {
-        return indexers[_indexer].total < indexers[_indexer].used;
+    function isSuspended(address _runner) external view returns (bool) {
+        return _runnerAllocations[_runner].total < _runnerAllocations[_runner].used;
     }
 
     function _isAuth(address _runner) private view returns (bool) {

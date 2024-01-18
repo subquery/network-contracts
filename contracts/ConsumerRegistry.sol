@@ -22,7 +22,7 @@ contract ConsumerRegistry is Initializable, OwnableUpgradeable {
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
 
-    /// @notice users authorised by consumer that can request access token from indexer
+    /// @notice users authorised by consumer that can request access token from runner
     /// consumer address => controller address => bool
     mapping(address => mapping(address => bool)) public controllers;
 

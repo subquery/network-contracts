@@ -11,8 +11,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IPermissionedExchange.sol';
-import './interfaces/IPermissionedExchange.sol';
-import './interfaces/IRewardsDistributer.sol';
+import './interfaces/IRewardsDistributor.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
@@ -35,7 +34,7 @@ import './utils/MathUtil.sol';
  * Commission Rate -- Commission Rates are set by Indexers, it is the proportion to be taken by the indexer in each
  * reward distribution.
  * Rewards -- Rewards are paid by comsumer for the service agreements with indexer. All the rewards are
- * temporary hold by RewardsDistributer contract and distribute to Indexers and Delegator Era by Era.
+ * temporary hold by RewardsDistributor contract and distribute to Indexers and Delegator Era by Era.
  *
  * ### Detail
  * In the design of rewards distribution, we have added a trade-off mechanism for Indexer and
@@ -51,7 +50,7 @@ import './utils/MathUtil.sol';
  * on the era that indexer registered can also be distributed correctly.
  *
  * After the service agreements generated from PlanManager and PurchaseOfferMarket, the rewards paied by consumer are temporary hold by
- * RewardsDistributer contract. RewardsDistributer first linearly split these rewards into Eras according to the era period and the period
+ * RewardsDistributor contract. RewardsDistributor first linearly split these rewards into Eras according to the era period and the period
  * of the agreement. The distribution information are stored in eraRewardAddTable and eraRewardRemoveTable.
  * In the specific distribution process, we calculate the rewards need to be distributed according to eraRewardAddTable and eraRewardRemoveTable,
  * and distribute to Indexers and Delegators according to their stake amount at that time.
@@ -59,7 +58,7 @@ import './utils/MathUtil.sol';
  * accumulated rewards by call claim() any time.
  *
  */
-contract RewardsDistributer is IRewardsDistributer, Initializable, OwnableUpgradeable {
+contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 

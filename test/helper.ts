@@ -5,10 +5,27 @@ import { StaticJsonRpcProvider } from '@ethersproject/providers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { constants, time } from '@openzeppelin/test-helpers';
 import { MockProvider } from 'ethereum-waffle';
-import { BaseContract, BigNumber, Contract, ContractTransaction, Wallet as EthWallet, utils } from 'ethers';
+import {
+    BaseContract,
+    BigNumber,
+    Contract,
+    ContractTransaction,
+    Wallet as EthWallet,
+    utils,
+    BigNumberish
+} from 'ethers';
 import { ethers } from "hardhat";
-import { EraManager, IndexerRegistry, PlanManager, PurchaseOfferMarket, ERC20 } from '../src';
+import {
+    EraManager,
+    IndexerRegistry,
+    PlanManager,
+    PurchaseOfferMarket,
+    ERC20,
+    ProjectType,
+    ProjectRegistry, RewardsBooster, StateChannel
+} from '../src';
 import { METADATA_HASH } from './constants';
+import { expect } from "chai";
 
 export { constants, time };
 
@@ -69,19 +86,20 @@ export async function futureTimestamp(provider: MockProvider, sec: number = 60 *
 }
 
 // contract call helpers
-export async function registerIndexer(
+export async function registerRunner(
     token: Contract,
     indexerRegistry: IndexerRegistry,
     staking: Contract,
     rootWallet: Wallet,
     wallet: Wallet,
-    amount: string
+    amount: BigNumberish,
+    rate: BigNumberish = 0,
 ) {
-    await token.connect(rootWallet).transfer(wallet.address, etherParse(amount));
-    await token.connect(wallet).increaseAllowance(staking.address, etherParse(amount));
+    await token.connect(rootWallet).transfer(wallet.address, amount);
+    await token.connect(wallet).increaseAllowance(staking.address, amount);
     const tx = await indexerRegistry
         .connect(wallet)
-        .registerIndexer(etherParse(amount), METADATA_HASH, 0, { gasLimit: '2000000' });
+        .registerIndexer(amount, METADATA_HASH, rate, { gasLimit: '2000000' });
     return tx;
 }
 
@@ -108,6 +126,59 @@ export async function createPurchaseOffer(
     );
     const evt = await eventFrom(tx, purchaseOfferMarket, 'PurchaseOfferCreated(address,uint256,bytes32,uint256,uint256,uint16,uint256,uint256,uint256)');
     return evt.offerId;
+}
+
+export function createProject(projectRegistry: ProjectRegistry, wallet: SignerWithAddress, projectMetadata: string, deploymentMetadata: string, deploymentId: string, projectType: ProjectType) {
+    return projectRegistry
+        .connect(wallet)
+        .createProject(projectMetadata, deploymentMetadata, deploymentId, projectType);
+}
+
+export async function boosterDeployment(token: ERC20, rewardsBooster: RewardsBooster, signer: SignerWithAddress, deployment: string, amount) {
+    await token.connect(signer).increaseAllowance(rewardsBooster.address, amount);
+    await rewardsBooster.connect(signer).boostDeployment(deployment, amount);
+};
+
+export async function openChannel(
+    stateChannel: StateChannel,
+    channelId: Uint8Array,
+    deploymentId: string,
+    indexer: Wallet,
+    consumer: Wallet,
+    amount: BigNumber,
+    price: BigNumber,
+    expiration: number
+) {
+    const abi = ethers.utils.defaultAbiCoder;
+    const msg = abi.encode(
+        ['uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'bytes32', 'bytes'],
+        [channelId, indexer.address, consumer.address, amount, price, expiration, deploymentId, '0x']
+    );
+    let payloadHash = ethers.utils.keccak256(msg);
+
+    let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+    let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
+
+    const recoveredIndexer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), indexerSign);
+    expect(indexer.address).to.equal(recoveredIndexer);
+
+    const recoveredConsumer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), consumerSign);
+    expect(consumer.address).to.equal(recoveredConsumer);
+
+    await stateChannel
+        .connect(consumer)
+        .open(
+            channelId,
+            indexer.address,
+            consumer.address,
+            amount,
+            price,
+            expiration,
+            deploymentId,
+            '0x',
+            indexerSign,
+            consumerSign
+        );
 }
 
 export async function startNewEra(mockProvider: MockProvider, eraManager: EraManager): Promise<BigNumber> {
@@ -149,7 +220,7 @@ export async function acceptPlan(
 
 export function etherParse(etherNum: string | number) {
     const ether = typeof etherNum === 'string' ? etherNum : etherNum.toString();
-    return ethers.utils.parseEther(ether)
+    return utils.parseEther(ether)
 }
 
 type Event = utils.Result;
