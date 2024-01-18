@@ -17,8 +17,8 @@ import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IRewardsDistributor.sol';
-import "./interfaces/IRewardsBooster.sol";
-import "./interfaces/IProjectRegistry.sol";
+import './interfaces/IRewardsBooster.sol';
+import './interfaces/IProjectRegistry.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
@@ -74,6 +74,9 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     event MissedLabor(bytes32 indexed deploymentId, address indexed runner, uint256 labor);
     event AllocationRewardsGiven(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
     event AllocationRewardsBurnt(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
+    event SpendQueryRewards(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
+    event RefundQueryRewards(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
+
     /**
      * @notice ### FUNCTIONS
      * @notice Initialize the contract
@@ -566,6 +569,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         sqToken.safeTransferFrom(ISettings(settings).getContractAddress(SQContracts.Treasury), address(this), _amount);
         // Allowance
         IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(msg.sender, _amount);
+
+        emit SpendQueryRewards(_deploymentId, _spender, _amount);
         return _amount;
     }
 
@@ -578,5 +583,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         boosterQueryRewards.spentQueryRewards -= _amount;
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(ISettings(settings).getContractAddress(SQContracts.Treasury), _amount);
+
+        emit RefundQueryRewards(_deploymentId, _spender, _amount);
     }
 }
