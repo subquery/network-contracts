@@ -72,4 +72,7 @@ interface IRewardsBooster {
 
     function collectAllocationReward(bytes32 _deploymentId, address _indexer) external;
 
+    function spendQueryRewards(bytes32 _deploymentId, address _spender, uint256 _amount) external returns (uint256);
+
+    function refundQueryRewards(bytes32 _deploymentId, address _spender, uint256 _amount) external;
 }

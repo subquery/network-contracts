@@ -14,6 +14,7 @@ import {
     SQContracts,
     Staking,
     StakingAllocation,
+    StateChannel,
 } from '../src';
 import {deploymentIds, deploymentMetadatas, METADATA_HASH, projectMetadatas} from './constants';
 import {blockTravel, etherParse, eventFrom, time, wrapTxs} from './helper';
@@ -27,6 +28,7 @@ describe('RewardsBooster Contract', () => {
     const deploymentId1 = deploymentIds[1];
     const deploymentId2 = deploymentIds[2];
     const deploymentId3 = deploymentIds[3];
+    const defaultChannelId = ethers.utils.randomBytes(32);
 
     const mockProvider = waffle.provider;
     let root: SignerWithAddress,
@@ -43,6 +45,48 @@ describe('RewardsBooster Contract', () => {
     let rewardsBooster: RewardsBooster;
     let stakingAllocation: StakingAllocation;
     let projectRegistry: ProjectRegistry;
+    let stateChannel: StateChannel;
+
+    const openChannel = async (
+        channelId: Uint8Array,
+        deploymentId: string,
+        indexer: Wallet,
+        consumer: Wallet,
+        amount: BigNumber,
+        price: BigNumber,
+        expiration: number
+    ) => {
+        const abi = ethers.utils.defaultAbiCoder;
+        const msg = abi.encode(
+            ['uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'bytes32', 'bytes'],
+            [channelId, indexer.address, consumer.address, amount, price, expiration, deploymentId, '0x']
+        );
+        let payloadHash = ethers.utils.keccak256(msg);
+
+        let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+        let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
+
+        const recoveredIndexer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), indexerSign);
+        expect(indexer.address).to.equal(recoveredIndexer);
+
+        const recoveredConsumer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), consumerSign);
+        expect(consumer.address).to.equal(recoveredConsumer);
+
+        await stateChannel
+            .connect(consumer)
+            .open(
+                channelId,
+                indexer.address,
+                consumer.address,
+                amount,
+                price,
+                expiration,
+                deploymentId,
+                '0x',
+                indexerSign,
+                consumerSign
+            );
+    };
 
     // Rewrite registerIndexer to register indexer with stakeAmount and commission rate.
     const registerIndexer = async (rootWallet, wallet, amount, rate) => {
@@ -119,6 +163,7 @@ describe('RewardsBooster Contract', () => {
         rewardsBooster = deployment.rewardsBooster;
         stakingAllocation = deployment.stakingAllocation;
         projectRegistry = deployment.projectRegistry;
+        stateChannel = deployment.stateChannel;
         await token.approve(rewardsBooster.address, constants.MaxInt256);
 
         // config rewards booster
@@ -218,11 +263,30 @@ describe('RewardsBooster Contract', () => {
                 const reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
                 expect(queryReward).to.eq(getQueryReward(reward0, queryRewardRatePerMill));
                 // spend query rewards
-                const tx = await rewardsBooster.connect(consumer0).spendQueryRewards(deploymentId3, queryReward);
+                await token.connect(consumer0).increaseAllowance(stateChannel.address, etherParse('5'));
+
+                await openChannel(
+                    defaultChannelId,
+                    deploymentId3,
+                    indexer0,
+                    consumer0,
+                    etherParse('1'),
+                    etherParse('1'),
+                    60
+                );
+                const abi = ethers.utils.defaultAbiCoder;
+                const msg = abi.encode(
+                    ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
+                    [defaultChannelId, indexer0.address, consumer0.address, etherParse('1'), queryReward, '0x']
+                );
+                let payload = ethers.utils.keccak256(msg);
+                let sign = await consumer0.signMessage(ethers.utils.arrayify(payload));
+                const tx = await stateChannel.fund(defaultChannelId, etherParse('1'), queryReward, '0x', sign);
                 const {value: spent} = await eventFrom(tx, token, 'Transfer(address,address,uint256)');
+                expect(spent).to.eq(queryReward);
+
                 const queryReward1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
                 const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
-                expect(spent).to.eq(queryReward);
                 // has 1 block's reward, not zero
                 expect(queryReward1).to.eq(getQueryReward(reward1.sub(reward0), queryRewardRatePerMill));
             });
