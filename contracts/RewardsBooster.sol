@@ -554,13 +554,15 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     function spendQueryRewards(bytes32 _deploymentId, address _spender, uint256 _amount) external returns (uint256) {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB01');
         uint256 queryRewards = getQueryRewards(_deploymentId, _spender);
-
-        if (queryRewards < _amount) {
-            _amount = queryRewards;
-        }
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
         BoosterQueryReward storage boosterQueryRewards = deployment.boosterQueryRewards[_spender];
+
+        uint256 remainRewards = queryRewards - boosterQueryRewards.spentQueryRewards;
+        if (remainRewards < _amount) {
+            _amount = remainRewards;
+        }
         boosterQueryRewards.spentQueryRewards += _amount;
+
         // pull rewards
         IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
         sqToken.safeTransferFrom(ISettings(settings).getContractAddress(SQContracts.Treasury), address(this), _amount);
