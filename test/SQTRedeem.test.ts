@@ -26,8 +26,34 @@ describe('Redeem Contract', () => {
     });
 
     describe('Redeem Configuration', () => {
+      it('should be able to update the redeemable status', async () => {
+
+      });
       it('should be able to set redeemable ammount', async () => {
-        // test
-      })
-    })
+
+      });
+      it('should be able to deposit and withdraw token', async () => {
+
+      });
+      it('only owner can call configuration function', async () => {
+
+      });
+    });
+
+    describe('NFT Redeem', () => {
+      beforeEach(async () => {
+        // create series 0
+        // mint nft token
+      });
+      it('should be able to redeem with valid NFT token', async () => {
+
+      });
+      it('should not be able to redeem with invalid NFT token', async () => {
+        // 1. can not redeem if contract status is not redeemable
+        // 2. can not redeem if nft address is incorrect
+        // 3. can not redeem if nft token owner is not the sender
+        // 4. can not redeem if redeemable amount is 0
+        // 5. can not redeem if sqt token is not enough
+      });
+    });
   });
