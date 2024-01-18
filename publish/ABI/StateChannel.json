@@ -80,6 +80,12 @@
             {
                 "indexed": false,
                 "internalType": "uint256",
+                "name": "realTotal",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
                 "name": "total",
                 "type": "uint256"
             }
@@ -256,6 +262,11 @@
                         "internalType": "address",
                         "name": "consumer",
                         "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "realTotal",
+                        "type": "uint256"
                     },
                     {
                         "internalType": "uint256",

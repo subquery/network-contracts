@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { IndexerRegistry, ProjectRegistry, RewardsStaking, ERC20, Staking, StakingManager } from '../src';
 import { DEPLOYMENT_ID, METADATA_1_HASH, METADATA_HASH, VERSION } from './constants';
-import { etherParse, registerIndexer } from './helper';
+import { etherParse, registerRunner } from './helper';
 import { deployContracts } from './setup';
 
 const { constants } = require('@openzeppelin/test-helpers');
@@ -38,12 +38,12 @@ describe('IndexerRegistry Contract', () => {
         projectRegistry = deployment.projectRegistry;
         indexerRegistry = deployment.indexerRegistry;
         rewardsStaking = deployment.rewardsStaking;
-        await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, amount);
+        await registerRunner(token, indexerRegistry, staking, wallet_0, wallet_0, etherParse(amount));
     });
 
     describe('Indexer Registry', () => {
         it('register indexer should work', async () => {
-            await expect(registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, amount))
+            await expect(registerRunner(token, indexerRegistry, staking, wallet_0, wallet_1, etherParse(amount)))
                 .to.be.emit(indexerRegistry, 'RegisterIndexer')
                 .withArgs(wallet_1.address, etherParse(amount), METADATA_HASH)
                 .to.be.emit(indexerRegistry, 'SetCommissionRate')

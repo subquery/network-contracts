@@ -15,7 +15,7 @@ import {
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, poi } from './constants';
-import { createPurchaseOffer, etherParse, futureTimestamp, registerIndexer, time, timeTravel } from './helper';
+import { createPurchaseOffer, etherParse, futureTimestamp, registerRunner, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
 describe('Purchase Offer Market Contract', () => {
@@ -191,9 +191,9 @@ describe('Purchase Offer Market Contract', () => {
         describe('Accept Purchase Offer', () => {
             beforeEach(async () => {
                 // register indexers
-                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '2000');
+                await registerRunner(token, indexerRegistry, staking, wallet_0, wallet_0, etherParse('2000'));
                 await indexerRegistry.connect(wallet_0).setControllerAccount(wallet_1.address);
-                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '2000');
+                await registerRunner(token, indexerRegistry, staking, wallet_0, wallet_1, etherParse('2000'));
                 await indexerRegistry.connect(wallet_1).setControllerAccount(wallet_0.address);
                 // create query project
                 await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);

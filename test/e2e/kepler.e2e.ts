@@ -300,7 +300,7 @@
 //             const currentEra = await sdk.eraManager.eraNumber();
 //             console.log(`currentEra: ${currentEra}`);
 //
-//             let rewardInfo = await sdk.rewardsDistributor.getRewardInfo(INDEXER_ADDR);
+//             let rewardInfo = await sdk.rewardsDistributer.getRewardInfo(INDEXER_ADDR);
 //             console.log(`RewardInfo of indexer ${INDEXER_ADDR}: `);
 //             console.log(`lastClaimEra: ${rewardInfo.lastClaimEra}`);
 //             console.log(`eraReward: ${rewardInfo.eraReward}`);
@@ -309,21 +309,21 @@
 //             if (currentEra.eq(rewardInfo.lastClaimEra.add(1))) break;
 //
 //             console.log(`=> Collect and distribute rewards`);
-//             await sendTx(() => sdk.rewardsDistributor.collectAndDistributeRewards(INDEXER_ADDR));
-//             rewardInfo = await sdk.rewardsDistributor.getRewardInfo(INDEXER_ADDR);
+//             await sendTx(() => sdk.rewardsDistributer.collectAndDistributeRewards(INDEXER_ADDR));
+//             rewardInfo = await sdk.rewardsDistributer.getRewardInfo(INDEXER_ADDR);
 //             console.log(`RewardInfo of indexer ${INDEXER_ADDR}: `);
 //             console.log(`lastClaimEra: ${rewardInfo.lastClaimEra}`);
 //             console.log(`eraReward: ${rewardInfo.eraReward}`);
 //             console.log(`accSQTPerStake: ${rewardInfo.accSQTPerStake}`);
 //
 //             console.log(`=> Indexer claims rewards`);
-//             let indexer_rewards = await sdk.rewardsDistributor.userRewards(INDEXER_ADDR, INDEXER_ADDR);
-//             await sendTx(() => sdk.rewardsDistributor.connect(indexer_wallet).claim(INDEXER_ADDR));
+//             let indexer_rewards = await sdk.rewardsDistributer.userRewards(INDEXER_ADDR, INDEXER_ADDR);
+//             await sendTx(() => sdk.rewardsDistributer.connect(indexer_wallet).claim(INDEXER_ADDR));
 //             console.log(`indexer claimed : ${indexer_rewards}`);
 //
 //             console.log(`=> Delegator claims rewards`);
-//             let delegator_rewards = await sdk.rewardsDistributor.userRewards(INDEXER_ADDR, CONSUMER_ADDR);
-//             await sendTx(() => sdk.rewardsDistributor.connect(consumer_wallet).claim(INDEXER_ADDR));
+//             let delegator_rewards = await sdk.rewardsDistributer.userRewards(INDEXER_ADDR, CONSUMER_ADDR);
+//             await sendTx(() => sdk.rewardsDistributer.connect(consumer_wallet).claim(INDEXER_ADDR));
 //             console.log(`delegator claimed : ${delegator_rewards}`);
 //         } catch (err) {
 //             console.log(err);

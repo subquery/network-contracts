@@ -16,22 +16,22 @@ import {
     SUSD__factory,
     ServiceAgreementRegistry,
     Settings,
-    Staking,
+    Staking, ERC20, SQContracts,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, ZERO_ADDRESS } from './constants';
-import { constants, etherParse, futureTimestamp, registerIndexer, startNewEra, time, timeTravel } from './helper';
+import { constants, etherParse, futureTimestamp, registerRunner, startNewEra, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
 // PermissionedExchange only available on Kepler Network
 describe.skip('PermissionedExchange Contract', () => {
     const mockProvider = waffle.provider;
-    let wallet_0, wallet_1, wallet_2, indexer, consumer;
+    let wallet_0, wallet_1, wallet_2, runner, consumer;
     let permissionedExchange: PermissionedExchange;
     let settings: Settings;
     let sqtAddress;
     let usdAddress;
     let usdToken: SUSD;
-    let sqToken: SQToken;
+    let sqToken: ERC20;
     let staking: Staking;
     let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
@@ -41,12 +41,12 @@ describe.skip('PermissionedExchange Contract', () => {
     let serviceAgreementRegistry: ServiceAgreementRegistry;
 
     beforeEach(async () => {
-        [wallet_0, wallet_1, wallet_2, indexer, consumer] = await ethers.getSigners();
+        [wallet_0, wallet_1, wallet_2, runner, consumer] = await ethers.getSigners();
         const deployment = await deployContracts(wallet_0, wallet_0);
         permissionedExchange = deployment.permissionedExchange;
         sqToken = deployment.token;
         settings = deployment.settings;
-        sqtAddress = await settings.getSQToken();
+        sqtAddress = await settings.getContractAddress(SQContracts.SQToken);
         staking = deployment.staking;
         projectRegistry = deployment.projectRegistry;
         indexerRegistry = deployment.indexerRegistry;
@@ -114,32 +114,32 @@ describe.skip('PermissionedExchange Contract', () => {
 
     describe('quota update', () => {
         beforeEach(async () => {
-            await sqToken.transfer(indexer.address, etherParse('2000'));
-            await registerIndexer(sqToken, indexerRegistry, staking, indexer, indexer, '2000');
+            await sqToken.transfer(runner.address, etherParse('2000'));
+            await registerRunner(sqToken, indexerRegistry, staking, runner, runner, etherParse('2000'));
             await sqToken.transfer(consumer.address, etherParse('10'));
             await sqToken.connect(consumer).increaseAllowance(planManager.address, etherParse('10'));
             // create query project
             await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID,0);
             // wallet_0 start project
-            await projectRegistry.connect(indexer).startService(DEPLOYMENT_ID);
+            await projectRegistry.connect(runner).startService(DEPLOYMENT_ID);
             // create plan template
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, sqToken.address, METADATA_HASH);
             // default plan -> planId: 1
-            await planManager.connect(indexer).createPlan(etherParse('10'), 0, constants.ZERO_BYTES32);
+            await planManager.connect(runner).createPlan(etherParse('10'), 0, constants.ZERO_BYTES32);
             await sqToken.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, etherParse('50'));
             await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
         });
 
         it('claimed reward should add to quota', async () => {
-            const balance_before = await sqToken.balanceOf(indexer.address);
+            const balance_before = await sqToken.balanceOf(runner.address);
             await startNewEra(mockProvider, eraManager);
-            await expect(rewardsDistributor.collectAndDistributeRewards(indexer.address));
-            let balance = await sqToken.balanceOf(indexer.address);
-            let quota = await permissionedExchange.tradeQuota(sqToken.address, indexer.address);
+            await expect(rewardsDistributor.collectAndDistributeRewards(runner.address));
+            let balance = await sqToken.balanceOf(runner.address);
+            let quota = await permissionedExchange.tradeQuota(sqToken.address, runner.address);
             expect(balance.sub(balance_before)).to.eq(quota);
-            await rewardsDistributor.connect(indexer).claim(indexer.address);
-            balance = await sqToken.balanceOf(indexer.address);
-            quota = await permissionedExchange.tradeQuota(sqToken.address, indexer.address);
+            await rewardsDistributor.connect(runner).claim(runner.address);
+            balance = await sqToken.balanceOf(runner.address);
+            quota = await permissionedExchange.tradeQuota(sqToken.address, runner.address);
             expect(balance.sub(balance_before)).to.eq(quota);
         });
     });

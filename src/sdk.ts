@@ -19,7 +19,7 @@ import {
     ProjectRegistry,
     ProxyAdmin,
     PurchaseOfferMarket,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsHelper,
     RewardsPool,
     RewardsStaking,
@@ -62,7 +62,7 @@ export class ContractSDK {
     readonly serviceAgreementExtra!: ServiceAgreementExtra;
     readonly eraManager!: EraManager;
     readonly planManager!: PlanManager;
-    readonly rewardsDistributor!: RewardsDistributer;
+    readonly rewardsDistributor!: RewardsDistributor;
     readonly rewardsPool!: RewardsPool;
     readonly rewardsStaking!: RewardsStaking;
     readonly rewardsHelper!: RewardsHelper;
