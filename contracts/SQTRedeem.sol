@@ -16,8 +16,8 @@ contract SQTRedeem is Initializable, OwnableUpgradeable {
     /// @notice redeemable status of the contract
     bool public redeemable;
 
-    /// @notice seriesId => redeemable amount for each NFT in the series
-    mapping(uint256 => uint256) public redeemableAmount;
+    /// @notice nft address => seriesId => redeemable amount for each NFT in the series
+    mapping(address => mapping(uint256 => uint256)) public redeemableAmount;
 
     event SQTRedeemed(address indexed to, uint256 indexed tokenId, uint256 seriesId, address nft, uint256 sqtValue);
 
@@ -27,7 +27,7 @@ contract SQTRedeem is Initializable, OwnableUpgradeable {
         sqtoken = _sqtoken;
     }
 
-    function desposit(uint256 amount) public onlyOwner {
+    function deposit(uint256 amount) public onlyOwner {
         require(IERC20(sqtoken).transferFrom(msg.sender, address(this), amount), 'SQR001');
     }
 
@@ -39,9 +39,9 @@ contract SQTRedeem is Initializable, OwnableUpgradeable {
         redeemable = _redeemable;
     }
 
-    function setRedeemableAmount(uint256 seriesId, uint256 amount) public onlyOwner {
+    function setRedeemableAmount(address nft, uint256 seriesId, uint256 amount) public onlyOwner {
         // this is to set the redeemable amount for per NFT in the series
-        redeemableAmount[seriesId] = amount;
+        redeemableAmount[nft][seriesId] = amount;
     }
 
     function redeem(address nft, uint256 tokenId) public {
@@ -51,11 +51,11 @@ contract SQTRedeem is Initializable, OwnableUpgradeable {
         require(nftContract.supportsInterface(type(ISQTGift).interfaceId), 'SQR003');
 
         ISQTGift sqtGift = ISQTGift(nft);
-        require(sqtGift.ownerOf(tokenId) == msg.sender, 'SQG005');
+        require(sqtGift.ownerOf(tokenId) == msg.sender, 'SQR005');
 
         uint256 seriesId = sqtGift.getSeries(tokenId);
-        uint256 sqtValue = redeemableAmount[sqtGift.getSeries(tokenId)];
-        require(redeemableAmount[seriesId] > 0, 'SQG004');
+        uint256 sqtValue = redeemableAmount[nft][seriesId];
+        require(sqtValue > 0, 'SQR004');
 
         require(IERC20(sqtoken).transfer(msg.sender, sqtValue), 'SQR001');
 
