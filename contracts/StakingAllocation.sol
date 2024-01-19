@@ -43,8 +43,8 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     // -- Events --
     event StakeAllocationAdded(bytes32 deploymentId, address runner, uint256 amount);
     event StakeAllocationRemoved(bytes32 deploymentId, address runner, uint256 amount);
-    event StakeOverflowStart(address indexer, uint256 start);
-    event StakeOverflowEnd(address indexer, uint256 end, uint256 time);
+    event StakeOverflowStarted(address indexer, uint256 start);
+    event StakeOverflowEnded(address indexer, uint256 end, uint256 time);
     // -- Functions --
 
     /**
@@ -68,12 +68,12 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
 
         if (oldTotal >= ia.used && ia.total < ia.used) {
             // new overflow
-            emit StakeOverflowStart(_runner, block.timestamp);
+            emit StakeOverflowStarted(_runner, block.timestamp);
 
             ia.overflowAt = block.timestamp;
         } else if (oldTotal < ia.used && ia.total >= ia.used) {
             // recover from overflow
-            emit StakeOverflowEnd(_runner, block.timestamp, block.timestamp - ia.overflowAt);
+            emit StakeOverflowEnded(_runner, block.timestamp, block.timestamp - ia.overflowAt);
 
             ia.overflowTime += block.timestamp - ia.overflowAt;
             ia.overflowAt = 0;
@@ -115,7 +115,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
 
         if (ia.total < oldUsed && ia.total >= ia.used) {
             // collectAllocationReward had beed overflowClear, so just set overflowAt
-            emit StakeOverflowEnd(_runner, block.timestamp, block.timestamp - ia.overflowAt);
+            emit StakeOverflowEnded(_runner, block.timestamp, block.timestamp - ia.overflowAt);
 
             ia.overflowAt = 0;
         }
@@ -129,8 +129,8 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         RunnerAllocation storage ia = _runnerAllocations[_runner];
 //        ia.lastClaimedAt = block.timestamp;
         if (ia.overflowAt > 0) {
-            emit StakeOverflowEnd(_runner, block.timestamp, block.timestamp - ia.overflowAt);
-            emit StakeOverflowStart(_runner, block.timestamp);
+            emit StakeOverflowEnded(_runner, block.timestamp, block.timestamp - ia.overflowAt);
+            emit StakeOverflowStarted(_runner, block.timestamp);
 
             ia.overflowAt = block.timestamp;
         }

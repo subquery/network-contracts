@@ -74,8 +74,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     event MissedLabor(bytes32 indexed deploymentId, address indexed runner, uint256 labor);
     event AllocationRewardsGiven(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
     event AllocationRewardsBurnt(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
-    event SpendQueryRewards(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
-    event RefundQueryRewards(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
+    event QueryRewardsSpent(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
+    event QueryRewardsRefunded(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
 
     /**
      * @notice ### FUNCTIONS
@@ -570,7 +570,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         // Allowance
         IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(msg.sender, _amount);
 
-        emit SpendQueryRewards(_deploymentId, _spender, _amount);
+        emit QueryRewardsSpent(_deploymentId, _spender, _amount);
         return _amount;
     }
 
@@ -584,6 +584,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(ISettings(settings).getContractAddress(SQContracts.Treasury), _amount);
 
-        emit RefundQueryRewards(_deploymentId, _spender, _amount);
+        emit QueryRewardsRefunded(_deploymentId, _spender, _amount);
     }
 }
