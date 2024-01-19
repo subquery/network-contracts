@@ -9,13 +9,13 @@ import {
     PlanManager,
     ProjectRegistry,
     PurchaseOfferMarket,
-    RewardsDistributer,
+    RewardsDistributor,
     ERC20,
     ServiceAgreementRegistry,
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, poi } from './constants';
-import { createPurchaseOffer, etherParse, futureTimestamp, registerIndexer, time, timeTravel } from './helper';
+import { createPurchaseOffer, etherParse, futureTimestamp, registerRunner, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
 describe('Purchase Offer Market Contract', () => {
@@ -27,7 +27,7 @@ describe('Purchase Offer Market Contract', () => {
     let projectRegistry: ProjectRegistry;
     let staking: Staking;
     let token: ERC20;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let planManager: PlanManager;
 
     let futureDate;
@@ -53,7 +53,7 @@ describe('Purchase Offer Market Contract', () => {
         projectRegistry = deployment.projectRegistry;
         staking = deployment.staking;
         token = deployment.token;
-        rewardsDistributor = deployment.rewardsDistributer;
+        rewardsDistributor = deployment.rewardsDistributor;
         planManager = deployment.planManager;
         await planManager.createPlanTemplate(contractPeriod, 1000, 100, token.address, METADATA_HASH);
         offerId = await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
@@ -191,9 +191,9 @@ describe('Purchase Offer Market Contract', () => {
         describe('Accept Purchase Offer', () => {
             beforeEach(async () => {
                 // register indexers
-                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '2000');
+                await registerRunner(token, indexerRegistry, staking, wallet_0, wallet_0, etherParse('2000'));
                 await indexerRegistry.connect(wallet_0).setControllerAccount(wallet_1.address);
-                await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_1, '2000');
+                await registerRunner(token, indexerRegistry, staking, wallet_0, wallet_1, etherParse('2000'));
                 await indexerRegistry.connect(wallet_1).setControllerAccount(wallet_0.address);
                 // create query project
                 await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);

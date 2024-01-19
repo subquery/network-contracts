@@ -13,7 +13,7 @@ const main = async () => {
             'PurchaseOfferMarket',
             'ServiceAgreementExtra',
             'ServiceAgreementRegistry',
-            'RewardsDistributer',
+            'RewardsDistributor',
             'RewardsPool',
             'RewardsStaking',
             'RewardsHelper',

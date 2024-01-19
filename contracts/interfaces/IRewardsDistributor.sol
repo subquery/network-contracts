@@ -12,7 +12,7 @@ struct IndexerRewardInfo {
     uint256 eraReward;
 }
 
-interface IRewardsDistributer {
+interface IRewardsDistributor {
     function setLastClaimEra(address indexer, uint256 era) external;
 
     function setRewardDebt(address indexer, address delegator, uint256 amount) external;

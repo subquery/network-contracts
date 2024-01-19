@@ -34,10 +34,14 @@ interface IProjectRegistry {
     function updateProjectMetadata(uint256 projectId, string memory metadataUri) external;
 
     function addOrUpdateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata, bool updateLatest) external;
-    
+
     function setProjectLatestDeployment(uint256 projectId, bytes32 deploymentId) external;
 
     function startService(bytes32 deploymentId) external;
 
     function stopService(bytes32 deploymentId) external;
+
+    function getDeploymentProjectType(bytes32 deploymentId) external view returns (ProjectType);
+
+    function isDeploymentRegistered(bytes32 deploymentId) external view returns (bool);
 }

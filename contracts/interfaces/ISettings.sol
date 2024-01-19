@@ -13,7 +13,7 @@ enum SQContracts {
     PlanManager,
     ServiceAgreementRegistry,
     ServiceAgreementExtra,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsPool,
     RewardsStaking,
     RewardsHelper,
@@ -24,7 +24,9 @@ enum SQContracts {
     ConsumerRegistry,
     PriceOracle,
     RootChainManager,
-    Treasury
+    Treasury,
+    RewardsBooster,
+    StakingAllocation
 }
 
 interface ISettings {

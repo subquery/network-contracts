@@ -5,7 +5,7 @@ import moduleAlias from 'module-alias';
 moduleAlias.addAlias('./publish', '../publish');
 moduleAlias.addAlias('./artifacts', '../artifacts');
 
-import { Wallet as EthWallet, constants } from 'ethers';
+import { Wallet as EthWallet, constants, utils } from 'ethers';
 import { ZERO_ADDRESS } from './constants';
 import { Wallet, etherParse } from './helper';
 
@@ -33,7 +33,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet, treasury=
             StakingManager: [],
             ProjectRegistry: [],
             PlanManager: [],
-            RewardsDistributer: [],
+            RewardsDistributor: [],
             RewardsPool: [],
             RewardsStaking: [],
             RewardsHelper: [],
@@ -44,6 +44,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet, treasury=
             Vesting: [],
             ConsumerRegistry: [],
             PriceOracle: [],
+            RewardsBooster: [utils.parseEther("10").toString(), utils.parseEther("10000").toString()], // _issuancePerBlock, _minimumDeploymentBooster
         }
     );
     await contracts.settings.setContractAddress(SQContracts.Treasury, treasury.address);
