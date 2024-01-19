@@ -10,5 +10,7 @@ interface IServiceAgreementRegistry {
 
     function nextServiceAgreementId() external view returns (uint256);
 
-    function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement, bool checkThreshold) external returns (uint256);
+    function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement) external returns (uint256);
+
+    function hasOngoingClosedServiceAgreement(address indexer, bytes32 deploymentId) external view returns (bool);
 }

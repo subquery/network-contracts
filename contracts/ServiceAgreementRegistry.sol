@@ -13,7 +13,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
-import './interfaces/IServiceAgreementExtra.sol';
+import './interfaces/IProjectRegistry.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IRewardsDistributor.sol';
@@ -40,6 +40,9 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
 
     /// @notice address can establishServiceAgreement, for now only PurchaceOfferMarket and PlanManager addresses
     mapping(address => bool) public establisherWhitelist;
+
+    /// @notice number of service agreements: runner address => DeploymentId => last expire date
+    mapping(address => mapping(bytes32 => uint256)) public runnerAgreementExpires;
 
     // -- Events --
 
@@ -89,7 +92,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         closedServiceAgreements[tokenId].consumer = to;
     } 
 
-    function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement, bool checkThreshold) external returns (uint256) {
+    function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement) external returns (uint256) {
         if (msg.sender != address(this)) {
             require(establisherWhitelist[msg.sender], 'SA004');
         }
@@ -98,7 +101,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         closedServiceAgreements[agreementId] = agreement;
 
         _safeMint(agreement.consumer, agreementId);
-        _establishServiceAgreement(agreementId, checkThreshold);
+        _establishServiceAgreement(agreementId);
 
         nextServiceAgreementId += 1;
         return agreementId;
@@ -118,13 +121,19 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
      * at the same time, it also encourages Indexer to provide better more stable services.
      *
      */
-    function _establishServiceAgreement(uint256 agreementId, bool checkThreshold) internal {
+    function _establishServiceAgreement(uint256 agreementId) internal {
         //for now only support closed service agreement
         ClosedServiceAgreementInfo memory agreement = closedServiceAgreements[agreementId];
         require(agreement.consumer != address(0), 'SA001');
 
-        IServiceAgreementExtra saHelper = IServiceAgreementExtra(settings.getContractAddress(SQContracts.ServiceAgreementExtra));
-        saHelper.addAgreement(agreementId, agreement, checkThreshold);
+        require(
+            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).isServiceAvailable(agreement.deploymentId, agreement.indexer),
+            'SA005'
+        );
+        uint256 expires = agreement.startDate + agreement.period;
+        if (runnerAgreementExpires[agreement.indexer][agreement.deploymentId] < expires) {
+            runnerAgreementExpires[agreement.indexer][agreement.deploymentId] = expires;
+        }
 
         // approve token to reward distributor contract
         address SQToken = settings.getContractAddress(SQContracts.SQToken);
@@ -172,7 +181,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         );
         // deposit SQToken into service agreement registry contract
         IERC20(settings.getContractAddress(SQContracts.SQToken)).transferFrom(msg.sender, address(this), agreement.lockedAmount);
-        this.createClosedServiceAgreement(newAgreement, false);
+        this.createClosedServiceAgreement(newAgreement);
     }
 
     function closedServiceAgreementExpired(uint256 agreementId) public view returns (bool) {
@@ -182,5 +191,9 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
 
     function getClosedServiceAgreement(uint256 agreementId) external view returns (ClosedServiceAgreementInfo memory) {
         return closedServiceAgreements[agreementId];
+    }
+
+    function hasOngoingClosedServiceAgreement(address runner, bytes32 deploymentId) external view returns (bool) {
+        return runnerAgreementExpires[runner][deploymentId] > block.timestamp;
     }
 }

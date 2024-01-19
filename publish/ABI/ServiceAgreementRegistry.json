@@ -254,11 +254,6 @@
                 "internalType": "struct ClosedServiceAgreementInfo",
                 "name": "agreement",
                 "type": "tuple"
-            },
-            {
-                "internalType": "bool",
-                "name": "checkThreshold",
-                "type": "bool"
             }
         ],
         "name": "createClosedServiceAgreement",
@@ -366,6 +361,30 @@
                 "internalType": "struct ClosedServiceAgreementInfo",
                 "name": "",
                 "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "runner",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "deploymentId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "hasOngoingClosedServiceAgreement",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
             }
         ],
         "stateMutability": "view",
@@ -502,6 +521,30 @@
         "name": "renounceOwnership",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "runnerAgreementExpires",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {

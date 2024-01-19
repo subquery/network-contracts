@@ -11,7 +11,6 @@ const main = async () => {
             'ProjectRegistry',
             'PlanManager',
             'PurchaseOfferMarket',
-            'ServiceAgreementExtra',
             'ServiceAgreementRegistry',
             'RewardsDistributor',
             'RewardsPool',

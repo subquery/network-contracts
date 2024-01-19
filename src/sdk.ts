@@ -23,7 +23,6 @@ import {
     RewardsHelper,
     RewardsPool,
     RewardsStaking,
-    ServiceAgreementExtra,
     ServiceAgreementRegistry,
     Settings,
     Staking,
@@ -58,7 +57,6 @@ export class ContractSDK {
     readonly indexerRegistry!: IndexerRegistry;
     readonly projectRegistry!: ProjectRegistry;
     readonly serviceAgreementRegistry!: ServiceAgreementRegistry;
-    readonly serviceAgreementExtra!: ServiceAgreementExtra;
     readonly eraManager!: EraManager;
     readonly planManager!: PlanManager;
     readonly rewardsDistributor!: RewardsDistributor;

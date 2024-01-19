@@ -23,7 +23,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet, treasury=
             Airdropper: [ZERO_ADDRESS],
             EraManager: [60 * 60 * 24],
             ServiceAgreementRegistry: [],
-            ServiceAgreementExtra: [1e6],
+            // ServiceAgreementExtra: [1e6],
             PurchaseOfferMarket: [1e5, ZERO_ADDRESS],
             IndexerRegistry: [etherParse("1000").toString()],
             ConsumerHost: [1],

@@ -14,7 +14,6 @@ import {
     RewardsHelper,
     RewardsStaking,
     ERC20,
-    ServiceAgreementExtra,
     ServiceAgreementRegistry,
     Settings,
     Staking,
@@ -38,7 +37,6 @@ describe('RewardsDistributor Contract', () => {
     let planManager: PlanManager;
     let eraManager: EraManager;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
-    let serviceAgreementExtra: ServiceAgreementExtra;
     let rewardsDistributor: RewardsDistributor;
     let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
@@ -73,7 +71,6 @@ describe('RewardsDistributor Contract', () => {
         projectRegistry = deployment.projectRegistry;
         planManager = deployment.planManager;
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
-        serviceAgreementExtra = deployment.serviceAgreementExtra;
         staking = deployment.staking;
         stakingManager = deployment.stakingManager;
         token = deployment.token;
@@ -333,7 +330,7 @@ describe('RewardsDistributor Contract', () => {
             await startNewEra(mockProvider, eraManager);
             await startNewEra(mockProvider, eraManager);
             await startNewEra(mockProvider, eraManager);
-            await serviceAgreementExtra.clearAllEndedAgreements(runner.address);
+            // await serviceAgreementExtra.clearAllEndedAgreements(runner.address);
             await projectRegistry.connect(runner).stopService(DEPLOYMENT_ID);
             await rewardsHelper.indexerCatchup(runner.address);
             await indexerRegistry.connect(runner).unregisterIndexer({gasLimit: '1000000'});
@@ -573,7 +570,7 @@ describe('RewardsDistributor Contract', () => {
             );
             await timeTravel(mockProvider, 6);
             await startNewEra(mockProvider, eraManager);
-            await serviceAgreementExtra.clearAllEndedAgreements(runner.address);
+            // await serviceAgreementExtra.clearAllEndedAgreements(runner.address);
             await projectRegistry.connect(runner).stopService(DEPLOYMENT_ID);
             //unregister indexer
             await indexerRegistry.connect(runner).unregisterIndexer({gasLimit: '1000000'});

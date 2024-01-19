@@ -31,7 +31,6 @@ import {
     RewardsPool,
     RewardsStaking,
     SQToken,
-    ServiceAgreementExtra,
     ServiceAgreementRegistry,
     Settings,
     Staking,
@@ -378,11 +377,6 @@ export async function deployContracts(
             initConfig: [settingsAddress, [planManager.address, purchaseOfferMarket.address]],
         });
 
-        const serviceAgreementExtra = await deployContract<ServiceAgreementExtra>('ServiceAgreementExtra', 'child', {
-            proxyAdmin,
-            initConfig: [settingsAddress],
-        });
-
         const tokenExchange = await deployContract<TokenExchange>('TokenExchange', 'child', { initConfig: [] });
 
         // deploy RewardsDistributor contract
@@ -477,7 +471,7 @@ export async function deployContracts(
             SQContracts.EraManager,
             SQContracts.PlanManager,
             SQContracts.ServiceAgreementRegistry,
-            SQContracts.ServiceAgreementExtra,
+            // SQContracts.ServiceAgreementExtra,
             SQContracts.DisputeManager,
             SQContracts.StateChannel,
             SQContracts.ConsumerRegistry,
@@ -497,7 +491,7 @@ export async function deployContracts(
             eraManager.address,
             planManager.address,
             serviceAgreementRegistry.address,
-            serviceAgreementExtra.address,
+            // serviceAgreementExtra.address,
             disputeManager.address,
             stateChannel.address,
             consumerRegistry.address,
@@ -522,7 +516,7 @@ export async function deployContracts(
                 planManager,
                 purchaseOfferMarket,
                 serviceAgreementRegistry,
-                serviceAgreementExtra,
+                // serviceAgreementExtra,
                 rewardsDistributor,
                 rewardsPool,
                 rewardsStaking,
