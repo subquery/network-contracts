@@ -10,7 +10,7 @@ import {
     PlanManager,
     ProjectRegistry,
     PurchaseOfferMarket,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsHelper,
     RewardsStaking,
     ERC20,
@@ -34,7 +34,7 @@ describe('Service Agreement Registry Contract', () => {
     let serviceAgreementRegistry: ServiceAgreementRegistry;
     let saExtra: ServiceAgreementExtra;
     let eraManager: EraManager;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
     
@@ -82,7 +82,7 @@ describe('Service Agreement Registry Contract', () => {
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         saExtra = deployment.serviceAgreementExtra;
         eraManager = deployment.eraManager;
-        rewardsDistributor = deployment.rewardsDistributer;
+        rewardsDistributor = deployment.rewardsDistributor;
         rewardsStaking = deployment.rewardsStaking;
         rewardsHelper = deployment.rewardsHelper;
 

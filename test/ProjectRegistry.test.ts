@@ -13,7 +13,7 @@ import {
     createPurchaseOffer,
     etherParse,
     futureTimestamp,
-    registerIndexer
+    registerRunner
 } from './helper';
 import { deployContracts } from './setup';
 
@@ -312,7 +312,7 @@ describe('Project Registry Contract', () => {
 
     describe('Managing Project Service', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, '2000');
+            await registerRunner(token, indexerRegistry, staking, wallet_0, wallet_0, etherParse('2000'));
             await indexerRegistry.setControllerAccount(wallet_1.address);
         });
 

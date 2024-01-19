@@ -13,6 +13,12 @@
                 "internalType": "uint256",
                 "name": "spent",
                 "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "bool",
+                "name": "isFinal",
+                "type": "bool"
             }
         ],
         "name": "ChannelCheckpoint",
@@ -69,6 +75,12 @@
                 "indexed": true,
                 "internalType": "uint256",
                 "name": "channelId",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "realTotal",
                 "type": "uint256"
             },
             {
@@ -250,6 +262,11 @@
                         "internalType": "address",
                         "name": "consumer",
                         "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "realTotal",
+                        "type": "uint256"
                     },
                     {
                         "internalType": "uint256",

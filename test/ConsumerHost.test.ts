@@ -12,12 +12,12 @@ import {
     StateChannel
 } from '../src';
 import { deploymentIds } from './constants';
-import { delay, etherParse, registerIndexer } from './helper';
+import { delay, etherParse, registerRunner } from './helper';
 import { deployContracts } from './setup';
 
 describe('ConsumerHost Contract', () => {
     const deploymentId = deploymentIds[0];
-    let wallet_0, indexer, consumer, consumer2, hoster;
+    let wallet_0, runner, consumer, consumer2, hoster;
 
     let token: ERC20;
     let staking: Staking;
@@ -181,9 +181,9 @@ describe('ConsumerHost Contract', () => {
     };
 
 
-    const deployer = ()=>deployContracts(wallet_0, indexer);
+    const deployer = ()=>deployContracts(wallet_0, runner);
     before(async ()=>{
-        [wallet_0, indexer, consumer, consumer2, hoster] = await ethers.getSigners();
+        [wallet_0, runner, consumer, consumer2, hoster] = await ethers.getSigners();
     });
 
     beforeEach(async () => {
@@ -272,7 +272,7 @@ describe('ConsumerHost Contract', () => {
 
     describe('Consumer Host State Channel should work', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, wallet_0, indexer, '2000');
+            await registerRunner(token, indexerRegistry, staking, wallet_0, runner, etherParse('2000'));
             await consumerHost.connect(wallet_0).addSigner(hoster.address);
             await token.connect(wallet_0).transfer(consumer.address, etherParse('10'));
             await token.connect(wallet_0).transfer(consumer2.address, etherParse('10'));
@@ -290,7 +290,7 @@ describe('ConsumerHost Contract', () => {
             const channelId = ethers.utils.randomBytes(32);
             await openChannel(
                 channelId,
-                indexer,
+                runner,
                 hoster,
                 consumer,
                 BigNumber.from(0),
@@ -307,7 +307,7 @@ describe('ConsumerHost Contract', () => {
             const cBalance0 = await consumerHost.consumers(consumer2.address);
             await openChannel(
                 channelId2,
-                indexer,
+                runner,
                 hoster,
                 consumer2,
                 cBalance0.nonce,
@@ -321,7 +321,7 @@ describe('ConsumerHost Contract', () => {
             expect(await consumerHost.channels(channelId2)).to.equal(consumer2.address);
             await openChannel(
                 channelId3,
-                indexer,
+                runner,
                 hoster,
                 consumer2,
                 cBalance1.nonce,
@@ -341,7 +341,7 @@ describe('ConsumerHost Contract', () => {
             );
             await fundChannel(
                 channelId3,
-                indexer,
+                runner,
                 hoster,
                 consumer2,
                 cBalance2.nonce,
@@ -356,17 +356,17 @@ describe('ConsumerHost Contract', () => {
 
             const channel = await stateChannel.channel(channelId);
             expect(channel.status).to.equal(1); // 0 is Finalized, 1 is Open, 2 is Terminate
-            expect(channel.indexer).to.equal(indexer.address);
+            expect(channel.indexer).to.equal(runner.address);
             expect(channel.consumer).to.equal(consumerHost.address);
             expect(channel.total).to.equal(etherParse('1'));
 
-            const query1 = await buildQueryState(channelId, indexer, hoster, etherParse('0.1'), false);
+            const query1 = await buildQueryState(channelId, runner, hoster, etherParse('0.1'), false);
             await stateChannel.checkpoint(query1);
             expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.1'));
 
             // claim rewards
             await stateChannel.setTerminateExpiration(5); // 5s
-            const query2 = await buildQueryState(channelId, indexer, hoster, etherParse('0.2'), false);
+            const query2 = await buildQueryState(channelId, runner, hoster, etherParse('0.2'), false);
             await stateChannel.connect(hoster).terminate(query2);
             expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.2'));
 
@@ -398,7 +398,7 @@ describe('ConsumerHost Contract', () => {
             // the approved consumer's `nonce` will not change.
             await openChannel(
                 channelId,
-                indexer,
+                runner,
                 hoster,
                 consumer,
                 BigNumber.from(0),
@@ -411,7 +411,7 @@ describe('ConsumerHost Contract', () => {
             expect(await consumerHost.channels(channelId)).to.equal(consumer.address);
             await fundChannel(
                 channelId,
-                indexer,
+                runner,
                 hoster,
                 consumer,
                 BigNumber.from(0),
@@ -425,17 +425,17 @@ describe('ConsumerHost Contract', () => {
 
             const channel = await stateChannel.channel(channelId);
             expect(channel.status).to.equal(1); // 0 is Finalized, 1 is Open, 2 is Terminate
-            expect(channel.indexer).to.equal(indexer.address);
+            expect(channel.indexer).to.equal(runner.address);
             expect(channel.consumer).to.equal(consumerHost.address);
             expect(channel.total).to.equal(etherParse('2'));
 
-            const query1 = await buildQueryState(channelId, indexer, hoster, etherParse('0.1'), false);
+            const query1 = await buildQueryState(channelId, runner, hoster, etherParse('0.1'), false);
             await stateChannel.checkpoint(query1);
             expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.1'));
 
             // claim rewards
             await stateChannel.setTerminateExpiration(5); // 5s
-            const query2 = await buildQueryState(channelId, indexer, hoster, etherParse('0.2'), false);
+            const query2 = await buildQueryState(channelId, runner, hoster, etherParse('0.2'), false);
             await stateChannel.connect(hoster).terminate(query2);
             expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('0.2'));
 

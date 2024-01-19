@@ -7,3 +7,4 @@ uint256 constant PER_MILL = 1e6;
 uint256 constant PER_BILL = 1e9;
 uint256 constant PER_TRILL = 1e12;
 address constant ZERO_ADDRESS = address(0);
+uint256 constant MAX_UINT256 = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;

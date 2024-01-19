@@ -10,7 +10,7 @@ import {
     PlanManager,
     PriceOracle,
     ProjectRegistry,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsHelper,
     ERC20,
     ServiceAgreementExtra,
@@ -19,7 +19,7 @@ import {
     StakingManager,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, metadatas } from './constants';
-import { Wallet, constants, deploySUSD, etherParse, eventFrom, registerIndexer, startNewEra, time } from './helper';
+import { Wallet, constants, deploySUSD, etherParse, eventFrom, registerRunner, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 
@@ -27,7 +27,7 @@ describe('PlanManger Contract', () => {
     const mockProvider = waffle.provider;
     const planPrice = etherParse('6');
 
-    let indexer: Wallet, consumer: Wallet;
+    let runner: Wallet, consumer: Wallet;
 
     let token: ERC20;
     let staking: Staking;
@@ -38,17 +38,17 @@ describe('PlanManger Contract', () => {
     let eraManager: EraManager;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
     let saExtra: ServiceAgreementExtra;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let rewardsHelper: RewardsHelper;
     let priceOracle: PriceOracle;
     let SUSD: Contract;
 
     const deployer = async ()=>{
         SUSD = await deploySUSD(consumer as SignerWithAddress);
-        return deployContracts(indexer, consumer);
+        return deployContracts(runner, consumer);
     };
     before(async ()=>{
-        [indexer, consumer] = await ethers.getSigners();
+        [runner, consumer] = await ethers.getSigners();
     });
 
     beforeEach(async () => {
@@ -60,7 +60,7 @@ describe('PlanManger Contract', () => {
         saExtra = deployment.serviceAgreementExtra;
         staking = deployment.staking;
         token = deployment.token;
-        rewardsDistributor = deployment.rewardsDistributer;
+        rewardsDistributor = deployment.rewardsDistributor;
         rewardsHelper = deployment.rewardsHelper;
         eraManager = deployment.eraManager;
         priceOracle = deployment.priceOracle;
@@ -68,7 +68,7 @@ describe('PlanManger Contract', () => {
     });
 
     const indexerAndProjectReady = async () => {
-        await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '2000');
+        await registerRunner(token, indexerRegistry, staking, runner, runner, etherParse('2000'));
         await token.transfer(consumer.address, etherParse('100'));
         await token.connect(consumer).increaseAllowance(planManager.address, etherParse('100'));
         // create query project
@@ -80,12 +80,12 @@ describe('PlanManger Contract', () => {
     describe('Plan Manager Config', () => {
         it('set indexer plan limit should work', async () => {
             expect(await planManager.limit()).to.equal(5);
-            await planManager.setIndexerPlanLimit(10);
+            await planManager.setPlanLimit(10);
             expect(await planManager.limit()).to.equal(10);
         });
 
         it('set indexer plan limit without owner should fail', async () => {
-            await expect(planManager.connect(consumer).setIndexerPlanLimit(10)).to.be.revertedWith(
+            await expect(planManager.connect(consumer).setPlanLimit(10)).to.be.revertedWith(
                 'Ownable: caller is not the owner'
             );
         });
@@ -168,7 +168,7 @@ describe('PlanManger Contract', () => {
 
     describe('Plan Management', () => {
         beforeEach(async () => {
-            await registerIndexer(token, indexerRegistry, staking, indexer, indexer, '2000');
+            await registerRunner(token, indexerRegistry, staking, runner, runner, etherParse('2000'));
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH); // template_id = 0
             await planManager.createPlanTemplate(time.duration.days(3).toString(), 100, 10, token.address, METADATA_HASH); // template_id = 1
         });
@@ -176,7 +176,7 @@ describe('PlanManger Contract', () => {
         it('create plan should work', async () => {
             await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID))
                 .to.be.emit(planManager, 'PlanCreated')
-                .withArgs(1, indexer.address, DEPLOYMENT_ID, 0, etherParse('2'));
+                .withArgs(1, runner.address, DEPLOYMENT_ID, 0, etherParse('2'));
 
             // check plan
             expect(await planManager.nextPlanId()).to.equal(2);
@@ -185,7 +185,7 @@ describe('PlanManger Contract', () => {
             expect(plan.active).to.equal(true);
             expect(plan.templateId).to.equal(0);
             expect(plan.deploymentId).to.equal(DEPLOYMENT_ID);
-            expect(await planManager.getLimits(indexer.address, DEPLOYMENT_ID)).to.equal(1);
+            expect(await planManager.getLimits(runner.address, DEPLOYMENT_ID)).to.equal(1);
         });
 
         it('remove plan should work', async () => {
@@ -196,7 +196,7 @@ describe('PlanManger Contract', () => {
             // check plan
             const plan = await planManager.getPlan(1);
             expect(plan.active).to.equal(false);
-            expect(await planManager.getLimits(indexer.address, DEPLOYMENT_ID)).to.equal(0);
+            expect(await planManager.getLimits(runner.address, DEPLOYMENT_ID)).to.equal(0);
         });
 
         it('create plan with invalid params should fail', async () => {
@@ -326,8 +326,8 @@ describe('PlanManger Contract', () => {
             await token.connect(consumer).increaseAllowance(planManager.address, plan.price);
             await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith('SA006');
             const newStake = plan.price.div(planDays).div(1e6).toString();
-            await token.connect(indexer).increaseAllowance(staking.address, newStake);
-            await stakingManager.connect(indexer).stake(indexer.address, newStake);
+            await token.connect(runner).increaseAllowance(staking.address, newStake);
+            await stakingManager.connect(runner).stake(runner.address, newStake);
 
             await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).to.revertedWith('SA006');
             const era = await startNewEra(mockProvider, eraManager);
@@ -373,7 +373,7 @@ describe('PlanManger Contract', () => {
 
             await token.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, plan.price);
             await serviceAgreementRegistry.connect(consumer).renewAgreement(agreementId);
-            const sum = await saExtra.sumDailyReward(indexer.address);
+            const sum = await saExtra.sumDailyReward(runner.address);
             expect(Number(utils.formatEther(sum))).to.eq(planPrice / planDays * 2);
         });
 
@@ -381,35 +381,35 @@ describe('PlanManger Contract', () => {
         it.skip('claim and distribute rewards by an indexer should work', async () => {
             await checkAcceptPlan(1, DEPLOYMENT_ID);
 
-            expect((await rewardsDistributor.getRewardInfo(indexer.address)).accSQTPerStake).eq(0);
+            expect((await rewardsDistributor.getRewardInfo(runner.address)).accSQTPerStake).eq(0);
             const era = await startNewEra(mockProvider, eraManager);
-            await rewardsDistributor.connect(indexer).collectAndDistributeRewards(indexer.address);
+            await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
 
-            const rewardsAddTable = await rewardsHelper.getRewardsAddTable(indexer.address, era.sub(1), 5);
-            const rewardsRemoveTable = await rewardsHelper.getRewardsRemoveTable(indexer.address, era.sub(1), 5);
+            const rewardsAddTable = await rewardsHelper.getRewardsAddTable(runner.address, era.sub(1), 5);
+            const rewardsRemoveTable = await rewardsHelper.getRewardsRemoveTable(runner.address, era.sub(1), 5);
             const [eraReward, totalReward] = rewardsAddTable.reduce(
                 (acc, val, idx) => {
                     let [eraReward, total] = acc;
                     eraReward = eraReward.add(val.sub(rewardsRemoveTable[idx]));
                     return [eraReward, total.add(eraReward)];
                 },
-                [(await rewardsDistributor.getRewardInfo(indexer.address)).eraReward, BigNumber.from(0)]
+                [(await rewardsDistributor.getRewardInfo(runner.address)).eraReward, BigNumber.from(0)]
             );
 
             expect(eraReward).to.be.eq(0);
             expect(totalReward).to.be.eq(etherParse('2'));
-            expect((await rewardsDistributor.getRewardInfo(indexer.address)).accSQTPerStake).gt(0);
-            expect(await rewardsDistributor.userRewards(indexer.address, indexer.address)).gt(0);
+            expect((await rewardsDistributor.getRewardInfo(runner.address)).accSQTPerStake).gt(0);
+            expect(await rewardsDistributor.userRewards(runner.address, runner.address)).gt(0);
         });
 
         it('reward claim should work', async () => {
             await checkAcceptPlan(1, DEPLOYMENT_ID);
             await startNewEra(mockProvider, eraManager);
-            await rewardsDistributor.connect(indexer).collectAndDistributeRewards(indexer.address);
-            const balance = await token.balanceOf(indexer.address);
-            const reward = await rewardsDistributor.userRewards(indexer.address, indexer.address);
-            await rewardsDistributor.connect(indexer).claim(indexer.address);
-            expect(await token.balanceOf(indexer.address)).to.eq(balance.add(reward));
+            await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
+            const balance = await token.balanceOf(runner.address);
+            const reward = await rewardsDistributor.userRewards(runner.address, runner.address);
+            await rewardsDistributor.connect(runner).claim(runner.address);
+            expect(await token.balanceOf(runner.address)).to.eq(balance.add(reward));
         });
     });
 

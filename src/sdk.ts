@@ -19,7 +19,7 @@ import {
     ProjectRegistry,
     ProxyAdmin,
     PurchaseOfferMarket,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsHelper,
     RewardsPool,
     RewardsStaking,
@@ -46,7 +46,6 @@ import assert from "assert";
 const contractNameConversion: Record<string, string> = {
     sQToken: 'sqToken',
     sQTGift: 'sqtGift',
-    rewardsDistributer: 'rewardsDistributor',
 };
 
 export class ContractSDK {
@@ -62,7 +61,7 @@ export class ContractSDK {
     readonly serviceAgreementExtra!: ServiceAgreementExtra;
     readonly eraManager!: EraManager;
     readonly planManager!: PlanManager;
-    readonly rewardsDistributor!: RewardsDistributer;
+    readonly rewardsDistributor!: RewardsDistributor;
     readonly rewardsPool!: RewardsPool;
     readonly rewardsStaking!: RewardsStaking;
     readonly rewardsHelper!: RewardsHelper;

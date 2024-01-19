@@ -15,16 +15,18 @@ import PriceOracle from './artifacts/contracts/PriceOracle.sol/PriceOracle.json'
 import ProjectRegistry from './artifacts/contracts/ProjectRegistry.sol/ProjectRegistry.json';
 import ProxyAdmin from './artifacts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol/ProxyAdmin.json';
 import PurchaseOfferMarket from './artifacts/contracts/PurchaseOfferMarket.sol/PurchaseOfferMarket.json';
-import RewardsDistributer from './artifacts/contracts/RewardsDistributer.sol/RewardsDistributer.json';
+import RewardsDistributor from './artifacts/contracts/RewardsDistributor.sol/RewardsDistributor.json';
 import RewardsHelper from './artifacts/contracts/RewardsHelper.sol/RewardsHelper.json';
 import RewardsPool from './artifacts/contracts/RewardsPool.sol/RewardsPool.json';
 import RewardsStaking from './artifacts/contracts/RewardsStaking.sol/RewardsStaking.json';
+import RewardsBooster from "./artifacts/contracts/RewardsBooster.sol/RewardsBooster.json";
 import SQToken from './artifacts/contracts/root/SQToken.sol/SQToken.json';
 import ServiceAgreementExtra from './artifacts/contracts/ServiceAgreementExtra.sol/ServiceAgreementExtra.json';
 import ServiceAgreementRegistry from './artifacts/contracts/ServiceAgreementRegistry.sol/ServiceAgreementRegistry.json';
 import Settings from './artifacts/contracts/Settings.sol/Settings.json';
 import Staking from './artifacts/contracts/Staking.sol/Staking.json';
 import StakingManager from './artifacts/contracts/StakingManager.sol/StakingManager.json';
+import StakingAllocation from './artifacts/contracts/StakingAllocation.sol/StakingAllocation.json';
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
 import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import ChildERC20 from './artifacts/contracts/polygon/ChildERC20.sol/ChildERC20.json';
@@ -39,6 +41,7 @@ export default {
     VSQToken,
     Staking,
     StakingManager,
+    StakingAllocation,
     IndexerRegistry,
     ProjectRegistry,
     InflationController,
@@ -47,10 +50,11 @@ export default {
     PlanManager,
     PurchaseOfferMarket,
     EraManager,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsPool,
     RewardsStaking,
     RewardsHelper,
+    RewardsBooster,
     ProxyAdmin,
     StateChannel,
     Airdropper,

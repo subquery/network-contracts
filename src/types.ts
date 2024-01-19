@@ -20,7 +20,7 @@ import {
     ProjectRegistry__factory,
     ProxyAdmin__factory,
     PurchaseOfferMarket__factory,
-    RewardsDistributer__factory,
+    RewardsDistributor__factory,
     RewardsHelper__factory,
     RewardsPool__factory,
     RewardsStaking__factory,
@@ -37,6 +37,8 @@ import {
     TokenExchange__factory,
     PolygonDestination__factory,
     SQTGift__factory,
+    RewardsBooster__factory,
+    StakingAllocation__factory,
 } from './typechain';
 
 export type SubqueryNetwork = 'testnet' | 'mainnet' | 'local';
@@ -106,6 +108,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     VTSQToken: VTSQToken__factory,
     Staking: Staking__factory,
     StakingManager: StakingManager__factory,
+    StakingAllocation: StakingAllocation__factory,
     EraManager: EraManager__factory,
     IndexerRegistry: IndexerRegistry__factory,
     ProjectRegistry: ProjectRegistry__factory,
@@ -113,10 +116,11 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PurchaseOfferMarket: PurchaseOfferMarket__factory,
     ServiceAgreementRegistry: ServiceAgreementRegistry__factory,
     ServiceAgreementExtra: ServiceAgreementExtra__factory,
-    RewardsDistributer: RewardsDistributer__factory,
+    RewardsDistributor: RewardsDistributor__factory,
     RewardsPool: RewardsPool__factory,
     RewardsStaking: RewardsStaking__factory,
     RewardsHelper: RewardsHelper__factory,
+    RewardsBooster: RewardsBooster__factory,
     StateChannel: StateChannel__factory,
     PermissionedExchange: PermissionedExchange__factory,
     TokenExchange: TokenExchange__factory,
@@ -139,7 +143,7 @@ export enum SQContracts {
     PlanManager,
     ServiceAgreementRegistry,
     ServiceAgreementExtra,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsPool,
     RewardsStaking,
     RewardsHelper,
@@ -151,6 +155,8 @@ export enum SQContracts {
     PriceOracle,
     RootChainManager,
     Treasury,
+    RewardsBooster,
+    StakingAllocation,
 }
 
 export enum ServiceStatus {

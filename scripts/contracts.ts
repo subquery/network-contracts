@@ -34,14 +34,16 @@ import {
     ProxyAdmin__factory,
     PurchaseOfferMarket,
     PurchaseOfferMarket__factory,
-    RewardsDistributer,
-    RewardsDistributer__factory,
+    RewardsDistributor,
+    RewardsDistributor__factory,
     RewardsHelper,
     RewardsHelper__factory,
     RewardsPool,
     RewardsPool__factory,
     RewardsStaking,
     RewardsStaking__factory,
+    RewardsBooster,
+    RewardsBooster__factory,
     ERC20,
     SQToken,
     SQToken__factory,
@@ -52,9 +54,11 @@ import {
     Settings,
     Settings__factory,
     Staking,
+    Staking__factory,
     StakingManager,
     StakingManager__factory,
-    Staking__factory,
+    StakingAllocation,
+    StakingAllocation__factory,
     StateChannel,
     StateChannel__factory,
     VSQToken,
@@ -85,6 +89,7 @@ export type Contracts = {
     vtoken: VSQToken;
     staking: Staking;
     stakingManager: StakingManager;
+    stakingAllocation: StakingAllocation;
     eraManager: EraManager;
     indexerRegistry: IndexerRegistry;
     projectRegistry: ProjectRegistry;
@@ -92,10 +97,11 @@ export type Contracts = {
     purchaseOfferMarket: PurchaseOfferMarket;
     serviceAgreementRegistry: ServiceAgreementRegistry;
     serviceAgreementExtra: ServiceAgreementExtra;
-    rewardsDistributer: RewardsDistributer;
+    rewardsDistributor: RewardsDistributor;
     rewardsPool: RewardsPool;
     rewardsStaking: RewardsStaking;
     rewardsHelper: RewardsHelper;
+    rewardsBooster: RewardsBooster;
     stateChannel: StateChannel;
     airdropper: Airdropper;
     permissionedExchange: PermissionedExchange;
@@ -116,14 +122,16 @@ export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ byt
     IndexerRegistry: [CONTRACTS.IndexerRegistry, IndexerRegistry__factory],
     PlanManager: [CONTRACTS.PlanManager, PlanManager__factory],
     ProjectRegistry: [CONTRACTS.ProjectRegistry, ProjectRegistry__factory],
-    RewardsDistributer: [CONTRACTS.RewardsDistributer, RewardsDistributer__factory],
+    RewardsDistributor: [CONTRACTS.RewardsDistributor, RewardsDistributor__factory],
     RewardsPool: [CONTRACTS.RewardsPool, RewardsPool__factory],
     RewardsStaking: [CONTRACTS.RewardsStaking, RewardsStaking__factory],
     RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
+    RewardsBooster: [CONTRACTS.RewardsBooster, RewardsBooster__factory],
     ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
     ServiceAgreementExtra: [CONTRACTS.ServiceAgreementExtra, ServiceAgreementExtra__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
     StakingManager: [CONTRACTS.StakingManager, StakingManager__factory],
+    StakingAllocation: [CONTRACTS.StakingAllocation, StakingAllocation__factory],
     EraManager: [CONTRACTS.EraManager, EraManager__factory],
     PurchaseOfferMarket: [CONTRACTS.PurchaseOfferMarket, PurchaseOfferMarket__factory],
     StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
@@ -147,6 +155,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     VTSQToken: VTSQToken__factory,
     Staking: Staking__factory,
     StakingManager: StakingManager__factory,
+    StakingAllocation: StakingAllocation__factory,
     EraManager: EraManager__factory,
     IndexerRegistry: IndexerRegistry__factory,
     ProjectRegistry: ProjectRegistry__factory,
@@ -154,10 +163,11 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PurchaseOfferMarket: PurchaseOfferMarket__factory,
     ServiceAgreementRegistry: ServiceAgreementRegistry__factory,
     ServiceAgreementExtra: ServiceAgreementExtra__factory,
-    RewardsDistributer: RewardsDistributer__factory,
+    RewardsDistributor: RewardsDistributor__factory,
     RewardsPool: RewardsPool__factory,
     RewardsStaking: RewardsStaking__factory,
     RewardsHelper: RewardsHelper__factory,
+    RewardsBooster: RewardsBooster__factory,
     StateChannel: StateChannel__factory,
     PermissionedExchange: PermissionedExchange__factory,
     TokenExchange: TokenExchange__factory,
