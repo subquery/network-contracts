@@ -267,7 +267,7 @@ contract!(
 contract!(
     rewards_distributer,
     "RewardsDistributer",
-    include_str!("../publish/ABI/RewardsDistributer.json")
+    include_str!("../publish/ABI/RewardsDistributor.json")
 );
 
 contract!(
