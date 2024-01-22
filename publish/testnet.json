@@ -36,7 +36,7 @@
             "bytecodeHash": "401e154f6fa5d0004b10fe27d9cf49dd503262df5672f859dac08242030155fe",
             "lastUpdate": "Fri, 15 Dec 2023 00:24:40 GMT"
         },
-        "PolygonDestination": {
+        "InflationDestination": {
             "innerAddress": "",
             "address": "0x3519c8939b73EAA440A5b626D6090275add4bD69",
             "bytecodeHash": "895a73f782b2930ee15d1ae0ccbfa751df049bd647ed5a23b7f42d22c441ba8b",

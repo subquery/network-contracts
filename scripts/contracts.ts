@@ -65,8 +65,8 @@ import {
     VSQToken__factory,
     Vesting,
     Vesting__factory,
-    PolygonDestination,
-    PolygonDestination__factory,
+    InflationDestination,
+    InflationDestination__factory,
     ChildERC20__factory,
     SQTGift__factory,
     SQTGift,
@@ -114,7 +114,7 @@ export type Contracts = {
     disputeManager: DisputeManager;
     consumerRegistry: ConsumerRegistry;
     priceOracle: PriceOracle;
-    polygonDestination: PolygonDestination;
+    InflationDestination: InflationDestination;
     sqtGift: SQTGift;
     sqtRedeem: SQTRedeem;
 };
@@ -179,7 +179,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ConsumerRegistry: ConsumerRegistry__factory,
     PriceOracle: PriceOracle__factory,
     ChildERC20: ChildERC20__factory,
-    PolygonDestination: PolygonDestination__factory,
+    InflationDestination: InflationDestination__factory,
     SQTGift: SQTGift__factory,
     SQTRedeem: SQTRedeem__factory,
 };

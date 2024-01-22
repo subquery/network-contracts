@@ -106,10 +106,10 @@ task('publishRoot', "verify and publish contracts on etherscan")
                 constructorArguments: [],
             });
 
-            // PolygonDestination
-            console.log(`verify PolygonDestination`);
+            // InflationDestination
+            console.log(`verify InflationDestination`);
             await hre.run("verify:verify", {
-                address: deployment.PolygonDestination.address,
+                address: deployment.InflationDestination.address,
                 constructorArguments: [deployment.Settings.address, constants.AddressZero],
             });
 

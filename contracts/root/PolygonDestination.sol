@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/ISettings.sol";
 import "./IRootChainManager.sol";
 
-contract PolygonDestination is IInflationDestination, Ownable, ERC165 {
+contract InflationDestination is IInflationDestination, Ownable, ERC165 {
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;

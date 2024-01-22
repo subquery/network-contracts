@@ -31,7 +31,7 @@ import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import ChildERC20 from './artifacts/contracts/polygon/ChildERC20.sol/ChildERC20.json';
 import Vesting from './artifacts/contracts/root/Vesting.sol/Vesting.json';
 import VTSQToken from './artifacts/contracts/root/VTSQToken.sol/VTSQToken.json';
-import PolygonDestination from './artifacts/contracts/root/PolygonDestination.sol/PolygonDestination.json';
+import InflationDestination from './artifacts/contracts/root/InflationDestination.sol/InflationDestination.json';
 import SQTGift from "./artifacts/contracts/SQTGift.sol/SQTGift.json";
 import SQTRedeem from "./artifacts/contracts/SQTRedeem.sol/SQTRedeem.json";
 
@@ -66,7 +66,7 @@ export default {
     PriceOracle,
     ConsumerRegistry,
     ChildERC20,
-    PolygonDestination,
+    InflationDestination,
     SQTGift,
     SQTRedeem,
 };

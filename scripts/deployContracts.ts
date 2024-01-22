@@ -40,7 +40,7 @@ import {
     Vesting,
     TransparentUpgradeableProxy__factory,
     TokenExchange,
-    PolygonDestination,
+    InflationDestination,
     RootChainManager__factory,
     SQTGift,
     SQTRedeem,
@@ -255,8 +255,8 @@ export async function deployRootContracts(
         await tx.wait(confirms);
         logger?.info('🤞 Set VTSQToken minter');
 
-        //deploy PolygonDestination contract
-        const polygonDestination = await deployContract<PolygonDestination>('PolygonDestination' as any, 'root',
+        //deploy InflationDestination contract
+        const InflationDestination = await deployContract<InflationDestination>('InflationDestination' as any, 'root',
             { deployConfig: [settingsAddress, constants.AddressZero] });
 
         let rootChainManager;
@@ -265,7 +265,7 @@ export async function deployRootContracts(
             rootChainManager = await new RootChainManager__factory(wallet).deploy();
         }
 
-        logger?.info('🤞 PolygonDestination');
+        logger?.info('🤞 InflationDestination');
 
         logger?.info('🤞 Set addresses');
         tx = await settings.setBatchAddress([
@@ -290,7 +290,7 @@ export async function deployRootContracts(
                 vtSQToken,
                 proxyAdmin,
                 vesting,
-                polygonDestination,
+                InflationDestination,
             },
         ];
     } catch (error) {

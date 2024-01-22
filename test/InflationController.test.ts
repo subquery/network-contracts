@@ -9,7 +9,7 @@ import {
     EraManager,
     InflationController,
     MockInflationDestination2__factory,
-    MockInflationDestination__factory, PolygonDestination,
+    MockInflationDestination__factory, InflationDestination,
     SQToken
 } from '../src';
 import { PER_MILL } from './constants';
@@ -22,7 +22,7 @@ describe('Inflation Controller Contract', () => {
     let inflationDestination;
 
     let inflationController: InflationController;
-    let polygonDestination: PolygonDestination;
+    let InflationDestination: InflationDestination;
     let token: SQToken;
 
     let YEAR_SECONDS = (3600 * 24 * 36525) / 100;
@@ -63,7 +63,7 @@ describe('Inflation Controller Contract', () => {
         inflationDestination = wallet_1.address;
         const deployment = await waffle.loadFixture(deployer);
         inflationController = deployment.inflationController;
-        polygonDestination = deployment.polygonDestination;
+        InflationDestination = deployment.InflationDestination;
         token = deployment.rootToken;
     });
 
@@ -203,26 +203,26 @@ describe('Inflation Controller Contract', () => {
         });
     });
 
-    describe('PolygonDestination', () => {
+    describe('InflationDestination', () => {
         it('change recipient should only work for admin', async () => {
-            expect(await polygonDestination.xcRecipient()).not.to.eq(wallet_1.address);
-            let tx = await polygonDestination.setXcRecipient(wallet_1.address);
+            expect(await InflationDestination.xcRecipient()).not.to.eq(wallet_1.address);
+            let tx = await InflationDestination.setXcRecipient(wallet_1.address);
             await tx.wait();
-            expect(await polygonDestination.xcRecipient()).to.eq(wallet_1.address);
-            await expect(polygonDestination.connect(wallet_1).setXcRecipient(wallet_2.address)).to.be.revertedWith('Ownable: caller is not the owner');
-            expect(await polygonDestination.xcRecipient()).to.eq(wallet_1.address);
+            expect(await InflationDestination.xcRecipient()).to.eq(wallet_1.address);
+            await expect(InflationDestination.connect(wallet_1).setXcRecipient(wallet_2.address)).to.be.revertedWith('Ownable: caller is not the owner');
+            expect(await InflationDestination.xcRecipient()).to.eq(wallet_1.address);
         });
         it('withdraw should only work for admin', async () => {
             const amount = ethers.utils.parseEther('1');
-            let tx = await token.transfer(polygonDestination.address, amount);
+            let tx = await token.transfer(InflationDestination.address, amount);
             await tx.wait();
-            const balanceBefore = await token.balanceOf(polygonDestination.address);
+            const balanceBefore = await token.balanceOf(InflationDestination.address);
             const ownerBalanceBefore = await token.balanceOf(wallet_0.address);
             expect(balanceBefore).to.eq(amount);
-            await expect(polygonDestination.connect(wallet_2).withdraw(token.address)).to.be.revertedWith('Ownable: caller is not the owner');
-            tx = await polygonDestination.withdraw(token.address);
+            await expect(InflationDestination.connect(wallet_2).withdraw(token.address)).to.be.revertedWith('Ownable: caller is not the owner');
+            tx = await InflationDestination.withdraw(token.address);
             await tx.wait();
-            const balanceAfter = await token.balanceOf(polygonDestination.address);
+            const balanceAfter = await token.balanceOf(InflationDestination.address);
             const ownerBalanceAfter = await token.balanceOf(wallet_0.address);
             expect(balanceAfter).to.eq(0);
             expect(ownerBalanceAfter.sub(ownerBalanceBefore)).to.eq(balanceBefore);

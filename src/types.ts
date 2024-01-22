@@ -34,7 +34,7 @@ import {
     VTSQToken__factory,
     ChildERC20__factory,
     TokenExchange__factory,
-    PolygonDestination__factory,
+    InflationDestination__factory,
     SQTGift__factory,
     SQTRedeem__factory,
     RewardsBooster__factory,
@@ -128,7 +128,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PriceOracle: PriceOracle__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
     ChildERC20: ChildERC20__factory,
-    PolygonDestination: PolygonDestination__factory,
+    InflationDestination: InflationDestination__factory,
     SQTGift: SQTGift__factory,
     SQTRedeem: SQTRedeem__factory,
 };
