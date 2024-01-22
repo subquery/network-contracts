@@ -12,7 +12,7 @@ enum SQContracts {
     EraManager,
     PlanManager,
     ServiceAgreementRegistry,
-    ServiceAgreementExtra,
+    ServiceAgreementExtra, // deprecated
     RewardsDistributor,
     RewardsPool,
     RewardsStaking,

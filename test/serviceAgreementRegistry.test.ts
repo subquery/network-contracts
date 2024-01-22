@@ -4,6 +4,7 @@
 import { expect } from 'chai';
 import { BigNumber, ContractTransaction } from 'ethers';
 import { ethers, waffle } from 'hardhat';
+import { deployContracts } from './setup';
 import {
     EraManager,
     IndexerRegistry,
@@ -19,7 +20,6 @@ import {
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, poi } from './constants';
 import { createPurchaseOffer, etherParse, eventFrom, futureTimestamp, time, timeTravel } from './helper';
-import { deployContracts } from './setup';
 
 describe('Service Agreement Registry Contract', () => {
     const mockProvider = waffle.provider;
@@ -35,7 +35,8 @@ describe('Service Agreement Registry Contract', () => {
     let rewardsDistributor: RewardsDistributor;
     let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
-    
+
+    // deprecated
     const minimumStakingAmount = etherParse('1000');
 
     const allowanceMultiplerBP = 1e6;
@@ -102,7 +103,7 @@ describe('Service Agreement Registry Contract', () => {
     // });
 
     const getAgreementIdFromTx = async (tx: ContractTransaction) => {
-        const event = await eventFrom(tx, serviceAgreementRegistry, 'event ClosedAgreementCreated(address,address,bytes32,uint256)');
+        const event = await eventFrom(tx, serviceAgreementRegistry, 'ClosedAgreementCreated(address,address,bytes32,uint256)');
         return event?.serviceAgreementId;
     }
 
@@ -173,7 +174,8 @@ describe('Service Agreement Registry Contract', () => {
                 (await futureTimestamp(mockProvider)) + 86400
             );
 
-            await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(3, poi)).to.be.revertedWith(
+            // SA006 error has been removed
+            await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(3, poi)).to.not.be.revertedWith(
                 'SA006'
             );
 
