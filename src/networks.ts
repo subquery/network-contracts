@@ -77,8 +77,8 @@ export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
             chainId: '0xaa36a7',
             chainName: 'Sepolia',
             rpcUrls: [
+                'https://rpc.sepolia.org',
                 'https://eth-sepolia.public.blastapi.io',
-                'https://rpc.sepolia.org'
             ],
             iconUrls: [],
             blockExplorerUrls: ['https://sepolia.etherscan.io'],

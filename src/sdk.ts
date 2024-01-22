@@ -42,10 +42,9 @@ import assert from "assert";
 
 // HOTFIX: Contract names are not consistent between deployments and privous var names
 const contractNameConversion: Record<string, string> = {
-    sQToken: 'sqToken',
+    l2SQToken: 'sqToken',
     sQTGift: 'sqtGift',
     sQTRedeem: 'sqtRedeem',
-    rewardsDistributer: 'rewardsDistributor',
 };
 
 export class ContractSDK {

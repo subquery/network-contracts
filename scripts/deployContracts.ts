@@ -38,6 +38,7 @@ import {
     VSQToken,
     Vesting,
     TransparentUpgradeableProxy__factory,
+    ChildERC20__factory,
     TokenExchange,
     OpDestination,
     SQTGift,
@@ -56,7 +57,6 @@ import {
     FactoryContstructor,
     UPGRADEBAL_CONTRACTS,
 } from './contracts';
-import {ChildERC20__factory} from "../build";
 import { l1StandardBridge } from './L1StandardBridge';
 
 let wallet: Wallet;
@@ -80,7 +80,7 @@ function codeToHash(code: string) {
 async function getOverrides(): Promise<Overrides> {
     let price = await wallet.provider.getGasPrice();
     // console.log(`gasprice: ${price.toString()}`)
-    // price = price.add(15000000000); // add extra 15 gwei
+    price = price.add(15000000000); // add extra 15 gwei
     return { gasPrice: price, gasLimit: 3000000 };
 }
 
@@ -126,10 +126,9 @@ async function deployContract<T extends BaseContract>(
         [contract, innerAddress] = await deployProxy<T>(proxyAdmin, CONTRACT_FACTORY[name], wallet, confirms);
     } else {
         const overrides = await getOverrides();
-        const f = CONTRACT_FACTORY[name]
         contract = (await new CONTRACT_FACTORY[name](wallet).deploy(...deployConfig, overrides)) as T;
-        await contract.deployTransaction.wait(confirms);
         logger?.info(`🔎 Tx hash: ${contract.deployTransaction.hash}`);
+        await contract.deployTransaction.wait(confirms);
     }
 
     logger?.info(`🚀 Contract address: ${contract.address}`);
@@ -159,6 +158,7 @@ export const deployProxy = async <C extends Contract>(
 ): Promise<[C, string]> => {
     const contractFactory = new ContractFactory(wallet);
     const contractLogic = await contractFactory.deploy(await getOverrides());
+    logger?.info(`🔎 Tx hash: contractLogic ${contractLogic.deployTransaction.hash}`);
     await contractLogic.deployTransaction.wait(confirms);
 
     const transparentUpgradeableProxyFactory = new TransparentUpgradeableProxy__factory(wallet);
@@ -169,6 +169,7 @@ export const deployProxy = async <C extends Contract>(
         [],
         await getOverrides()
     );
+    logger?.info(`🔎 Tx hash: contractProxy ${contractProxy.deployTransaction.hash}`);
     await contractProxy.deployTransaction.wait(confirms);
 
     const proxy = contractFactory.attach(contractProxy.address) as C;
@@ -235,11 +236,10 @@ export async function deployRootContracts(
             proxyAdmin,
         });
         logger?.info('🤞 InflationController');
-        let tx
         // setup minter
-        // let tx = await sqtToken.setMinter(inflationController.address);
-        // await tx.wait(confirms);
-        // logger?.info('🤞 Set SQToken minter');
+        let tx = await sqtToken.setMinter(inflationController.address);
+        await tx.wait(confirms);
+        logger?.info('🤞 Set SQToken minter');
 
         // deploy VTSQToken
         const vtSQToken = await deployContract<VTSQToken>('VTSQToken', 'root', {
@@ -256,9 +256,10 @@ export async function deployRootContracts(
         await tx.wait(confirms);
         logger?.info('🤞 Set VTSQToken minter');
 
+        let opDestination;
         if (network === "testnet-base") {
             //deploy OpDestination contract
-            const opDestination = await deployContract<OpDestination>('OpDestination' as any, 'root',
+            opDestination = await deployContract<OpDestination>('OpDestination' as any, 'root',
             { deployConfig: [sqtToken.address, deployment.child.SQToken.address, l1StandardBridge[network].address] });
 
             logger?.info('🤞 OpDestination');
@@ -284,8 +285,8 @@ export async function deployRootContracts(
                 rootToken: sqtToken,
                 vtSQToken,
                 proxyAdmin,
-                // inflationDestination,
-                // vesting,
+                vesting,
+                opDestination,
             },
         ];
     } catch (error) {

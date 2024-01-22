@@ -29,15 +29,15 @@
             "address": "0x12EDca9B06FbEffACA4b60E0ffC9278Ec2A26564",
             "bytecodeHash": "1a3fdb466834f7139e72a865a759a82189da9dd342ec1fbfbbc9d62397bd109f",
             "lastUpdate": "Thu, 18 Jan 2024 06:25:31 GMT"
+        },
+        "Vesting": {
+            "innerAddress": "",
+            "address": "0x1913aa9f52257BB29B5C2b42fa3834d413605ABd",
+            "bytecodeHash": "bbf16965fe46de02362daaccb02e1c633ecf1b5f2287cfcda7dcdd2cc2ffb88b",
+            "lastUpdate": "Mon, 22 Jan 2024 07:15:38 GMT"
         }
     },
     "child": {
-        "SQToken": {
-            "innerAddress": "",
-            "address": "0x37B797EBE14B4490FE64c67390AeCfE20D650953",
-            "bytecodeHash": "aca4d31a8b1a995267826ed5f808b60c212ca866b02b6177e189e332ebd0ecda",
-            "lastUpdate": "Thu, 18 Jan 2024 08:07:37 GMT"
-        },
         "ProxyAdmin": {
             "innerAddress": "",
             "address": "0x732aF5D0AD4DF67419D20Ad0aFafbcfFBAdB16F9",
