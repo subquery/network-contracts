@@ -10,7 +10,7 @@ import {
     InflationController,
     PlanManager,
     ProjectRegistry,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsHelper,
     RewardsStaking,
     ERC20,
@@ -25,7 +25,7 @@ import { deployContracts } from './setup';
 
 describe.skip('Rewardflow tests', () => {
     const mockProvider = waffle.provider;
-    let root, indexer, consumer, delegator1, delegator2, delegator3;
+    let root, runner, consumer, delegator1, delegator2, delegator3;
 
     let token: ERC20;
     let staking: Staking;
@@ -35,7 +35,7 @@ describe.skip('Rewardflow tests', () => {
     let planManager: PlanManager;
     let eraManager: EraManager;
     let serviceAgreementRegistry: ServiceAgreementRegistry;
-    let rewardsDistributor: RewardsDistributer;
+    let rewardsDistributor: RewardsDistributor;
     let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
     let settings: Settings;
@@ -53,9 +53,9 @@ describe.skip('Rewardflow tests', () => {
         await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
         await planManager.createPlanTemplate(time.duration.days(10).toString(), 1000, 100, token.address, METADATA_HASH);
         await planManager.createPlanTemplate(time.duration.days(15).toString(), 1000, 100, token.address, METADATA_HASH);
-        await planManager.connect(indexer).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
-        await planManager.connect(indexer).createPlan(etherParse('10000'), 1, DEPLOYMENT_ID);
-        await planManager.connect(indexer).createPlan(etherParse('10000'), 2, DEPLOYMENT_ID);
+        await planManager.connect(runner).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
+        await planManager.connect(runner).createPlan(etherParse('10000'), 1, DEPLOYMENT_ID);
+        await planManager.connect(runner).createPlan(etherParse('10000'), 2, DEPLOYMENT_ID);
     };
 
     const collectRewards = async (indexer) => {
@@ -65,25 +65,25 @@ describe.skip('Rewardflow tests', () => {
     }
 
     const delegate = async (delegator, amount) => {
-        await stakingManager.connect(delegator).delegate(indexer.address, amount);
+        await stakingManager.connect(delegator).delegate(runner.address, amount);
     }
 
     const undelegate = async (delegator, amount) => {
-        stakingManager.connect(delegator).undelegate(indexer.address, amount);
+        stakingManager.connect(delegator).undelegate(runner.address, amount);
     }
 
     const stake = async (amount) => {
-        await stakingManager.connect(indexer).stake(indexer.address, amount);
+        await stakingManager.connect(runner).stake(runner.address, amount);
     }
 
     const unstake = async (amount) => {
-        await stakingManager.connect(indexer).unstake(indexer.address, amount);
+        await stakingManager.connect(runner).unstake(runner.address, amount);
     }
 
 
     const deployer = () => deployContracts(root, delegator2);
     before(async () => {
-        [root, indexer, consumer, delegator1, delegator2, delegator3] = await ethers.getSigners();
+        [root, runner, consumer, delegator1, delegator2, delegator3] = await ethers.getSigners();
     });
     describe('Rewardflow test', async () => {
         beforeEach(async () => {
@@ -96,7 +96,7 @@ describe.skip('Rewardflow tests', () => {
             staking = deployment.staking;
             stakingManager = deployment.stakingManager;
             token = deployment.token;
-            rewardsDistributor = deployment.rewardsDistributer;
+            rewardsDistributor = deployment.rewardsDistributor;
             rewardsStaking = deployment.rewardsStaking;
             rewardsHelper = deployment.rewardsHelper;
             eraManager = deployment.eraManager;
@@ -116,7 +116,7 @@ describe.skip('Rewardflow tests', () => {
             await eraManager.connect(root).updateEraPeriod(time.duration.days(7).toString());
             await startNewEra(mockProvider, eraManager);
 
-            await registerIndexer(root, indexer, etherParse('1000'), 0);
+            await registerIndexer(root, runner, etherParse('1000'), 0);
         })
 
         it('Scenes 1', async () => {
@@ -124,15 +124,15 @@ describe.skip('Rewardflow tests', () => {
             await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             //claim rewards
-            await rewardsDistributor.userRewards(indexer.address, indexer.address);
+            await rewardsDistributor.userRewards(runner.address, runner.address);
 
-            expect(token.balanceOf(indexer.address)).to.be.equal(etherParse('10000'));
+            expect(token.balanceOf(runner.address)).to.be.equal(etherParse('10000'));
             expect(token.balanceOf(rewardsDistributor.address)).to.be.equal(etherParse('0'));
         });
 
@@ -141,18 +141,18 @@ describe.skip('Rewardflow tests', () => {
             await planManager.connect(consumer).acceptPlan(2, DEPLOYMENT_ID);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             //claim rewards
-            await rewardsDistributor.userRewards(indexer.address, indexer.address);
+            await rewardsDistributor.userRewards(runner.address, runner.address);
 
-            expect(token.balanceOf(indexer.address)).to.be.equal(etherParse('10000'));
+            expect(token.balanceOf(runner.address)).to.be.equal(etherParse('10000'));
             expect(token.balanceOf(rewardsDistributor.address)).to.be.equal(etherParse('0'));
         });
 
@@ -161,21 +161,21 @@ describe.skip('Rewardflow tests', () => {
             await planManager.connect(consumer).acceptPlan(3, DEPLOYMENT_ID);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             //claim rewards
-            await rewardsDistributor.userRewards(indexer.address, indexer.address);
+            await rewardsDistributor.userRewards(runner.address, runner.address);
 
-            expect(token.balanceOf(indexer.address)).to.be.equal(etherParse('10000'));
+            expect(token.balanceOf(runner.address)).to.be.equal(etherParse('10000'));
             expect(token.balanceOf(rewardsDistributor.address)).to.be.equal(etherParse('0'));
         });
 
@@ -184,24 +184,24 @@ describe.skip('Rewardflow tests', () => {
             await planManager.connect(consumer).acceptPlan(3, DEPLOYMENT_ID);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await delegate(delegator1, etherParse('100'))
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             //claim rewards
-            await rewardsDistributor.claimFrom(indexer.address, indexer.address);
-            await rewardsDistributor.connect(delegator1).claimFrom(indexer.address, delegator1.address);
+            await rewardsDistributor.claimFrom(runner.address, runner.address);
+            await rewardsDistributor.connect(delegator1).claimFrom(runner.address, delegator1.address);
 
-            expect((await token.balanceOf(indexer.address)).add(await token.balanceOf(delegator1.address))).to.be.equal(etherParse('10000'));
+            expect((await token.balanceOf(runner.address)).add(await token.balanceOf(delegator1.address))).to.be.equal(etherParse('10000'));
             expect(token.balanceOf(rewardsDistributor.address)).to.be.equal(etherParse('0'));
         });
 
@@ -212,25 +212,25 @@ describe.skip('Rewardflow tests', () => {
             await planManager.connect(consumer).acceptPlan(3, DEPLOYMENT_ID);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await delegate(delegator1, etherParse('100'));
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             //claim rewards
-            await rewardsDistributor.claimFrom(indexer.address, indexer.address);
-            await rewardsDistributor.connect(delegator1).claimFrom(indexer.address, delegator1.address);
-            await rewardsDistributor.connect(delegator2).claimFrom(indexer.address, delegator2.address);
+            await rewardsDistributor.claimFrom(runner.address, runner.address);
+            await rewardsDistributor.connect(delegator1).claimFrom(runner.address, delegator1.address);
+            await rewardsDistributor.connect(delegator2).claimFrom(runner.address, delegator2.address);
 
-            expect((await token.balanceOf(indexer.address)).add(await token.balanceOf(delegator1.address)).add(await token.balanceOf(delegator2.address))).to.be.equal(etherParse('10000'));
+            expect((await token.balanceOf(runner.address)).add(await token.balanceOf(delegator1.address)).add(await token.balanceOf(delegator2.address))).to.be.equal(etherParse('10000'));
             expect(token.balanceOf(rewardsDistributor.address)).to.be.equal(etherParse('0'));
         });
 
@@ -241,26 +241,26 @@ describe.skip('Rewardflow tests', () => {
             await planManager.connect(consumer).acceptPlan(3, DEPLOYMENT_ID);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await delegate(delegator1, etherParse('100'));
             await undelegate(delegator1, etherParse('100'));
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             //claim rewards
-            await rewardsDistributor.claimFrom(indexer.address, indexer.address);
-            await rewardsDistributor.connect(delegator1).claimFrom(indexer.address, delegator1.address);
-            await rewardsDistributor.connect(delegator2).claimFrom(indexer.address, delegator2.address);
+            await rewardsDistributor.claimFrom(runner.address, runner.address);
+            await rewardsDistributor.connect(delegator1).claimFrom(runner.address, delegator1.address);
+            await rewardsDistributor.connect(delegator2).claimFrom(runner.address, delegator2.address);
 
-            expect((await token.balanceOf(indexer.address)).add(await token.balanceOf(delegator1.address)).add(await token.balanceOf(delegator2.address))).to.be.equal(etherParse('10000'));
+            expect((await token.balanceOf(runner.address)).add(await token.balanceOf(delegator1.address)).add(await token.balanceOf(delegator2.address))).to.be.equal(etherParse('10000'));
             expect(token.balanceOf(rewardsDistributor.address)).to.be.equal(etherParse('0'));
         });
 
@@ -271,12 +271,12 @@ describe.skip('Rewardflow tests', () => {
             await planManager.connect(consumer).acceptPlan(3, DEPLOYMENT_ID);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await stake(etherParse('500'));
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await unstake(etherParse('100'));
 
@@ -284,17 +284,17 @@ describe.skip('Rewardflow tests', () => {
             await undelegate(delegator1, etherParse('100'));
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             await startNewEra(mockProvider, eraManager);
-            await collectRewards(indexer);
+            await collectRewards(runner);
 
             //claim rewards
-            await rewardsDistributor.claimFrom(indexer.address, indexer.address);
-            await rewardsDistributor.connect(delegator1).claimFrom(indexer.address, delegator1.address);
-            await rewardsDistributor.connect(delegator2).claimFrom(indexer.address, delegator2.address);
+            await rewardsDistributor.claimFrom(runner.address, runner.address);
+            await rewardsDistributor.connect(delegator1).claimFrom(runner.address, delegator1.address);
+            await rewardsDistributor.connect(delegator2).claimFrom(runner.address, delegator2.address);
 
-            expect((await token.balanceOf(indexer.address)).add(await token.balanceOf(delegator1.address)).add(await token.balanceOf(delegator2.address))).to.be.equal(etherParse('10000'));
+            expect((await token.balanceOf(runner.address)).add(await token.balanceOf(delegator1.address)).add(await token.balanceOf(delegator2.address))).to.be.equal(etherParse('10000'));
             expect(token.balanceOf(rewardsDistributor.address)).to.be.equal(etherParse('0'));
         });
     })

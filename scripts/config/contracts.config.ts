@@ -52,5 +52,7 @@ export default {
         IndexerRegistry: [utils.parseEther("1000")],
         ConsumerHost: [1], // Fee Percentage, default is 1%
         DisputeManager: [utils.parseEther("10000")], // minimumDeposit
+        // polygon: 10240000 blocks a year, 1% rewards = about 9.5 SQT per block
+        RewardsBooster: [utils.parseEther("9.5"), utils.parseEther("10000")], // _issuancePerBlock, _minimumDeploymentBooster
     }
 }

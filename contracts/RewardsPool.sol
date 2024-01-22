@@ -13,7 +13,7 @@ import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IRewardsPool.sol';
-import './interfaces/IRewardsDistributer.sol';
+import './interfaces/IRewardsDistributor.sol';
 import './interfaces/ISQToken.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
@@ -39,14 +39,14 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
         uint256 unclaimTotalLabor;
         // total unclaimed reward
         uint256 unclaimReward;
-        // staking: indexer => staking amount
+        // staking: runner => staking amount
         mapping(address => uint256) stake;
-        // labor: indexer => Labor reward
+        // labor: runner => Labor reward
         mapping(address => uint256) labor;
     }
 
-    /// @notice Indexer Deployment
-    struct IndexerDeployment {
+    /// @notice Runner Deployment
+    struct RunnerDeployment {
         // unclaimed deployments count
         uint unclaim;
         // deployments list
@@ -58,9 +58,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
     /// @notice Era Reward Pool
     struct EraPool {
         // record the unclaimed deployment
-        uint256 unclaimDeployment;
-        // record the indexer joined deployments, and check if all is claimed
-        mapping(address => IndexerDeployment) indexerUnclaimDeployments;
+        uint256 totalUnclaimedDeployment;
+        // record the runner joined deployments, and check if all is claimed
+        mapping(address => RunnerDeployment) unclaimedDeployments;
         // storage all pools by deployment: deployment => Pool
         mapping(bytes32 => Pool) pools;
     }
@@ -79,9 +79,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
     /// @notice Emitted when update the alpha for cobb-douglas function
     event Alpha(int32 alphaNumerator, int32 alphaDenominator);
     /// @notice Emitted when add Labor(reward) for current era pool
-    event Labor(bytes32 deploymentId, address indexer, uint256 amount, uint256 total);
+    event Labor(bytes32 deploymentId, address runner, uint256 amount, uint256 total);
     /// @notice Emitted when collect reward (stake) from era pool
-    event Collect(bytes32 deploymentId, address indexer, uint256 era, uint256 amount);
+    event Collect(bytes32 deploymentId, address runner, uint256 era, uint256 amount);
 
     /**
      * @dev ### FUNCTIONS
@@ -118,23 +118,23 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice get the Pool reward by deploymentId, era and indexer. returns my labor and total reward
+     * @notice get the Pool reward by deploymentId, era and runner. returns my labor and total reward
      * @param deploymentId deployment id
      * @param era era number
-     * @param indexer indexer address
+     * @param runner runner address
      */
-    function getReward(bytes32 deploymentId, uint256 era, address indexer) public view returns (uint256, uint256) {
+    function getReward(bytes32 deploymentId, uint256 era, address runner) public view returns (uint256, uint256) {
         Pool storage pool = pools[era].pools[deploymentId];
-        return (pool.labor[indexer], pool.totalReward);
+        return (pool.labor[runner], pool.totalReward);
     }
 
     /**
      * @notice Add Labor(reward) for current era pool
      * @param deploymentId deployment id
-     * @param indexer indexer address
+     * @param runner runner address
      * @param amount the labor of services
      */
-    function labor(bytes32 deploymentId, address indexer, uint256 amount) external {
+    function labor(bytes32 deploymentId, address runner, uint256 amount) external {
         require(amount > 0, 'RP002');
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), amount);
 
@@ -144,150 +144,150 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
 
         // deployment created firstly.
         if (pool.totalReward == 0) {
-            eraPool.unclaimDeployment += 1;
+            eraPool.totalUnclaimedDeployment += 1;
         }
 
-        // indexer joined the deployment pool firstly.
-        if (pool.labor[indexer] == 0) {
+        // runner joined the deployment pool firstly.
+        if (pool.labor[runner] == 0) {
             IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
-            uint256 myStake = stakingManager.getTotalStakingAmount(indexer);
+            uint256 myStake = stakingManager.getTotalStakingAmount(runner);
             if (myStake == 0) {
-                // skip indexerUnclaimDeployments change, this indexer can not claim
+                // skip unclaimDeployments change, this runner can not claim
                 // if this is the only reward this pool get in this era, the reward is locked forever in the pool
                 pool.totalReward += amount;
                 pool.unclaimReward += amount;
-                emit Labor(deploymentId, indexer, 0, pool.totalReward);
+                emit Labor(deploymentId, runner, 0, pool.totalReward);
                 return;
             }
-            pool.stake[indexer] = myStake;
+            pool.stake[runner] = myStake;
             pool.totalStake += myStake;
         }
 
         // init deployments list
-        IndexerDeployment storage indexerDeployment = eraPool.indexerUnclaimDeployments[indexer];
-        if (indexerDeployment.deployments.length == 0) {
-            indexerDeployment.deployments.push(0); // only for skip 0;
+        RunnerDeployment storage runnerDeployment = eraPool.unclaimedDeployments[runner];
+        if (runnerDeployment.deployments.length == 0) {
+            runnerDeployment.deployments.push(0); // only for skip 0;
         }
-        if (indexerDeployment.index[deploymentId] == 0) {
-            indexerDeployment.unclaim += 1;
-            indexerDeployment.deployments.push(deploymentId);
-            indexerDeployment.index[deploymentId] = indexerDeployment.unclaim;
+        if (runnerDeployment.index[deploymentId] == 0) {
+            runnerDeployment.unclaim += 1;
+            runnerDeployment.deployments.push(deploymentId);
+            runnerDeployment.index[deploymentId] = runnerDeployment.unclaim;
         }
 
-        pool.labor[indexer] += amount;
+        pool.labor[runner] += amount;
         pool.totalReward += amount;
         pool.unclaimTotalLabor += amount;
         pool.unclaimReward += amount;
 
-        emit Labor(deploymentId, indexer, amount, pool.totalReward);
+        emit Labor(deploymentId, runner, amount, pool.totalReward);
     }
 
     /**
      * @notice Collect reward (stake) from previous era Pool
      * @param deploymentId deployment id
-     * @param indexer indexer address
+     * @param runner runner address
      */
-    function collect(bytes32 deploymentId, address indexer) external {
+    function collect(bytes32 deploymentId, address runner) external {
         uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
-        _collect(currentEra - 1, deploymentId, indexer);
+        _collect(currentEra - 1, deploymentId, runner);
     }
 
     /**
      * @notice Batch collect all deployments from previous era Pool
-     * @param indexer indexer address
+     * @param runner runner address
      */
-    function batchCollect(address indexer) external {
+    function batchCollect(address runner) external {
         uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
-        _batchCollect(currentEra - 1, indexer);
+        _batchCollect(currentEra - 1, runner);
     }
 
     /**
      * @notice Collect reward (stake) from era pool
      * @param era era number
      * @param deploymentId deployment id
-     * @param indexer indexer address
+     * @param runner runner address
      */
-    function collectEra(uint256 era, bytes32 deploymentId, address indexer) external {
+    function collectEra(uint256 era, bytes32 deploymentId, address runner) external {
         uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
         require(currentEra > era, 'RP004');
-        _collect(era, deploymentId, indexer);
+        _collect(era, deploymentId, runner);
     }
 
     /**
      * @notice Batch collect all deployments in pool
      * @param era era number
-     * @param indexer indexer address
+     * @param runner runner address
      */
-    function batchCollectEra(uint256 era, address indexer) external {
+    function batchCollectEra(uint256 era, address runner) external {
         uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
         require(currentEra > era, 'RP004');
-        _batchCollect(era, indexer);
+        _batchCollect(era, runner);
     }
 
     /**
      * @notice Determine is the pool claimed on the era
      * @param era era number
-     * @param indexer indexer address
+     * @param runner runner address
      * @return bool is claimed or not
      */
-    function isClaimed(uint256 era, address indexer) external view returns (bool) {
-        return pools[era].indexerUnclaimDeployments[indexer].unclaim == 0;
+    function isClaimed(uint256 era, address runner) external view returns (bool) {
+        return pools[era].unclaimedDeployments[runner].unclaim == 0;
     }
 
     /**
      * @notice Get unclaim deployments for the era
      * @param era era number
-     * @param indexer indexer address
+     * @param runner runner address
      * @return bytes32List list of deploymentIds
      */
-    function getUnclaimDeployments(uint256 era, address indexer) external view returns (bytes32[] memory) {
-        return pools[era].indexerUnclaimDeployments[indexer].deployments;
+    function getUnclaimDeployments(uint256 era, address runner) external view returns (bytes32[] memory) {
+        return pools[era].unclaimedDeployments[runner].deployments;
     }
 
     /// @dev PRIVATE FUNCTIONS
     /// @notice work for batchCollect() and batchCollectEra()
-    function _batchCollect(uint256 era, address indexer) private {
+    function _batchCollect(uint256 era, address runner) private {
         EraPool storage eraPool = pools[era];
-        IndexerDeployment storage indexerDeployment = eraPool.indexerUnclaimDeployments[indexer];
-        uint lastIndex = indexerDeployment.unclaim;
+        RunnerDeployment storage runnerDeployment = eraPool.unclaimedDeployments[runner];
+        uint lastIndex = runnerDeployment.unclaim;
         for (uint i = lastIndex; i > 0; i--) {
-            bytes32 deploymentId = indexerDeployment.deployments[i];
-            _collect(era, deploymentId, indexer);
+            bytes32 deploymentId = runnerDeployment.deployments[i];
+            _collect(era, deploymentId, runner);
         }
     }
 
     /// @notice work for collect() and collectEra()
-    function _collect(uint256 era, bytes32 deploymentId, address indexer) private {
+    function _collect(uint256 era, bytes32 deploymentId, address runner) private {
         EraPool storage eraPool = pools[era];
         Pool storage pool = eraPool.pools[deploymentId];
         // this is to prevent duplicated collect
-        require(pool.totalStake > 0 && pool.totalReward > 0 && pool.labor[indexer] > 0, 'RP005');
+        require(pool.totalStake > 0 && pool.totalReward > 0 && pool.labor[runner] > 0, 'RP005');
 
-        uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[indexer], pool.stake[indexer], pool.totalStake);
+        uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[runner], pool.stake[runner], pool.totalStake);
 
-        address rewardDistributer = settings.getContractAddress(SQContracts.RewardsDistributer);
-        IRewardsDistributer distributer = IRewardsDistributer(rewardDistributer);
+        address rewardDistributer = settings.getContractAddress(SQContracts.RewardsDistributor);
+        IRewardsDistributor distributer = IRewardsDistributor(rewardDistributer);
         IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(rewardDistributer, amount);
         if (amount > 0) {
-            distributer.addInstantRewards(indexer, address(this), amount, era);
+            distributer.addInstantRewards(runner, address(this), amount, era);
         }
 
-        IndexerDeployment storage indexerDeployment = eraPool.indexerUnclaimDeployments[indexer];
-        uint index = indexerDeployment.index[deploymentId];
-        bytes32 lastDeployment = indexerDeployment.deployments[indexerDeployment.unclaim];
-        indexerDeployment.deployments[index] = lastDeployment;
-        indexerDeployment.deployments.pop();
-        indexerDeployment.index[lastDeployment] = index;
-        delete indexerDeployment.index[deploymentId];
-        indexerDeployment.unclaim -= 1;
-        if (indexerDeployment.unclaim == 0) {
-            delete eraPool.indexerUnclaimDeployments[indexer];
+        RunnerDeployment storage runnerDeployment = eraPool.unclaimedDeployments[runner];
+        uint index = runnerDeployment.index[deploymentId];
+        bytes32 lastDeployment = runnerDeployment.deployments[runnerDeployment.unclaim];
+        runnerDeployment.deployments[index] = lastDeployment;
+        runnerDeployment.deployments.pop();
+        runnerDeployment.index[lastDeployment] = index;
+        delete runnerDeployment.index[deploymentId];
+        runnerDeployment.unclaim -= 1;
+        if (runnerDeployment.unclaim == 0) {
+            delete eraPool.unclaimedDeployments[runner];
         }
 
-        pool.unclaimTotalLabor -= pool.labor[indexer];
+        pool.unclaimTotalLabor -= pool.labor[runner];
         pool.unclaimReward -= amount;
-        delete pool.labor[indexer];
-        delete pool.stake[indexer];
+        delete pool.labor[runner];
+        delete pool.stake[runner];
 
         if (pool.unclaimTotalLabor == 0) {
             // burn the remained
@@ -297,15 +297,15 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
             }
 
             delete eraPool.pools[deploymentId];
-            eraPool.unclaimDeployment -= 1;
+            eraPool.totalUnclaimedDeployment -= 1;
 
             // if unclaimed pool == 0, delete the era
-            if (eraPool.unclaimDeployment == 0) {
+            if (eraPool.totalUnclaimedDeployment == 0) {
                 delete pools[era];
             }
         }
 
-        emit Collect(deploymentId, indexer, era, amount);
+        emit Collect(deploymentId, runner, era, amount);
     }
 
     /// @notice The cobb-doublas function has the form:

@@ -120,6 +120,7 @@
     "PR008": "deployment metadata not changed",
     "PR009": "deployment id or metadata is empty",
     "PR010": "project latest deployment id not changed",
+    "PR011": "deployment not registered",
     "RD001": "Waiting Era",
     "RD002": "Era expired",
     "RD003": "Waiting next era",
@@ -187,10 +188,15 @@
     "SQG004": "Series not active",
     "SQG005": "Max gift supply reached",
     "SQG006": "Max supply must be greater than 0",
-
     "SQR001": "Failed to transfer SQT",
     "SQR002": "Redeem not enabled",
     "SQR003": "NFT does not support ISQTGift",
     "SQR004": "Gift not redeemable",
-    "SQR005": "Not owner of token"
+    "SQR005": "Not owner of token",
+    "SAL01": "Can only be called by RewardsStaking",
+    "SAL02": "Can only be called by runner or controller of runner",
+    "SAL03": "Not enough staked token",
+    "SAL04": "Not enough allocated token",
+    "SAL05": "Can only be called by RewardsBooster",
+    "RB02": "Query refund can not be larger than spent"
 }

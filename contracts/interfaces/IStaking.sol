@@ -33,5 +33,5 @@ enum UnbondType {
 interface IStaking {
     function lockedAmount(address _delegator) external view returns (uint256);
 
-    function unbondCommission(address _indexer, uint256 _amount) external;
+    function unbondCommission(address _runner, uint256 _amount) external;
 }

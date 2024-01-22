@@ -26,7 +26,7 @@ import {
     ProxyAdmin,
     ProxyAdmin__factory,
     PurchaseOfferMarket,
-    RewardsDistributer,
+    RewardsDistributor,
     RewardsHelper,
     RewardsPool,
     RewardsStaking,
@@ -47,6 +47,8 @@ import {
     SQTRedeem,
     Airdropper,
     VTSQToken,
+    RewardsBooster,
+    StakingAllocation,
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -384,8 +386,8 @@ export async function deployContracts(
 
         const tokenExchange = await deployContract<TokenExchange>('TokenExchange', 'child', { initConfig: [] });
 
-        // deploy RewardsDistributer contract
-        const rewardsDistributer = await deployContract<RewardsDistributer>('RewardsDistributer', 'child', {
+        // deploy RewardsDistributor contract
+        const rewardsDistributor = await deployContract<RewardsDistributor>('RewardsDistributor', 'child', {
             proxyAdmin,
             initConfig: [settingsAddress],
         });
@@ -432,7 +434,7 @@ export async function deployContracts(
             initConfig: [settingsAddress],
         });
 
-        // delpoy PriceOracle contract
+        // deploy PriceOracle contract
         const priceOracle = await deployContract<PriceOracle>('PriceOracle', 'child', {
             proxyAdmin,
             initConfig: [10, 3600],
@@ -454,13 +456,25 @@ export async function deployContracts(
         const [settleDestination] = config['Airdropper'];
         const airdropper = await deployContract<Airdropper>('Airdropper', 'child', { deployConfig: [settleDestination] });
 
+        // deploy rewardsBooster contract
+        const rewardsBooster = await deployContract<RewardsBooster>('RewardsBooster', 'child', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
+        // deploy StakingAllocation contract
+        const stakingAllocation = await deployContract<StakingAllocation>('StakingAllocation', 'child', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // Register addresses on settings contract
         logger?.info('🤞 Set settings addresses');
         const txToken = await settings.setBatchAddress([
             SQContracts.SQToken,
             SQContracts.Staking,
             SQContracts.StakingManager,
-            SQContracts.RewardsDistributer,
+            SQContracts.RewardsDistributor,
             SQContracts.RewardsPool,
             SQContracts.RewardsStaking,
             SQContracts.RewardsHelper,
@@ -474,11 +488,13 @@ export async function deployContracts(
             SQContracts.DisputeManager,
             SQContracts.StateChannel,
             SQContracts.ConsumerRegistry,
+            SQContracts.RewardsBooster,
+            SQContracts.StakingAllocation,
         ],[
             sqtToken.address,
             staking.address,
             stakingManager.address,
-            rewardsDistributer.address,
+            rewardsDistributor.address,
             rewardsPool.address,
             rewardsStaking.address,
             rewardsHelper.address,
@@ -492,6 +508,8 @@ export async function deployContracts(
             disputeManager.address,
             stateChannel.address,
             consumerRegistry.address,
+            rewardsBooster.address,
+            stakingAllocation.address,
         ]);
 
         await txToken.wait(confirms);
@@ -512,10 +530,11 @@ export async function deployContracts(
                 purchaseOfferMarket,
                 serviceAgreementRegistry,
                 serviceAgreementExtra,
-                rewardsDistributer,
+                rewardsDistributor,
                 rewardsPool,
                 rewardsStaking,
                 rewardsHelper,
+                rewardsBooster,
                 proxyAdmin,
                 stateChannel,
                 consumerHost,
@@ -526,6 +545,7 @@ export async function deployContracts(
                 sqtGift,
                 sqtRedeem,
                 airdropper,
+                stakingAllocation,
             },
         ];
     } catch (error) {
