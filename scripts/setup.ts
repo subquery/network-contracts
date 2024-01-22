@@ -22,7 +22,7 @@ export const {argv} = yargs(hideBin(process.argv))
             demandOption: true,
             describe: 'network',
             type: 'string',
-            choices: ['testnet', 'mainnet'],
+            choices: ['testnet', 'testnet-mumbai', 'mainnet'],
         },
         'history':{
             type: 'boolean',
@@ -80,19 +80,12 @@ const setup = async (network?: string) => {
     let history = false;
     let checkOnly = false;
     let implementationOnly = false;
-
-    switch (network ?? argv.network) {
-        case 'mainnet':
-            config.contracts = contractsConfig.mainnet as any;
-            config.network = networks.mainnet;
-            break;
-        case 'testnet':
-            config.contracts = contractsConfig.testnet as any;
-            config.network = networks.testnet;
-            break;
-        default:
-            throw new Error('no network specified');
+    network = network ?? argv.network;
+    if (!contractsConfig[network] || !networks[network]) {
+        throw new Error('no network specified');
     }
+    config.contracts = contractsConfig[network];
+    config.network = networks[network];
 
     name = (argv.network ?? 'local') as SubqueryNetwork;
 

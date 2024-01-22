@@ -78,7 +78,7 @@ describe('Redeem Contract', () => {
           .withArgs(wallet_0.address , 1, 0, nft.address, amount);
       });
 
-      it.only('should not be able to redeem with invalid NFT token', async () => {
+      it('should not be able to redeem with invalid NFT token', async () => {
         // 1. can not redeem if contract status is not redeemable
         await expect(sqtRedeem.redeem(nft.address, 1)).to.be.revertedWith('SQR002');
         // 2. can not redeem if nft token owner is not the sender

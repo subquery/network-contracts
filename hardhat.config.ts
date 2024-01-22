@@ -1,3 +1,4 @@
+import { SQToken } from './src/typechain/contracts/root/SQToken';
 import * as dotenv from 'dotenv';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
@@ -10,6 +11,7 @@ import 'solidity-docgen';
 import 'tsconfig-paths/register';
 import {constants} from "ethers";
 import contractsConfig from "./scripts/config/contracts.config";
+import { l1StandardBridge } from "./scripts/L1StandardBridge";
 
 require('solidity-coverage');
 
@@ -55,6 +57,7 @@ task('publishRoot', "verify and publish contracts on etherscan")
     .addParam('networkpair','testnet|kepler|mainnet')
     .setAction(async (taskArgs, hre) => {
         const deployment = require(taskArgs.deployment).root;
+        const childDeployment = require(taskArgs.deployment).child;
         const config = contractsConfig[taskArgs.networkpair];
 
         try {
@@ -80,13 +83,7 @@ task('publishRoot', "verify and publish contracts on etherscan")
             await hre.run("verify:verify", {
                 address: deployment.SQToken.address,
                 constructorArguments: [constants.AddressZero, ...config.SQToken],
-            });
-
-            //Vesting
-            console.log(`verify Vesting`);
-            await hre.run("verify:verify", {
-                address: deployment.Vesting.address,
-                constructorArguments: [deployment.SQToken.address],
+                contract: 'contracts/root/SQToken.sol:SQToken',
             });
             //VTSQToken
             console.log(`verify VTSQToken`);
@@ -94,6 +91,13 @@ task('publishRoot', "verify and publish contracts on etherscan")
                 address: deployment.VTSQToken.address,
                 contract: 'contracts/root/VTSQToken.sol:VTSQToken',
                 constructorArguments: [constants.AddressZero],
+            });
+
+            //Vesting
+            console.log(`verify Vesting`);
+            await hre.run("verify:verify", {
+                address: deployment.Vesting.address,
+                constructorArguments: [deployment.SQToken.address, deployment.VTSQToken.address],
             });
             //Settings
             console.log(`verify Settings`);
@@ -106,11 +110,13 @@ task('publishRoot', "verify and publish contracts on etherscan")
                 constructorArguments: [],
             });
 
-            // PolygonDestination
-            console.log(`verify PolygonDestination`);
+            // OpDestination
+            console.log(`verify OpDestination`);
+            let l2bridge = l1StandardBridge[taskArgs.networkpair].address;
             await hre.run("verify:verify", {
-                address: deployment.PolygonDestination.address,
-                constructorArguments: [deployment.Settings.address, constants.AddressZero],
+                address: deployment.OpDestination.address,
+                // TODO: better inject `L1TokenBridge` into the deployment
+                constructorArguments: [deployment.SQToken.address, '0x0000000000000000000000000000000000000000', l2bridge],
             });
 
         } catch (err) {
@@ -137,6 +143,11 @@ task('publishChild', "verify and publish contracts on etherscan")
             await hre.run("verify:verify", {
                 address: deployment.Settings.innerAddress,
                 constructorArguments: [],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.L2SQToken.address,
+                constructorArguments: contractsConfig[taskArgs.networkpair].L2SQToken,
+                // contract: "contracts/l2/L2SQToken.sol:L2SQToken"
             });
 
             //VSQToken
@@ -340,6 +351,24 @@ task('publishChild', "verify and publish contracts on etherscan")
                 address: deployment.SQTRedeem.innerAddress,
                 constructorArguments: [],
             });
+            //RewardsBooster
+            await hre.run("verify:verify", {
+                address: deployment.RewardsBooster.address,
+                constructorArguments: [deployment.RewardsBooster.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.RewardsBooster.innerAddress,
+                constructorArguments: [],
+            });
+            //StakingAllocation
+            await hre.run("verify:verify", {
+                address: deployment.StakingAllocation.address,
+                constructorArguments: [deployment.StakingAllocation.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.StakingAllocation.innerAddress,
+                constructorArguments: [],
+            });
 
         } catch (err) {
             console.log(err);
@@ -368,6 +397,14 @@ const config: HardhatUserConfig = {
             url: "https://rpc.ankr.com/eth_goerli",
             chainId: 5,
         },
+        sepolia: {
+            url: "https://rpc.sepolia.org",
+            chainId: 11155111,
+        },
+        'base-sepolia': {
+            url: "https://sepolia.base.org",
+            chainId: 84532,
+        },
         kepler: {
             url: "https://polygon-rpc.com",
             chainId: 137,
@@ -385,8 +422,20 @@ const config: HardhatUserConfig = {
         apiKey: {
             polygonMumbai: process.env.POLYGONSCAN_API_KEY,
             goerli: process.env.ETHERSCAN_API_KEY,
+            sepolia: process.env.ETHERSCAN_API_KEY,
+            'base-sepolia': process.env.BASESCAN_API_KEY,
             polygon: process.env.POLYGONSCAN_API_KEY,
         },
+        customChains: [
+            {
+                network: "base-sepolia",
+                chainId: 84532,
+                urls: {
+                    apiURL: "https://api-sepolia.basescan.org/api",
+                    browserURL: "https://sepolia.basescan.org"
+                }
+            }
+        ]
     },
     typechain: {
         outDir: 'src/typechain',

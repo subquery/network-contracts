@@ -32,16 +32,17 @@ import {
     VSQToken__factory,
     Vesting__factory,
     VTSQToken__factory,
-    ChildERC20__factory,
+    SQToken__factory,
     TokenExchange__factory,
-    PolygonDestination__factory,
+    OpDestination__factory,
     SQTGift__factory,
     SQTRedeem__factory,
     RewardsBooster__factory,
     StakingAllocation__factory,
+    L2SQToken__factory,
 } from './typechain';
 
-export type SubqueryNetwork = 'testnet' | 'mainnet' | 'local';
+export type SubqueryNetwork = 'testnet' | 'testnet-mumbai' | 'mainnet' | 'local';
 
 export type NetworkPair = {
     root: Network;
@@ -101,7 +102,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ProxyAdmin: ProxyAdmin__factory,
     Settings: Settings__factory,
     InflationController: InflationController__factory,
-    SQToken: ChildERC20__factory, // for child sdk only
+    SQToken: SQToken__factory, // for child sdk only
     VSQToken: VSQToken__factory,
     Airdropper: Airdropper__factory,
     Vesting: Vesting__factory,
@@ -127,10 +128,10 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     DisputeManager: DisputeManager__factory,
     PriceOracle: PriceOracle__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
-    ChildERC20: ChildERC20__factory,
-    PolygonDestination: PolygonDestination__factory,
+    OpDestination: OpDestination__factory,
     SQTGift: SQTGift__factory,
     SQTRedeem: SQTRedeem__factory,
+    L2SQToken: L2SQToken__factory,
 };
 
 export enum SQContracts {
@@ -142,7 +143,6 @@ export enum SQContracts {
     EraManager,
     PlanManager,
     ServiceAgreementRegistry,
-    ServiceAgreementExtra, // deprecated
     RewardsDistributor,
     RewardsPool,
     RewardsStaking,
@@ -153,7 +153,6 @@ export enum SQContracts {
     StateChannel,
     ConsumerRegistry,
     PriceOracle,
-    RootChainManager,
     Treasury,
     RewardsBooster,
     StakingAllocation,

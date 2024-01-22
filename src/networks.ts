@@ -38,7 +38,7 @@ export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
             }
         }
     },
-    testnet: {
+    'testnet-mumbai': {
         root: {
             chainId: '0x5',
             chainName: 'Goerli',
@@ -68,6 +68,37 @@ export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
             nativeCurrency: {
                 name: 'Matic Token',
                 symbol: 'MATIC',
+                decimals: 18
+            }
+        }
+    },
+    testnet: {
+        root: {
+            chainId: '0xaa36a7',
+            chainName: 'Sepolia',
+            rpcUrls: [
+                'https://rpc.sepolia.org',
+                'https://eth-sepolia.public.blastapi.io',
+            ],
+            iconUrls: [],
+            blockExplorerUrls: ['https://sepolia.etherscan.io'],
+            nativeCurrency: {
+                name: 'ETH',
+                symbol: 'ETH',
+                decimals: 18
+            }
+        },
+        child: {
+            chainId: '0x14a34',
+            chainName: 'Base Sepolia',
+            rpcUrls: [
+                'https://sepolia.base.org',
+            ],
+            iconUrls: [],
+            blockExplorerUrls: ['https://sepolia.basescan.org'],
+            nativeCurrency: {
+                name: 'ETH',
+                symbol: 'ETH',
                 decimals: 18
             }
         }

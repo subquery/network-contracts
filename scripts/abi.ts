@@ -26,7 +26,7 @@ const main = async () => {
             'TokenExchange',
         ];
         const childContracts = [
-            'ChildERC20',
+            'L2SQToken',
             'EraManager',
         ]
         const rootContracts = [
@@ -49,7 +49,7 @@ const main = async () => {
         }
         run(contracts, `${__dirname}/../artifacts/contracts`);
         run(rootContracts, `${__dirname}/../artifacts/contracts/root`);
-        run(childContracts, `${__dirname}/../artifacts/contracts/polygon`);
+        run(childContracts, `${__dirname}/../artifacts/contracts/l2`);
         run(proxyContracts, `${__dirname}/../artifacts/@openzeppelin/contracts/proxy/transparent`)
         console.log(`Generated ABI files completed`);
     } catch (e) {

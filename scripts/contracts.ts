@@ -49,8 +49,6 @@ import {
     SQToken__factory,
     ServiceAgreementRegistry,
     ServiceAgreementRegistry__factory,
-    ServiceAgreementExtra,
-    ServiceAgreementExtra__factory,
     Settings,
     Settings__factory,
     Staking,
@@ -65,8 +63,8 @@ import {
     VSQToken__factory,
     Vesting,
     Vesting__factory,
-    PolygonDestination,
-    PolygonDestination__factory,
+    OpDestination,
+    OpDestination__factory,
     ChildERC20__factory,
     SQTGift__factory,
     SQTGift,
@@ -74,6 +72,8 @@ import {
     SQTRedeem,
     VTSQToken,
     VTSQToken__factory,
+    L2SQToken,
+    L2SQToken__factory,
 } from '../src';
 
 export interface FactoryContstructor {
@@ -98,7 +98,6 @@ export type Contracts = {
     planManager: PlanManager;
     purchaseOfferMarket: PurchaseOfferMarket;
     serviceAgreementRegistry: ServiceAgreementRegistry;
-    serviceAgreementExtra: ServiceAgreementExtra;
     rewardsDistributor: RewardsDistributor;
     rewardsPool: RewardsPool;
     rewardsStaking: RewardsStaking;
@@ -114,7 +113,7 @@ export type Contracts = {
     disputeManager: DisputeManager;
     consumerRegistry: ConsumerRegistry;
     priceOracle: PriceOracle;
-    polygonDestination: PolygonDestination;
+    opDestination: OpDestination;
     sqtGift: SQTGift;
     sqtRedeem: SQTRedeem;
 };
@@ -131,14 +130,12 @@ export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ byt
     RewardsHelper: [CONTRACTS.RewardsHelper, RewardsHelper__factory],
     RewardsBooster: [CONTRACTS.RewardsBooster, RewardsBooster__factory],
     ServiceAgreementRegistry: [CONTRACTS.ServiceAgreementRegistry, ServiceAgreementRegistry__factory],
-    ServiceAgreementExtra: [CONTRACTS.ServiceAgreementExtra, ServiceAgreementExtra__factory],
     Staking: [CONTRACTS.Staking, Staking__factory],
     StakingManager: [CONTRACTS.StakingManager, StakingManager__factory],
     StakingAllocation: [CONTRACTS.StakingAllocation, StakingAllocation__factory],
     EraManager: [CONTRACTS.EraManager, EraManager__factory],
     PurchaseOfferMarket: [CONTRACTS.PurchaseOfferMarket, PurchaseOfferMarket__factory],
     StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
-
     PermissionedExchange: [CONTRACTS.PermissionedExchange, PermissionedExchange__factory],
     ConsumerHost: [CONTRACTS.ConsumerHost, ConsumerHost__factory],
     DisputeManager: [CONTRACTS.DisputeManager, DisputeManager__factory],
@@ -165,7 +162,6 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     PlanManager: PlanManager__factory,
     PurchaseOfferMarket: PurchaseOfferMarket__factory,
     ServiceAgreementRegistry: ServiceAgreementRegistry__factory,
-    ServiceAgreementExtra: ServiceAgreementExtra__factory,
     RewardsDistributor: RewardsDistributor__factory,
     RewardsPool: RewardsPool__factory,
     RewardsStaking: RewardsStaking__factory,
@@ -179,9 +175,10 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     ConsumerRegistry: ConsumerRegistry__factory,
     PriceOracle: PriceOracle__factory,
     ChildERC20: ChildERC20__factory,
-    PolygonDestination: PolygonDestination__factory,
+    OpDestination: OpDestination__factory,
     SQTGift: SQTGift__factory,
     SQTRedeem: SQTRedeem__factory,
+    L2SQToken: L2SQToken__factory,
 };
 
 export type Config = number | string | string[];

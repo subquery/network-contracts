@@ -8,7 +8,6 @@ import { readFileSync, writeFileSync } from 'fs';
 import Pino from 'pino';
 import sha256 from 'sha256';
 
-import { rootChainMananger } from './rootChainManager';
 import CONTRACTS from '../src/contracts';
 import {ContractDeployment, ContractDeploymentInner, ContractName, SQContracts, SubqueryNetwork} from '../src/types';
 import { getLogger } from './logger';
@@ -40,14 +39,14 @@ import {
     Vesting,
     TransparentUpgradeableProxy__factory,
     TokenExchange,
-    PolygonDestination,
-    RootChainManager__factory,
+    OpDestination,
     SQTGift,
     SQTRedeem,
     Airdropper,
     VTSQToken,
     RewardsBooster,
     StakingAllocation,
+    L2SQToken,
 } from '../src';
 import {
     CONTRACT_FACTORY,
@@ -57,7 +56,7 @@ import {
     FactoryContstructor,
     UPGRADEBAL_CONTRACTS,
 } from './contracts';
-import {ChildERC20__factory} from "../build";
+import { l1StandardBridge } from './L1StandardBridge';
 
 let wallet: Wallet;
 let network: SubqueryNetwork;
@@ -78,9 +77,10 @@ function codeToHash(code: string) {
 }
 
 async function getOverrides(): Promise<Overrides> {
-    const price = await wallet.provider.getGasPrice();
-    // const gasPrice = price.add(20000000000); // add extra 15 gwei
-    return { gasPrice: price, gasLimit: 6000000 };
+    let price = await wallet.provider.getGasPrice();
+    // console.log(`gasprice: ${price.toString()}`)
+    // price = price.add(15000000000); // add extra 15 gwei
+    return { gasPrice: price, gasLimit: 3000000 };
 }
 
 export function saveDeployment(name: string, deployment: Partial<ContractDeployment>) {
@@ -125,10 +125,9 @@ async function deployContract<T extends BaseContract>(
         [contract, innerAddress] = await deployProxy<T>(proxyAdmin, CONTRACT_FACTORY[name], wallet, confirms);
     } else {
         const overrides = await getOverrides();
-        const f = CONTRACT_FACTORY[name]
         contract = (await new CONTRACT_FACTORY[name](wallet).deploy(...deployConfig, overrides)) as T;
-        await contract.deployTransaction.wait(confirms);
         logger?.info(`🔎 Tx hash: ${contract.deployTransaction.hash}`);
+        await contract.deployTransaction.wait(confirms);
     }
 
     logger?.info(`🚀 Contract address: ${contract.address}`);
@@ -158,6 +157,7 @@ export const deployProxy = async <C extends Contract>(
 ): Promise<[C, string]> => {
     const contractFactory = new ContractFactory(wallet);
     const contractLogic = await contractFactory.deploy(await getOverrides());
+    logger?.info(`🔎 Tx hash: contractLogic ${contractLogic.deployTransaction.hash}`);
     await contractLogic.deployTransaction.wait(confirms);
 
     const transparentUpgradeableProxyFactory = new TransparentUpgradeableProxy__factory(wallet);
@@ -168,6 +168,7 @@ export const deployProxy = async <C extends Contract>(
         [],
         await getOverrides()
     );
+    logger?.info(`🔎 Tx hash: contractProxy ${contractProxy.deployTransaction.hash}`);
     await contractProxy.deployTransaction.wait(confirms);
 
     const proxy = contractFactory.attach(contractProxy.address) as C;
@@ -234,7 +235,6 @@ export async function deployRootContracts(
             proxyAdmin,
         });
         logger?.info('🤞 InflationController');
-
         // setup minter
         let tx = await sqtToken.setMinter(inflationController.address);
         await tx.wait(confirms);
@@ -247,7 +247,7 @@ export async function deployRootContracts(
         logger?.info('🤞 VTSQToken');
 
         //deploy vesting contract
-        const vesting = await deployContract<Vesting>('Vesting', 'root', { deployConfig: [sqtToken.address, vtSQToken.address] });
+        const vesting = await deployContract<Vesting>('Vesting', 'root', {deployConfig: [sqtToken.address, vtSQToken.address]});
         logger?.info('🤞 Vesting');
 
         // set vesting contract as the minter of vtSQToken
@@ -255,29 +255,24 @@ export async function deployRootContracts(
         await tx.wait(confirms);
         logger?.info('🤞 Set VTSQToken minter');
 
-        //deploy PolygonDestination contract
-        const polygonDestination = await deployContract<PolygonDestination>('PolygonDestination' as any, 'root',
-            { deployConfig: [settingsAddress, constants.AddressZero] });
+        let opDestination;
+        if (network !== "testnet-mumbai") {
+            //deploy OpDestination contract
+            opDestination = await deployContract<OpDestination>('OpDestination', 'root',
+            { deployConfig: [sqtToken.address, deployment.child?.SQToken?.address ?? constants.AddressZero, l1StandardBridge[network]?.address ?? constants.AddressZero] });
 
-        let rootChainManager;
-        if (network === 'local') {
-            // deploy MockRootChainManager
-            rootChainManager = await new RootChainManager__factory(wallet).deploy();
+            logger?.info('🤞 OpDestination');
         }
-
-        logger?.info('🤞 PolygonDestination');
 
         logger?.info('🤞 Set addresses');
         tx = await settings.setBatchAddress([
             SQContracts.SQToken,
             SQContracts.InflationController,
             SQContracts.Vesting,
-            SQContracts.RootChainManager,
         ],[
             sqtToken.address,
             inflationController.address,
             vesting.address,
-            rootChainMananger[network]?.address ?? rootChainManager.address,
         ]);
         await tx.wait(confirms);
 
@@ -290,7 +285,7 @@ export async function deployRootContracts(
                 vtSQToken,
                 proxyAdmin,
                 vesting,
-                polygonDestination,
+                opDestination,
             },
         ];
     } catch (error) {
@@ -331,7 +326,9 @@ export async function deployContracts(
                 deployConfig: [...config['SQToken']],
             });
         } else {
-            sqtToken = ChildERC20__factory.connect(deployment.child.SQToken.address, wallet);
+            sqtToken = await deployContract<L2SQToken>('L2SQToken', 'child', {
+                deployConfig: [...config['L2SQToken']],
+            });
         }
         // deploy VSQToken contract
         const vsqtToken = await deployContract<VSQToken>('VSQToken', 'child', { proxyAdmin, initConfig: [settingsAddress] });
@@ -478,7 +475,6 @@ export async function deployContracts(
             SQContracts.EraManager,
             SQContracts.PlanManager,
             SQContracts.ServiceAgreementRegistry,
-            // SQContracts.ServiceAgreementExtra,
             SQContracts.DisputeManager,
             SQContracts.StateChannel,
             SQContracts.ConsumerRegistry,
@@ -498,7 +494,6 @@ export async function deployContracts(
             eraManager.address,
             planManager.address,
             serviceAgreementRegistry.address,
-            // serviceAgreementExtra.address,
             disputeManager.address,
             stateChannel.address,
             consumerRegistry.address,

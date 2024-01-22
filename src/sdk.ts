@@ -6,7 +6,6 @@ import { Signer } from 'ethers';
 import { DEPLOYMENT_DETAILS } from './deployments';
 import {
     Airdropper,
-    ChildERC20,
     ConsumerHost,
     ConsumerRegistry,
     DisputeManager,
@@ -30,6 +29,7 @@ import {
     TokenExchange,
     SQTGift,
     SQTRedeem,
+    ERC20,
 } from './typechain';
 import {
     CONTRACT_FACTORY,
@@ -42,17 +42,16 @@ import assert from "assert";
 
 // HOTFIX: Contract names are not consistent between deployments and privous var names
 const contractNameConversion: Record<string, string> = {
-    sQToken: 'sqToken',
+    l2SQToken: 'sqToken',
     sQTGift: 'sqtGift',
     sQTRedeem: 'sqtRedeem',
-    rewardsDistributer: 'rewardsDistributor',
 };
 
 export class ContractSDK {
     private _contractDeployments: ContractDeploymentInner;
 
     readonly settings!: Settings;
-    readonly sqToken!: ChildERC20;
+    readonly sqToken!: ERC20;
     readonly staking!: Staking;
     readonly stakingManager!: StakingManager;
     readonly indexerRegistry!: IndexerRegistry;
