@@ -72,6 +72,8 @@ import {
     SQTRedeem,
     VTSQToken,
     VTSQToken__factory,
+    L2SQToken,
+    L2SQToken__factory,
 } from '../src';
 
 export interface FactoryContstructor {
@@ -176,6 +178,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     InflationDestination: InflationDestination__factory,
     SQTGift: SQTGift__factory,
     SQTRedeem: SQTRedeem__factory,
+    L2SQToken: L2SQToken__factory,
 };
 
 export type Config = number | string | string[];

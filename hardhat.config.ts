@@ -141,6 +141,13 @@ task('publishChild', "verify and publish contracts on etherscan")
                 address: deployment.Settings.innerAddress,
                 constructorArguments: [],
             });
+            if (taskArgs.networkpair === 'testnet-base') {
+                await hre.run("verify:verify", {
+                    address: deployment.SQToken.address,
+                    constructorArguments: contractsConfig[taskArgs.networkpair].L2SQToken,
+                    contract: "contracts/l2/L2SQToken.sol:L2SQToken"
+                });
+            }
 
             //VSQToken
             await hre.run("verify:verify", {
@@ -343,6 +350,24 @@ task('publishChild', "verify and publish contracts on etherscan")
                 address: deployment.SQTRedeem.innerAddress,
                 constructorArguments: [],
             });
+            //RewardsBooster
+            await hre.run("verify:verify", {
+                address: deployment.RewardsBooster.address,
+                constructorArguments: [deployment.RewardsBooster.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.RewardsBooster.innerAddress,
+                constructorArguments: [],
+            });
+            //StakingAllocation
+            await hre.run("verify:verify", {
+                address: deployment.StakingAllocation.address,
+                constructorArguments: [deployment.StakingAllocation.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.StakingAllocation.innerAddress,
+                constructorArguments: [],
+            });
 
         } catch (err) {
             console.log(err);
@@ -371,6 +396,14 @@ const config: HardhatUserConfig = {
             url: "https://rpc.ankr.com/eth_goerli",
             chainId: 5,
         },
+        sepolia: {
+            url: "https://rpc.sepolia.org",
+            chainId: 11155111,
+        },
+        'base-sepolia': {
+            url: "https://sepolia.base.org",
+            chainId: 84532,
+        },
         kepler: {
             url: "https://polygon-rpc.com",
             chainId: 137,
@@ -388,8 +421,20 @@ const config: HardhatUserConfig = {
         apiKey: {
             polygonMumbai: process.env.POLYGONSCAN_API_KEY,
             goerli: process.env.ETHERSCAN_API_KEY,
+            sepolia: process.env.ETHERSCAN_API_KEY,
+            'base-sepolia': process.env.BASESCAN_API_KEY,
             polygon: process.env.POLYGONSCAN_API_KEY,
         },
+        customChains: [
+            {
+                network: "base-sepolia",
+                chainId: 84532,
+                urls: {
+                    apiURL: "https://api-sepolia.basescan.org/api",
+                    browserURL: "https://sepolia.basescan.org"
+                }
+            }
+        ]
     },
     typechain: {
         outDir: 'src/typechain',
