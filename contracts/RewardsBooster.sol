@@ -203,7 +203,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      * @return Rewards amount for an allocation
      * @return Rewards burnt due to missedLabor
      */
-    function _fixRewardsWithMissedLaborAndOverflow(uint256 _reward, RunnerDeploymentReward memory _runnerDepReward, uint256 overflowTime) internal view returns (uint256, uint256)  {
+    function _fixRewardsWithMissedLaborAndOverflow(uint256 _reward, RunnerDeploymentReward memory _runnerDepReward, uint256 _totalOverflowTime) internal view returns (uint256, uint256)  {
         uint256 rewardPeriod = block.timestamp - _runnerDepReward.lastClaimedAt;
         if (_reward == 0) {
             return (0, 0);
@@ -211,6 +211,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         if (rewardPeriod == 0) {
             return (0, 0);
         }
+        uint256 overflowTime = _totalOverflowTime - _runnerDepReward.overflowTimeSnapshot;
 
         uint256 fixedRewardByMissedLabor = MathUtil.mulDiv(_reward, rewardPeriod - _runnerDepReward.missedLaborTime, rewardPeriod);
         uint256 fixedReward = MathUtil.mulDiv(fixedRewardByMissedLabor, rewardPeriod - overflowTime, rewardPeriod);
@@ -454,18 +455,21 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         runnerDeplReward.accRewardsPerToken = accRewardsPerAllocatedToken;
         uint256 burnt;
         uint256 totalOverflowTime = sa.overflowTime(_runner);
-        (reward, burnt) = _fixRewardsWithMissedLaborAndOverflow(reward, runnerDeplReward, totalOverflowTime - runnerDeplReward.overflowTime);
-        runnerDeplReward.lastClaimedAt = block.timestamp;
-        runnerDeplReward.overflowTime = totalOverflowTime;
+        (reward, burnt) = _fixRewardsWithMissedLaborAndOverflow(reward, runnerDeplReward, totalOverflowTime);
 
-        address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
-        IRewardsDistributor rewardsDistributor = IRewardsDistributor(ISettings(settings).getContractAddress(SQContracts.RewardsDistributor));
-        IEraManager eraManager = IEraManager(ISettings(settings).getContractAddress(SQContracts.EraManager));
-        IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
-        sqToken.safeTransferFrom(treasury, address(this), reward);
-        sqToken.safeIncreaseAllowance(address(rewardsDistributor), reward);
-        rewardsDistributor.addInstantRewards(_runner, address(this), reward, eraManager.safeUpdateAndGetEra());
-        emit AllocationRewardsGiven(_deploymentId, _runner, reward);
+        runnerDeplReward.lastClaimedAt = block.timestamp;
+        runnerDeplReward.overflowTimeSnapshot = totalOverflowTime;
+
+        if (reward > 0) {
+            address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
+            IRewardsDistributor rewardsDistributor = IRewardsDistributor(ISettings(settings).getContractAddress(SQContracts.RewardsDistributor));
+            IEraManager eraManager = IEraManager(ISettings(settings).getContractAddress(SQContracts.EraManager));
+            IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
+            sqToken.safeTransferFrom(treasury, address(this), reward);
+            sqToken.safeIncreaseAllowance(address(rewardsDistributor), reward);
+            rewardsDistributor.addInstantRewards(_runner, address(this), reward, eraManager.safeUpdateAndGetEra());
+            emit AllocationRewardsGiven(_deploymentId, _runner, reward);
+        }
         if (burnt > 0) {
             // since rewards is pulled from treasury, and burn returns rewards to treasury, we don't need to do anything here
             emit AllocationRewardsBurnt(_deploymentId, _runner, burnt);

@@ -127,6 +127,9 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         return _runnerAllocations[_runner];
     }
 
+    /**
+     * @notice this returns the accumulated overflowTime of given runner
+     */
     function overflowTime(address _runner) external view returns (uint256) {
         RunnerAllocation memory ia = _runnerAllocations[_runner];
         if (ia.total < ia.used) {
