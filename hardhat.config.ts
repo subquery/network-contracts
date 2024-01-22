@@ -1,3 +1,4 @@
+import { SQToken } from './src/typechain/contracts/root/SQToken';
 import * as dotenv from 'dotenv';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
@@ -55,6 +56,7 @@ task('publishRoot', "verify and publish contracts on etherscan")
     .addParam('networkpair','testnet|kepler|mainnet')
     .setAction(async (taskArgs, hre) => {
         const deployment = require(taskArgs.deployment).root;
+        const childDeployment = require(taskArgs.deployment).child;
         const config = contractsConfig[taskArgs.networkpair];
 
         try {
@@ -110,7 +112,8 @@ task('publishRoot', "verify and publish contracts on etherscan")
             console.log(`verify InflationDestination`);
             await hre.run("verify:verify", {
                 address: deployment.InflationDestination.address,
-                constructorArguments: [deployment.Settings.address, constants.AddressZero],
+                // TODO: better inject `L1TokenBridge` into the deployment
+                constructorArguments: [deployment.SQToken.address, childDeployment.SQToken, '0xfA6D8Ee5BE770F84FC001D098C4bD604Fe01284a'],
             });
 
         } catch (err) {

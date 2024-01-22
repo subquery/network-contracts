@@ -58,6 +58,7 @@ import {
     UPGRADEBAL_CONTRACTS,
 } from './contracts';
 import {ChildERC20__factory} from "../build";
+import { l1StandardBridge } from './L1StandardBridge';
 
 let wallet: Wallet;
 let network: SubqueryNetwork;
@@ -257,7 +258,7 @@ export async function deployRootContracts(
 
         //deploy InflationDestination contract
         const InflationDestination = await deployContract<InflationDestination>('InflationDestination' as any, 'root',
-            { deployConfig: [settingsAddress, constants.AddressZero] });
+            { deployConfig: [sqtToken.address, deployment.child.SQToken.address, l1StandardBridge[network].address] });
 
         let rootChainManager;
         if (network === 'local') {

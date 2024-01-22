@@ -21,15 +21,15 @@ contract InflationDestination is IInflationDestination, Ownable, ERC165 {
     address public l2Token;
 
     /// @notice Address of the L1 token bridge contract
-    address public l1TokenBridge;
+    address public l1StandardBridge;
 
     /// @notice Address of token recipient on layer 2 chain
     address public xcRecipient;
 
-    constructor(address _l1Token, address _l2Token, address _l1TokenBridge) Ownable() {
+    constructor(address _l1Token, address _l2Token, address _l1StandardBridge) Ownable() {
         l1Token = _l1Token;
         l2Token = _l2Token;
-        l1TokenBridge = _l1TokenBridge;
+        l1StandardBridge = _l1StandardBridge;
     }
     
     /**
@@ -54,8 +54,8 @@ contract InflationDestination is IInflationDestination, Ownable, ERC165 {
      * @param amount Amount of tokens
      */
     function afterReceiveInflatedTokens(uint256 amount) external {
-        ERC20(l1Token).increaseAllowance(l1TokenBridge, amount);
-        IL1ERC20Bridge(l1TokenBridge).depositERC20To(l1Token, l2Token, xcRecipient, amount, 300000, new bytes(0));
+        ERC20(l1Token).increaseAllowance(l1StandardBridge, amount);
+        IL1ERC20Bridge(l1StandardBridge).depositERC20To(l1Token, l2Token, xcRecipient, amount, 300000, new bytes(0));
     }
 
     function withdraw(address _token) external onlyOwner {
