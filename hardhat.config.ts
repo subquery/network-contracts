@@ -1,3 +1,4 @@
+import { SQToken } from './src/typechain/contracts/root/SQToken';
 import * as dotenv from 'dotenv';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
@@ -55,6 +56,7 @@ task('publishRoot', "verify and publish contracts on etherscan")
     .addParam('networkpair','testnet|kepler|mainnet')
     .setAction(async (taskArgs, hre) => {
         const deployment = require(taskArgs.deployment).root;
+        const childDeployment = require(taskArgs.deployment).child;
         const config = contractsConfig[taskArgs.networkpair];
 
         try {
@@ -106,11 +108,18 @@ task('publishRoot', "verify and publish contracts on etherscan")
                 constructorArguments: [],
             });
 
-            // PolygonDestination
-            console.log(`verify PolygonDestination`);
+            // OpDestination
+            console.log(`verify OpDestination`);
+            let l2bridge;
+            if (taskArgs.networkpair === 'testnet-base') {
+                l2bridge = '0xfd0Bf71F60660E2f608ed56e1659C450eB113120';
+            } else if (taskArgs.networkpair === 'mainnet') {
+                l2bridge = '0x3154Cf16ccdb4C6d922629664174b904d80F2C35';
+            }
             await hre.run("verify:verify", {
-                address: deployment.PolygonDestination.address,
-                constructorArguments: [deployment.Settings.address, constants.AddressZero],
+                address: deployment.OpDestination.address,
+                // TODO: better inject `L1TokenBridge` into the deployment
+                constructorArguments: [deployment.SQToken.address, childDeployment.SQToken, l2bridge],
             });
 
         } catch (err) {

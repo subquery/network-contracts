@@ -8,7 +8,6 @@ import { readFileSync, writeFileSync } from 'fs';
 import Pino from 'pino';
 import sha256 from 'sha256';
 
-import { rootChainMananger } from './rootChainManager';
 import CONTRACTS from '../src/contracts';
 import {ContractDeployment, ContractDeploymentInner, ContractName, SQContracts, SubqueryNetwork} from '../src/types';
 import { getLogger } from './logger';
@@ -40,8 +39,7 @@ import {
     Vesting,
     TransparentUpgradeableProxy__factory,
     TokenExchange,
-    PolygonDestination,
-    RootChainManager__factory,
+    OpDestination,
     SQTGift,
     SQTRedeem,
     Airdropper,
@@ -59,6 +57,7 @@ import {
     UPGRADEBAL_CONTRACTS,
 } from './contracts';
 import {ChildERC20__factory} from "../build";
+import { l1StandardBridge } from './L1StandardBridge';
 
 let wallet: Wallet;
 let network: SubqueryNetwork;
@@ -248,42 +247,32 @@ export async function deployRootContracts(
         });
         logger?.info('🤞 VTSQToken');
 
-        if (network !== "testnet-base") {
-            //deploy vesting contract
-            const vesting = await deployContract<Vesting>('Vesting', 'root', {deployConfig: [sqtToken.address, vtSQToken.address]});
-            logger?.info('🤞 Vesting');
+        //deploy vesting contract
+        const vesting = await deployContract<Vesting>('Vesting', 'root', {deployConfig: [sqtToken.address, vtSQToken.address]});
+        logger?.info('🤞 Vesting');
 
-            // set vesting contract as the minter of vtSQToken
-            tx = await vtSQToken.setMinter(vesting.address);
-            await tx.wait(confirms);
-            logger?.info('🤞 Set VTSQToken minter');
-        }
+        // set vesting contract as the minter of vtSQToken
+        tx = await vtSQToken.setMinter(vesting.address);
+        await tx.wait(confirms);
+        logger?.info('🤞 Set VTSQToken minter');
 
-        let rootChainManager;
-        if (network !== "testnet-base") {
-            //deploy PolygonDestination contract
-            const polygonDestination = await deployContract<PolygonDestination>('PolygonDestination' as any, 'root',
-                {deployConfig: [settingsAddress, constants.AddressZero]});
+        if (network === "testnet-base") {
+            //deploy OpDestination contract
+            const opDestination = await deployContract<OpDestination>('OpDestination' as any, 'root',
+            { deployConfig: [sqtToken.address, deployment.child.SQToken.address, l1StandardBridge[network].address] });
 
-            if (network === 'local') {
-                // deploy MockRootChainManager
-                rootChainManager = await new RootChainManager__factory(wallet).deploy();
-            }
-
-            logger?.info('🤞 PolygonDestination');
+            logger?.info('🤞 OpDestination');
         }
 
         logger?.info('🤞 Set addresses');
         tx = await settings.setBatchAddress([
             SQContracts.SQToken,
             SQContracts.InflationController,
-            // SQContracts.Vesting,
-            // SQContracts.RootChainManager,
+            SQContracts.Vesting,
         ],[
             sqtToken.address,
             inflationController.address,
-            // vesting.address,
-            // rootChainMananger[network]?.address ?? rootChainManager.address,
+            vesting.address,
         ]);
         await tx.wait(confirms);
 
@@ -295,8 +284,8 @@ export async function deployRootContracts(
                 rootToken: sqtToken,
                 vtSQToken,
                 proxyAdmin,
+                // inflationDestination,
                 // vesting,
-                // polygonDestination,
             },
         ];
     } catch (error) {

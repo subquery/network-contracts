@@ -1,5 +1,5 @@
 import { TokenExchange } from './../src/typechain/contracts/TokenExchange';
-import { PolygonDestination } from './../src/typechain/contracts/root/PolygonDestination';
+import { InflationDestination } from './../src/typechain/contracts/root/InflationDestination';
 import { BigNumber, ContractReceipt, ContractTransaction, Overrides, Wallet, ethers, utils } from 'ethers';
 import Pino from 'pino';
 
@@ -62,9 +62,9 @@ async function setupInflation(sdk: PolygonSDK) {
     logger.info('Set minter');
     await sdk.sqToken.setMinter(sdk.inflationController.address);
     logger.info('Set inflationDestination');
-    await sendTx((overrides) => sdk.inflationController.setInflationDestination(sdk.polygonDestination.address, overrides));
+    await sendTx((overrides) => sdk.inflationController.setInflationDestination(sdk.InflationDestination.address, overrides));
     logger.info('Set xcRecipient');
-    await sendTx((overrides) => sdk.polygonDestination.setXcRecipient(sdk.childToken.address, overrides));
+    await sendTx((overrides) => sdk.InflationDestination.setXcRecipient(sdk.childToken.address, overrides));
 }
 
 async function tokenDeposit(sdk: PolygonSDK) {
