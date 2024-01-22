@@ -19,7 +19,16 @@ import {
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, ZERO_ADDRESS } from './constants';
-import { constants, etherParse, futureTimestamp, registerIndexer, startNewEra, time, timeTravel } from './helper';
+import {
+    constants,
+    etherParse,
+    eventFrom,
+    futureTimestamp,
+    registerIndexer,
+    startNewEra,
+    time,
+    timeTravel
+} from './helper';
 import {BigNumber} from "ethers";
 
 describe('PermissionedExchange Contract', () => {
@@ -102,6 +111,18 @@ describe('PermissionedExchange Contract', () => {
                 .to.be.emit(permissionedExchange, 'QuotaAdded')
                 .withArgs(sqtAddress, wallet_2.address, etherParse('5'));
             expect(await permissionedExchange.tradeQuota(sqtAddress, wallet_2.address)).to.be.eq(etherParse('5'));
+        });
+
+        it.only('batch add Quota should work', async () => {
+            await permissionedExchange.setController(wallet_1.address, true);
+            expect(await permissionedExchange.tradeQuota(sqtAddress, wallet_2.address)).to.equal(0);
+            const tx = await permissionedExchange.connect(wallet_1).batchAddQuota(sqtAddress, [wallet_2.address, wallet_1.address], [etherParse('5'),etherParse('10')]);
+            expect(tx).to.be.emit(permissionedExchange, 'QuotaAdded')
+                .withArgs(sqtAddress, wallet_2.address, etherParse('5'));
+            expect(tx).to.be.emit(permissionedExchange, 'QuotaAdded')
+                .withArgs(sqtAddress, wallet_1.address, etherParse('10'));
+            expect(await permissionedExchange.tradeQuota(sqtAddress, wallet_2.address)).to.be.eq(etherParse('5'));
+            expect(await permissionedExchange.tradeQuota(sqtAddress, wallet_1.address)).to.be.eq(etherParse('10'));
         });
 
         it('add Quota without permission should fail', async () => {
