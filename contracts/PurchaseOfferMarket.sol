@@ -306,7 +306,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         );
         // register the agreement to service agreement registry contract
         IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getContractAddress(SQContracts.ServiceAgreementRegistry));
-        uint256 agreementId = registry.createClosedServiceAgreement(agreement, true);
+        uint256 agreementId = registry.createClosedServiceAgreement(agreement);
 
         emit OfferAccepted(msg.sender, _offerId, agreementId);
     }

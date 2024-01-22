@@ -115,11 +115,6 @@
                 "internalType": "struct ClosedServiceAgreementInfo",
                 "name": "agreement",
                 "type": "tuple"
-            },
-            {
-                "internalType": "bool",
-                "name": "checkThreshold",
-                "type": "bool"
             }
         ],
         "name": "addAgreement",
@@ -255,11 +250,6 @@
                 "internalType": "contract ISettings",
                 "name": "_settings",
                 "type": "address"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_threshold",
-                "type": "uint256"
             }
         ],
         "name": "initialize",
@@ -301,19 +291,6 @@
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_threshold",
-                "type": "uint256"
-            }
-        ],
-        "name": "setThreshold",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [],
         "name": "settings",
         "outputs": [
@@ -321,38 +298,6 @@
                 "internalType": "contract ISettings",
                 "name": "",
                 "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "name": "sumDailyReward",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "threshold",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
             }
         ],
         "stateMutability": "view",

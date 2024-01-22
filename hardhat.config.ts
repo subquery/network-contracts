@@ -232,23 +232,13 @@ task('publishChild', "verify and publish contracts on etherscan")
                 constructorArguments: [],
             });
 
-            //ServiceAgreementExtra
+            //RewardsDistributor
             await hre.run("verify:verify", {
-                address: deployment.ServiceAgreementExtra.address,
-                constructorArguments: [deployment.ServiceAgreementExtra.innerAddress, deployment.ProxyAdmin.address, []],
+                address: deployment.RewardsDistributor.address,
+                constructorArguments: [deployment.RewardsDistributor.innerAddress, deployment.ProxyAdmin.address, []],
             });
             await hre.run("verify:verify", {
-                address: deployment.ServiceAgreementExtra.innerAddress,
-                constructorArguments: [],
-            });
-
-            //RewardsDistributer
-            await hre.run("verify:verify", {
-                address: deployment.RewardsDistributer.address,
-                constructorArguments: [deployment.RewardsDistributer.innerAddress, deployment.ProxyAdmin.address, []],
-            });
-            await hre.run("verify:verify", {
-                address: deployment.RewardsDistributer.innerAddress,
+                address: deployment.RewardsDistributor.innerAddress,
                 constructorArguments: [],
             });
 
