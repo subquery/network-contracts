@@ -13,9 +13,9 @@ import './interfaces/ISettings.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IRewardsBooster.sol';
 import './interfaces/IStakingAllocation.sol';
+import './interfaces/IIndexerRegistry.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
-import "./interfaces/IIndexerRegistry.sol";
 
 /**
  * @title Staking Allocation Contract
@@ -121,21 +121,6 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         }
 
         emit StakeAllocationRemoved(_deployment, _runner, _amount);
-    }
-
-    function overflowClear(address _runner, bytes32 _deployment) external {
-        require(msg.sender == settings.getContractAddress(SQContracts.RewardsBooster), 'SAL05');
-
-        RunnerAllocation storage ia = _runnerAllocations[_runner];
-//        ia.lastClaimedAt = block.timestamp;
-        if (ia.overflowAt > 0) {
-            emit StakeOverflowEnded(_runner, block.timestamp, block.timestamp - ia.overflowAt);
-            emit StakeOverflowStarted(_runner, block.timestamp);
-
-            ia.overflowAt = block.timestamp;
-        }
-        ia.overflowTime = 0;
-
     }
 
     function runnerAllocation(address _runner) external view returns (RunnerAllocation memory) {

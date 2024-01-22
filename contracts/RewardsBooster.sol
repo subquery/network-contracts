@@ -453,9 +453,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
         runnerDeplReward.accRewardsPerToken = accRewardsPerAllocatedToken;
         uint256 burnt;
-        (reward, burnt) = _fixRewardsWithMissedLaborAndOverflow(reward, runnerDeplReward, sa.overflowTime(_runner));
-        sa.overflowClear(_runner, _deploymentId);
+        uint256 totalOverflowTime = sa.overflowTime(_runner);
+        (reward, burnt) = _fixRewardsWithMissedLaborAndOverflow(reward, runnerDeplReward, totalOverflowTime - runnerDeplReward.overflowTime);
         runnerDeplReward.lastClaimedAt = block.timestamp;
+        runnerDeplReward.overflowTime = totalOverflowTime;
 
         address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
         IRewardsDistributor rewardsDistributor = IRewardsDistributor(ISettings(settings).getContractAddress(SQContracts.RewardsDistributor));
