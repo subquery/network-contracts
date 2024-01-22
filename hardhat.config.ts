@@ -1,5 +1,4 @@
 import * as dotenv from 'dotenv';
-import util from 'util';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
@@ -9,10 +8,8 @@ import {HardhatUserConfig, task} from 'hardhat/config';
 import 'solidity-coverage';
 import 'solidity-docgen';
 import 'tsconfig-paths/register';
-import {constants, utils} from "ethers";
+import {constants} from "ethers";
 import contractsConfig from "./scripts/config/contracts.config";
-
-const exec = util.promisify(require('child_process').exec);
 
 require('solidity-coverage');
 
@@ -334,6 +331,15 @@ task('publishChild', "verify and publish contracts on etherscan")
                 address: deployment.SQTGift.innerAddress,
                 constructorArguments: [],
             });
+            //RedeemGift
+            await hre.run("verify:verify", {
+                address: deployment.SQTRedeem.address,
+                constructorArguments: [deployment.SQTRedeem.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run("verify:verify", {
+                address: deployment.SQTRedeem.innerAddress,
+                constructorArguments: [],
+            });
 
         } catch (err) {
             console.log(err);
@@ -342,16 +348,6 @@ task('publishChild', "verify and publish contracts on etherscan")
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
-
-// task("compile", async (taskArguments: Object, {run}, runSuper) => {
-//     // Run the original compile task's logic
-//     await runSuper({...taskArguments});
-//     // Run the script to generate the typechain
-//     await exec('scripts/build.sh');
-//     // Generate ABI
-//     await exec('ts-node --transpileOnly scripts/abi.ts');
-// });
-
 const config: HardhatUserConfig = {
     solidity: {
         compilers: [

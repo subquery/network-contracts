@@ -249,5 +249,6 @@ export async function deploySUSD(siger: SignerWithAddress) {
 
 export const revertrMsg = {
     notOwner: 'Ownable: caller is not the owner',
+    insufficientBalance: 'ERC20: transfer amount exceeds balance',
     insufficientAllowance: 'ERC20: insufficient allowance',
 }

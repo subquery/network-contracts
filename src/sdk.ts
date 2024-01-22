@@ -12,8 +12,6 @@ import {
     DisputeManager,
     EraManager,
     IndexerRegistry,
-    InflationController,
-    PermissionedExchange,
     PlanManager,
     PriceOracle,
     ProjectRegistry,
@@ -29,8 +27,9 @@ import {
     StakingManager,
     StateChannel,
     VSQToken,
-    Vesting,
-    TokenExchange, SQTGift
+    TokenExchange,
+    SQTGift,
+    SQTRedeem,
 } from './typechain';
 import {
     CONTRACT_FACTORY,
@@ -45,6 +44,8 @@ import assert from "assert";
 const contractNameConversion: Record<string, string> = {
     sQToken: 'sqToken',
     sQTGift: 'sqtGift',
+    sQTRedeem: 'sqtRedeem',
+    rewardsDistributer: 'rewardsDistributor',
 };
 
 export class ContractSDK {
@@ -74,6 +75,7 @@ export class ContractSDK {
     readonly vSQToken!: VSQToken;
     readonly tokenExchange!: TokenExchange;
     readonly sqtGift!: SQTGift;
+    readonly sqtRedeem!: SQTRedeem;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options: SdkOptions) {
         assert(this.options.deploymentDetails || DEPLOYMENT_DETAILS[options.network],' missing contract deployment info');
