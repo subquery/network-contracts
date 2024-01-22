@@ -108,12 +108,18 @@ task('publishRoot', "verify and publish contracts on etherscan")
                 constructorArguments: [],
             });
 
-            // InflationDestination
-            console.log(`verify InflationDestination`);
+            // OpDestination
+            console.log(`verify OpDestination`);
+            let l2bridge;
+            if (taskArgs.networkpair === 'testnet-base') {
+                l2bridge = '0xfd0Bf71F60660E2f608ed56e1659C450eB113120';
+            } else if (taskArgs.networkpair === 'mainnet') {
+                l2bridge = '0x3154Cf16ccdb4C6d922629664174b904d80F2C35';
+            }
             await hre.run("verify:verify", {
-                address: deployment.InflationDestination.address,
+                address: deployment.OpDestination.address,
                 // TODO: better inject `L1TokenBridge` into the deployment
-                constructorArguments: [deployment.SQToken.address, childDeployment.SQToken, '0xfA6D8Ee5BE770F84FC001D098C4bD604Fe01284a'],
+                constructorArguments: [deployment.SQToken.address, childDeployment.SQToken, l2bridge],
             });
 
         } catch (err) {

@@ -39,7 +39,7 @@ import {
     Vesting,
     TransparentUpgradeableProxy__factory,
     TokenExchange,
-    InflationDestination,
+    OpDestination,
     SQTGift,
     SQTRedeem,
     Airdropper,
@@ -247,23 +247,21 @@ export async function deployRootContracts(
         });
         logger?.info('🤞 VTSQToken');
 
-        if (network !== "testnet-base") {
-            //deploy vesting contract
-            const vesting = await deployContract<Vesting>('Vesting', 'root', {deployConfig: [sqtToken.address, vtSQToken.address]});
-            logger?.info('🤞 Vesting');
+        //deploy vesting contract
+        const vesting = await deployContract<Vesting>('Vesting', 'root', {deployConfig: [sqtToken.address, vtSQToken.address]});
+        logger?.info('🤞 Vesting');
 
-            // set vesting contract as the minter of vtSQToken
-            tx = await vtSQToken.setMinter(vesting.address);
-            await tx.wait(confirms);
-            logger?.info('🤞 Set VTSQToken minter');
-        }
+        // set vesting contract as the minter of vtSQToken
+        tx = await vtSQToken.setMinter(vesting.address);
+        await tx.wait(confirms);
+        logger?.info('🤞 Set VTSQToken minter');
 
-        if (network !== "testnet-base") {
-            //deploy PolygonDestination contract
-            const inflationDestination = await deployContract<InflationDestination>('InflationDestination' as any, 'root',
+        if (network === "testnet-base") {
+            //deploy OpDestination contract
+            const opDestination = await deployContract<OpDestination>('OpDestination' as any, 'root',
             { deployConfig: [sqtToken.address, deployment.child.SQToken.address, l1StandardBridge[network].address] });
 
-            logger?.info('🤞 InflationDestination');
+            logger?.info('🤞 OpDestination');
         }
 
         logger?.info('🤞 Set addresses');
@@ -274,7 +272,7 @@ export async function deployRootContracts(
         ],[
             sqtToken.address,
             inflationController.address,
-            // vesting.address,
+            vesting.address,
         ]);
         await tx.wait(confirms);
 

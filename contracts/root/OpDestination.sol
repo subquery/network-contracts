@@ -11,7 +11,7 @@ import "@eth-optimism/contracts/L1/messaging/IL1ERC20Bridge.sol";
 import {IInflationDestination} from "./IInflationDestination.sol";
 import "../interfaces/ISettings.sol";
 
-contract InflationDestination is IInflationDestination, Ownable, ERC165 {
+contract OpDestination is IInflationDestination, Ownable, ERC165 {
     /// @dev ### STATES
 
     /// @notice Address of the ERC20 on layer 1 chain
