@@ -19,10 +19,10 @@ import {eventFrom, time, timeTravel} from './helper';
 describe('Inflation Controller Contract', () => {
     const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
-    let inflationDestination;
+    let inflationDestination1;
 
     let inflationController: InflationController;
-    let InflationDestination: InflationDestination;
+    let inflationDestination2: InflationDestination;
     let token: SQToken;
 
     let YEAR_SECONDS = (3600 * 24 * 36525) / 100;
@@ -38,7 +38,7 @@ describe('Inflation Controller Contract', () => {
         const inflationRate = await inflationController.inflationRate();
         // const eraPeriod = await eraManager.eraPeriod();
         const lastInflationTimestamp = await inflationController.lastInflationTimestamp();
-        const oldBalance = await token.balanceOf(inflationDestination);
+        const oldBalance = await token.balanceOf(inflationDestination1);
         await timeTravel(mockProvider, duration);
         const tx = await inflationController.mintInflatedTokens();
         await tx.wait();
@@ -46,7 +46,7 @@ describe('Inflation Controller Contract', () => {
         block.timestamp;
         const currentInflationTimestamp = await inflationController.lastInflationTimestamp();
         expect(currentInflationTimestamp).to.be.eq(block.timestamp);
-        const newBalance = await token.balanceOf(inflationDestination);
+        const newBalance = await token.balanceOf(inflationDestination1);
         const newSupply = newBalance.sub(oldBalance);
         const expectValue = totalSupply
             .mul(inflationRate)
@@ -60,10 +60,10 @@ describe('Inflation Controller Contract', () => {
     });
 
     beforeEach(async () => {
-        inflationDestination = wallet_1.address;
+        inflationDestination1 = wallet_1.address;
         const deployment = await waffle.loadFixture(deployer);
         inflationController = deployment.inflationController;
-        InflationDestination = deployment.InflationDestination;
+        inflationDestination2 = deployment.inflationDestination;
         token = deployment.rootToken;
     });
 
@@ -149,14 +149,14 @@ describe('Inflation Controller Contract', () => {
             //setup inflationRateBP: 10,000 -- 0.01 -- 1%
             await inflationController.setInflationRate(1e4);
             const totalSupply = await token.totalSupply();
-            const oldBalance = await token.balanceOf(inflationDestination);
+            const oldBalance = await token.balanceOf(inflationDestination1);
             //go through 52 eras -- 364 day
             for (let i = 0; i < 52; i++) {
                 await triggerAndCheckInflation(time.duration.days(7).toNumber());
             }
             const expectedInflation = totalSupply.mul(1).div(100).mul(364).div(365);
             const errorRate = 0.005;
-            const newBalance = await token.balanceOf(inflationDestination);
+            const newBalance = await token.balanceOf(inflationDestination1);
             console.log(`expected: ${ethers.utils.formatEther(expectedInflation)}, real: ${ethers.utils.formatEther(newBalance.sub(oldBalance))}, differ: ${ethers.utils.formatEther(newBalance.sub(oldBalance).sub(expectedInflation))}`)
             console.log(`error rate: ${newBalance.sub(oldBalance).sub(expectedInflation).abs().mul(100).div(expectedInflation)}`)
             // due to compound interest, the real inflation will be higher.
@@ -190,14 +190,14 @@ describe('Inflation Controller Contract', () => {
     describe('Mint SQT Tokens by admin', () => {
         it('mint SQT tokens should work', async () => {
             const oldSupply = await token.totalSupply();
-            const oldBalance = await token.balanceOf(inflationDestination);
-            await inflationController.mintSQT(inflationDestination, 1000);
+            const oldBalance = await token.balanceOf(inflationDestination1);
+            await inflationController.mintSQT(inflationDestination1, 1000);
             expect(await token.totalSupply()).to.equal(oldSupply.add(1000));
-            expect(await token.balanceOf(inflationDestination)).to.equal(oldBalance.add(1000));
+            expect(await token.balanceOf(inflationDestination1)).to.equal(oldBalance.add(1000));
         });
 
         it('mintSQT only be called by owner', async () => {
-            await expect(inflationController.connect(wallet_2).mintSQT(inflationDestination, 1000)).to.be.revertedWith(
+            await expect(inflationController.connect(wallet_2).mintSQT(inflationDestination1, 1000)).to.be.revertedWith(
                 'Ownable: caller is not the owner'
             );
         });
@@ -205,24 +205,24 @@ describe('Inflation Controller Contract', () => {
 
     describe('InflationDestination', () => {
         it('change recipient should only work for admin', async () => {
-            expect(await InflationDestination.xcRecipient()).not.to.eq(wallet_1.address);
-            let tx = await InflationDestination.setXcRecipient(wallet_1.address);
+            expect(await inflationDestination2.xcRecipient()).not.to.eq(wallet_1.address);
+            let tx = await inflationDestination2.setXcRecipient(wallet_1.address);
             await tx.wait();
-            expect(await InflationDestination.xcRecipient()).to.eq(wallet_1.address);
-            await expect(InflationDestination.connect(wallet_1).setXcRecipient(wallet_2.address)).to.be.revertedWith('Ownable: caller is not the owner');
-            expect(await InflationDestination.xcRecipient()).to.eq(wallet_1.address);
+            expect(await inflationDestination2.xcRecipient()).to.eq(wallet_1.address);
+            await expect(inflationDestination2.connect(wallet_1).setXcRecipient(wallet_2.address)).to.be.revertedWith('Ownable: caller is not the owner');
+            expect(await inflationDestination2.xcRecipient()).to.eq(wallet_1.address);
         });
         it('withdraw should only work for admin', async () => {
             const amount = ethers.utils.parseEther('1');
-            let tx = await token.transfer(InflationDestination.address, amount);
+            let tx = await token.transfer(inflationDestination2.address, amount);
             await tx.wait();
-            const balanceBefore = await token.balanceOf(InflationDestination.address);
+            const balanceBefore = await token.balanceOf(inflationDestination2.address);
             const ownerBalanceBefore = await token.balanceOf(wallet_0.address);
             expect(balanceBefore).to.eq(amount);
-            await expect(InflationDestination.connect(wallet_2).withdraw(token.address)).to.be.revertedWith('Ownable: caller is not the owner');
-            tx = await InflationDestination.withdraw(token.address);
+            await expect(inflationDestination2.connect(wallet_2).withdraw(token.address)).to.be.revertedWith('Ownable: caller is not the owner');
+            tx = await inflationDestination2.withdraw(token.address);
             await tx.wait();
-            const balanceAfter = await token.balanceOf(InflationDestination.address);
+            const balanceAfter = await token.balanceOf(inflationDestination2.address);
             const ownerBalanceAfter = await token.balanceOf(wallet_0.address);
             expect(balanceAfter).to.eq(0);
             expect(ownerBalanceAfter.sub(ownerBalanceBefore)).to.eq(balanceBefore);
