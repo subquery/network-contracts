@@ -5,7 +5,7 @@ import Airdropper from './artifacts/contracts/Airdropper.sol/Airdropper.json';
 import ConsumerHost from './artifacts/contracts/ConsumerHost.sol/ConsumerHost.json';
 import ConsumerRegistry from './artifacts/contracts/ConsumerRegistry.sol/ConsumerRegistry.json';
 import DisputeManager from './artifacts/contracts/DisputeManager.sol/DisputeManager.json';
-import EraManager from './artifacts/contracts/polygon/EraManager.sol/EraManager.json';
+import EraManager from './artifacts/contracts/l2/EraManager.sol/EraManager.json';
 import IndexerRegistry from './artifacts/contracts/IndexerRegistry.sol/IndexerRegistry.json';
 import InflationController from './artifacts/contracts/root/InflationController.sol/InflationController.json';
 import PermissionedExchange from './artifacts/contracts/PermissionedExchange.sol/PermissionedExchange.json';
@@ -28,7 +28,6 @@ import StakingManager from './artifacts/contracts/StakingManager.sol/StakingMana
 import StakingAllocation from './artifacts/contracts/StakingAllocation.sol/StakingAllocation.json';
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
 import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
-import ChildERC20 from './artifacts/contracts/polygon/ChildERC20.sol/ChildERC20.json';
 import Vesting from './artifacts/contracts/root/Vesting.sol/Vesting.json';
 import VTSQToken from './artifacts/contracts/root/VTSQToken.sol/VTSQToken.json';
 import OpDestination from './artifacts/contracts/root/OpDestination.sol/OpDestination.json';
@@ -66,7 +65,6 @@ export default {
     DisputeManager,
     PriceOracle,
     ConsumerRegistry,
-    ChildERC20,
     OpDestination,
     SQTGift,
     SQTRedeem,

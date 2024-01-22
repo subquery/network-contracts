@@ -26,7 +26,6 @@ const main = async () => {
             'TokenExchange',
         ];
         const childContracts = [
-            'ChildERC20',
             'L2SQToken',
             'EraManager',
         ]

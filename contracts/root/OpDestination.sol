@@ -31,6 +31,14 @@ contract OpDestination is IInflationDestination, Ownable, ERC165 {
         l2Token = _l2Token;
         l1StandardBridge = _l1StandardBridge;
     }
+
+    /**
+     * @notice Set the address of token address on layer 2 chain
+     * @param _l2Token Address of l2 token
+     */
+    function setL2Token(address _l2Token) external onlyOwner {
+        l2Token = _l2Token;
+    }
     
     /**
      * @notice Set the address of token recipient on layer 2 chain
@@ -54,6 +62,7 @@ contract OpDestination is IInflationDestination, Ownable, ERC165 {
      * @param amount Amount of tokens
      */
     function afterReceiveInflatedTokens(uint256 amount) external {
+        require(l2Token != address(0), "OPD01");
         ERC20(l1Token).increaseAllowance(l1StandardBridge, amount);
         IL1ERC20Bridge(l1StandardBridge).depositERC20To(l1Token, l2Token, xcRecipient, amount, 300000, new bytes(0));
     }

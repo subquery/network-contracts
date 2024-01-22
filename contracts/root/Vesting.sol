@@ -33,8 +33,8 @@ contract Vesting is Ownable {
     event VestingClaimed(address indexed user, uint256 amount);
 
     constructor(address _token, address _vtToken) Ownable() {
-//        require(_token != address(0x0), "G009");
-//        require(_vtToken != address(0x0), "G009");
+        require(_token != address(0x0), "G009");
+        require(_vtToken != address(0x0), "G009");
         vtToken = _vtToken;
         token = _token;
     }

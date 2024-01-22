@@ -22,7 +22,7 @@ export const {argv} = yargs(hideBin(process.argv))
             demandOption: true,
             describe: 'network',
             type: 'string',
-            choices: ['testnet', 'testnet-base', 'mainnet'],
+            choices: ['testnet', 'testnet-mumbai', 'mainnet'],
         },
         'history':{
             type: 'boolean',

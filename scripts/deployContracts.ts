@@ -38,7 +38,6 @@ import {
     VSQToken,
     Vesting,
     TransparentUpgradeableProxy__factory,
-    ChildERC20__factory,
     TokenExchange,
     OpDestination,
     SQTGift,
@@ -257,10 +256,10 @@ export async function deployRootContracts(
         logger?.info('🤞 Set VTSQToken minter');
 
         let opDestination;
-        if (network === "testnet-base") {
+        if (network !== "testnet-mumbai") {
             //deploy OpDestination contract
-            opDestination = await deployContract<OpDestination>('OpDestination' as any, 'root',
-            { deployConfig: [sqtToken.address, deployment.child.SQToken.address, l1StandardBridge[network].address] });
+            opDestination = await deployContract<OpDestination>('OpDestination', 'root',
+            { deployConfig: [sqtToken.address, deployment.child?.SQToken?.address ?? constants.AddressZero, l1StandardBridge[network]?.address ?? constants.AddressZero] });
 
             logger?.info('🤞 OpDestination');
         }
@@ -326,12 +325,10 @@ export async function deployContracts(
             sqtToken = await deployContract<SQToken>('SQToken', 'child', {
                 deployConfig: [...config['SQToken']],
             });
-        } else if (network === 'testnet-base') {
+        } else {
             sqtToken = await deployContract<L2SQToken>('L2SQToken', 'child', {
                 deployConfig: [...config['L2SQToken']],
             });
-        } else {
-            sqtToken = ChildERC20__factory.connect(deployment.child.SQToken.address, wallet);
         }
         // deploy VSQToken contract
         const vsqtToken = await deployContract<VSQToken>('VSQToken', 'child', { proxyAdmin, initConfig: [settingsAddress] });

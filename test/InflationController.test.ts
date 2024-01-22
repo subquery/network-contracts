@@ -6,10 +6,9 @@ import { ethers, waffle } from 'hardhat';
 
 import {deployRootContracts} from './setup';
 import {
-    EraManager,
     InflationController,
     MockInflationDestination2__factory,
-    MockInflationDestination__factory, InflationDestination,
+    MockInflationDestination__factory, OpDestination,
     SQToken
 } from '../src';
 import { PER_MILL } from './constants';
@@ -22,7 +21,7 @@ describe('Inflation Controller Contract', () => {
     let inflationDestination1;
 
     let inflationController: InflationController;
-    let inflationDestination2: InflationDestination;
+    let inflationDestination2: OpDestination;
     let token: SQToken;
 
     let YEAR_SECONDS = (3600 * 24 * 36525) / 100;
@@ -63,7 +62,7 @@ describe('Inflation Controller Contract', () => {
         inflationDestination1 = wallet_1.address;
         const deployment = await waffle.loadFixture(deployer);
         inflationController = deployment.inflationController;
-        inflationDestination2 = deployment.inflationDestination;
+        inflationDestination2 = deployment.opDestination;
         token = deployment.rootToken;
     });
 

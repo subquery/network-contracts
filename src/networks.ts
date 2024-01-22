@@ -38,7 +38,7 @@ export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
             }
         }
     },
-    testnet: {
+    'testnet-mumbai': {
         root: {
             chainId: '0x5',
             chainName: 'Goerli',
@@ -72,7 +72,7 @@ export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
             }
         }
     },
-    'testnet-base': {
+    testnet: {
         root: {
             chainId: '0xaa36a7',
             chainName: 'Sepolia',

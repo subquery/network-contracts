@@ -11,6 +11,7 @@ import 'solidity-docgen';
 import 'tsconfig-paths/register';
 import {constants} from "ethers";
 import contractsConfig from "./scripts/config/contracts.config";
+import { l1StandardBridge } from "./scripts/L1StandardBridge";
 
 require('solidity-coverage');
 
@@ -110,12 +111,7 @@ task('publishRoot', "verify and publish contracts on etherscan")
 
             // OpDestination
             console.log(`verify OpDestination`);
-            let l2bridge;
-            if (taskArgs.networkpair === 'testnet-base') {
-                l2bridge = '0xfd0Bf71F60660E2f608ed56e1659C450eB113120';
-            } else if (taskArgs.networkpair === 'mainnet') {
-                l2bridge = '0x3154Cf16ccdb4C6d922629664174b904d80F2C35';
-            }
+            let l2bridge = l1StandardBridge[taskArgs.networkpair].address;
             await hre.run("verify:verify", {
                 address: deployment.OpDestination.address,
                 // TODO: better inject `L1TokenBridge` into the deployment
@@ -147,13 +143,11 @@ task('publishChild', "verify and publish contracts on etherscan")
                 address: deployment.Settings.innerAddress,
                 constructorArguments: [],
             });
-            if (taskArgs.networkpair === 'testnet-base') {
-                await hre.run("verify:verify", {
-                    address: deployment.SQToken.address,
-                    constructorArguments: contractsConfig[taskArgs.networkpair].L2SQToken,
-                    contract: "contracts/l2/L2SQToken.sol:L2SQToken"
-                });
-            }
+            await hre.run("verify:verify", {
+                address: deployment.L2SQToken.address,
+                constructorArguments: contractsConfig[taskArgs.networkpair].L2SQToken,
+                // contract: "contracts/l2/L2SQToken.sol:L2SQToken"
+            });
 
             //VSQToken
             await hre.run("verify:verify", {
