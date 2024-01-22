@@ -277,18 +277,18 @@ describe('StakingAllocation Contract', () => {
 
             await rewardsBooster.connect(runner0).collectAllocationReward(deploymentIds[0], runner0.address);
             const overtime2 = await stakingAllocation.overflowTime(runner0.address);
-            if (overtime2 >= overtime1) {
-                expect('overtime').to.eq('shuould more than it');
-            }
+            expect(overtime2).to.gt(overtime1);
 
             await timeTravel(mockProvider, 10);
             await stakingManager.connect(runner0).stake(runner0.address, etherParse('5000'));
             await applyStaking(runner0, runner0);
+            const overtime3 = await stakingAllocation.overflowTime(runner0.address);
+            expect(overtime3).to.gt(overtime2);
             await checkAllocation(runner0, etherParse('10000'), etherParse('10000'), false, true);
             await rewardsBooster.connect(runner0).collectAllocationReward(deploymentIds[0], runner0.address);
-            await checkAllocation(runner0, etherParse('10000'), etherParse('10000'), false, false);
-            const overtime3 = await stakingAllocation.overflowTime(runner0.address);
-            expect(overtime3).to.eq(0);
+            await checkAllocation(runner0, etherParse('10000'), etherParse('10000'), false, true);
+            const overtime4 = await stakingAllocation.overflowTime(runner0.address);
+            expect(overtime3).to.eq(overtime4);
         });
     });
 });
