@@ -153,7 +153,6 @@ export enum SQContracts {
     StateChannel,
     ConsumerRegistry,
     PriceOracle,
-    RootChainManager,
     Treasury,
     RewardsBooster,
     StakingAllocation,

@@ -8,7 +8,6 @@ import { readFileSync, writeFileSync } from 'fs';
 import Pino from 'pino';
 import sha256 from 'sha256';
 
-import { rootChainMananger } from './rootChainManager';
 import CONTRACTS from '../src/contracts';
 import {ContractDeployment, ContractDeploymentInner, ContractName, SQContracts, SubqueryNetwork} from '../src/types';
 import { getLogger } from './logger';
@@ -41,7 +40,6 @@ import {
     TransparentUpgradeableProxy__factory,
     TokenExchange,
     InflationDestination,
-    RootChainManager__factory,
     SQTGift,
     SQTRedeem,
     Airdropper,
@@ -260,12 +258,6 @@ export async function deployRootContracts(
         const InflationDestination = await deployContract<InflationDestination>('InflationDestination' as any, 'root',
             { deployConfig: [sqtToken.address, deployment.child.SQToken.address, l1StandardBridge[network].address] });
 
-        let rootChainManager;
-        if (network === 'local') {
-            // deploy MockRootChainManager
-            rootChainManager = await new RootChainManager__factory(wallet).deploy();
-        }
-
         logger?.info('🤞 InflationDestination');
 
         logger?.info('🤞 Set addresses');
@@ -273,12 +265,10 @@ export async function deployRootContracts(
             SQContracts.SQToken,
             SQContracts.InflationController,
             SQContracts.Vesting,
-            SQContracts.RootChainManager,
         ],[
             sqtToken.address,
             inflationController.address,
             vesting.address,
-            rootChainMananger[network]?.address ?? rootChainManager.address,
         ]);
         await tx.wait(confirms);
 
