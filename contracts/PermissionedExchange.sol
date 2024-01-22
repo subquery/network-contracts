@@ -155,10 +155,21 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         address _token,
         address _account,
         uint256 _amount
-    ) external {
+    ) public {
         require(exchangeController[msg.sender] == true, 'PE001');
         tradeQuota[_token][_account] += _amount;
         emit QuotaAdded(_token, _account, _amount);
+    }
+
+    function batchAddQuota(
+        address _token,
+        address[] calldata _accounts,
+        uint256[] calldata _amounts
+    ) external {
+        require(exchangeController[msg.sender] == true, 'PE001');
+        for (uint256 i = 0; i < _accounts.length; i++) {
+            addQuota(_token, _accounts[i], _amounts[i]);
+        }
     }
 
     /**
