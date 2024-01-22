@@ -79,7 +79,7 @@ function codeToHash(code: string) {
 async function getOverrides(): Promise<Overrides> {
     let price = await wallet.provider.getGasPrice();
     // console.log(`gasprice: ${price.toString()}`)
-    price = price.add(15000000000); // add extra 15 gwei
+    // price = price.add(15000000000); // add extra 15 gwei
     return { gasPrice: price, gasLimit: 3000000 };
 }
 
@@ -475,7 +475,6 @@ export async function deployContracts(
             SQContracts.EraManager,
             SQContracts.PlanManager,
             SQContracts.ServiceAgreementRegistry,
-            // SQContracts.ServiceAgreementExtra,
             SQContracts.DisputeManager,
             SQContracts.StateChannel,
             SQContracts.ConsumerRegistry,
@@ -495,7 +494,6 @@ export async function deployContracts(
             eraManager.address,
             planManager.address,
             serviceAgreementRegistry.address,
-            // serviceAgreementExtra.address,
             disputeManager.address,
             stateChannel.address,
             consumerRegistry.address,

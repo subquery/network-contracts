@@ -83,13 +83,7 @@ task('publishRoot', "verify and publish contracts on etherscan")
             await hre.run("verify:verify", {
                 address: deployment.SQToken.address,
                 constructorArguments: [constants.AddressZero, ...config.SQToken],
-            });
-
-            //Vesting
-            console.log(`verify Vesting`);
-            await hre.run("verify:verify", {
-                address: deployment.Vesting.address,
-                constructorArguments: [deployment.SQToken.address],
+                contract: 'contracts/root/SQToken.sol:SQToken',
             });
             //VTSQToken
             console.log(`verify VTSQToken`);
@@ -97,6 +91,13 @@ task('publishRoot', "verify and publish contracts on etherscan")
                 address: deployment.VTSQToken.address,
                 contract: 'contracts/root/VTSQToken.sol:VTSQToken',
                 constructorArguments: [constants.AddressZero],
+            });
+
+            //Vesting
+            console.log(`verify Vesting`);
+            await hre.run("verify:verify", {
+                address: deployment.Vesting.address,
+                constructorArguments: [deployment.SQToken.address, deployment.VTSQToken.address],
             });
             //Settings
             console.log(`verify Settings`);
@@ -115,7 +116,7 @@ task('publishRoot', "verify and publish contracts on etherscan")
             await hre.run("verify:verify", {
                 address: deployment.OpDestination.address,
                 // TODO: better inject `L1TokenBridge` into the deployment
-                constructorArguments: [deployment.SQToken.address, childDeployment.SQToken, l2bridge],
+                constructorArguments: [deployment.SQToken.address, '0x0000000000000000000000000000000000000000', l2bridge],
             });
 
         } catch (err) {
