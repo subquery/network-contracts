@@ -558,6 +558,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         return deploymentPools[_deploymentId].boosterQueryRewards[_account];
     }
 
+    function getRunnerDeploymentRewards(bytes32 _deploymentId, address _account) view external returns (RunnerDeploymentReward memory)  {
+        return deploymentPools[_deploymentId].runnerAllocationRewards[_account];
+    }
+
     function spendQueryRewards(bytes32 _deploymentId, address _spender, uint256 _amount) external returns (uint256) {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB01');
         uint256 queryRewards = getQueryRewards(_deploymentId, _spender);
