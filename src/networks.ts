@@ -22,18 +22,18 @@ export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
             }
         },
         child: {
-            chainId: '0x89',
-            chainName: 'Polygon',
+            chainId: '0x2105',
+            chainName: 'Base',
             rpcUrls: [
-                'https://polygon-rpc.com/'
+                'https://mainnet.base.org'
             ],
             iconUrls: [
-                'https://icons.llamao.fi/icons/chains/rsz_polygon.jpg'
+                'https://images.mirror-media.xyz/publication-images/cgqxxPdUFBDjgKna_dDir.png'
             ],
-            blockExplorerUrls: ['https://polygonscan.com/'],
+            blockExplorerUrls: ['https://basescan.org'],
             nativeCurrency: {
-                name: 'Matic Token',
-                symbol: 'MATIC',
+                name: 'ETH',
+                symbol: 'ETH',
                 decimals: 18
             }
         }

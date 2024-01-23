@@ -25,7 +25,7 @@ export const {argv} = yargs(hideBin(process.argv))
     });
 
 async function init(): Promise<Context> {
-    const ENDPOINT = process.env['ENDPOINT'] ?? 'https://rpc.ankr.com/polygon_mumbai';
+    const ENDPOINT = process.env['ENDPOINT'];
     const provider = new JsonRpcProvider(ENDPOINT);
     const sdk = await ContractSDK.create(provider, {network: argv.network as SubqueryNetwork});
     const rootAccountPK = process.env['PK'];

@@ -389,14 +389,6 @@ const config: HardhatUserConfig = {
     },
     networks: {
         hardhat: {},
-        testnet: {
-            url: "https://rpc.ankr.com/polygon_mumbai",
-            chainId: 80001,
-        },
-        goerli: {
-            url: "https://rpc.ankr.com/eth_goerli",
-            chainId: 5,
-        },
         sepolia: {
             url: "https://rpc.sepolia.org",
             chainId: 11155111,
@@ -409,9 +401,9 @@ const config: HardhatUserConfig = {
             url: "https://polygon-rpc.com",
             chainId: 137,
         },
-        mainnet: {
-            url: "https://polygon-rpc.com",
-            chainId: 137,
+        base: {
+            url: "https://mainnet.base.org",
+            chainId: 8453,
         }
     },
     gasReporter: {
@@ -423,6 +415,7 @@ const config: HardhatUserConfig = {
             polygonMumbai: process.env.POLYGONSCAN_API_KEY,
             goerli: process.env.ETHERSCAN_API_KEY,
             sepolia: process.env.ETHERSCAN_API_KEY,
+            base: process.env.BASESCAN_API_KEY,
             'base-sepolia': process.env.BASESCAN_API_KEY,
             polygon: process.env.POLYGONSCAN_API_KEY,
         },
@@ -433,6 +426,14 @@ const config: HardhatUserConfig = {
                 urls: {
                     apiURL: "https://api-sepolia.basescan.org/api",
                     browserURL: "https://sepolia.basescan.org"
+                }
+            },
+            {
+                network: "base",
+                chainId: 8453,
+                urls: {
+                    apiURL: "https://api.basescan.org/api",
+                    browserURL: "https://basescan.org"
                 }
             }
         ]
