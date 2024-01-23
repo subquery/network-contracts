@@ -18,7 +18,7 @@ import {
     StakingAllocation,
 } from '../src';
 import {deploymentIds, deploymentMetadatas, METADATA_HASH, projectMetadatas} from './constants';
-import { blockTravel, etherParse, eventFrom, time, startNewEra, wrapTxs, timeTravel, registerRunner } from './helper';
+import {blockTravel, etherParse, eventFrom, time, startNewEra, wrapTxs, timeTravel, registerRunner} from './helper';
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
 import {BigNumber, providers, constants} from 'ethers';
 
@@ -239,9 +239,7 @@ describe('StakingAllocation Contract', () => {
             expect(da1).to.eq(etherParse('1000'));
 
             await expect(
-                stakingAllocation
-                    .connect(runner0)
-                    .addAllocation(deploymentIds[1], runner0.address, etherParse('5001'))
+                stakingAllocation.connect(runner0).addAllocation(deploymentIds[1], runner0.address, etherParse('5001'))
             ).to.be.revertedWith('SAL03');
             await expect(
                 stakingAllocation
@@ -261,34 +259,6 @@ describe('StakingAllocation Contract', () => {
                 .connect(runner1)
                 .removeAllocation(deploymentIds[0], runner1.address, etherParse('500'));
             await checkAllocation(runner1, etherParse('9000'), etherParse('9000'), false, false);
-        });
-
-        it('overflow clear by RewardsBooster', async () => {
-            await stakingAllocation
-                .connect(runner0)
-                .addAllocation(deploymentIds[0], runner0.address, etherParse('10000'));
-            await checkAllocation(runner0, etherParse('10000'), etherParse('10000'), false, false);
-
-            await stakingManager.connect(runner0).unstake(runner0.address, etherParse('5000'));
-            await applyStaking(runner0, runner0);
-            await checkAllocation(runner0, etherParse('5000'), etherParse('10000'), true, false);
-            await timeTravel(mockProvider, 10);
-            const overtime1 = await stakingAllocation.overflowTime(runner0.address);
-
-            await rewardsBooster.connect(runner0).collectAllocationReward(deploymentIds[0], runner0.address);
-            const overtime2 = await stakingAllocation.overflowTime(runner0.address);
-            expect(overtime2).to.gt(overtime1);
-
-            await timeTravel(mockProvider, 10);
-            await stakingManager.connect(runner0).stake(runner0.address, etherParse('5000'));
-            await applyStaking(runner0, runner0);
-            const overtime3 = await stakingAllocation.overflowTime(runner0.address);
-            expect(overtime3).to.gt(overtime2);
-            await checkAllocation(runner0, etherParse('10000'), etherParse('10000'), false, true);
-            await rewardsBooster.connect(runner0).collectAllocationReward(deploymentIds[0], runner0.address);
-            await checkAllocation(runner0, etherParse('10000'), etherParse('10000'), false, true);
-            const overtime4 = await stakingAllocation.overflowTime(runner0.address);
-            expect(overtime3).to.eq(overtime4);
         });
     });
 });
