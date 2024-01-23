@@ -158,7 +158,12 @@ impl Network {
 #[inline]
 fn contract_parse(name: &str, file: &str, network: Network) -> Result<(Abi, Address), ()> {
     let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
-    let contract_address: Address = address["child"][name]["address"]
+    let (ctype, name) = if name.starts_with("Root") {
+        ("root", name.trim_start_matches("Root"))
+    } else {
+        ("child", name)
+    };
+    let contract_address: Address = address[ctype][name]["address"]
         .as_str()
         .ok_or(())?
         .parse()
@@ -186,6 +191,56 @@ macro_rules! contract {
     };
 }
 
+// root
+contract!(
+    root_proxy_admin,
+    "RootProxyAdmin",
+    include_str!("../publish/ABI/ProxyAdmin.json")
+);
+
+contract!(
+    root_settings,
+    "RootSettings",
+    include_str!("../publish/ABI/Settings.json")
+);
+
+contract!(
+    root_sqtoken,
+    "RootSQToken",
+    include_str!("../publish/ABI/SQToken.json")
+);
+
+contract!(
+    root_inflation_controller,
+    "RootInflationController",
+    include_str!("../publish/ABI/InflationController.json")
+);
+
+contract!(
+    root_vesting,
+    "RootVesting",
+    include_str!("../publish/ABI/Vesting.json")
+);
+
+contract!(
+    root_vt_sqtoken,
+    "RootVTSQToken",
+    include_str!("../publish/ABI/VTSQToken.json")
+);
+
+contract!(
+    root_op_destination,
+    "RootOpDestination",
+    include_str!("../publish/ABI/OpDestination.json")
+);
+
+// child
+contract!(
+    proxy_admin,
+    "ProxyAdmin",
+    include_str!("../publish/ABI/ProxyAdmin.json")
+);
+
 contract!(
     settings,
     "Settings",
@@ -193,15 +248,33 @@ contract!(
 );
 
 contract!(
-    sqtoken,
-    "SQToken",
-    include_str!("../publish/ABI/SQToken.json")
+    l2_sqtoken,
+    "L2SQToken",
+    include_str!("../publish/ABI/L2SQToken.json")
 );
 
 contract!(
     vsqtoken,
     "VSQToken",
     include_str!("../publish/ABI/VSQToken.json")
+);
+
+contract!(
+    sqt_gift,
+    "SQTGift",
+    include_str!("../publish/ABI/SQTGift.json")
+);
+
+contract!(
+    sqt_redeem,
+    "SQTRedeem",
+    include_str!("../publish/ABI/SQTRedeem.json")
+);
+
+contract!(
+    token_exchange,
+    "TokenExchange",
+    include_str!("../publish/ABI/TokenExchange.json")
 );
 
 contract!(
@@ -217,6 +290,12 @@ contract!(
 );
 
 contract!(
+    staking_allocation,
+    "StakingAllocation",
+    include_str!("../publish/ABI/StakingAllocation.json")
+);
+
+contract!(
     indexer_registry,
     "IndexerRegistry",
     include_str!("../publish/ABI/IndexerRegistry.json")
@@ -226,18 +305,6 @@ contract!(
     project_registry,
     "ProjectRegistry",
     include_str!("../publish/ABI/ProjectRegistry.json")
-);
-
-contract!(
-    inflation_controller,
-    "InflationController",
-    include_str!("../publish/ABI/InflationController.json")
-);
-
-contract!(
-    service_agreement_extra,
-    "ServiceAgreementExtra",
-    include_str!("../publish/ABI/ServiceAgreementExtra.json")
 );
 
 contract!(
@@ -289,9 +356,9 @@ contract!(
 );
 
 contract!(
-    proxy_admin,
-    "ProxyAdmin",
-    include_str!("../publish/ABI/ProxyAdmin.json")
+    rewards_booster,
+    "RewardsBooster",
+    include_str!("../publish/ABI/RewardsBooster.json")
 );
 
 contract!(
@@ -310,12 +377,6 @@ contract!(
     permissioned_exchange,
     "PermissionedExchange",
     include_str!("../publish/ABI/PermissionedExchange.json")
-);
-
-contract!(
-    vesting,
-    "Vesting",
-    include_str!("../publish/ABI/Vesting.json")
 );
 
 contract!(
