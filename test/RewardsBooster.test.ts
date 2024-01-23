@@ -15,6 +15,9 @@ import {
     Staking,
     StakingAllocation,
     StateChannel,
+    StakingManager,
+    RewardsDistributor,
+    RewardsStaking,
 } from '../src';
 import {deploymentIds, deploymentMetadatas, METADATA_HASH, projectMetadatas} from './constants';
 import {
@@ -22,10 +25,13 @@ import {
     boosterDeployment,
     createProject,
     etherParse,
-    eventFrom, openChannel,
+    eventFrom,
+    openChannel,
     registerRunner,
     time,
-    wrapTxs
+    wrapTxs,
+    startNewEra,
+    timeTravel,
 } from './helper';
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
 import {BigNumber, constants} from 'ethers';
@@ -49,13 +55,15 @@ describe('RewardsBooster Contract', () => {
 
     let token: ERC20;
     let staking: Staking;
+    let stakingManager: StakingManager;
     let indexerRegistry: IndexerRegistry;
     let eraManager: EraManager;
     let rewardsBooster: RewardsBooster;
+    let rewardsStaking: RewardsStaking;
+    let rewardsDistributor: RewardsDistributor;
     let stakingAllocation: StakingAllocation;
     let projectRegistry: ProjectRegistry;
     let stateChannel: StateChannel;
-
 
     const getAllocationReward = (deploymentReward: BigNumber, queryRewardRatePerMill: BigNumber): BigNumber => {
         return deploymentReward.mul(PER_MILL.sub(queryRewardRatePerMill)).div(PER_MILL);
@@ -105,13 +113,25 @@ describe('RewardsBooster Contract', () => {
         [root, runner0, runner1, runner2, consumer0, consumer1] = await ethers.getSigners();
     });
 
+    const applyStaking = async (runner, delegator) => {
+        await startNewEra(mockProvider, eraManager);
+        await rewardsDistributor.collectAndDistributeRewards(runner.address);
+        if (runner.address != delegator.address) {
+            await rewardsDistributor.collectAndDistributeRewards(delegator.address);
+        }
+        await rewardsStaking.applyStakeChange(runner.address, delegator.address);
+    };
+
     beforeEach(async () => {
         const deployment = await waffle.loadFixture(deployer);
         indexerRegistry = deployment.indexerRegistry;
         staking = deployment.staking;
+        stakingManager = deployment.stakingManager;
         token = deployment.token;
         eraManager = deployment.eraManager;
         rewardsBooster = deployment.rewardsBooster;
+        rewardsStaking = deployment.rewardsStaking;
+        rewardsDistributor = deployment.rewardsDistributor;
         stakingAllocation = deployment.stakingAllocation;
         projectRegistry = deployment.projectRegistry;
         stateChannel = deployment.stateChannel;
@@ -123,10 +143,38 @@ describe('RewardsBooster Contract', () => {
         await rewardsBooster.setReporter(root.address, true);
 
         // createProject
-        await createProject(projectRegistry, root, projectMetadatas[0], deploymentMetadatas[0], deploymentIds[0], ProjectType.SUBQUERY);
-        await createProject(projectRegistry, root, projectMetadatas[1], deploymentMetadatas[1], deploymentIds[1], ProjectType.SUBQUERY);
-        await createProject(projectRegistry, root, projectMetadatas[2], deploymentMetadatas[2], deploymentIds[2], ProjectType.SUBQUERY);
-        await createProject(projectRegistry, root, projectMetadatas[3], deploymentMetadatas[3], deploymentIds[3], ProjectType.RPC);
+        await createProject(
+            projectRegistry,
+            root,
+            projectMetadatas[0],
+            deploymentMetadatas[0],
+            deploymentIds[0],
+            ProjectType.SUBQUERY
+        );
+        await createProject(
+            projectRegistry,
+            root,
+            projectMetadatas[1],
+            deploymentMetadatas[1],
+            deploymentIds[1],
+            ProjectType.SUBQUERY
+        );
+        await createProject(
+            projectRegistry,
+            root,
+            projectMetadatas[2],
+            deploymentMetadatas[2],
+            deploymentIds[2],
+            ProjectType.SUBQUERY
+        );
+        await createProject(
+            projectRegistry,
+            root,
+            projectMetadatas[3],
+            deploymentMetadatas[3],
+            deploymentIds[3],
+            ProjectType.RPC
+        );
 
         // Init indexer and delegator account.
         await token.connect(root).transfer(runner0.address, etherParse('100000'));
@@ -144,6 +192,8 @@ describe('RewardsBooster Contract', () => {
         await registerRunner(token, indexerRegistry, staking, root, runner0, etherParse('10000'), 1e5);
         await registerRunner(token, indexerRegistry, staking, root, runner1, etherParse('10000'), 1e5);
         await registerRunner(token, indexerRegistry, staking, root, runner2, etherParse('10000'), 1e5);
+
+        await token.connect(runner0).increaseAllowance(staking.address, etherParse('100000'));
     });
 
     describe('boost deployments', () => {
@@ -346,9 +396,7 @@ describe('RewardsBooster Contract', () => {
         });
         it('can add allocation', async () => {
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
-            await stakingAllocation
-                .connect(runner0)
-                .addAllocation(deploymentId0, runner0.address, etherParse('1000'));
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
             // const {allocationId} = await eventFrom(tx, rewardsBooster, 'StakeAllocated(uint256,bytes32,address,uint256)');
             // expect(allocationId).to.exist;
             const allocation = await stakingAllocation.allocatedTokens(runner0.address, deploymentId0);
@@ -383,9 +431,7 @@ describe('RewardsBooster Contract', () => {
             const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             expect(allocReward).to.eq(getAllocationReward(reward1.sub(reward0), queryRewardRatePerMill));
-            await stakingAllocation
-                .connect(runner1)
-                .addAllocation(deploymentId0, runner1.address, etherParse('1000'));
+            await stakingAllocation.connect(runner1).addAllocation(deploymentId0, runner1.address, etherParse('1000'));
             const accRewardsPerAllocatedToken = await rewardsBooster.getAccRewardsPerAllocatedToken(deploymentId0);
             await blockTravel(mockProvider, 500);
             const reward = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
@@ -407,7 +453,10 @@ describe('RewardsBooster Contract', () => {
             const blockNum2 = await mockProvider.getBlockNumber();
             await blockTravel(mockProvider, 1000 - (blockNum2 - blockNum));
             const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
-            const [allocReward, burntReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
+            const [allocReward, burntReward] = await rewardsBooster.getAllocationRewards(
+                deploymentId0,
+                runner0.address
+            );
             expect(allocReward.add(burntReward)).to.eq(
                 reward1.sub(reward0).mul(PER_MILL.sub(queryRewardRatePerMill)).div(PER_MILL)
             );
@@ -417,9 +466,7 @@ describe('RewardsBooster Contract', () => {
         it('(debug) can claim allocation reward, single indexer', async () => {
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await blockTravel(mockProvider, 1000);
-            await stakingAllocation
-                .connect(runner0)
-                .addAllocation(deploymentId0, runner0.address, etherParse('1000'));
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
             let reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             let [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             expect(reward0).to.gt(0);
@@ -440,9 +487,7 @@ describe('RewardsBooster Contract', () => {
         it('can claim allocation reward, single indexer', async () => {
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await blockTravel(mockProvider, 1000);
-            await stakingAllocation
-                .connect(runner0)
-                .addAllocation(deploymentId0, runner0.address, etherParse('1000'));
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
             let reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             let [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             expect(reward0).to.gt(0);
@@ -470,12 +515,8 @@ describe('RewardsBooster Contract', () => {
 
         it('allocate before boosted', async () => {
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
-            await stakingAllocation
-                .connect(runner0)
-                .addAllocation(deploymentId2, runner0.address, etherParse('1000'));
-            await stakingAllocation
-                .connect(runner1)
-                .addAllocation(deploymentId2, runner1.address, etherParse('1000'));
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId2, runner0.address, etherParse('1000'));
+            await stakingAllocation.connect(runner1).addAllocation(deploymentId2, runner1.address, etherParse('1000'));
             const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId2);
             expect(reward1).to.eq(0);
             await boosterDeployment(token, rewardsBooster, root, deploymentId2, etherParse('10000'));
@@ -578,6 +619,71 @@ describe('RewardsBooster Contract', () => {
             const queryReward2C0 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
             const queryReward2C1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer1.address);
             expect(queryReward2C0.mul(17)).to.eq(queryReward2C1.mul(23));
+        });
+    });
+
+    describe('overflow in allocation and booster', () => {
+        it('overflow clear by RewardsBooster', async () => {
+            await stakingAllocation
+                .connect(runner0)
+                .addAllocation(deploymentIds[0], runner0.address, etherParse('10000'));
+            const status0 = await stakingAllocation.runnerAllocation(runner0.address);
+            expect(status0.overflowAt).to.eq(0);
+            expect(status0.overflowTime).to.eq(0);
+
+            await stakingManager.connect(runner0).unstake(runner0.address, etherParse('5000'));
+            await applyStaking(runner0, runner0);
+            const status1 = await stakingAllocation.runnerAllocation(runner0.address);
+            expect(status1.overflowAt).not.to.eq(0);
+            expect(status1.overflowTime).to.eq(0);
+            await timeTravel(mockProvider, 10);
+            const overtime1 = await stakingAllocation.overflowTime(runner0.address);
+
+            // collect when overflow
+            await rewardsBooster.connect(runner0).collectAllocationReward(deploymentIds[0], runner0.address);
+            const overtime2 = await stakingAllocation.overflowTime(runner0.address);
+            expect(overtime2).to.gt(overtime1);
+            const rewards2 = await rewardsBooster.getRunnerDeploymentRewards(deploymentIds[0], runner0.address);
+            expect(rewards2.overflowTimeSnapshot).to.eq(overtime2);
+            const rewards22 = await rewardsBooster.getRunnerDeploymentRewards(deploymentIds[1], runner0.address);
+            expect(rewards22.overflowTimeSnapshot).to.eq(0);
+
+            await timeTravel(mockProvider, 10);
+            await stakingManager.connect(runner0).stake(runner0.address, etherParse('5000'));
+            await applyStaking(runner0, runner0);
+            const overtime3 = await stakingAllocation.overflowTime(runner0.address);
+            expect(overtime3).to.gt(overtime2);
+            const status3 = await stakingAllocation.runnerAllocation(runner0.address);
+            expect(status3.overflowAt).to.eq(0);
+            expect(status3.overflowTime).to.eq(overtime3);
+
+            // collect when not overflow
+            await timeTravel(mockProvider, 10);
+            await rewardsBooster.connect(runner0).collectAllocationReward(deploymentIds[0], runner0.address);
+            const rewards3 = await rewardsBooster.getRunnerDeploymentRewards(deploymentIds[0], runner0.address);
+            expect(rewards3.overflowTimeSnapshot).to.eq(overtime3);
+            const rewards33 = await rewardsBooster.getRunnerDeploymentRewards(deploymentIds[1], runner0.address);
+            expect(rewards33.overflowTimeSnapshot).to.eq(0);
+
+            await stakingManager.connect(runner0).unstake(runner0.address, etherParse('5000'));
+            await applyStaking(runner0, runner0);
+            await timeTravel(mockProvider, 10);
+            await stakingManager.connect(runner0).stake(runner0.address, etherParse('5000'));
+            await applyStaking(runner0, runner0);
+            const overtime4 = await stakingAllocation.overflowTime(runner0.address);
+            const status4 = await stakingAllocation.runnerAllocation(runner0.address);
+            expect(status4.overflowAt).to.eq(0);
+            expect(status4.overflowTime).to.gt(overtime3);
+            expect(status4.overflowTime).to.eq(overtime4);
+
+            // collect when overflow again
+            await rewardsBooster.connect(runner0).collectAllocationReward(deploymentIds[0], runner0.address);
+            const rewards4 = await rewardsBooster.getRunnerDeploymentRewards(deploymentIds[0], runner0.address);
+            expect(rewards4.overflowTimeSnapshot).to.eq(overtime4);
+
+            await rewardsBooster.connect(runner0).collectAllocationReward(deploymentIds[1], runner0.address);
+            const rewards44 = await rewardsBooster.getRunnerDeploymentRewards(deploymentIds[1], runner0.address);
+            expect(rewards44.overflowTimeSnapshot).to.eq(overtime4);
         });
     });
 });
