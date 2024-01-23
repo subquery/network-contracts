@@ -1,11 +1,9 @@
-import { TokenExchange } from './../src/typechain/contracts/TokenExchange';
-import { InflationDestination } from './../src/typechain/contracts/root/InflationDestination';
 import { BigNumber, ContractReceipt, ContractTransaction, Overrides, Wallet, ethers, utils } from 'ethers';
 import Pino from 'pino';
 
 import { argv, setupCommon } from './setup';
 
-import { ContractSDK, PolygonSDK, SubqueryNetwork } from '../build';
+import { ContractSDK, SubqueryNetwork } from '../build';
 import { METADATA_HASH } from '../test/constants';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
@@ -57,24 +55,24 @@ async function getAirdropTimeConfig(provider) {
     return { startTime, endTime };
 }
 
-async function setupInflation(sdk: PolygonSDK) {
-    logger = getLogger('Token');
-    logger.info('Set minter');
-    await sdk.sqToken.setMinter(sdk.inflationController.address);
-    logger.info('Set inflationDestination');
-    await sendTx((overrides) => sdk.inflationController.setInflationDestination(sdk.InflationDestination.address, overrides));
-    logger.info('Set xcRecipient');
-    await sendTx((overrides) => sdk.InflationDestination.setXcRecipient(sdk.childToken.address, overrides));
-}
+// async function setupInflation(sdk: PolygonSDK) {
+//     logger = getLogger('Token');
+//     logger.info('Set minter');
+//     await sdk.sqToken.setMinter(sdk.inflationController.address);
+//     logger.info('Set inflationDestination');
+//     await sendTx((overrides) => sdk.inflationController.setInflationDestination(sdk.InflationDestination.address, overrides));
+//     logger.info('Set xcRecipient');
+//     await sendTx((overrides) => sdk.InflationDestination.setXcRecipient(sdk.childToken.address, overrides));
+// }
 
-async function tokenDeposit(sdk: PolygonSDK) {
-    logger = getLogger('Token');
-    const amount = startupConfig.tokenDeposit;
-    logger.info(`Deposit ${amount} token to Polygon`);
-    let tx = await sdk.approveDeposit(amount);
-    await tx.getReceipt();
-    tx = await sdk.depositFor(amount);
-}
+// async function tokenDeposit(sdk: PolygonSDK) {
+//     logger = getLogger('Token');
+//     const amount = startupConfig.tokenDeposit;
+//     logger.info(`Deposit ${amount} token to Polygon`);
+//     let tx = await sdk.approveDeposit(amount);
+//     await tx.getReceipt();
+//     tx = await sdk.depositFor(amount);
+// }
 
 export async function createProjects(sdk: ContractSDK, _provider?: StaticJsonRpcProvider) {
     if (_provider) provider = _provider;
@@ -197,8 +195,8 @@ export async function ownerTransfer(sdk: ContractSDK) {
         sdk.disputeManager,
         sdk.eraManager,
         sdk.indexerRegistry,
-        sdk.inflationController,
-        sdk.permissionedExchange,
+        // sdk.inflationController,
+        // sdk.permissionedExchange,
         sdk.planManager,
         sdk.proxyAdmin,
         sdk.purchaseOfferMarket,
@@ -213,7 +211,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
         sdk.staking,
         sdk.stakingManager,
         sdk.stateChannel,
-        sdk.vesting,
+        // sdk.vesting,
         sdk.consumerRegistry,
         sdk.priceOracle,
         sdk.vSQToken,
@@ -234,7 +232,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
     console.log('\n');
 }
 
-async function allocateTokenToIndexers(sdk: ContractSDK) {
+async function transferTokenToIndexers(sdk: ContractSDK) {
     logger = getLogger('Token');
     const { indexers } = startupConfig;
     const amount = utils.parseEther('1000000');
@@ -257,52 +255,52 @@ export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
 }
 
 async function setupVesting(sdk: ContractSDK) {
-    logger = getLogger('Vesting');
-    logger.info('Creating vesting plans');
-
-    const vestingPlans = startupConfig.vestingPlans;
-    for (const plan of vestingPlans) {
-        const { initPercentage, vestingPeriod, lockPeriod } = plan;
-        logger.info(`Create vesting plan: ${initPercentage} | ${vestingPeriod} | ${lockPeriod}`);
-        await sendTx((overrides) => sdk.vesting.addVestingPlan(lockPeriod, vestingPeriod, initPercentage, overrides));
-    }
-    logger.info('Vesting plans created');
-
-    const accounts = startupConfig.airdrops;
-    const amounts = startupConfig.amounts.map((a: number) => parseEther(a.toString()));
-
-    logger.info('Allocate vesting plans');
-    let planId = 0;
-    const maxPlanId = vestingPlans.length - 1;
-    for (const [index, account] of accounts.entries()) {
-        const allocation = await sdk.vesting.allocations(account);
-        if (!allocation.eq(0)) continue;
-
-        const amount = amounts[index];
-        planId = planId > maxPlanId ? 0 : planId;
-        logger.info(`Allocate ${amount.toString()} to ${account} with Plan: ${planId}`);
-        await sendTx((overrides) => sdk.vesting.allocateVesting(account, planId, amount, overrides));
-        planId++;
-    }
-    logger.info('Vesting plans allocated');
-
-    logger.info('Deposit vesting token');
-    const totalAmount = parseEther(eval(startupConfig.amounts.join('+')).toString());
-    await sendTx((overrides) => sdk.sqToken.increaseAllowance(sdk.vesting.address, totalAmount, overrides));
-    await sendTx((overrides) => sdk.vesting.depositByAdmin(totalAmount, overrides));
-    logger.info(`Total ${totalAmount.toString()} deposited`);
-    logger.info('Vesting token deposited');
-
-    const startTime = Math.round(new Date().getTime() / 1000) + 21600;
-    await sendTx((overrides) => sdk.vesting.startVesting(startTime, overrides));
-    logger.info('Vesting started');
+    // logger = getLogger('Vesting');
+    // logger.info('Creating vesting plans');
+    //
+    // const vestingPlans = startupConfig.vestingPlans;
+    // for (const plan of vestingPlans) {
+    //     const { initPercentage, vestingPeriod, lockPeriod } = plan;
+    //     logger.info(`Create vesting plan: ${initPercentage} | ${vestingPeriod} | ${lockPeriod}`);
+    //     await sendTx((overrides) => sdk.vesting.addVestingPlan(lockPeriod, vestingPeriod, initPercentage, overrides));
+    // }
+    // logger.info('Vesting plans created');
+    //
+    // const accounts = startupConfig.airdrops;
+    // const amounts = startupConfig.amounts.map((a: number) => parseEther(a.toString()));
+    //
+    // logger.info('Allocate vesting plans');
+    // let planId = 0;
+    // const maxPlanId = vestingPlans.length - 1;
+    // for (const [index, account] of accounts.entries()) {
+    //     const allocation = await sdk.vesting.allocations(account);
+    //     if (!allocation.eq(0)) continue;
+    //
+    //     const amount = amounts[index];
+    //     planId = planId > maxPlanId ? 0 : planId;
+    //     logger.info(`Allocate ${amount.toString()} to ${account} with Plan: ${planId}`);
+    //     await sendTx((overrides) => sdk.vesting.allocateVesting(account, planId, amount, overrides));
+    //     planId++;
+    // }
+    // logger.info('Vesting plans allocated');
+    //
+    // logger.info('Deposit vesting token');
+    // const totalAmount = parseEther(eval(startupConfig.amounts.join('+')).toString());
+    // await sendTx((overrides) => sdk.sqToken.increaseAllowance(sdk.vesting.address, totalAmount, overrides));
+    // await sendTx((overrides) => sdk.vesting.depositByAdmin(totalAmount, overrides));
+    // logger.info(`Total ${totalAmount.toString()} deposited`);
+    // logger.info('Vesting token deposited');
+    //
+    // const startTime = Math.round(new Date().getTime() / 1000) + 21600;
+    // await sendTx((overrides) => sdk.vesting.startVesting(startTime, overrides));
+    // logger.info('Vesting started');
 }
 
 const main = async () => {
     const network = (argv.network ?? 'testnet') as SubqueryNetwork;
     const { wallet, rootProvider, childProvider } = await setupCommon(networks[network]);
 
-    const polygonSdk = await PolygonSDK.create(wallet, {root: rootProvider, child: childProvider}, {network: 'testnet'});
+    // const polygonSdk = await PolygonSDK.create(wallet, {root: rootProvider, child: childProvider}, {network: 'testnet'});
     const sdk = ContractSDK.create(wallet.connect(childProvider), { network });
     provider = argv.target === 'root' ? rootProvider : childProvider;
 
@@ -319,14 +317,14 @@ const main = async () => {
             confirms = 5;
             startupConfig = startupTestnetConfig;
             // root contracts
-            await setupInflation(polygonSdk);
+            // await setupInflation(polygonSdk);
             // await tokenDeposit(polygonSdk);
 
             // child contracts
-            // await createProjects(sdk);
-            // await createPlanTemplates(sdk);
+            await createProjects(sdk);
+            await createPlanTemplates(sdk);
             // await setupTokenExchange(sdk);
-            // await allocateTokenToIndexers(sdk);
+            await transferTokenToIndexers(sdk);
 
             // await setupVesting(sdk);
             // await setupTokenExchange(sdk);
