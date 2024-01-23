@@ -100,6 +100,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         closedServiceAgreements[agreementId] = agreement;
 
         _safeMint(agreement.consumer, agreementId);
+        emit ClosedAgreementCreated(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
         _establishServiceAgreement(agreementId);
 
         nextServiceAgreementId += 1;
@@ -141,8 +142,6 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         // increase agreement rewards
         IRewardsDistributor rewardsDistributor = IRewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
         rewardsDistributor.increaseAgreementRewards(agreementId);
-
-        emit ClosedAgreementCreated(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
     }
 
     /**

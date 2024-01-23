@@ -117,10 +117,10 @@
             "lastUpdate": "Mon, 22 Jan 2024 09:39:59 GMT"
         },
         "ServiceAgreementRegistry": {
-            "innerAddress": "0x3ECDC59436645128C843ec3c3E6Fb67be4634b3f",
+            "innerAddress": "0x7D24F5a4030B53A1542FbAaec9e08C9976A4038c",
             "address": "0x0E0730B1ec1D0E4C1AE15C73b0Be089d07261fBB",
-            "bytecodeHash": "ee3ef887845a60be221fb596197b643963e2d512948288299cae951b0880cde0",
-            "lastUpdate": "Mon, 22 Jan 2024 09:40:28 GMT"
+            "bytecodeHash": "e7cddd70063a1163d8a543b7c58565665149d98c94ff4a8a649a60dcd1c9ad49",
+            "lastUpdate": "Tue, 23 Jan 2024 10:37:41 GMT"
         },
         "RewardsDistributor": {
             "innerAddress": "0x5C1AD81cA2c0F436266341F0bBd25EB06e116Bd0",
