@@ -142,15 +142,15 @@
     "child": {
         "ProxyAdmin": {
             "innerAddress": "",
-            "address": "0x07e8e4008d31AEB2678E43e43A76F42129BD7f8c",
+            "address": "0x6F4a8318CB94589d4C5025a4F9d1eDa8c91aD0D9",
             "bytecodeHash": "a783cb98d79d784d0854c6b3a00a01ffc6e8249d30986940ae1060ee4e2bafee",
-            "lastUpdate": "Mon, 08 Jan 2024 03:59:26 GMT"
+            "lastUpdate": "Tue, 23 Jan 2024 06:18:11 GMT"
         },
         "SQTGift": {
-            "innerAddress": "0x27d5c0d94a4FcFB24e0998cdDA4BcB1E3e528903",
-            "address": "0x8845CEefA2914172E81b40E8Cc2534259D7BA966",
+            "innerAddress": "0x82DF281C2cd9da593118f00A86d9998C91F1D1DC",
+            "address": "0x86DF167B61bd62320058FCc9099D82FebB9a054b",
             "bytecodeHash": "3d7cdd1cbad232b4d9d6804bffbdf9f64804c89c0fab972e8a5839b6b51ee34a",
-            "lastUpdate": "Mon, 08 Jan 2024 04:02:03 GMT"
+            "lastUpdate": "Tue, 23 Jan 2024 06:18:39 GMT"
         }
     }
 }
