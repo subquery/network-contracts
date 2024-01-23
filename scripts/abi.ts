@@ -1,12 +1,15 @@
-import { readFileSync, writeFileSync } from 'fs';
+import {readFileSync, writeFileSync} from 'fs';
 
 const main = async () => {
     try {
         const contracts = [
             'Settings',
             'VSQToken',
+            'SQTGift',
+            'SQTRedeem',
             'Staking',
             'StakingManager',
+            'StakingAllocation',
             'IndexerRegistry',
             'ProjectRegistry',
             'PlanManager',
@@ -16,6 +19,7 @@ const main = async () => {
             'RewardsPool',
             'RewardsStaking',
             'RewardsHelper',
+            'RewardsBooster',
             'StateChannel',
             'Airdropper',
             'PermissionedExchange',
@@ -25,19 +29,9 @@ const main = async () => {
             'PriceOracle',
             'TokenExchange',
         ];
-        const childContracts = [
-            'L2SQToken',
-            'EraManager',
-        ]
-        const rootContracts = [
-            'SQToken',
-            'Vesting',
-            'VTSQToken',
-            'InflationController',
-        ]
-        const proxyContracts = [
-            'ProxyAdmin',
-        ]
+        const childContracts = ['L2SQToken', 'EraManager'];
+        const rootContracts = ['SQToken', 'Vesting', 'VTSQToken', 'InflationController', 'OpDestination'];
+        const proxyContracts = ['ProxyAdmin'];
         const run = (input: string[], rootDir) => {
             input.forEach(function (name) {
                 const readPath = `${rootDir}/${name}.sol/${name}.json`;
@@ -46,17 +40,15 @@ const main = async () => {
                 const savePath = `${__dirname}/../publish/ABI/${name}.json`;
                 writeFileSync(savePath, JSON.stringify(contract.abi, null, 4));
             });
-        }
+        };
         run(contracts, `${__dirname}/../artifacts/contracts`);
         run(rootContracts, `${__dirname}/../artifacts/contracts/root`);
         run(childContracts, `${__dirname}/../artifacts/contracts/l2`);
-        run(proxyContracts, `${__dirname}/../artifacts/@openzeppelin/contracts/proxy/transparent`)
+        run(proxyContracts, `${__dirname}/../artifacts/@openzeppelin/contracts/proxy/transparent`);
         console.log(`Generated ABI files completed`);
     } catch (e) {
         console.log(`e`, e);
     }
 };
-
-
 
 main();
