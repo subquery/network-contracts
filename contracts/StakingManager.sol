@@ -131,9 +131,9 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         require(indexerRegistry.isIndexer(indexer), 'S007');
 
         staking.removeUnbondingAmount(msg.sender, unbondReqId);
-        if (msg.sender != indexer) {
-            staking.checkDelegateLimitation(indexer, amount);
-        }
+//        if (msg.sender != indexer) {
+//            staking.checkDelegateLimitation(indexer, amount);
+//        }
         staking.addDelegation(msg.sender, indexer, amount);
     }
 
