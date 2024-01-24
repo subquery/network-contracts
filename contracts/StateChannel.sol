@@ -259,7 +259,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         // transfer the rewards to channel
         address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
-        uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(channels[channelId].deploymentId, realConsumer, amount);
+        uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(channels[channelId].deploymentId, realConsumer, amount, abi.encode(channelId));
         if (rewardsAmount > 0) {
             IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(rbAddress, address(this), rewardsAmount);
         }
@@ -486,7 +486,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
                 uint256 rewardsRemain = remain - realTotal;
                 address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
                 IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(rbAddress, rewardsRemain);
-                IRewardsBooster(rbAddress).refundQueryRewards(channels[channelId].deploymentId, realConsumer, rewardsRemain);
+                IRewardsBooster(rbAddress).refundQueryRewards(channels[channelId].deploymentId, realConsumer, rewardsRemain, abi.encode(channelId));
 
                 realRemain = realTotal;
             }
