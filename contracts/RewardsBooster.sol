@@ -74,8 +74,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     event MissedLabor(bytes32 indexed deploymentId, address indexed runner, uint256 labor);
     event AllocationRewardsGiven(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
     event AllocationRewardsBurnt(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
-    event QueryRewardsSpent(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
-    event QueryRewardsRefunded(bytes32 indexed deploymentId, address indexed runner, uint256 amount);
+    event QueryRewardsSpent(bytes32 indexed deploymentId, address indexed runner, uint256 amount, bytes data);
+    event QueryRewardsRefunded(bytes32 indexed deploymentId, address indexed runner, uint256 amount, bytes data);
 
     /**
      * @notice ### FUNCTIONS
@@ -562,7 +562,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         return deploymentPools[_deploymentId].runnerAllocationRewards[_account];
     }
 
-    function spendQueryRewards(bytes32 _deploymentId, address _spender, uint256 _amount) external returns (uint256) {
+    function spendQueryRewards(bytes32 _deploymentId, address _spender, uint256 _amount, bytes calldata _data) override external returns (uint256) {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB01');
         uint256 queryRewards = getQueryRewards(_deploymentId, _spender);
 
@@ -579,11 +579,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         // Allowance
         IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(msg.sender, _amount);
 
-        emit QueryRewardsSpent(_deploymentId, _spender, _amount);
+        emit QueryRewardsSpent(_deploymentId, _spender, _amount, _data);
         return _amount;
     }
 
-    function refundQueryRewards(bytes32 _deploymentId, address _spender, uint256 _amount) external {
+    function refundQueryRewards(bytes32 _deploymentId, address _spender, uint256 _amount, bytes calldata _data) override external {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB01');
 
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
@@ -593,6 +593,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(ISettings(settings).getContractAddress(SQContracts.Treasury), _amount);
 
-        emit QueryRewardsRefunded(_deploymentId, _spender, _amount);
+        emit QueryRewardsRefunded(_deploymentId, _spender, _amount, _data);
     }
 }
