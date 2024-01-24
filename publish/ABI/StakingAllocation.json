@@ -212,7 +212,7 @@
                 "type": "address"
             }
         ],
-        "name": "isSuspended",
+        "name": "isAllocationOverflow",
         "outputs": [
             {
                 "internalType": "bool",
@@ -315,11 +315,6 @@
         "outputs": [
             {
                 "components": [
-                    {
-                        "internalType": "uint256",
-                        "name": "total",
-                        "type": "uint256"
-                    },
                     {
                         "internalType": "uint256",
                         "name": "used",
