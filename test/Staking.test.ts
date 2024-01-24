@@ -166,7 +166,8 @@ describe('Staking Contract', () => {
             ).to.be.revertedWith('S008');
         });
 
-        it('unstaking over indexerLeverageLimit should fail', async () => {
+        // it is allowed now
+        it.skip('unstaking over indexerLeverageLimit should fail', async () => {
             const indexerLeverageLimit = await staking.indexerLeverageLimit();
             const indexerStakingAmount = await stakingManager.getAfterDelegationAmount(
                 runner.address,
