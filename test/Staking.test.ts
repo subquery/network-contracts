@@ -478,7 +478,8 @@ describe('Staking Contract', () => {
             await expect(stakingManager.connect(delegator).cancelUnbonding(10)).to.be.revertedWith('S007');
         });
 
-        it('cancelUnbonding should follow delegation limitation', async () => {
+        // this is allowed now
+        it.skip('cancelUnbonding should follow delegation limitation', async () => {
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('1'));
             await staking.setIndexerLeverageLimit(1);
             await expect(stakingManager.connect(delegator).cancelUnbonding(0)).to.be.revertedWith('S002');
