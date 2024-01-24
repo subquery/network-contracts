@@ -472,19 +472,30 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         // claim the rest of amount to balance
         address consumer = channels[channelId].consumer;
         uint256 realTotal = channels[channelId].realTotal;
-        uint256 total = channels[channelId].total;
-        uint256 remain = total - channels[channelId].spent;
-        uint256 realRemain = remain;
+        uint256 spent = channels[channelId].spent;
+
         address realConsumer = consumer;
+        if (_isContract(consumer)) {
+            realConsumer = IConsumer(consumer).channelConsumer(channelId);
+        }
 
-        if (remain > 0) {
-            if (remain > realTotal) {
-                if (_isContract(consumer)) {
-                    realConsumer = IConsumer(consumer).channelConsumer(channelId);
-                }
+        uint256 total = channels[channelId].total;
+        address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
+        if (spent > realTotal) {
+            // transfer the rewards to channel
+            uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(channels[channelId].deploymentId, realConsumer, spent - realTotal);
+            if (rewardsAmount > 0) {
+                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(rbAddress, address(this), rewardsAmount);
+            }
+            total += rewardsAmount;
+        }
 
-                uint256 rewardsRemain = remain - realTotal;
-                address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
+        uint256 totalRemain = total - spent;
+        uint256 realRemain = totalRemain;
+
+        if (totalRemain > 0) {
+            if (totalRemain > realTotal) {
+                uint256 rewardsRemain = totalRemain - realTotal;
                 IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(rbAddress, rewardsRemain);
                 IRewardsBooster(rbAddress).refundQueryRewards(channels[channelId].deploymentId, realConsumer, rewardsRemain);
 
@@ -501,7 +512,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         delete channels[channelId];
         delete channelPrice[channelId];
 
-        emit ChannelFinalize(channelId, total, remain);
+        emit ChannelFinalize(channelId, total, realRemain);
     }
 
     /// @notice Determine the input address is contract or not
