@@ -29,7 +29,7 @@ import {
     registerRunner,
     startNewEra,
     time,
-    openChannel
+    openChannel,
 } from './helper';
 
 describe('StateChannel Contract', () => {
@@ -130,6 +130,7 @@ describe('StateChannel Contract', () => {
             deploymentIds[0],
             ProjectType.SUBQUERY
         );
+        await rewardsBooster.setIssuancePerBlock(etherParse('0.5'));
         await rewardsBooster.setBoosterQueryRewardRate(ProjectType.SUBQUERY, 5e5); // 50%
         await token.connect(treasury).approve(rewardsBooster.address, constants.MaxInt256);
     });
@@ -157,7 +158,16 @@ describe('StateChannel Contract', () => {
 
         it('open a State Channel should work', async () => {
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(stateChannel, channelId, deploymentId, runner, consumer, etherParse('1'), etherParse('1'), 60);
+            await openChannel(
+                stateChannel,
+                channelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('1'),
+                etherParse('1'),
+                60
+            );
 
             const channel = await stateChannel.channel(channelId);
             expect(channel.status).to.equal(1); // 0 is Finalized, 1 is Open, 2 is Terminate
@@ -170,15 +180,42 @@ describe('StateChannel Contract', () => {
 
         it('repeat same channel Id State Channel should not work', async () => {
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(stateChannel, channelId, deploymentId, runner, consumer, etherParse('0.5'), etherParse('0.1'), 6);
+            await openChannel(
+                stateChannel,
+                channelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('0.5'),
+                etherParse('0.1'),
+                6
+            );
             await expect(
-                openChannel(stateChannel, channelId, deploymentId, runner, consumer, etherParse('0.5'), etherParse('0.5'), 60)
+                openChannel(
+                    stateChannel,
+                    channelId,
+                    deploymentId,
+                    runner,
+                    consumer,
+                    etherParse('0.5'),
+                    etherParse('0.5'),
+                    60
+                )
             ).to.be.revertedWith('SC001');
         });
 
         it('can repeat same channel Id after channel is finalized', async () => {
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(stateChannel, channelId, deploymentId, runner, consumer, etherParse('1'), etherParse('0.1'), 60);
+            await openChannel(
+                stateChannel,
+                channelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                60
+            );
 
             const balance = await token.balanceOf(stateChannel.address);
             expect(balance).to.equal(etherParse('1'));
@@ -188,7 +225,16 @@ describe('StateChannel Contract', () => {
             expect((await stateChannel.channel(channelId)).status).to.equal(0);
             expect(await token.balanceOf(stateChannel.address)).to.equal(0);
 
-            await openChannel(stateChannel, channelId, deploymentId, runner, consumer, etherParse('0.1'), etherParse('0.1'), 6);
+            await openChannel(
+                stateChannel,
+                channelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('0.1'),
+                etherParse('0.1'),
+                6
+            );
             const channel = await stateChannel.channel(channelId);
             expect(channel.status).to.equal(1);
             expect(channel.total).to.equal(etherParse('0.1'));
@@ -207,7 +253,16 @@ describe('StateChannel Contract', () => {
             expect(await token.balanceOf(consumer.address)).to.equal(etherParse('5'));
 
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(stateChannel, channelId, deploymentId, runner, consumer, etherParse('1'), etherParse('0.1'), 60);
+            await openChannel(
+                stateChannel,
+                channelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                60
+            );
             expect(await token.balanceOf(consumer.address)).to.equal(etherParse('4'));
 
             const query1 = await buildQueryState(channelId, runner, consumer, etherParse('0.1'), false);
@@ -280,18 +335,20 @@ describe('StateChannel Contract', () => {
         });
 
         it('spent more than rewards', async () => {
+            // one block rewards
+            const oneBlockRewards = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
             const query = await buildQueryState(
                 defaultChannelId,
                 runner,
                 consumer,
-                queryRewards0.add(etherParse('0.5')),
+                queryRewards0.add(oneBlockRewards.mul(2)).add(etherParse('0.5')),
                 true
             );
             await stateChannel.checkpoint(query);
             expect((await stateChannel.channel(defaultChannelId)).status).to.equal(0);
             expect(await token.balanceOf(consumer.address)).to.equal(etherParse('4.5'));
-            const consumerRewards = await rewardsBooster.getBoosterQueryRewards(deploymentId, consumer.address);
-            expect(consumerRewards.spentQueryRewards).to.equal(queryRewards0);
+            const consumerRewards2 = await rewardsBooster.getBoosterQueryRewards(deploymentId, consumer.address);
+            expect(consumerRewards2.spentQueryRewards).to.equal(queryRewards0.add(oneBlockRewards.mul(2)));
         });
 
         it('spent less than rewards', async () => {
@@ -357,7 +414,16 @@ describe('StateChannel Contract', () => {
             await stateChannel.setTerminateExpiration(5); // 5s
 
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(stateChannel, channelId, deploymentId, runner, consumer, etherParse('1'), etherParse('0.1'), 60);
+            await openChannel(
+                stateChannel,
+                channelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                60
+            );
 
             const query1 = await buildEmptyState(channelId);
             await stateChannel.connect(runner).terminate(query1);
@@ -378,7 +444,16 @@ describe('StateChannel Contract', () => {
             await stateChannel.setTerminateExpiration(5); // 5s
 
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(stateChannel, channelId, deploymentId, runner, consumer, etherParse('1'), etherParse('0.1'), 60);
+            await openChannel(
+                stateChannel,
+                channelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                60
+            );
 
             const query1 = await buildQueryState(channelId, runner, consumer, etherParse('0.1'), false);
             await stateChannel.connect(runner).terminate(query1);
@@ -405,7 +480,16 @@ describe('StateChannel Contract', () => {
             await stateChannel.setTerminateExpiration(5); // 5s
 
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(stateChannel, channelId, deploymentId, runner, consumer, etherParse('1'), etherParse('0.1'), 60);
+            await openChannel(
+                stateChannel,
+                channelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                60
+            );
 
             const query1 = await buildQueryState(channelId, runner, consumer, etherParse('0.1'), false);
             await stateChannel.connect(consumer).terminate(query1);
@@ -426,7 +510,16 @@ describe('StateChannel Contract', () => {
 
         it('terminate State Channel with continue fund', async () => {
             const channelId = ethers.utils.randomBytes(32);
-            await openChannel(stateChannel, channelId, deploymentId, runner, consumer, etherParse('1'), etherParse('0.1'), 5); // 5s expiration
+            await openChannel(
+                stateChannel,
+                channelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                5
+            ); // 5s expiration
 
             await delay(6); // channel is expiredAt
 
