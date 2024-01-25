@@ -481,9 +481,11 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         uint256 total = channels[channelId].total;
         address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
-        if (spent > realTotal) {
+
+        uint256 rewardsTotal = total - realTotal;
+        if (spent > rewardsTotal) {
             // transfer the rewards to channel
-            uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(channels[channelId].deploymentId, realConsumer, spent - realTotal, abi.encode(channelId));
+            uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(channels[channelId].deploymentId, realConsumer, spent - rewardsTotal, abi.encode(channelId));
             if (rewardsAmount > 0) {
                 IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(rbAddress, address(this), rewardsAmount);
             }
@@ -491,17 +493,16 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         }
 
         uint256 totalRemain = total - spent;
-        uint256 realRemain = totalRemain;
+        uint256 realRemain = MathUtil.min(totalRemain, realTotal);
+        uint256 rewardsRemain = totalRemain - realRemain;
 
-        if (totalRemain > 0) {
-            if (totalRemain > realTotal) {
-                uint256 rewardsRemain = totalRemain - realTotal;
-                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(rbAddress, rewardsRemain);
-                IRewardsBooster(rbAddress).refundQueryRewards(channels[channelId].deploymentId, realConsumer, rewardsRemain, abi.encode(channelId));
-
-                realRemain = realTotal;
-            }
+        if(realRemain > 0) {
             IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(consumer, realRemain);
+        }
+
+        if (rewardsRemain > 0) {
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(rbAddress, rewardsRemain);
+            IRewardsBooster(rbAddress).refundQueryRewards(channels[channelId].deploymentId, realConsumer, rewardsRemain, abi.encode(channelId));
         }
 
         if (_isContract(consumer)) {
