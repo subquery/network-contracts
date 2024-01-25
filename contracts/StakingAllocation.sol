@@ -135,7 +135,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         }
     }
 
-    function isAllocationOverflow(address _runner) public view returns (bool) {
+    function isOverAllocation(address _runner) external view returns (bool) {
         return _runnerAllocations[_runner].total < _runnerAllocations[_runner].used;
     }
 

@@ -19,7 +19,7 @@ interface IStakingAllocation {
 
     function overAllocationTime(address _runner) external view returns (uint256);
 
-    function isAllocationOverflow(address _runner) external view returns (bool);
+    function isOverAllocation(address _runner) external view returns (bool);
 
     // total allocations on the deployment
     function deploymentAllocations(bytes32 _deploymentId) external view returns (uint256);
