@@ -16,6 +16,7 @@ import './interfaces/ISettings.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IConsumerRegistry.sol';
 import './interfaces/IRewardsBooster.sol';
+import './utils/MathUtil.sol';
 
 /**
  * @title State Channel Contract
