@@ -4,6 +4,7 @@
 pragma solidity 0.8.15;
 
 struct RunnerAllocation {
+    uint256 total;
     uint256 used;
     uint256 overflowTime;
     uint256 overflowAt;
@@ -16,7 +17,7 @@ interface IStakingAllocation {
 
     function runnerAllocation(address _runner) external view returns (RunnerAllocation memory);
 
-    function overflowTime(address _runner) external view returns (uint256);
+    function overAllocationTime(address _runner) external view returns (uint256);
 
     function isAllocationOverflow(address _runner) external view returns (bool);
 

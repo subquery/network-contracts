@@ -43,8 +43,8 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     // -- Events --
     event StakeAllocationAdded(bytes32 deploymentId, address runner, uint256 amount);
     event StakeAllocationRemoved(bytes32 deploymentId, address runner, uint256 amount);
-    event StakeOverflowStarted(address indexer, uint256 start);
-    event StakeOverflowEnded(address indexer, uint256 end, uint256 time);
+    event OverAllocationStarted(address runner, uint256 start);
+    event OverAllocationEnded(address runner, uint256 end, uint256 time);
     // -- Functions --
 
     /**
@@ -63,16 +63,16 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     function onStakeUpdate(address _runner, uint256 _amount) external {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'SAL01');
         RunnerAllocation storage ia = _runnerAllocations[_runner];
-        uint256 total = IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).getEffectiveTotalStake(_runner);
+        ia.total = IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).getEffectiveTotalStake(_runner);
 
-        if (ia.overflowAt == 0 && total < ia.used) {
+        if (ia.overflowAt == 0 && ia.total < ia.used) {
             // new overflow
-            emit StakeOverflowStarted(_runner, block.timestamp);
+            emit OverAllocationStarted(_runner, block.timestamp);
 
             ia.overflowAt = block.timestamp;
-        } else if (ia.overflowAt != 0 && total >= ia.used) {
+        } else if (ia.overflowAt != 0 && ia.total >= ia.used) {
             // recover from overflow
-            emit StakeOverflowEnded(_runner, block.timestamp, block.timestamp - ia.overflowAt);
+            emit OverAllocationEnded(_runner, block.timestamp, block.timestamp - ia.overflowAt);
 
             ia.overflowTime += block.timestamp - ia.overflowAt;
             ia.overflowAt = 0;
@@ -87,8 +87,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         rb.collectAllocationReward(_deployment, _runner);
 
         RunnerAllocation storage ia = _runnerAllocations[_runner];
-        uint256 total = IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).getEffectiveTotalStake(_runner);
-        require(total - ia.used >= _amount, 'SAL03');
+        require(ia.total - ia.used >= _amount, 'SAL03');
         ia.used += _amount;
         deploymentAllocations[_deployment] += _amount;
         allocatedTokens[_runner][_deployment] += _amount;
@@ -110,10 +109,9 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         // TODO: split to add and remove
         deploymentAllocations[_deployment] -= _amount;
         allocatedTokens[_runner][_deployment] -= _amount;
-        uint256 total = IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).getEffectiveTotalStake(_runner);
-        if (ia.overflowAt != 0 && total >= ia.used) {
+        if (ia.overflowAt != 0 && ia.total >= ia.used) {
             // collectAllocationReward had beed overflowClear, so just set overflowAt
-            emit StakeOverflowEnded(_runner, block.timestamp, block.timestamp - ia.overflowAt);
+            emit OverAllocationEnded(_runner, block.timestamp, block.timestamp - ia.overflowAt);
 
             ia.overflowAt = 0;
         }
@@ -128,9 +126,9 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     /**
      * @notice this returns the accumulated overflowTime of given runner
      */
-    function overflowTime(address _runner) external view returns (uint256) {
+    function overAllocationTime(address _runner) external view returns (uint256) {
         RunnerAllocation memory ia = _runnerAllocations[_runner];
-        if (isAllocationOverflow(_runner)) {
+        if (ia.total < ia.used) {
             return ia.overflowTime + block.timestamp - ia.overflowAt;
         } else {
             return ia.overflowTime;
@@ -138,8 +136,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     }
 
     function isAllocationOverflow(address _runner) public view returns (bool) {
-        uint256 total = IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).getEffectiveTotalStake(_runner);
-        return total < _runnerAllocations[_runner].used;
+        return _runnerAllocations[_runner].total < _runnerAllocations[_runner].used;
     }
 
     function _isAuth(address _runner) private view returns (bool) {
