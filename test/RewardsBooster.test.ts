@@ -637,11 +637,11 @@ describe('RewardsBooster Contract', () => {
             expect(status1.overflowAt).not.to.eq(0);
             expect(status1.overflowTime).to.eq(0);
             await timeTravel(mockProvider, 10);
-            const overtime1 = await stakingAllocation.overflowTime(runner0.address);
+            const overtime1 = await stakingAllocation.overAllocationTime(runner0.address);
 
             // collect when overflow
             await rewardsBooster.connect(runner0).collectAllocationReward(deploymentIds[0], runner0.address);
-            const overtime2 = await stakingAllocation.overflowTime(runner0.address);
+            const overtime2 = await stakingAllocation.overAllocationTime(runner0.address);
             expect(overtime2).to.gt(overtime1);
             const rewards2 = await rewardsBooster.getRunnerDeploymentRewards(deploymentIds[0], runner0.address);
             expect(rewards2.overflowTimeSnapshot).to.eq(overtime2);
@@ -651,7 +651,7 @@ describe('RewardsBooster Contract', () => {
             await timeTravel(mockProvider, 10);
             await stakingManager.connect(runner0).stake(runner0.address, etherParse('5000'));
             await applyStaking(runner0, runner0);
-            const overtime3 = await stakingAllocation.overflowTime(runner0.address);
+            const overtime3 = await stakingAllocation.overAllocationTime(runner0.address);
             expect(overtime3).to.gt(overtime2);
             const status3 = await stakingAllocation.runnerAllocation(runner0.address);
             expect(status3.overflowAt).to.eq(0);
@@ -670,7 +670,7 @@ describe('RewardsBooster Contract', () => {
             await timeTravel(mockProvider, 10);
             await stakingManager.connect(runner0).stake(runner0.address, etherParse('5000'));
             await applyStaking(runner0, runner0);
-            const overtime4 = await stakingAllocation.overflowTime(runner0.address);
+            const overtime4 = await stakingAllocation.overAllocationTime(runner0.address);
             const status4 = await stakingAllocation.runnerAllocation(runner0.address);
             expect(status4.overflowAt).to.eq(0);
             expect(status4.overflowTime).to.gt(overtime3);

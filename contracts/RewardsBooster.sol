@@ -193,7 +193,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             accRewardsPerAllocatedToken
         );
 
-        return _fixRewardsWithMissedLaborAndOverflow(totalRewards, runnerDeplReward, sa.overflowTime(_runner));
+        return _fixRewardsWithMissedLaborAndOverflow(totalRewards, runnerDeplReward, sa.overAllocationTime(_runner));
     }
 
     /**
@@ -454,7 +454,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
         runnerDeplReward.accRewardsPerToken = accRewardsPerAllocatedToken;
         uint256 burnt;
-        uint256 totalOverflowTime = sa.overflowTime(_runner);
+        uint256 totalOverflowTime = sa.overAllocationTime(_runner);
         (reward, burnt) = _fixRewardsWithMissedLaborAndOverflow(reward, runnerDeplReward, totalOverflowTime);
 
         runnerDeplReward.lastClaimedAt = block.timestamp;

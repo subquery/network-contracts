@@ -16,6 +16,50 @@
         "anonymous": false,
         "inputs": [
             {
+                "indexed": false,
+                "internalType": "address",
+                "name": "runner",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "end",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "time",
+                "type": "uint256"
+            }
+        ],
+        "name": "OverAllocationEnded",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "runner",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "start",
+                "type": "uint256"
+            }
+        ],
+        "name": "OverAllocationStarted",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": true,
                 "internalType": "address",
                 "name": "previousOwner",
@@ -79,50 +123,6 @@
             }
         ],
         "name": "StakeAllocationRemoved",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": false,
-                "internalType": "address",
-                "name": "indexer",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "end",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "time",
-                "type": "uint256"
-            }
-        ],
-        "name": "StakeOverflowEnded",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": false,
-                "internalType": "address",
-                "name": "indexer",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "start",
-                "type": "uint256"
-            }
-        ],
-        "name": "StakeOverflowStarted",
         "type": "event"
     },
     {
@@ -212,7 +212,7 @@
                 "type": "address"
             }
         ],
-        "name": "isSuspended",
+        "name": "isOverAllocation",
         "outputs": [
             {
                 "internalType": "bool",
@@ -249,7 +249,7 @@
                 "type": "address"
             }
         ],
-        "name": "overflowTime",
+        "name": "overAllocationTime",
         "outputs": [
             {
                 "internalType": "uint256",

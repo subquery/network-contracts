@@ -150,7 +150,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
         // runner joined the deployment pool firstly.
         if (pool.labor[runner] == 0) {
             IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
-            uint256 myStake = stakingManager.getTotalStakingAmount(runner);
+            uint256 myStake = stakingManager.getEffectiveTotalStake(runner);
             if (myStake == 0) {
                 // skip unclaimDeployments change, this runner can not claim
                 // if this is the only reward this pool get in this era, the reward is locked forever in the pool

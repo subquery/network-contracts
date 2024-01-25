@@ -48,7 +48,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_indexer",
+                "name": "_runner",
                 "type": "address"
             },
             {
@@ -71,7 +71,7 @@
             },
             {
                 "internalType": "address",
-                "name": "_indexer",
+                "name": "_runner",
                 "type": "address"
             }
         ],
@@ -90,7 +90,26 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_indexer",
+                "name": "_runner",
+                "type": "address"
+            }
+        ],
+        "name": "getEffectiveTotalStake",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_runner",
                 "type": "address"
             }
         ],
@@ -109,7 +128,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_indexer",
+                "name": "_runner",
                 "type": "address"
             }
         ],
@@ -190,12 +209,12 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "from_indexer",
+                "name": "_fromRunner",
                 "type": "address"
             },
             {
                 "internalType": "address",
-                "name": "to_indexer",
+                "name": "_toRunner",
                 "type": "address"
             },
             {
@@ -295,7 +314,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_indexer",
+                "name": "_runner",
                 "type": "address"
             },
             {
@@ -313,7 +332,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_indexer",
+                "name": "_runner",
                 "type": "address"
             },
             {

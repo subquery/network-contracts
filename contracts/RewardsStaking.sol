@@ -24,6 +24,7 @@ import './utils/MathUtil.sol';
  * @title Rewards Staking Contract
  * @notice ### Overview
  * Keep tracing the pending staking and commission rate and last settled era.
+ * Split from RewardsDistributor to keep contract size under control
  */
 contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;

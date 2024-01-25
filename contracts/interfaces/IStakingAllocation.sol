@@ -17,9 +17,9 @@ interface IStakingAllocation {
 
     function runnerAllocation(address _runner) external view returns (RunnerAllocation memory);
 
-    function overflowTime(address _runner) external view returns (uint256);
+    function overAllocationTime(address _runner) external view returns (uint256);
 
-    function isSuspended(address _runner) external view returns (bool);
+    function isOverAllocation(address _runner) external view returns (bool);
 
     // total allocations on the deployment
     function deploymentAllocations(bytes32 _deploymentId) external view returns (uint256);

@@ -164,7 +164,7 @@ describe('StakingAllocation Contract', () => {
             await checkAllocation(runner0, etherParse('10000'), etherParse('20000'), true, false);
 
             await timeTravel(mockProvider, 10);
-            const overtime = await stakingAllocation.overflowTime(runner0.address);
+            const overtime = await stakingAllocation.overAllocationTime(runner0.address);
             if (overtime.lt(10)) {
                 expect('overtime').to.eq('shuould more than it');
             }
@@ -173,12 +173,12 @@ describe('StakingAllocation Contract', () => {
             await applyStaking(runner0, runner1);
 
             await checkAllocation(runner0, etherParse('20000'), etherParse('20000'), false, true);
-            const overtime1 = await stakingAllocation.overflowTime(runner0.address);
+            const overtime1 = await stakingAllocation.overAllocationTime(runner0.address);
             if (overtime1.lt(10)) {
                 expect('overtime').to.eq('shuould more than it');
             }
             await timeTravel(mockProvider, 10);
-            const overtime2 = await stakingAllocation.overflowTime(runner0.address);
+            const overtime2 = await stakingAllocation.overAllocationTime(runner0.address);
             expect(overtime1).to.eq(overtime2);
 
             await stakingManager.connect(runner1).undelegate(runner0.address, etherParse('1'));
@@ -186,7 +186,7 @@ describe('StakingAllocation Contract', () => {
 
             await checkAllocation(runner0, etherParse('19999'), etherParse('20000'), true, true);
             await timeTravel(mockProvider, 10);
-            const overtime3 = await stakingAllocation.overflowTime(runner0.address);
+            const overtime3 = await stakingAllocation.overAllocationTime(runner0.address);
             if (overtime3.lt(overtime2.add(10))) {
                 expect('overtime').to.eq('shuould more than it');
             }
@@ -194,10 +194,10 @@ describe('StakingAllocation Contract', () => {
             await stakingManager.connect(runner1).delegate(runner0.address, etherParse('101'));
             await applyStaking(runner0, runner1);
             await checkAllocation(runner0, etherParse('20100'), etherParse('20000'), false, true);
-            const overtime4 = await stakingAllocation.overflowTime(runner0.address);
+            const overtime4 = await stakingAllocation.overAllocationTime(runner0.address);
 
             await timeTravel(mockProvider, 10);
-            const overtime5 = await stakingAllocation.overflowTime(runner0.address);
+            const overtime5 = await stakingAllocation.overAllocationTime(runner0.address);
             expect(overtime4).to.eq(overtime5);
         });
         it('add/del allocation', async () => {

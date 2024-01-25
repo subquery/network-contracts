@@ -166,7 +166,8 @@ describe('Staking Contract', () => {
             ).to.be.revertedWith('S008');
         });
 
-        it('unstaking over indexerLeverageLimit should fail', async () => {
+        // it is allowed now
+        it.skip('unstaking over indexerLeverageLimit should fail', async () => {
             const indexerLeverageLimit = await staking.indexerLeverageLimit();
             const indexerStakingAmount = await stakingManager.getAfterDelegationAmount(
                 runner.address,
@@ -477,7 +478,8 @@ describe('Staking Contract', () => {
             await expect(stakingManager.connect(delegator).cancelUnbonding(10)).to.be.revertedWith('S007');
         });
 
-        it('cancelUnbonding should follow delegation limitation', async () => {
+        // this is allowed now
+        it.skip('cancelUnbonding should follow delegation limitation', async () => {
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('1'));
             await staking.setIndexerLeverageLimit(1);
             await expect(stakingManager.connect(delegator).cancelUnbonding(0)).to.be.revertedWith('S002');

@@ -16,11 +16,4 @@ library StakingUtil {
         }
         return amount.valueAt;
     }
-
-    function currentDelegation(StakingAmount memory amount, uint256 era) internal pure returns (uint256) {
-        if (amount.era < era) {
-            return amount.valueAfter;
-        }
-        return amount.valueAt;
-    }
 }
