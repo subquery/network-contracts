@@ -24,7 +24,7 @@
 - kind: Account
   name: user1
 #  address: 0x142811C55F47e6e5FDa281a522D42308527f7262
-  pk: "79d52073c2c9d0ce0c1f0db4db638b0e66f6a0924b866e378984ce5f1481b7e7"
+  pk: ""
 - kind: SQTGiftClaim
   seriesId: 0
   user: user1

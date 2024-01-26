@@ -3,7 +3,7 @@ moduleAlias.addAlias('./publish', '../publish');
 moduleAlias.addAlias('./artifacts', '../artifacts');
 
 import {JsonRpcProvider} from '@ethersproject/providers';
-import { ContractSDK, SubqueryNetwork } from '../src';
+import { ContractSDK, SubqueryNetwork, networks } from '../src';
 import assert from 'assert';
 import {Wallet} from '@ethersproject/wallet';
 import {utils} from 'ethers';
@@ -25,8 +25,9 @@ export const {argv} = yargs(hideBin(process.argv))
     });
 
 async function init(): Promise<Context> {
-    const ENDPOINT = process.env['ENDPOINT'];
-    const provider = new JsonRpcProvider(ENDPOINT);
+    const endpoint = process.env['ENDPOINT'] ?? networks[argv.network].child.rpcUrls[0];
+
+    const provider = new JsonRpcProvider(endpoint);
     const sdk = await ContractSDK.create(provider, {network: argv.network as SubqueryNetwork});
     const rootAccountPK = process.env['PK'];
     assert(rootAccountPK, `can't find $PK in env`);

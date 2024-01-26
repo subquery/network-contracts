@@ -30,6 +30,7 @@ import {
     SQTGift,
     SQTRedeem,
     ERC20,
+    RewardsBooster,
 } from './typechain';
 import {
     CONTRACT_FACTORY,
@@ -59,6 +60,7 @@ export class ContractSDK {
     readonly serviceAgreementRegistry!: ServiceAgreementRegistry;
     readonly eraManager!: EraManager;
     readonly planManager!: PlanManager;
+    readonly rewardsBooster!: RewardsBooster;
     readonly rewardsDistributor!: RewardsDistributor;
     readonly rewardsPool!: RewardsPool;
     readonly rewardsStaking!: RewardsStaking;

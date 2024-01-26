@@ -6,7 +6,7 @@ import { Wallet } from '@ethersproject/wallet';
 import assert from 'assert';
 import { constants, utils } from 'ethers';
 import { IPFSHTTPClient } from 'ipfs-http-client';
-import { ContractSDK } from '../src';
+import { ContractSDK, ProjectType } from '../src';
 
 function cidToBytes32(cid: string): string {
     return '0x' + Buffer.from(utils.base58.decode(cid)).slice(2).toString('hex');
@@ -68,14 +68,25 @@ export interface SQTGiftSeriesInput {
     metadata: object;
 }
 
-export interface SQTGiftSeriesAllowList {
+export interface SQTGiftSeriesAllowListInput {
     seriesId: number;
     list: { address: string; amount: number }[];
 }
 
-export interface SQTGiftSeriesClaim {
+export interface SQTGiftSeriesClaimInput {
     seriesId: number;
     user: string;
+}
+
+export interface BoosterRewardSettingInput {
+    queryRewardRatios: {projectType: ProjectType; ratio: number}[];
+    issuancePerBlock: string;
+}
+
+export interface DeploymentBoosterInput {
+    deploymentId: string;
+    user: string;
+    amount: number;
 }
 
 export interface Context {
@@ -250,7 +261,7 @@ export const loaders = {
         console.log(`SQTGiftSeries Complete`);
     },
     SQTGiftAllowList: async function (
-        { seriesId, list }: SQTGiftSeriesAllowList,
+        { seriesId, list }: SQTGiftSeriesAllowListInput,
         { ipfs, sdk, rootAccount }: Context
     ) {
         console.log(`SQTGiftAllowList Start`);
@@ -265,7 +276,7 @@ export const loaders = {
         console.log(`SQTGiftAllowList Complete`);
     },
     SQTGiftClaim: async function (
-        { seriesId, user }: SQTGiftSeriesClaim,
+        { seriesId, user }: SQTGiftSeriesClaimInput,
         { ipfs, sdk, rootAccount, accounts }: Context
     ) {
         console.log(`SQTGiftClaim Start`);
@@ -277,5 +288,53 @@ export const loaders = {
         const tx = await sdk.sqtGift.connect(wallet).mint(seriesId);
         await tx.wait();
         console.log(`SQTGiftClaim Complete`);
+    },
+    BoosterRewardSetting: async function (
+        { queryRewardRatios, issuancePerBlock }: BoosterRewardSettingInput,
+        { ipfs, sdk, rootAccount, accounts }: Context
+    ) {
+        for (const {projectType, ratio} of queryRewardRatios) {
+            const currentRatio = await sdk.rewardsBooster.boosterQueryRewardRate(projectType);
+            if (!currentRatio.eq(ratio)) {
+                console.log(`set queryRewardRatio for projectType: ${projectType} from ${currentRatio.toString()} to ${ratio}`)
+                const tx = await sdk.rewardsBooster.connect(rootAccount).setBoosterQueryRewardRate(projectType, ratio);
+                await tx.wait();
+            }
+        }
+        const currentIssuancePerBlock = await sdk.rewardsBooster.issuancePerBlock();
+        if (!currentIssuancePerBlock.eq(issuancePerBlock)) {
+            console.log(`set issuancePerBlock: from ${currentIssuancePerBlock.toString()} to ${issuancePerBlock}`)
+            const tx = await sdk.rewardsBooster.connect(rootAccount).setIssuancePerBlock(issuancePerBlock);
+            await tx.wait();
+        }
+    },
+    DeploymentBooster: async function (
+        { user, amount, deploymentId }: DeploymentBoosterInput,
+        { ipfs, sdk, rootAccount, accounts }: Context
+    ) {
+        console.log(`DeploymentBooster Start`);
+        const wallet = accounts[user];
+        if (!wallet) {
+            console.log(`account ${user} not found`);
+            return;
+        }
+        const allowance = await sdk.sqToken.allowance(wallet.address, sdk.rewardsBooster.address);
+        const diff = utils.parseEther(amount.toString()).sub(allowance);
+        if (diff.gt(0)) {
+            console.log(`add allowance ${utils.formatEther(diff)}`);
+            const tx0 = await sdk.sqToken.connect(wallet).increaseAllowance(sdk.rewardsBooster.address, diff);
+            await tx0.wait();
+        }
+        const currentBooster = await sdk.rewardsBooster.getRunnerDeploymentBooster(cidToBytes32(deploymentId), wallet.address);
+        if (currentBooster.gt(utils.parseEther(amount.toString()))) {
+            console.log(`remove booster ${utils.formatEther(currentBooster.sub(utils.parseEther(amount.toString())))}`);
+            const tx = await sdk.rewardsBooster.connect(wallet).removeBoosterDeployment(cidToBytes32(deploymentId), currentBooster.sub(utils.parseEther(amount.toString())));
+            await tx.wait();
+        } else if (currentBooster.lt(utils.parseEther(amount.toString()))) {
+            console.log(`remove booster ${utils.formatEther(utils.parseEther(amount.toString()).sub(currentBooster))}`);
+            const tx = await sdk.rewardsBooster.connect(wallet).boostDeployment(cidToBytes32(deploymentId), utils.parseEther(amount.toString()).sub(currentBooster));
+            await tx.wait();
+        }
+        console.log(`DeploymentBooster End`);
     }
 };

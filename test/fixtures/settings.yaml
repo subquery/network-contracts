@@ -1,0 +1,7 @@
+- kind: BoosterRewardSetting
+  queryRewardRatios:
+    - projectType: 0 # subquery project
+      ratio: 500000 # 50%, denominator: 1e9
+    - projectType: 1 # subquery project
+      ratio: 900000 # 50%, denominator: 1e9
+  issuancePerBlock: '6340000000000000000' # 6.34
