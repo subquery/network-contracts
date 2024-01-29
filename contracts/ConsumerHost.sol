@@ -10,6 +10,7 @@ import '@openzeppelin/contracts/utils/introspection/ERC165.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
+import './Constants.sol';
 import './interfaces/IConsumer.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/ISettings.sol';
@@ -44,7 +45,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     uint256 public fee;
 
     /// @notice The Percentage of FEE
-    uint256 public feePercentage;
+    uint256 public feePerMill;
 
     /// @notice Consumers info that hosting in this contract
     mapping(address => Consumer) public consumers;
@@ -85,17 +86,17 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @dev ### FUNCTIONS
      * @notice Initialize the contract, setup the SQT, StateChannel, and feePercentage.
      * @param _settings Settings contract address
-     * @param _feePercentage fee percentage
+     * @param _feePerMill fee percentage
      */
     function initialize(
         ISettings _settings,
         address _sqt,
         address _channel,
-        uint256 _feePercentage
+        uint256 _feePerMill
     ) external initializer {
         __Ownable_init();
         settings = _settings;
-        feePercentage = _feePercentage;
+        feePerMill = _feePerMill;
 
         // Approve Token to State Channel.
         IERC20 sqt = IERC20(_sqt);
@@ -112,11 +113,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
     /**
      * @notice Update fee percentage
-     * @param _feePercentage fee percentage
+     * @param _feePerMill fee percentage
      */
-    function setFeePercentage(uint256 _feePercentage) external onlyOwner {
-        require(_feePercentage <= 100, 'C001');
-        feePercentage = _feePercentage;
+    function setFeeRate(uint256 _feePerMill) external onlyOwner {
+        require(_feePerMill <= PER_MILL, 'C001');
+        feePerMill = _feePerMill;
     }
 
     /**
@@ -272,7 +273,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
 
         Consumer storage info = consumers[consumer];
 
-        uint256 fixedFee = amount > 100 ? (amount * feePercentage) / 100 : 1;
+        uint256 fixedFee = amount > PER_MILL ? (amount * feePerMill) / PER_MILL : 1;
         require(info.balance >= amount + fixedFee, 'C002');
 
         if (!info.approved) {
