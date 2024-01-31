@@ -85,9 +85,6 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
     /// @notice Emitted when Indexer set the controller account.
     event SetControllerAccount(address indexed indexer, address indexed controller);
 
-    /// @notice Emitted when Indexer remove the controller account.
-    event RemoveControllerAccount(address indexed indexer, address indexed controller);
-
     /// @notice Emitted when Indexer set their commissionRate.
     event SetCommissionRate(address indexed indexer, uint256 amount);
 
@@ -181,16 +178,6 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
         controllers[msg.sender] = controller;
 
         emit SetControllerAccount(msg.sender, controller);
-    }
-
-    /**
-     * @notice Indexers call to remove the controller account. need to remove both controllers and controllerToIndexer.
-     */
-    function removeControllerAccount() public onlyIndexer {
-        address controller = controllers[msg.sender];
-        delete controllers[msg.sender];
-
-        emit RemoveControllerAccount(msg.sender, controller);
     }
 
     /**

@@ -115,21 +115,6 @@ describe('IndexerRegistry Contract', () => {
                 'G002'
             );
         });
-
-        it('remove controller account from indexer should work', async () => {
-            await indexerRegistry.setControllerAccount(wallet_1.address);
-            await expect(indexerRegistry.removeControllerAccount())
-                .to.be.emit(indexerRegistry, 'RemoveControllerAccount')
-                .withArgs(wallet_0.address, wallet_1.address);
-
-            // check state changes
-            await checkControllerIsEmpty();
-        });
-
-        it('remove controller account with invalid caller should fail', async () => {
-            // caller is not an indexer
-            await expect(indexerRegistry.connect(wallet_1).removeControllerAccount()).to.be.revertedWith('G002');
-        });
     });
 
     describe('Indexer Unregistry', () => {
