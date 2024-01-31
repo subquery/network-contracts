@@ -99,7 +99,7 @@ const setup = async (network?: string) => {
     }
     if (process.env.CHILD_ENDPOINT) {
         console.log(`use overridden endpoint ${process.env.CHILD_ENDPOINT}`);
-        config.network.root.rpcUrls = [process.env.CHILD_ENDPOINT];
+        config.network.child.rpcUrls = [process.env.CHILD_ENDPOINT];
     }
 
     let confirms = 1;
