@@ -11,7 +11,7 @@ struct RunnerAllocation {
 }
 
 interface IStakingAllocation {
-    function onStakeUpdate(address _runner, uint256 _amount) external;
+    function onStakeUpdate(address _runner) external;
 
     function allocatedTokens(address _runner, bytes32 _deployment) external view returns (uint256);
 

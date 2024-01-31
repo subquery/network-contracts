@@ -60,7 +60,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         settings = _settings;
     }
 
-    function onStakeUpdate(address _runner, uint256 _amount) external {
+    function onStakeUpdate(address _runner) external {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'SAL01');
         RunnerAllocation storage ia = _runnerAllocations[_runner];
         ia.total = IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).getEffectiveTotalStake(_runner);
