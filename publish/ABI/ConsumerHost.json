@@ -460,7 +460,7 @@
     },
     {
         "inputs": [],
-        "name": "feePercentage",
+        "name": "feePerMill",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -503,7 +503,7 @@
             },
             {
                 "internalType": "uint256",
-                "name": "_feePercentage",
+                "name": "_feePerMill",
                 "type": "uint256"
             }
         ],
@@ -616,11 +616,11 @@
         "inputs": [
             {
                 "internalType": "uint256",
-                "name": "_feePercentage",
+                "name": "_feePerMill",
                 "type": "uint256"
             }
         ],
-        "name": "setFeePercentage",
+        "name": "setFeeRate",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
