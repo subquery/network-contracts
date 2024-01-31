@@ -1,9 +1,9 @@
 // Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
+import { deployContracts } from './setup';
 import {
     EraManager,
     ERC20,
@@ -17,10 +17,10 @@ import {
     StakingManager,
     StakingAllocation,
 } from '../src';
-import {deploymentIds, deploymentMetadatas, projectMetadatas} from './constants';
-import {etherParse, time, startNewEra, timeTravel, registerRunner} from './helper';
-import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
-import {constants} from 'ethers';
+import { deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
+import { etherParse, time, startNewEra, timeTravel, registerRunner } from './helper';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { constants } from 'ethers';
 
 describe('StakingAllocation Contract', () => {
     const deploymentId0 = deploymentIds[0];

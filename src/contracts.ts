@@ -19,7 +19,7 @@ import RewardsDistributor from './artifacts/contracts/RewardsDistributor.sol/Rew
 import RewardsHelper from './artifacts/contracts/RewardsHelper.sol/RewardsHelper.json';
 import RewardsPool from './artifacts/contracts/RewardsPool.sol/RewardsPool.json';
 import RewardsStaking from './artifacts/contracts/RewardsStaking.sol/RewardsStaking.json';
-import RewardsBooster from "./artifacts/contracts/RewardsBooster.sol/RewardsBooster.json";
+import RewardsBooster from './artifacts/contracts/RewardsBooster.sol/RewardsBooster.json';
 import SQToken from './artifacts/contracts/root/SQToken.sol/SQToken.json';
 import ServiceAgreementRegistry from './artifacts/contracts/ServiceAgreementRegistry.sol/ServiceAgreementRegistry.json';
 import Settings from './artifacts/contracts/Settings.sol/Settings.json';
@@ -31,8 +31,8 @@ import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import Vesting from './artifacts/contracts/root/Vesting.sol/Vesting.json';
 import VTSQToken from './artifacts/contracts/root/VTSQToken.sol/VTSQToken.json';
 import OpDestination from './artifacts/contracts/root/OpDestination.sol/OpDestination.json';
-import SQTGift from "./artifacts/contracts/SQTGift.sol/SQTGift.json";
-import SQTRedeem from "./artifacts/contracts/SQTRedeem.sol/SQTRedeem.json";
+import SQTGift from './artifacts/contracts/SQTGift.sol/SQTGift.json';
+import SQTRedeem from './artifacts/contracts/SQTRedeem.sol/SQTRedeem.json';
 import L2SQToken from './artifacts/contracts/l2/L2SQToken.sol/L2SQToken.json';
 
 export default {

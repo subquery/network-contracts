@@ -15,8 +15,8 @@ export const projectMetadatas = [
     'QmZGAZQ7e1oZgfuK4V29Fa5gveYK3G2zEwvUzTZKNvSBsm',
     'QmeeqBHdVu7iYnhVE9ZiYEKTWe4jXVUD5pVoGXT6LbCP2t',
     'QmeHdVHdVuHdVnhVE9ZiYEKTWe4jXVUD5HdVGXT6LbCHdV',
-    'QmeHdVHdVuHdVnhVE9ZiYEKTWe4jXVUD5HdVGXT6LbCHdd'
-]
+    'QmeHdVHdVuHdVnhVE9ZiYEKTWe4jXVUD5HdVGXT6LbCHdd',
+];
 
 export const metadatas = [
     '0xab3921276c8067fe0c82def3e5ecfd8447f1961bc85768c2a56e6bd26d3c0c55',

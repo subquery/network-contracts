@@ -5,4 +5,4 @@ export * from './sdk';
 export * from './rootSdk';
 export * from './typechain';
 export * from './types';
-export * from './networks'
+export * from './networks';

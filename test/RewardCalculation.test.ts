@@ -1,9 +1,9 @@
 // Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {BigNumber} from 'ethers';
-import {ethers, waffle} from 'hardhat';
+import { expect } from 'chai';
+import { BigNumber } from 'ethers';
+import { ethers, waffle } from 'hardhat';
 import {
     EraManager,
     ERC20,
@@ -15,9 +15,9 @@ import {
     Staking,
     StakingManager,
 } from '../src';
-import {DEPLOYMENT_ID, METADATA_HASH, VERSION} from './constants';
+import { DEPLOYMENT_ID, METADATA_HASH, VERSION } from './constants';
 import { etherParse, futureTimestamp, registerRunner, startNewEra, time } from './helper';
-import {deployContracts} from './setup';
+import { deployContracts } from './setup';
 
 const BN = (value: string | number): BigNumber => BigNumber.from(value);
 
@@ -39,18 +39,23 @@ describe.skip('RewardsDistributor Contract', () => {
     const collectRewards = async () => {
         const currentEra = await eraManager.eraNumber();
         await rewardsDistributor.collectAndDistributeEraRewards(currentEra, runner.address);
-    }
+    };
 
-    const checkRewardInfo = async (_accSQTPerStake: BigNumber, _eraReward: BigNumber, _rewardDebt: BigNumber, delegator?: string) => {
-        const {accSQTPerStake, eraReward} = await rewardsDistributor.getRewardInfo(runner.address);
+    const checkRewardInfo = async (
+        _accSQTPerStake: BigNumber,
+        _eraReward: BigNumber,
+        _rewardDebt: BigNumber,
+        delegator?: string
+    ) => {
+        const { accSQTPerStake, eraReward } = await rewardsDistributor.getRewardInfo(runner.address);
         const rewardDebt = await rewardsDistributor.getRewardDebt(runner.address, delegator ?? runner.address);
 
         expect(eraReward).to.be.equal(_eraReward);
         expect(accSQTPerStake).to.be.equal(_accSQTPerStake);
         expect(rewardDebt).to.be.equal(_rewardDebt);
 
-        return {accSQTPerStake, eraReward, rewardDebt};
-    }
+        return { accSQTPerStake, eraReward, rewardDebt };
+    };
 
     const deployer = () => deployContracts(root, delegator2);
     before(async () => {
@@ -58,7 +63,6 @@ describe.skip('RewardsDistributor Contract', () => {
     });
 
     describe('Agreement cross 2 era', async () => {
-
         beforeEach(async () => {
             const deployment = await waffle.loadFixture(deployer);
             indexerRegistry = deployment.indexerRegistry;
@@ -88,7 +92,13 @@ describe.skip('RewardsDistributor Contract', () => {
             // start indexing project
             await projectRegistry.connect(runner).startService(DEPLOYMENT_ID);
             // create plan
-            await planManager.createPlanTemplate(time.duration.days(7).toString(), 1000, 100, token.address, METADATA_HASH);
+            await planManager.createPlanTemplate(
+                time.duration.days(7).toString(),
+                1000,
+                100,
+                token.address,
+                METADATA_HASH
+            );
             await planManager.connect(runner).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
             // purchase plan
             await startNewEra(mockProvider, eraManager);
@@ -191,7 +201,13 @@ describe.skip('RewardsDistributor Contract', () => {
             // start indexing project
             await projectRegistry.connect(runner).startService(DEPLOYMENT_ID);
             // create plan
-            await planManager.createPlanTemplate(time.duration.days(35).toString(), 1000, 100, token.address, METADATA_HASH);
+            await planManager.createPlanTemplate(
+                time.duration.days(35).toString(),
+                1000,
+                100,
+                token.address,
+                METADATA_HASH
+            );
             await planManager.connect(runner).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
             // purchase plan
             await startNewEra(mockProvider, eraManager);
@@ -237,11 +253,11 @@ describe.skip('RewardsDistributor Contract', () => {
             await startNewEra(mockProvider, eraManager);
             await collectRewards();
             // accSQTPerStake = 10*10e-12, eraReward = 2000, rewardDebt = 6000
-            const {
-                accSQTPerStake,
-                eraReward,
-                rewardDebt
-            } = await checkRewardInfo(BN('9999980158730'), BN('2000000000000000000000'), BN('5999980158730000000000'));
+            const { accSQTPerStake, eraReward, rewardDebt } = await checkRewardInfo(
+                BN('9999980158730'),
+                BN('2000000000000000000000'),
+                BN('5999980158730000000000')
+            );
             console.log('accSQTPerStake:', accSQTPerStake.toString());
             console.log('eraReward:', eraReward.toString());
             console.log('rewardDebt:', rewardDebt.toString());
@@ -277,8 +293,18 @@ describe.skip('RewardsDistributor Contract', () => {
             await rewardsHelper.indexerCatchup(runner.address);
             await collectRewards();
             // accSQTPerStake = 2*10e-12, eraReward = 2000, rewardDebt = 4000
-            await checkRewardInfo(BN('5999980158730'), BN('2000000000000000000000'), BN('3999980158730000000000'), runner.address);
-            await checkRewardInfo(BN('5999980158730'), BN('2000000000000000000000'), BN('5999980158730000000000'), delegator1.address);
+            await checkRewardInfo(
+                BN('5999980158730'),
+                BN('2000000000000000000000'),
+                BN('3999980158730000000000'),
+                runner.address
+            );
+            await checkRewardInfo(
+                BN('5999980158730'),
+                BN('2000000000000000000000'),
+                BN('5999980158730000000000'),
+                delegator1.address
+            );
 
             indexerRewards = await rewardsDistributor.userRewards(runner.address, runner.address);
             let delegatorRewards = await rewardsDistributor.userRewards(runner.address, delegator1.address);
@@ -286,12 +312,21 @@ describe.skip('RewardsDistributor Contract', () => {
             expect(indexerRewards).to.be.equal(BN('2000000000000000000000'));
             expect(delegatorRewards).to.be.equal(BN('0'));
 
-
             await startNewEra(mockProvider, eraManager);
             await collectRewards();
             // accSQTPerStake = 7*10e-12, eraReward = 2000, rewardDebt = 0
-            await checkRewardInfo(BN('6999980158730'), BN('2000000000000000000000'), BN('3999980158730000000000'), runner.address);
-            await checkRewardInfo(BN('6999980158730'), BN('2000000000000000000000'), BN('5999980158730000000000'), delegator1.address);
+            await checkRewardInfo(
+                BN('6999980158730'),
+                BN('2000000000000000000000'),
+                BN('3999980158730000000000'),
+                runner.address
+            );
+            await checkRewardInfo(
+                BN('6999980158730'),
+                BN('2000000000000000000000'),
+                BN('5999980158730000000000'),
+                delegator1.address
+            );
 
             indexerRewards = await rewardsDistributor.userRewards(runner.address, runner.address);
             delegatorRewards = await rewardsDistributor.userRewards(runner.address, delegator1.address);

@@ -32,14 +32,8 @@ import {
     ERC20,
     RewardsBooster,
 } from './typechain';
-import {
-    CONTRACT_FACTORY,
-    ContractDeploymentInner,
-    ContractName,
-    FactoryContstructor,
-    SdkOptions
-} from './types';
-import assert from "assert";
+import { CONTRACT_FACTORY, ContractDeploymentInner, ContractName, FactoryContstructor, SdkOptions } from './types';
+import assert from 'assert';
 
 // HOTFIX: Contract names are not consistent between deployments and privous var names
 const contractNameConversion: Record<string, string> = {
@@ -78,8 +72,15 @@ export class ContractSDK {
     readonly sqtGift!: SQTGift;
     readonly sqtRedeem!: SQTRedeem;
 
-    constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options: SdkOptions) {
-        assert(this.options.deploymentDetails || DEPLOYMENT_DETAILS[options.network],' missing contract deployment info');
+    constructor(
+        // eslint-disable-next-line no-unused-vars
+        private readonly signerOrProvider: AbstractProvider | Signer,
+        public readonly options: SdkOptions
+    ) {
+        assert(
+            this.options.deploymentDetails || DEPLOYMENT_DETAILS[options.network],
+            ' missing contract deployment info'
+        );
         this._contractDeployments = this.options.deploymentDetails ?? DEPLOYMENT_DETAILS[options.network]!.child;
         this._init();
     }

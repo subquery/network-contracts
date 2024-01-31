@@ -18,8 +18,8 @@ describe('TokenExchange Contract', () => {
     let SQToken: ERC20;
     let sqtAddress: string;
 
-    const deployer = ()=>deployContracts(wallet_0, wallet_0);
-    before(async ()=>{
+    const deployer = () => deployContracts(wallet_0, wallet_0);
+    before(async () => {
         [wallet_0, wallet_1] = await ethers.getSigners();
     });
 
@@ -43,14 +43,19 @@ describe('TokenExchange Contract', () => {
     describe('order operations', () => {
         it('send order should work', async () => {
             expect(await tokenExchange.nextOrderId()).to.be.eq(1);
-            await expect(tokenExchange.sendOrder(
-                sqtAddress,
-                ksqtAddress,
-                etherParse('1'),
-                etherParse('2'),
-                etherParse('3000')
-            )).to.be.emit(tokenExchange, 'ExchangeOrderSent')
-              .withArgs(1, wallet_0.address, sqtAddress, ksqtAddress, etherParse('1'), etherParse('2'), etherParse('3000'));
+            await expect(
+                tokenExchange.sendOrder(sqtAddress, ksqtAddress, etherParse('1'), etherParse('2'), etherParse('3000'))
+            )
+                .to.be.emit(tokenExchange, 'ExchangeOrderSent')
+                .withArgs(
+                    1,
+                    wallet_0.address,
+                    sqtAddress,
+                    ksqtAddress,
+                    etherParse('1'),
+                    etherParse('2'),
+                    etherParse('3000')
+                );
 
             const order = await tokenExchange.orders(1);
             expect(order.sender).to.be.eq(wallet_0.address);
@@ -63,24 +68,14 @@ describe('TokenExchange Contract', () => {
 
         it('send order with invalid parameters should fail', async () => {
             await expect(
-                tokenExchange.sendOrder(
-                    sqtAddress,
-                    ksqtAddress,
-                    etherParse('1'),
-                    etherParse('2'),
-                    0,
-                )
+                tokenExchange.sendOrder(sqtAddress, ksqtAddress, etherParse('1'), etherParse('2'), 0)
             ).to.be.revertedWith('TE001');
 
             await expect(
-              tokenExchange.connect(wallet_1).sendOrder(
-                  sqtAddress,
-                  ksqtAddress,
-                  etherParse('1'),
-                  etherParse('2'),
-                  etherParse('3000'),
-              )
-          ).to.be.revertedWith(revertrMsg.notOwner);
+                tokenExchange
+                    .connect(wallet_1)
+                    .sendOrder(sqtAddress, ksqtAddress, etherParse('1'), etherParse('2'), etherParse('3000'))
+            ).to.be.revertedWith(revertrMsg.notOwner);
         });
         it('owner cancel the order should work', async () => {
             await tokenExchange.sendOrder(
@@ -93,12 +88,12 @@ describe('TokenExchange Contract', () => {
 
             await expect(tokenExchange.connect(wallet_1).cancelOrder(1)).to.be.revertedWith(revertrMsg.notOwner);
             await expect(tokenExchange.cancelOrder(1))
-              .to.be.emit(tokenExchange, 'OrderSettled')
-              .withArgs(1, sqtAddress, ksqtAddress, etherParse('3000'));
-            
+                .to.be.emit(tokenExchange, 'OrderSettled')
+                .withArgs(1, sqtAddress, ksqtAddress, etherParse('3000'));
+
             expect(await SQToken.balanceOf(tokenExchange.address)).to.be.eq(etherParse('0'));
             expect((await tokenExchange.orders(1)).sender).to.be.eq(ZERO_ADDRESS);
-            await expect(tokenExchange.cancelOrder(1)).to.be.revertedWith("TE002");
+            await expect(tokenExchange.cancelOrder(1)).to.be.revertedWith('TE002');
         });
     });
 
@@ -109,33 +104,29 @@ describe('TokenExchange Contract', () => {
                 ksqtAddress,
                 etherParse('1'),
                 etherParse('2'),
-                etherParse('3000'),
+                etherParse('3000')
             );
         });
         it('trade on exist order should work', async () => {
-          const totalKSQT = await kSQToken.totalSupply();
-          expect(await tokenExchange.connect(wallet_1).trade(1, etherParse('1000')))
-            .to.be.emit(tokenExchange, 'Trade')
-            .withArgs(1, sqtAddress, ksqtAddress, etherParse('500'), etherParse('1000'));
+            const totalKSQT = await kSQToken.totalSupply();
+            expect(await tokenExchange.connect(wallet_1).trade(1, etherParse('1000')))
+                .to.be.emit(tokenExchange, 'Trade')
+                .withArgs(1, sqtAddress, ksqtAddress, etherParse('500'), etherParse('1000'));
 
-          expect((await tokenExchange.orders(1)).tokenGiveBalance).to.be.eq(etherParse('2500'));
-          expect(await SQToken.balanceOf(tokenExchange.address)).to.be.eq(etherParse('2500'));
-          expect(await SQToken.balanceOf(wallet_1.address)).to.be.eq(etherParse('500'));
-          expect(await kSQToken.balanceOf(tokenExchange.address)).to.be.eq(etherParse('0'));
-          expect(await kSQToken.balanceOf(wallet_1.address)).to.be.eq(etherParse('0'));
-          expect(await kSQToken.totalSupply()).to.be.eq(totalKSQT.sub(etherParse('1000')));
+            expect((await tokenExchange.orders(1)).tokenGiveBalance).to.be.eq(etherParse('2500'));
+            expect(await SQToken.balanceOf(tokenExchange.address)).to.be.eq(etherParse('2500'));
+            expect(await SQToken.balanceOf(wallet_1.address)).to.be.eq(etherParse('500'));
+            expect(await kSQToken.balanceOf(tokenExchange.address)).to.be.eq(etherParse('0'));
+            expect(await kSQToken.balanceOf(wallet_1.address)).to.be.eq(etherParse('0'));
+            expect(await kSQToken.totalSupply()).to.be.eq(totalKSQT.sub(etherParse('1000')));
         });
         it('trade on invalid order should fail', async () => {
-          await expect(tokenExchange.connect(wallet_1).trade(10, etherParse('2'))).to.be.revertedWith(
-              'TE002'
-          );
+            await expect(tokenExchange.connect(wallet_1).trade(10, etherParse('2'))).to.be.revertedWith('TE002');
         });
         it('trade over order balance should fail', async () => {
             await kSQToken.transfer(wallet_1.address, etherParse('8000'));
             await kSQToken.connect(wallet_1).approve(tokenExchange.address, etherParse('8000'));
-            await expect(tokenExchange.connect(wallet_1).trade(1, etherParse('8000'))).to.be.revertedWith(
-                'TE003'
-            );
+            await expect(tokenExchange.connect(wallet_1).trade(1, etherParse('8000'))).to.be.revertedWith('TE003');
         });
     });
 });

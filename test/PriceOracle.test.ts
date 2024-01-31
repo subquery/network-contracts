@@ -15,9 +15,8 @@ describe('PriceOracle Contract', () => {
     const assetTo = '0x0000000000000000000000000000000000000001';
     const price = 100; // 1 assetA to 100 assetB
 
-
-    const deployer = ()=>deployContracts(wallet_0, wallet_1);
-    before(async ()=>{
+    const deployer = () => deployContracts(wallet_0, wallet_1);
+    before(async () => {
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
     });
 
@@ -43,16 +42,16 @@ describe('PriceOracle Contract', () => {
             const fromPrice = 1e12;
             const price = 100;
             const enlargement = await priceOracle.enlargementFactor();
-            expect(await priceOracle.getAssetPrice(assetFrom,assetTo)).to.eq(enlargement.mul(price));
+            expect(await priceOracle.getAssetPrice(assetFrom, assetTo)).to.eq(enlargement.mul(price));
             const toPrice = await priceOracle.convertPrice(assetFrom, assetTo, fromPrice);
-            await expect(toPrice.toNumber()).to.eq(fromPrice*price)
-        })
+            await expect(toPrice.toNumber()).to.eq(fromPrice * price);
+        });
         it('return directly for same asset', async () => {
             const fromPrice = 1e12;
             const toPrice = await priceOracle.convertPrice(assetFrom, assetFrom, fromPrice);
-            await expect(toPrice).to.eq(fromPrice)
-        })
-    })
+            await expect(toPrice).to.eq(fromPrice);
+        });
+    });
 
     describe('set price', () => {
         it('controller set price should work', async () => {
@@ -63,7 +62,7 @@ describe('PriceOracle Contract', () => {
 
             const price1 = (price / 100) * 91; // -9%
             await priceOracle.connect(wallet_1).setAssetPrice(assetFrom, assetTo, 1, price1);
-            await priceOracle.setAssetPrice(assetFrom, assetTo,1, price);
+            await priceOracle.setAssetPrice(assetFrom, assetTo, 1, price);
 
             // time limit
             await expect(priceOracle.connect(wallet_1).setAssetPrice(assetFrom, assetTo, 1, price1)).to.be.revertedWith(

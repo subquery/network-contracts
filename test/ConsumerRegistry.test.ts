@@ -11,9 +11,8 @@ describe('ConsumerRegistry Contract', () => {
     let consumerRegistry: ConsumerRegistry;
     let consumerHost: ConsumerHost;
 
-
-    const deployer = ()=>deployContracts(wallet_0, wallet_1);
-    before(async ()=>{
+    const deployer = () => deployContracts(wallet_0, wallet_1);
+    before(async () => {
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
     });
 

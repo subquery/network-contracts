@@ -1,12 +1,12 @@
 // Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import type {Provider as AbstractProvider} from '@ethersproject/abstract-provider';
-import {Signer} from 'ethers';
-import {DEPLOYMENT_DETAILS} from './deployments';
-import {ERC20, SQToken, Vesting} from './typechain';
-import {CONTRACT_FACTORY, ContractDeploymentInner, ContractName, FactoryContstructor, SdkOptions} from './types';
-import assert from "assert";
+import type { Provider as AbstractProvider } from '@ethersproject/abstract-provider';
+import { Signer } from 'ethers';
+import { DEPLOYMENT_DETAILS } from './deployments';
+import { ERC20, SQToken, Vesting } from './typechain';
+import { CONTRACT_FACTORY, ContractDeploymentInner, ContractName, FactoryContstructor, SdkOptions } from './types';
+import assert from 'assert';
 
 // HOTFIX: Contract names are not consistent between deployments and privous var names
 const contractNameConversion: Record<string, string> = {
@@ -16,7 +16,6 @@ const contractNameConversion: Record<string, string> = {
 
 const ROOT_CONTRACTS = ['SQToken', 'Vesting', 'VTSQToken'];
 
-
 export class RootContractSDK {
     private _contractDeployments: ContractDeploymentInner;
     private _signerOrProvider: AbstractProvider | Signer;
@@ -25,8 +24,14 @@ export class RootContractSDK {
     readonly vtSQToken!: ERC20;
     readonly vesting!: Vesting;
 
-    constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options: SdkOptions) {
-        assert(this.options.deploymentDetails || DEPLOYMENT_DETAILS[options.network], ' missing contract deployment info');
+    constructor(
+        private readonly signerOrProvider: AbstractProvider | Signer,
+        public readonly options: SdkOptions
+    ) {
+        assert(
+            this.options.deploymentDetails || DEPLOYMENT_DETAILS[options.network],
+            ' missing contract deployment info'
+        );
         this._contractDeployments = this.options.deploymentDetails ?? DEPLOYMENT_DETAILS[options.network]!.root;
         this._signerOrProvider = signerOrProvider;
         this._init();
@@ -37,15 +42,15 @@ export class RootContractSDK {
     }
 
     private async _init() {
-        const contracts = Object.entries(this._contractDeployments).filter( ([name]) =>
-            ROOT_CONTRACTS.includes(name)
-        ).map(([name, contract]) => ({
-            address: contract.address,
-            factory: CONTRACT_FACTORY[name as ContractName] as FactoryContstructor,
-            name: name as ContractName,
-        }));
+        const contracts = Object.entries(this._contractDeployments)
+            .filter(([name]) => ROOT_CONTRACTS.includes(name))
+            .map(([name, contract]) => ({
+                address: contract.address,
+                factory: CONTRACT_FACTORY[name as ContractName] as FactoryContstructor,
+                name: name as ContractName,
+            }));
 
-        for (const {name, factory, address} of contracts) {
+        for (const { name, factory, address } of contracts) {
             if (!factory) continue;
             const contractInstance = factory.connect(address, this._signerOrProvider);
             if (contractInstance) {

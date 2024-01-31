@@ -107,8 +107,9 @@ export type Contracts = {
     sqtRedeem: SQTRedeem;
 };
 
-export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ bytecode: string }, FactoryContstructor]>> =
-{
+export const UPGRADEBAL_CONTRACTS: Partial<
+    Record<keyof typeof CONTRACTS, [{ bytecode: string }, FactoryContstructor]>
+> = {
     InflationController: [CONTRACTS.InflationController, InflationController__factory],
     IndexerRegistry: [CONTRACTS.IndexerRegistry, IndexerRegistry__factory],
     PlanManager: [CONTRACTS.PlanManager, PlanManager__factory],

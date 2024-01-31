@@ -6,25 +6,25 @@
   account: consumer1
   projectType: 0
   metadata:
-    name: Staking Threshold - Polkadot
-    description: Tracking the miminum staking requirements for being validator in polkadot
-    websiteUrl: https://subquery.network
-    codeUrl: https://github.com/subquery/tutorials-validator-threshold
+      name: Staking Threshold - Polkadot
+      description: Tracking the miminum staking requirements for being validator in polkadot
+      websiteUrl: https://subquery.network
+      codeUrl: https://github.com/subquery/tutorials-validator-threshold
   deployments:
-    - deploymentId: QmTQTnBTcvv3Eb3M6neDiwuubWVDAoqyAgKmXtTtJKAHoH
-      version:
-        version: 0.1.0
-        description: init
+      - deploymentId: QmTQTnBTcvv3Eb3M6neDiwuubWVDAoqyAgKmXtTtJKAHoH
+        version:
+            version: 0.1.0
+            description: init
 - kind: Project
   account: consumer1
   projectType: 0
   metadata:
-    name: Staking Threshold - Kusama
-    description: Tracking the miminum staking requirements for being validator in Kusama
-    websiteUrl: https://subquery.network
-    codeUrl: https://github.com/subquery/tutorials-validator-threshold
+      name: Staking Threshold - Kusama
+      description: Tracking the miminum staking requirements for being validator in Kusama
+      websiteUrl: https://subquery.network
+      codeUrl: https://github.com/subquery/tutorials-validator-threshold
   deployments:
-    - deploymentId: QmVcksANdHhnA2YEguJ8LvsftNkipTwkgV9eJyDPZFUqHm
-      version:
-        version: 0.1.0
-        description: init
+      - deploymentId: QmVcksANdHhnA2YEguJ8LvsftNkipTwkgV9eJyDPZFUqHm
+        version:
+            version: 0.1.0
+            description: init

@@ -12,9 +12,9 @@ import {
     ContractTransaction,
     Wallet as EthWallet,
     utils,
-    BigNumberish
+    BigNumberish,
 } from 'ethers';
-import { ethers } from "hardhat";
+import { ethers } from 'hardhat';
 import {
     EraManager,
     IndexerRegistry,
@@ -22,10 +22,12 @@ import {
     PurchaseOfferMarket,
     ERC20,
     ProjectType,
-    ProjectRegistry, RewardsBooster, StateChannel
+    ProjectRegistry,
+    RewardsBooster,
+    StateChannel,
 } from '../src';
 import { METADATA_HASH } from './constants';
-import { expect } from "chai";
+import { expect } from 'chai';
 
 export { constants, time };
 
@@ -50,20 +52,20 @@ export async function blockTravel(provider: MockProvider, blocks: number, interv
 }
 
 export async function stopAutoMine(provider: MockProvider) {
-    await provider.send("evm_setAutomine", [false]);
+    await provider.send('evm_setAutomine', [false]);
 }
 
 export async function resumeAutoMine(provider: MockProvider, increaseTime = 0) {
     if (increaseTime) {
         await provider.send('evm_increaseTime', [increaseTime]);
     }
-    await provider.send("evm_setAutomine", [true]);
+    await provider.send('evm_setAutomine', [true]);
     await provider.send('evm_mine', []);
 }
 
-export async function wrapTxs(provider: MockProvider, callFn: ()=>Promise<void>) {
+export async function wrapTxs(provider: MockProvider, callFn: () => Promise<void>) {
     await stopAutoMine(provider);
-    await callFn().finally(()=> resumeAutoMine(provider))
+    await callFn().finally(() => resumeAutoMine(provider));
 }
 
 export async function lastestBlock(provider: MockProvider | StaticJsonRpcProvider) {
@@ -93,7 +95,7 @@ export async function registerRunner(
     rootWallet: Wallet,
     wallet: Wallet,
     amount: BigNumberish,
-    rate: BigNumberish = 0,
+    rate: BigNumberish = 0
 ) {
     await token.connect(rootWallet).transfer(wallet.address, amount);
     await token.connect(wallet).increaseAllowance(staking.address, amount);
@@ -124,17 +126,34 @@ export async function createPurchaseOffer(
         minimumStakingAmount,
         expireDate
     );
-    const evt = await eventFrom(tx, purchaseOfferMarket, 'PurchaseOfferCreated(address,uint256,bytes32,uint256,uint256,uint16,uint256,uint256,uint256)');
+    const evt = await eventFrom(
+        tx,
+        purchaseOfferMarket,
+        'PurchaseOfferCreated(address,uint256,bytes32,uint256,uint256,uint16,uint256,uint256,uint256)'
+    );
     return evt.offerId;
 }
 
-export function createProject(projectRegistry: ProjectRegistry, wallet: SignerWithAddress, projectMetadata: string, deploymentMetadata: string, deploymentId: string, projectType: ProjectType) {
+export function createProject(
+    projectRegistry: ProjectRegistry,
+    wallet: SignerWithAddress,
+    projectMetadata: string,
+    deploymentMetadata: string,
+    deploymentId: string,
+    projectType: ProjectType
+) {
     return projectRegistry
         .connect(wallet)
         .createProject(projectMetadata, deploymentMetadata, deploymentId, projectType);
 }
 
-export async function boosterDeployment(token: ERC20, rewardsBooster: RewardsBooster, signer: SignerWithAddress, deployment: string, amount) {
+export async function boosterDeployment(
+    token: ERC20,
+    rewardsBooster: RewardsBooster,
+    signer: SignerWithAddress,
+    deployment: string,
+    amount
+) {
     await token.connect(signer).increaseAllowance(rewardsBooster.address, amount);
     await rewardsBooster.connect(signer).boostDeployment(deployment, amount);
 }
@@ -220,11 +239,15 @@ export async function acceptPlan(
 
 export function etherParse(etherNum: string | number) {
     const ether = typeof etherNum === 'string' ? etherNum : etherNum.toString();
-    return utils.parseEther(ether)
+    return utils.parseEther(ether);
 }
 
 export type Event = utils.Result;
-export async function eventFrom(tx: ContractTransaction, contract: BaseContract, event: string): Promise<Event|undefined> {
+export async function eventFrom(
+    tx: ContractTransaction,
+    contract: BaseContract,
+    event: string
+): Promise<Event | undefined> {
     const receipt = await tx.wait();
     const evt = receipt.events.find((log) => log.topics[0] === utils.id(event));
     if (!evt) return;
@@ -235,14 +258,14 @@ export async function eventsFrom(tx: ContractTransaction, contract: BaseContract
     const receipt = await tx.wait();
     const evts = receipt.events.filter((log) => log.topics[0] === utils.id(event));
     const eventName = event.split('(')[0];
-    return evts.map(evt => contract.interface
-        .decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics)
+    return evts.map((evt) =>
+        contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics)
     );
 }
 
 export async function deploySUSD(siger: SignerWithAddress) {
-    const MockSUSD = await ethers.getContractFactory("SUSD", siger);
-    const USDC = await MockSUSD.deploy(ethers.utils.parseUnits("1000000000", 6));
+    const MockSUSD = await ethers.getContractFactory('SUSD', siger);
+    const USDC = await MockSUSD.deploy(ethers.utils.parseUnits('1000000000', 6));
 
     return USDC;
 }
@@ -251,4 +274,4 @@ export const revertrMsg = {
     notOwner: 'Ownable: caller is not the owner',
     insufficientBalance: 'ERC20: transfer amount exceeds balance',
     insufficientAllowance: 'ERC20: insufficient allowance',
-}
+};

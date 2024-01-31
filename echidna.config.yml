@@ -3,9 +3,9 @@ testMode: assertion
 #maximum time between generated txs; default is one week
 maxTimeDelay: 31556952 # approximately 1 year
 #solcArgs allows special args to solc
-solcArgs: "--optimize --optimize-runs 200"
+solcArgs: '--optimize --optimize-runs 200'
 #testLimit is the number of test sequences to run
 testLimit: 50000
 #seqLen defines how many transactions are in a test sequence
 seqLen: 100
-corpus-dir: "corpus"
+corpus-dir: 'corpus'

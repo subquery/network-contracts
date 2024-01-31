@@ -4,13 +4,7 @@
 import { expect } from 'chai';
 import { BigNumber, BigNumberish, BytesLike, Wallet } from 'ethers';
 import { ethers, waffle } from 'hardhat';
-import {
-    ConsumerHost,
-    IndexerRegistry,
-    ERC20,
-    Staking,
-    StateChannel
-} from '../src';
+import { ConsumerHost, IndexerRegistry, ERC20, Staking, StateChannel } from '../src';
 import { deploymentIds } from './constants';
 import { delay, etherParse, registerRunner } from './helper';
 import { deployContracts } from './setup';
@@ -180,9 +174,8 @@ describe('ConsumerHost Contract', () => {
         };
     };
 
-
-    const deployer = ()=>deployContracts(wallet_0, runner);
-    before(async ()=>{
+    const deployer = () => deployContracts(wallet_0, runner);
+    before(async () => {
         [wallet_0, runner, consumer, consumer2, hoster] = await ethers.getSigners();
     });
 
@@ -299,7 +292,6 @@ describe('ConsumerHost Contract', () => {
                 60,
                 false
             );
-            const fee = await consumerHost.feePerMill();
             expect((await consumerHost.consumers(consumer.address)).balance).to.equal(etherParse('8.99')); // 10 - 1 - 0.01
             expect(await consumerHost.channels(channelId)).to.equal(consumer.address);
 
@@ -337,9 +329,7 @@ describe('ConsumerHost Contract', () => {
             const fee1 = await consumerHost.fee();
             expect(fee1).to.equal(etherParse('0.04')); // 0.01 + 0.02 + 0.01
             await consumerHost.connect(wallet_0).setFeeRate(BigNumber.from(20000));
-            await expect(consumerHost.connect(wallet_0).setFeeRate(BigNumber.from(1010000))).to.be.revertedWith(
-                'C001'
-            );
+            await expect(consumerHost.connect(wallet_0).setFeeRate(BigNumber.from(1010000))).to.be.revertedWith('C001');
             await fundChannel(
                 channelId3,
                 runner,

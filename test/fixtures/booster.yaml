@@ -1,8 +1,7 @@
-
 - kind: Account
   name: user1
   #  address: 0x5e15cE35a3821e15d36988D9E0DD181c7c371A07
-  pk: ""
+  pk: ''
 # Eth Private Rpc
 - kind: DeploymentBooster
   deploymentId: QmTeutqL8wQqzAdG8MNWMXxoz1LDkkRZkY6HEw1HbdT2um
@@ -14,11 +13,10 @@
   user: user1
   amount: 1000
 
-
 - kind: Account
   name: user2
   #  address: 0x23ac7D57cC5cA16E12AC09BbC293b0495768a061
-  pk: ""
+  pk: ''
 # Eth Private Rpc
 - kind: DeploymentBooster
   deploymentId: QmTeutqL8wQqzAdG8MNWMXxoz1LDkkRZkY6HEw1HbdT2um

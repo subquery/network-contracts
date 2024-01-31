@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { BigNumber } from "ethers";
+import { BigNumber } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 import {
     EraManager,
@@ -15,7 +15,9 @@ import {
     SUSD__factory,
     ServiceAgreementRegistry,
     Settings,
-    Staking, ERC20, SQContracts,
+    Staking,
+    ERC20,
+    SQContracts,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, ZERO_ADDRESS } from './constants';
 import { constants, etherParse, futureTimestamp, registerRunner, startNewEra, time, timeTravel } from './helper';
@@ -55,7 +57,7 @@ describe.skip('PermissionedExchange Contract', () => {
         serviceAgreementRegistry = deployment.serviceAgreementRegistry;
 
         //deploy usd
-        usdToken = await new SUSD__factory(wallet_0).deploy(etherParse("10000000000"));
+        usdToken = await new SUSD__factory(wallet_0).deploy(etherParse('10000000000'));
         await usdToken.deployTransaction.wait();
         usdAddress = usdToken.address;
 
@@ -118,11 +120,17 @@ describe.skip('PermissionedExchange Contract', () => {
             await sqToken.transfer(consumer.address, etherParse('10'));
             await sqToken.connect(consumer).increaseAllowance(planManager.address, etherParse('10'));
             // create query project
-            await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID,0);
+            await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
             // wallet_0 start project
             await projectRegistry.connect(runner).startService(DEPLOYMENT_ID);
             // create plan template
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, sqToken.address, METADATA_HASH);
+            await planManager.createPlanTemplate(
+                time.duration.days(3).toString(),
+                1000,
+                100,
+                sqToken.address,
+                METADATA_HASH
+            );
             // default plan -> planId: 1
             await planManager.connect(runner).createPlan(etherParse('10'), 0, constants.ZERO_BYTES32);
             await sqToken.connect(consumer).increaseAllowance(serviceAgreementRegistry.address, etherParse('50'));
@@ -147,15 +155,17 @@ describe.skip('PermissionedExchange Contract', () => {
         it('only send order should work', async () => {
             expect(await permissionedExchange.nextOrderId()).to.be.eq(1);
             const expiredTime = await futureTimestamp(mockProvider, 60 * 60 * 24);
-            await expect(permissionedExchange.sendOrder(
-                usdAddress,
-                sqtAddress,
-                etherParse('1'),
-                etherParse('5'),
-                expiredTime,
-                0,
-                etherParse('10')
-            ))
+            await expect(
+                permissionedExchange.sendOrder(
+                    usdAddress,
+                    sqtAddress,
+                    etherParse('1'),
+                    etherParse('5'),
+                    expiredTime,
+                    0,
+                    etherParse('10')
+                )
+            )
                 .to.be.emit(permissionedExchange, 'ExchangeOrderSent')
                 .withArgs(1, wallet_0.address, usdAddress, sqtAddress, etherParse('1'), etherParse('5'), expiredTime);
             expect(await permissionedExchange.nextOrderId()).to.be.eq(2);
@@ -169,15 +179,17 @@ describe.skip('PermissionedExchange Contract', () => {
         it('add liquidity to order should work', async () => {
             expect(await permissionedExchange.nextOrderId()).to.be.eq(1);
             const expiredTime = await futureTimestamp(mockProvider, 60 * 60 * 24);
-            await expect(permissionedExchange.sendOrder(
-                usdAddress,
-                sqtAddress,
-                etherParse('1'),
-                etherParse('5'),
-                expiredTime,
-                0,
-                etherParse('10')
-            ))
+            await expect(
+                permissionedExchange.sendOrder(
+                    usdAddress,
+                    sqtAddress,
+                    etherParse('1'),
+                    etherParse('5'),
+                    expiredTime,
+                    0,
+                    etherParse('10')
+                )
+            )
                 .to.be.emit(permissionedExchange, 'ExchangeOrderSent')
                 .withArgs(1, wallet_0.address, usdAddress, sqtAddress, etherParse('1'), etherParse('5'), expiredTime);
 
@@ -233,9 +245,7 @@ describe.skip('PermissionedExchange Contract', () => {
                 0,
                 etherParse('10')
             );
-            await expect(permissionedExchange.connect(wallet_1).cancelOrder(1)).to.be.revertedWith(
-                'PE011'
-            );
+            await expect(permissionedExchange.connect(wallet_1).cancelOrder(1)).to.be.revertedWith('PE011');
             await permissionedExchange.cancelOrder(1);
             expect(await usdToken.balanceOf(permissionedExchange.address)).to.be.eq(etherParse('0'));
             expect(await (await permissionedExchange.orders(1)).sender).to.be.eq(ZERO_ADDRESS);
@@ -251,16 +261,12 @@ describe.skip('PermissionedExchange Contract', () => {
                 0,
                 etherParse('10')
             );
-            await expect(permissionedExchange.connect(wallet_2).settleExpiredOrder(1)).to.be.revertedWith(
-                'PE010'
-            );
+            await expect(permissionedExchange.connect(wallet_2).settleExpiredOrder(1)).to.be.revertedWith('PE010');
             await timeTravel(mockProvider, 2 * 60 * 60 * 24);
             await permissionedExchange.connect(wallet_2).settleExpiredOrder(1);
             expect(await usdToken.balanceOf(permissionedExchange.address)).to.be.eq(etherParse('0'));
             expect(await (await permissionedExchange.orders(1)).sender).to.be.eq(ZERO_ADDRESS);
-            await expect(permissionedExchange.connect(wallet_2).settleExpiredOrder(0)).to.be.revertedWith(
-                'PE009'
-            );
+            await expect(permissionedExchange.connect(wallet_2).settleExpiredOrder(0)).to.be.revertedWith('PE009');
         });
     });
 
@@ -312,19 +318,21 @@ describe.skip('PermissionedExchange Contract', () => {
             await permissionedExchange.connect(wallet_2).trade(1, etherParse('100'));
             expect(await sqToken.balanceOf(wallet_2.address)).to.be.eq(sqtBefore.sub(etherParse('100')));
             expect(await usdToken.balanceOf(wallet_2.address)).to.be.eq(usdBefore.add(BigNumber.from(2e6)));
-            expect(await usdToken.balanceOf(permissionedExchange.address)).to.be.eq(exUsdBefore.sub(BigNumber.from(2e6)));
+            expect(await usdToken.balanceOf(permissionedExchange.address)).to.be.eq(
+                exUsdBefore.sub(BigNumber.from(2e6))
+            );
             expect(await sqToken.balanceOf(permissionedExchange.address)).to.be.eq(exSqtBefore);
             expect(await sqToken.balanceOf(wallet_0.address)).to.be.eq(sellerSqtBefore.add(etherParse('100')));
-            expect((await permissionedExchange.orders(1)).tokenGiveBalance).to.be.eq(order1Balance.sub(BigNumber.from(2e6)));
+            expect((await permissionedExchange.orders(1)).tokenGiveBalance).to.be.eq(
+                order1Balance.sub(BigNumber.from(2e6))
+            );
         });
         it('trade over quota should fail', async () => {
             let quota = await permissionedExchange.tradeQuota(sqToken.address, wallet_2.address);
             await permissionedExchange.connect(wallet_2).trade(1, quota);
             quota = await permissionedExchange.tradeQuota(sqToken.address, wallet_2.address);
             expect(quota).to.eq(BigNumber.from(0));
-            await expect(permissionedExchange.connect(wallet_2).trade(1, 1)).to.be.revertedWith(
-                'PE005'
-            );
+            await expect(permissionedExchange.connect(wallet_2).trade(1, 1)).to.be.revertedWith('PE005');
         });
         it('trade over order balance should fail', async () => {
             await permissionedExchange.connect(wallet_2).trade(3, etherParse('50')); // 1usd => 50 sqt
@@ -339,13 +347,9 @@ describe.skip('PermissionedExchange Contract', () => {
             const perAccountLimit = await permissionedExchange.tradeLimitationPerAccount();
             const accumulatedTrade = await permissionedExchange.accumulatedTrades(wallet_2.address);
             const tradable = perAccountLimit.sub(accumulatedTrade);
-            await expect(permissionedExchange.connect(wallet_2).trade(2, tradable.add(1))).to.be.revertedWith(
-                'PE013'
-            );
+            await expect(permissionedExchange.connect(wallet_2).trade(2, tradable.add(1))).to.be.revertedWith('PE013');
             await expect(permissionedExchange.connect(wallet_2).trade(2, tradable)).not.to.reverted;
-            await expect(permissionedExchange.connect(wallet_2).trade(2, 1)).to.be.revertedWith(
-                'PE013'
-            );
+            await expect(permissionedExchange.connect(wallet_2).trade(2, 1)).to.be.revertedWith('PE013');
         });
         it('trade stable coin over limit in a single transaction should fail', async () => {
             await permissionedExchange.setTradeLimitation(etherParse('1'));
@@ -354,13 +358,9 @@ describe.skip('PermissionedExchange Contract', () => {
             );
         });
         it('trade on invalid order should fail', async () => {
-            await expect(permissionedExchange.connect(wallet_2).trade(10, etherParse('2'))).to.be.revertedWith(
-                'PE006'
-            );
+            await expect(permissionedExchange.connect(wallet_2).trade(10, etherParse('2'))).to.be.revertedWith('PE006');
             await timeTravel(mockProvider, 2 * 60 * 60 * 24);
-            await expect(permissionedExchange.connect(wallet_2).trade(1, etherParse('2'))).to.be.revertedWith(
-                'PE006'
-            );
+            await expect(permissionedExchange.connect(wallet_2).trade(1, etherParse('2'))).to.be.revertedWith('PE006');
         });
     });
 
@@ -417,9 +417,7 @@ describe.skip('PermissionedExchange Contract', () => {
             // buy 50 sqt
             expect(exSqtBefore).to.eq(0);
             expect(order2BalanceBefore).to.eq(0);
-            await expect(permissionedExchange.connect(wallet_2).trade(2, 1)).to.be.revertedWith(
-                'PE008'
-            );
+            await expect(permissionedExchange.connect(wallet_2).trade(2, 1)).to.be.revertedWith('PE008');
             // sell 50 sqt, get 1 usd
             await permissionedExchange.connect(wallet_2).trade(1, etherParse('50'));
             expect(await usdToken.balanceOf(wallet_2.address)).to.be.eq(usdBefore.add(1e6));
@@ -429,7 +427,9 @@ describe.skip('PermissionedExchange Contract', () => {
             expect(await sqToken.balanceOf(wallet_0.address)).to.be.eq(sellerSqtBefore);
 
             expect((await permissionedExchange.orders(1)).tokenGiveBalance).to.be.eq(order1BalanceBefore.sub(1e6));
-            expect((await permissionedExchange.orders(2)).tokenGiveBalance).to.be.eq(order2BalanceBefore.add(etherParse('50')));
+            expect((await permissionedExchange.orders(2)).tokenGiveBalance).to.be.eq(
+                order2BalanceBefore.add(etherParse('50'))
+            );
 
             // buy 50 sqt, give 1 usd
             const usdBeforeW1 = await usdToken.balanceOf(wallet_1.address);
@@ -445,8 +445,9 @@ describe.skip('PermissionedExchange Contract', () => {
             expect(await usdToken.balanceOf(permissionedExchange.address)).to.be.eq(exUsdBefore.add(1e6));
 
             expect((await permissionedExchange.orders(1)).tokenGiveBalance).to.be.eq(order1BalanceBefore.add(1e6));
-            expect((await permissionedExchange.orders(2)).tokenGiveBalance).to.be.eq(order2BalanceBefore.sub(etherParse('50')));
-
+            expect((await permissionedExchange.orders(2)).tokenGiveBalance).to.be.eq(
+                order2BalanceBefore.sub(etherParse('50'))
+            );
         });
 
         it('cancel pair order should work', async () => {

@@ -14,7 +14,8 @@ import {
     RewardsHelper,
     ERC20,
     ServiceAgreementRegistry,
-    Staking, ProjectType,
+    Staking,
+    ProjectType,
 } from '../src';
 import { METADATA_HASH, VERSION, deploymentIds, poi } from './constants';
 import { createPurchaseOffer, etherParse, eventFrom, futureTimestamp, time, timeTravel } from './helper';
@@ -35,8 +36,8 @@ describe('Service Agreement Registry Contract', () => {
     // deprecated
     const minimumStakingAmount = etherParse('1000');
 
-    const deployer = ()=>deployContracts(wallet, wallet1);
-    before(async ()=>{
+    const deployer = () => deployContracts(wallet, wallet1);
+    before(async () => {
         [wallet, wallet1, wallet2] = await ethers.getSigners();
     });
 
@@ -82,9 +83,13 @@ describe('Service Agreement Registry Contract', () => {
     });
 
     const getAgreementIdFromTx = async (tx: ContractTransaction) => {
-        const event = await eventFrom(tx, serviceAgreementRegistry, 'ClosedAgreementCreated(address,address,bytes32,uint256)');
+        const event = await eventFrom(
+            tx,
+            serviceAgreementRegistry,
+            'ClosedAgreementCreated(address,address,bytes32,uint256)'
+        );
         return event?.serviceAgreementId;
-    }
+    };
 
     describe('Establish Service Agressment', () => {
         beforeEach(async () => {
@@ -95,9 +100,9 @@ describe('Service Agreement Registry Contract', () => {
             await indexerRegistry.setControllerAccount(wallet2.address);
 
             // create 3 query projects
-            await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[0],0);
-            await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[1],0);
-            await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[2],0);
+            await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[0], 0);
+            await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[1], 0);
+            await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[2], 0);
 
             await projectRegistry.startService(deploymentIds[0]);
 
@@ -167,9 +172,7 @@ describe('Service Agreement Registry Contract', () => {
                 minimumStakingAmount,
                 (await futureTimestamp(mockProvider)) + 86400
             );
-            await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(4, poi)).to.be.revertedWith(
-                'SA005'
-            );
+            await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(4, poi)).to.be.revertedWith('SA005');
         });
     });
 
@@ -189,12 +192,18 @@ describe('Service Agreement Registry Contract', () => {
                 .registerIndexer(etherParse('1000'), METADATA_HASH, 100, { gasLimit: '2000000' });
 
             // create query project
-            await projectRegistry.connect(wallet1).createProject(METADATA_HASH, VERSION, deploymentIds[0],0);
+            await projectRegistry.connect(wallet1).createProject(METADATA_HASH, VERSION, deploymentIds[0], 0);
             await projectRegistry.connect(wallet1).startService(deploymentIds[0]);
 
             // period 10 days
             // planTemplateId: 1
-            await planManager.createPlanTemplate(time.duration.days(10).toString(), 1000, 100, token.address, METADATA_HASH);
+            await planManager.createPlanTemplate(
+                time.duration.days(10).toString(),
+                1000,
+                100,
+                token.address,
+                METADATA_HASH
+            );
 
             // create purchase offer
             // value 100*2
@@ -254,7 +263,11 @@ describe('Service Agreement Registry Contract', () => {
             expect(await rewardsHelper.getRewardsAddTable(wallet1.address, 2, 10)).to.eql(addTable);
             expect(await rewardsHelper.getRewardsRemoveTable(wallet1.address, 2, 12)).to.eql(removeTable);
             expect(await rewardsHelper.getRewardsAddTable(wallet1.address, agreementStartEra, 10)).to.eql(addTable);
-            const newRemoveTable = await rewardsHelper.getRewardsRemoveTable(wallet1.address, agreementStartEra.add(2), 10);
+            const newRemoveTable = await rewardsHelper.getRewardsRemoveTable(
+                wallet1.address,
+                agreementStartEra.add(2),
+                10
+            );
             expect(newRemoveTable).to.eql(removeTable.slice(2));
         });
 
@@ -320,7 +333,9 @@ describe('Service Agreement Registry Contract', () => {
             ).serviceAgreementId;
             await timeTravel(mockProvider, time.duration.days(3).toNumber());
             await planManager.updatePlanTemplateStatus(plan.templateId, false);
-            await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith('PM006');
-        })
+            await expect(serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId)).to.be.revertedWith(
+                'PM006'
+            );
+        });
     });
 });

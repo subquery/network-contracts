@@ -9,7 +9,7 @@ import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
 
 import { Provider, StaticJsonRpcProvider } from '@ethersproject/providers';
-import { MockProvider } from "ethereum-waffle";
+import { MockProvider } from 'ethereum-waffle';
 import { parseEther } from 'ethers/lib/utils';
 import { getLogger } from './logger';
 import { networks } from '../src/networks';
@@ -182,7 +182,7 @@ async function setupTokenExchange(sdk: ContractSDK) {
     const { tokenGive, tokenGet, amountGive, amountGet, tokenGiveBalance } = startupConfig.exchange;
     await sendTx((overrides) => sdk.sqToken.increaseAllowance(sdk.tokenExchange.address, tokenGiveBalance, overrides));
     await sendTx((overrides) =>
-         sdk.tokenExchange.sendOrder(tokenGive, tokenGet, amountGive, amountGet, tokenGiveBalance, overrides)
+        sdk.tokenExchange.sendOrder(tokenGive, tokenGet, amountGive, amountGet, tokenGiveBalance, overrides)
     );
 
     console.log('\n');
@@ -257,45 +257,45 @@ export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
 }
 
 //async function setupVesting(sdk: ContractSDK) {
-    // logger = getLogger('Vesting');
-    // logger.info('Creating vesting plans');
-    //
-    // const vestingPlans = startupConfig.vestingPlans;
-    // for (const plan of vestingPlans) {
-    //     const { initPercentage, vestingPeriod, lockPeriod } = plan;
-    //     logger.info(`Create vesting plan: ${initPercentage} | ${vestingPeriod} | ${lockPeriod}`);
-    //     await sendTx((overrides) => sdk.vesting.addVestingPlan(lockPeriod, vestingPeriod, initPercentage, overrides));
-    // }
-    // logger.info('Vesting plans created');
-    //
-    // const accounts = startupConfig.airdrops;
-    // const amounts = startupConfig.amounts.map((a: number) => parseEther(a.toString()));
-    //
-    // logger.info('Allocate vesting plans');
-    // let planId = 0;
-    // const maxPlanId = vestingPlans.length - 1;
-    // for (const [index, account] of accounts.entries()) {
-    //     const allocation = await sdk.vesting.allocations(account);
-    //     if (!allocation.eq(0)) continue;
-    //
-    //     const amount = amounts[index];
-    //     planId = planId > maxPlanId ? 0 : planId;
-    //     logger.info(`Allocate ${amount.toString()} to ${account} with Plan: ${planId}`);
-    //     await sendTx((overrides) => sdk.vesting.allocateVesting(account, planId, amount, overrides));
-    //     planId++;
-    // }
-    // logger.info('Vesting plans allocated');
-    //
-    // logger.info('Deposit vesting token');
-    // const totalAmount = parseEther(eval(startupConfig.amounts.join('+')).toString());
-    // await sendTx((overrides) => sdk.sqToken.increaseAllowance(sdk.vesting.address, totalAmount, overrides));
-    // await sendTx((overrides) => sdk.vesting.depositByAdmin(totalAmount, overrides));
-    // logger.info(`Total ${totalAmount.toString()} deposited`);
-    // logger.info('Vesting token deposited');
-    //
-    // const startTime = Math.round(new Date().getTime() / 1000) + 21600;
-    // await sendTx((overrides) => sdk.vesting.startVesting(startTime, overrides));
-    // logger.info('Vesting started');
+// logger = getLogger('Vesting');
+// logger.info('Creating vesting plans');
+//
+// const vestingPlans = startupConfig.vestingPlans;
+// for (const plan of vestingPlans) {
+//     const { initPercentage, vestingPeriod, lockPeriod } = plan;
+//     logger.info(`Create vesting plan: ${initPercentage} | ${vestingPeriod} | ${lockPeriod}`);
+//     await sendTx((overrides) => sdk.vesting.addVestingPlan(lockPeriod, vestingPeriod, initPercentage, overrides));
+// }
+// logger.info('Vesting plans created');
+//
+// const accounts = startupConfig.airdrops;
+// const amounts = startupConfig.amounts.map((a: number) => parseEther(a.toString()));
+//
+// logger.info('Allocate vesting plans');
+// let planId = 0;
+// const maxPlanId = vestingPlans.length - 1;
+// for (const [index, account] of accounts.entries()) {
+//     const allocation = await sdk.vesting.allocations(account);
+//     if (!allocation.eq(0)) continue;
+//
+//     const amount = amounts[index];
+//     planId = planId > maxPlanId ? 0 : planId;
+//     logger.info(`Allocate ${amount.toString()} to ${account} with Plan: ${planId}`);
+//     await sendTx((overrides) => sdk.vesting.allocateVesting(account, planId, amount, overrides));
+//     planId++;
+// }
+// logger.info('Vesting plans allocated');
+//
+// logger.info('Deposit vesting token');
+// const totalAmount = parseEther(eval(startupConfig.amounts.join('+')).toString());
+// await sendTx((overrides) => sdk.sqToken.increaseAllowance(sdk.vesting.address, totalAmount, overrides));
+// await sendTx((overrides) => sdk.vesting.depositByAdmin(totalAmount, overrides));
+// logger.info(`Total ${totalAmount.toString()} deposited`);
+// logger.info('Vesting token deposited');
+//
+// const startTime = Math.round(new Date().getTime() / 1000) + 21600;
+// await sendTx((overrides) => sdk.vesting.startVesting(startTime, overrides));
+// logger.info('Vesting started');
 //}
 
 const main = async () => {

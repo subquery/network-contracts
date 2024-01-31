@@ -3,7 +3,6 @@ import { BigNumber, utils } from 'ethers';
 import Pino from 'pino';
 
 import { ContractSDK, SubqueryNetwork } from '../build';
-import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
 import { getLogger } from './logger';
@@ -231,7 +230,7 @@ async function checkOwnership(sdk: ContractSDK, owner: string) {
 
 const main = async () => {
     let startupConfig: typeof startupTestnetConfig = startupTestnetConfig;
-    const {wallet , config} = await setup(process.argv);
+    const { wallet, config } = await setup(process.argv);
     const caller = wallet.address;
 
     const networkType = process.argv[2];
@@ -250,7 +249,7 @@ const main = async () => {
             throw new Error(`Please provide correct network ${networkType}`);
     }
 
-    const sdk = ContractSDK.create(wallet, {network});
+    const sdk = ContractSDK.create(wallet, { network });
 
     const verifyType = process.argv[3];
     switch (verifyType) {

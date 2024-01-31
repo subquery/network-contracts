@@ -1,21 +1,35 @@
 {
     "planTemplates": [
-        {"period": 129600, "dailyReqCap": 100000, "rateLimit": 6000, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"},
-        {"period": 86400, "dailyReqCap": 50000, "rateLimit": 3000, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"},
-        {"period": 43200, "dailyReqCap": 10000, "rateLimit": 1200, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"},
-        {"period": 21600, "dailyReqCap": 2000, "rateLimit": 600, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"},
-        {"period": 7200, "dailyReqCap": 100, "rateLimit": 300, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"}
+        {
+            "period": 129600,
+            "dailyReqCap": 100000,
+            "rateLimit": 6000,
+            "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"
+        },
+        {
+            "period": 86400,
+            "dailyReqCap": 50000,
+            "rateLimit": 3000,
+            "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"
+        },
+        {
+            "period": 43200,
+            "dailyReqCap": 10000,
+            "rateLimit": 1200,
+            "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"
+        },
+        {
+            "period": 21600,
+            "dailyReqCap": 2000,
+            "rateLimit": 600,
+            "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a"
+        },
+        { "period": 7200, "dailyReqCap": 100, "rateLimit": 300, "token": "0xed3bb617dbC128095f8b0A00B9498C2Ef5c3D04a" }
     ],
-    "QRCreator": [
-        "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",
-        "0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe"
-    ],
-    "AirdropController": [
-        "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",
-        "0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe"
-    ],
+    "QRCreator": ["0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77", "0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe"],
+    "AirdropController": ["0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77", "0x301ce005Ea3f7d8051462E060f53d84Ee898dFDe"],
     "multiSign": "0x293a6d85DD0d7d290A719Fdeef43FaD10240bA77",
-    "projects": [ 
+    "projects": [
         {
             "name": "Polkadot Dictionary",
             "deploymentId": "QmSjjRjfjXXEfSUTheNwvWcBaH54pWoToTHPDsJRby955X",
@@ -36,7 +50,7 @@
         },
         {
             "name": "Moonriver Dictionary",
-            "deploymentId": "QmQnhLMgV3SrXbunjgHjnfdw32BAHQS3nNhLWKpNjtFTSZ", 
+            "deploymentId": "QmQnhLMgV3SrXbunjgHjnfdw32BAHQS3nNhLWKpNjtFTSZ",
             "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "projectMetadata": "Qmdvn23qiTYNEBaJ5BwzaDBESXvzG3mrPtWuK9zajkXvLn"
         },

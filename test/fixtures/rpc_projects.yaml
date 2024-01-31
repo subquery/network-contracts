@@ -5,40 +5,40 @@
 - kind: Project
   projectType: 1 # rpc
   metadata:
-    name: Polkadot Rpc
-    description: Polkadot endpoint
-    websiteUrl: https://subquery.network
-    codeUrl: https://github.com/subquery
+      name: Polkadot Rpc
+      description: Polkadot endpoint
+      websiteUrl: https://subquery.network
+      codeUrl: https://github.com/subquery
   deployments:
-    - deployment: |
-        kind: ChainRpc
-        specVersion: "1.0.0"
-        name: Polkadot Rpc
-        chain:
-          genesisHash: 0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3
-        rpcFamily:
-          - substrate
-        nodeType: archive
-      version:
-        version: 1.0.0
-        description:
+      - deployment: |
+            kind: ChainRpc
+            specVersion: "1.0.0"
+            name: Polkadot Rpc
+            chain:
+              genesisHash: 0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3
+            rpcFamily:
+              - substrate
+            nodeType: archive
+        version:
+            version: 1.0.0
+            description:
 - kind: Project
   projectType: 1 # rpc
   metadata:
-    name: Eth Private Rpc
-    description: eth endpoint
-    websiteUrl: https://subquery.network
-    codeUrl: https://github.com/subquery
+      name: Eth Private Rpc
+      description: eth endpoint
+      websiteUrl: https://subquery.network
+      codeUrl: https://github.com/subquery
   deployments:
-    - deployment: |
-        kind: ChainRpc
-        specVersion: "1.0.0"
-        name: Eth Private Rpc (new)
-        chain:
-          chainId: 12345
-        rpcFamily:
-          - evm
-        nodeType: archive
-      version:
-        version: 1.0.0
-        description:
+      - deployment: |
+            kind: ChainRpc
+            specVersion: "1.0.0"
+            name: Eth Private Rpc (new)
+            chain:
+              chainId: 12345
+            rpcFamily:
+              - evm
+            nodeType: archive
+        version:
+            version: 1.0.0
+            description:

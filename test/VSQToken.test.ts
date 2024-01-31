@@ -20,8 +20,8 @@ describe('VSQToken Contract', () => {
 
     const amount = '2000';
 
-    const deployer = ()=>deployContracts(root, root);
-    before(async ()=>{
+    const deployer = () => deployContracts(root, root);
+    before(async () => {
         [root, runner, runner2, delegator] = await ethers.getSigners();
     });
 

@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { ethers, waffle } from 'hardhat';
 import { EraManager, IndexerRegistry, RewardsDistributor, RewardsHelper, RewardsPool, ERC20, Staking } from '../src';
-import { METADATA_HASH, deploymentIds } from './constants';
+import { deploymentIds } from './constants';
 import { etherParse, registerRunner, startNewEra, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
@@ -24,8 +23,8 @@ describe('RewardsPool Contract', () => {
     let rewardsHelper: RewardsHelper;
     let rewardsPool: RewardsPool;
 
-    const deployer = ()=>deployContracts(root, runner0);
-    before(async ()=>{
+    const deployer = () => deployContracts(root, runner0);
+    before(async () => {
         [root, runner0, runner1, runner2, delegator0, delegator1] = await ethers.getSigners();
     });
 

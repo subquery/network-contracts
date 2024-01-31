@@ -65,7 +65,7 @@ export type Network = {
 
 export type DeploymentConfig = {
     network: NetworkPair;
-    contracts: {[contract: string]: any[]};
+    contracts: { [contract: string]: any[] };
 };
 
 export type ContractDeploymentDetail = {
@@ -166,5 +166,5 @@ export enum ServiceStatus {
 
 export enum ProjectType {
     SUBQUERY,
-    RPC
+    RPC,
 }

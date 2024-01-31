@@ -9,25 +9,25 @@
 - kind: Faucet
   account: indexer1
   amounts:
-    SQT: 10000
-    Fee: 100
+      SQT: 10000
+      Fee: 100
 - kind: Faucet
   account: consumer1
   amounts:
-    SQT: 10000
-    Fee: 100
+      SQT: 10000
+      Fee: 100
 - kind: Project
   account: consumer1
   metadata:
-    name: Polkadot Gift
-    description: Tracking gift transactions in polkadot
-    websiteUrl: https://subquery.network
-    codeUrl: https://github.com/subquery/polkadot-gift-subql
+      name: Polkadot Gift
+      description: Tracking gift transactions in polkadot
+      websiteUrl: https://subquery.network
+      codeUrl: https://github.com/subquery/polkadot-gift-subql
   deployments:
-    - deploymentId: QmbAGhy2MrBFJ6roF511hUNGYKAv8TbSELdoenjsN9Grm8
-      version:
-        version: 0.1.0
-        description: init
+      - deploymentId: QmbAGhy2MrBFJ6roF511hUNGYKAv8TbSELdoenjsN9Grm8
+        version:
+            version: 0.1.0
+            description: init
 - kind: Indexer
   account: indexer1
   stake: 1000
@@ -37,10 +37,8 @@
   account: indexer1
   action: index
   deploymentId: QmbAGhy2MrBFJ6roF511hUNGYKAv8TbSELdoenjsN9Grm8
-
 #- kind: QueryAction
 #  account: indexer1
 #  action: ready
 #  deploymentId: QmbAGhy2MrBFJ6roF511hUNGYKAv8TbSELdoenjsN9Grm8
-
 

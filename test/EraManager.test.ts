@@ -6,15 +6,15 @@ import { ethers, waffle } from 'hardhat';
 import { EraManager } from '../src';
 import { lastestTime, timeTravel } from './helper';
 import { deployContracts } from './setup';
-const {time} = require('@openzeppelin/test-helpers');
+const { time } = require('@openzeppelin/test-helpers');
 
 describe('Era Manager Contract', () => {
     const mockProvider = waffle.provider;
     let wallet_0, wallet_1;
     let eraManager: EraManager;
 
-    const deployer = ()=>deployContracts(wallet_0, wallet_1);
-    before(async ()=>{
+    const deployer = () => deployContracts(wallet_0, wallet_1);
+    before(async () => {
         [wallet_0, wallet_1] = await ethers.getSigners();
     });
 
@@ -106,9 +106,7 @@ describe('Era Manager Contract', () => {
             let timestamp = (await eraManager.eraStartTime()).toNumber();
             expect(await eraManager.timestampToEraNumber(timestamp)).to.equal(2);
             timestamp -= 100;
-            await expect(eraManager.timestampToEraNumber(timestamp)).to.be.revertedWith(
-                'E003'
-            );
+            await expect(eraManager.timestampToEraNumber(timestamp)).to.be.revertedWith('E003');
         });
     });
 });

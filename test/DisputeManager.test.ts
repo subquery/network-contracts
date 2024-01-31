@@ -3,7 +3,16 @@
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-import { DisputeManager, EraManager, IndexerRegistry, RewardsDistributor, RewardsStaking, ERC20, Staking, StakingManager } from '../src';
+import {
+    DisputeManager,
+    EraManager,
+    IndexerRegistry,
+    RewardsDistributor,
+    RewardsStaking,
+    ERC20,
+    Staking,
+    StakingManager,
+} from '../src';
 import { DEPLOYMENT_ID } from './constants';
 import { etherParse, registerRunner, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
@@ -20,8 +29,8 @@ describe('Dispute Manager Contract', () => {
     let rewardsDistributor: RewardsDistributor;
     let rewardsStaking: RewardsStaking;
 
-    const deployer = ()=>deployContracts(root, root);
-    before(async ()=>{
+    const deployer = () => deployContracts(root, root);
+    before(async () => {
         [root, runner, fisherman] = await ethers.getSigners();
     });
 
@@ -36,7 +45,7 @@ describe('Dispute Manager Contract', () => {
         rewardsDistributor = deployment.rewardsDistributor;
         rewardsStaking = deployment.rewardsStaking;
         await eraManager.updateEraPeriod(time.duration.days(5).toString());
-        await token.connect(fisherman).increaseAllowance(disputeManager.address, etherParse("1000"));
+        await token.connect(fisherman).increaseAllowance(disputeManager.address, etherParse('1000'));
         await registerRunner(token, indexerRegistry, staking, root, runner, etherParse('2000'));
     });
 
@@ -48,13 +57,15 @@ describe('Dispute Manager Contract', () => {
 
     describe('Create Dispute', () => {
         it('createDispute should work', async () => {
-            await token.connect(root).transfer(fisherman.address, etherParse("1000"));
-            await expect(disputeManager.connect(fisherman).createDispute(runner.address, DEPLOYMENT_ID, etherParse('1000'), 0))
-            .to.be.emit(disputeManager, 'DisputeOpen')
-            .withArgs(1, fisherman.address, runner.address, 0);
+            await token.connect(root).transfer(fisherman.address, etherParse('1000'));
+            await expect(
+                disputeManager.connect(fisherman).createDispute(runner.address, DEPLOYMENT_ID, etherParse('1000'), 0)
+            )
+                .to.be.emit(disputeManager, 'DisputeOpen')
+                .withArgs(1, fisherman.address, runner.address, 0);
 
             expect(await disputeManager.nextDisputeId()).to.equal(2);
-            expect(await disputeManager.disputeIdByRunner(runner.address,0)).to.equal(1);
+            expect(await disputeManager.disputeIdByRunner(runner.address, 0)).to.equal(1);
 
             const dispute = await disputeManager.disputes(1);
             expect(dispute.disputeId).to.equal(1);
@@ -69,18 +80,20 @@ describe('Dispute Manager Contract', () => {
         });
 
         it('createDispute not reach MinimumDeposit should fail', async () => {
-            await token.connect(root).transfer(fisherman.address, etherParse("1000"));
+            await token.connect(root).transfer(fisherman.address, etherParse('1000'));
             await expect(
                 disputeManager.connect(fisherman).createDispute(runner.address, DEPLOYMENT_ID, etherParse('10'), 0)
             ).to.be.revertedWith('D002');
         });
 
         it('createDispute on an indexer over 20 times should fail', async () => {
-            await token.connect(root).transfer(fisherman.address, etherParse("1000"));
+            await token.connect(root).transfer(fisherman.address, etherParse('1000'));
             await disputeManager.setMinimumDeposit(etherParse('1'));
             let count = 0;
-            while(count <= 20){
-                await disputeManager.connect(fisherman).createDispute(runner.address, DEPLOYMENT_ID, etherParse('1'), 0);
+            while (count <= 20) {
+                await disputeManager
+                    .connect(fisherman)
+                    .createDispute(runner.address, DEPLOYMENT_ID, etherParse('1'), 0);
                 count++;
             }
             await expect(
@@ -91,12 +104,11 @@ describe('Dispute Manager Contract', () => {
 
     describe('finalizeDispute', () => {
         beforeEach(async () => {
-            await token.connect(root).transfer(fisherman.address, etherParse("1000"));
+            await token.connect(root).transfer(fisherman.address, etherParse('1000'));
             await token.connect(fisherman).increaseAllowance(disputeManager.address, etherParse('1000'));
             await disputeManager.connect(fisherman).createDispute(runner.address, DEPLOYMENT_ID, etherParse('1000'), 0);
             await startNewEra(mockProvider, eraManager);
             await rewardsDistributor.collectAndDistributeRewards(runner.address);
-
         });
 
         it('accept dispute with indexer has 0 unbonding amount should work', async () => {
@@ -183,28 +195,22 @@ describe('Dispute Manager Contract', () => {
         });
 
         it('finalizeDispute with invaild parameter should fail', async () => {
-            await expect(
-                disputeManager.finalizeDispute(1, 1, etherParse('13'), etherParse('2000'))
-            ).to.be.revertedWith('D005');
+            await expect(disputeManager.finalizeDispute(1, 1, etherParse('13'), etherParse('2000'))).to.be.revertedWith(
+                'D005'
+            );
 
-            await expect(
-                disputeManager.finalizeDispute(1, 1, etherParse('13'), etherParse('900'))
-            ).to.be.revertedWith('D005');
+            await expect(disputeManager.finalizeDispute(1, 1, etherParse('13'), etherParse('900'))).to.be.revertedWith(
+                'D005'
+            );
 
-            await expect(
-                disputeManager.finalizeDispute(1, 2, 0, etherParse('1100'))
-            ).to.be.revertedWith('D005');
+            await expect(disputeManager.finalizeDispute(1, 2, 0, etherParse('1100'))).to.be.revertedWith('D005');
 
-            await expect(
-                disputeManager.finalizeDispute(1, 3, 0, etherParse('100'))
-            ).to.be.revertedWith('D005');
+            await expect(disputeManager.finalizeDispute(1, 3, 0, etherParse('100'))).to.be.revertedWith('D005');
         });
 
         it('indexer cannot widthdraw if on dispute', async () => {
             await stakingManager.connect(runner).unstake(runner.address, etherParse('2'));
-            await expect(
-                stakingManager.connect(runner).widthdraw()
-            ).to.be.revertedWith('G006');
+            await expect(stakingManager.connect(runner).widthdraw()).to.be.revertedWith('G006');
         });
     });
 });

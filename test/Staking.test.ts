@@ -58,8 +58,8 @@ describe('Staking Contract', () => {
         await token.connect(delegator).increaseAllowance(staking.address, amount);
     };
 
-    const deployer = ()=>deployContracts(runner, runner2);
-    before(async ()=>{
+    const deployer = () => deployContracts(runner, runner2);
+    before(async () => {
         [runner, runner2, delegator] = await ethers.getSigners();
     });
 
@@ -140,7 +140,9 @@ describe('Staking Contract', () => {
             const unstakeAmount = etherParse('0.5');
             await stakingManager.connect(runner).unstake(runner.address, unstakeAmount);
             // check staking changes
-            expect(await stakingManager.getAfterDelegationAmount(runner.address, runner.address)).to.equal(amount.sub(unstakeAmount));
+            expect(await stakingManager.getAfterDelegationAmount(runner.address, runner.address)).to.equal(
+                amount.sub(unstakeAmount)
+            );
         });
 
         it('staking by indexer with invalid caller should fail', async () => {
@@ -169,10 +171,7 @@ describe('Staking Contract', () => {
         // it is allowed now
         it.skip('unstaking over indexerLeverageLimit should fail', async () => {
             const indexerLeverageLimit = await staking.indexerLeverageLimit();
-            const indexerStakingAmount = await stakingManager.getAfterDelegationAmount(
-                runner.address,
-                runner.address
-            );
+            const indexerStakingAmount = await stakingManager.getAfterDelegationAmount(runner.address, runner.address);
             const totalStakedAmount = await stakingManager.getTotalStakingAmount(runner.address);
 
             const maxDelegateAmount = indexerStakingAmount.mul(indexerLeverageLimit).sub(totalStakedAmount);
@@ -238,10 +237,7 @@ describe('Staking Contract', () => {
 
         it('delegation excess max limitation should fail', async () => {
             const indexerLeverageLimit = await staking.indexerLeverageLimit();
-            const indexerStakingAmount = await stakingManager.getAfterDelegationAmount(
-                runner.address,
-                runner.address
-            );
+            const indexerStakingAmount = await stakingManager.getAfterDelegationAmount(runner.address, runner.address);
             await token.connect(runner).transfer(delegator.address, indexerStakingAmount.mul(indexerLeverageLimit));
 
             await expect(

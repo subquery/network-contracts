@@ -56,14 +56,16 @@ describe('Redeem Contract', () => {
             await expect(sqtRedeem.connect(wallet_1).setRedeemable(true)).to.be.revertedWith(revertrMsg.notOwner);
             await expect(sqtRedeem.connect(wallet_1).deposit(amount)).to.be.revertedWith(revertrMsg.notOwner);
             await expect(sqtRedeem.connect(wallet_1).withdraw(amount)).to.be.revertedWith(revertrMsg.notOwner);
-            await expect(sqtRedeem.connect(wallet_1).setRedeemableAmount(nft.address, 0, amount)).to.be.revertedWith(revertrMsg.notOwner);
+            await expect(sqtRedeem.connect(wallet_1).setRedeemableAmount(nft.address, 0, amount)).to.be.revertedWith(
+                revertrMsg.notOwner
+            );
         });
     });
 
     describe('NFT Redeem', () => {
         beforeEach(async () => {
             // create nft series 0 and mint token 0 to wallet_0
-            await nft.createSeries(100, "abc");
+            await nft.createSeries(100, 'abc');
             await nft.addToAllowlist(0, wallet_0.address, 1);
             await nft.mint(0);
         });
@@ -75,8 +77,8 @@ describe('Redeem Contract', () => {
             await sqtRedeem.deposit(amount);
             await sqtRedeem.setRedeemableAmount(nft.address, 0, amount);
             await sqtGift.approve(sqtRedeem.address, 1);
-            await expect(sqtRedeem.redeem(nft.address, 1)).to.be
-                .emit(sqtRedeem, 'SQTRedeemed')
+            await expect(sqtRedeem.redeem(nft.address, 1))
+                .to.be.emit(sqtRedeem, 'SQTRedeemed')
                 .withArgs(wallet_0.address, 1, 0, nft.address, amount);
 
             await expect(sqtRedeem.redeem(nft.address, 1)).to.revertedWith('ERC721: invalid token ID');

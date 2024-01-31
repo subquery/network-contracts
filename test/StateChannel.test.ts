@@ -1,10 +1,10 @@
 // Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {BigNumber, BigNumberish, BytesLike, constants, Wallet} from 'ethers';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
+import { expect } from 'chai';
+import { BigNumber, BigNumberish, BytesLike, constants, Wallet } from 'ethers';
+import { ethers, waffle } from 'hardhat';
+import { deployContracts } from './setup';
 import {
     EraManager,
     IndexerRegistry,
@@ -18,7 +18,7 @@ import {
     ProjectType,
     ProjectRegistry,
 } from '../src';
-import {deploymentIds, deploymentMetadatas, projectMetadatas} from './constants';
+import { deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
 import {
     blockTravel,
     createProject,
