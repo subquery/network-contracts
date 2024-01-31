@@ -6,7 +6,6 @@ import {JsonRpcProvider} from '@ethersproject/providers';
 import { ContractSDK, SubqueryNetwork, networks } from '../src';
 import assert from 'assert';
 import {Wallet} from '@ethersproject/wallet';
-import {utils} from 'ethers';
 import {create} from 'ipfs-http-client';
 import yaml from 'js-yaml';
 import {Context, loaders} from '../test/fixtureLoader';

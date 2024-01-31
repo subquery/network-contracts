@@ -1,6 +1,7 @@
 // Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+/* eslint-disable */
 import { Provider } from '@ethersproject/abstract-provider';
 import { Wallet } from '@ethersproject/wallet';
 import { BaseContract, ContractFactory, Signer } from 'ethers';

@@ -262,7 +262,7 @@ export const loaders = {
     },
     SQTGiftAllowList: async function (
         { seriesId, list }: SQTGiftSeriesAllowListInput,
-        { ipfs, sdk, rootAccount }: Context
+        { sdk, rootAccount }: Context
     ) {
         console.log(`SQTGiftAllowList Start`);
 
@@ -277,7 +277,7 @@ export const loaders = {
     },
     SQTGiftClaim: async function (
         { seriesId, user }: SQTGiftSeriesClaimInput,
-        { ipfs, sdk, rootAccount, accounts }: Context
+        { sdk, accounts }: Context
     ) {
         console.log(`SQTGiftClaim Start`);
         const wallet = accounts[user];
@@ -291,7 +291,7 @@ export const loaders = {
     },
     BoosterRewardSetting: async function (
         { queryRewardRatios, issuancePerBlock }: BoosterRewardSettingInput,
-        { ipfs, sdk, rootAccount, accounts }: Context
+        { sdk, rootAccount }: Context
     ) {
         for (const {projectType, ratio} of queryRewardRatios) {
             const currentRatio = await sdk.rewardsBooster.boosterQueryRewardRate(projectType);
@@ -310,7 +310,7 @@ export const loaders = {
     },
     DeploymentBooster: async function (
         { user, amount, deploymentId }: DeploymentBoosterInput,
-        { ipfs, sdk, rootAccount, accounts }: Context
+        { sdk, accounts }: Context
     ) {
         console.log(`DeploymentBooster Start`);
         const wallet = accounts[user];

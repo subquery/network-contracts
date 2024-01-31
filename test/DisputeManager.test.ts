@@ -3,7 +3,7 @@
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-import { DisputeManager, EraManager, IndexerRegistry, RewardsDistributor, RewardsHelper, RewardsStaking, ERC20, Staking, StakingManager } from '../src';
+import { DisputeManager, EraManager, IndexerRegistry, RewardsDistributor, RewardsStaking, ERC20, Staking, StakingManager } from '../src';
 import { DEPLOYMENT_ID } from './constants';
 import { etherParse, registerRunner, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
@@ -19,8 +19,6 @@ describe('Dispute Manager Contract', () => {
     let eraManager: EraManager;
     let rewardsDistributor: RewardsDistributor;
     let rewardsStaking: RewardsStaking;
-    let rewardsHelper: RewardsHelper;
-
 
     const deployer = ()=>deployContracts(root, root);
     before(async ()=>{
@@ -37,7 +35,6 @@ describe('Dispute Manager Contract', () => {
         eraManager = deployment.eraManager;
         rewardsDistributor = deployment.rewardsDistributor;
         rewardsStaking = deployment.rewardsStaking;
-        rewardsHelper = deployment.rewardsHelper;
         await eraManager.updateEraPeriod(time.duration.days(5).toString());
         await token.connect(fisherman).increaseAllowance(disputeManager.address, etherParse("1000"));
         await registerRunner(token, indexerRegistry, staking, root, runner, etherParse('2000'));

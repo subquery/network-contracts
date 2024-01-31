@@ -1,4 +1,3 @@
-import { metadatas } from './constants';
 // Copyright (C) 2020-2024 SubProject Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -6,7 +5,8 @@ import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { constants } from 'ethers';
 
-import { IndexerRegistry, PlanManager, ProjectRegistry, PurchaseOfferMarket, ERC20, Settings, Staking } from '../src';
+import { metadatas } from './constants';
+import { IndexerRegistry, PlanManager, ProjectRegistry, PurchaseOfferMarket, ERC20, Settings, Staking, ProjectType, ServiceStatus } from '../src';
 import { METADATA_HASH, POI, deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
 import {
     Wallet,
@@ -16,16 +16,6 @@ import {
     registerRunner
 } from './helper';
 import { deployContracts } from './setup';
-
-enum ServiceStatus {
-    TERMINATED,
-    READY,
-}
-
-enum ProjectType {
-  SUBQUERY,
-  RPC
-}
 
 describe('Project Registry Contract', () => {
     const mockProvider = waffle.provider;

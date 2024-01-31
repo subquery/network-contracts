@@ -9,7 +9,7 @@ import Pino from 'pino';
 import sha256 from 'sha256';
 
 import CONTRACTS from '../src/contracts';
-import {ContractDeployment, ContractDeploymentInner, ContractName, SQContracts, SubqueryNetwork} from '../src/types';
+import {ContractDeployment, ContractDeploymentInner, ContractName, FactoryContstructor, SQContracts, SubqueryNetwork} from '../src/types';
 import { getLogger } from './logger';
 
 import {
@@ -53,7 +53,6 @@ import {
     Config,
     ContractConfig,
     Contracts,
-    FactoryContstructor,
     UPGRADEBAL_CONTRACTS,
 } from './contracts';
 import { l1StandardBridge } from './L1StandardBridge';
@@ -106,7 +105,7 @@ async function deployContract<T extends BaseContract>(
     },
 ): Promise<T> {
     if (!deployment[target]) {
-        deployment[target] = {} as any;
+        deployment[target] = {} as unknown;
     }
     const contractAddress = deployment[target][name]?.address;
     if (contractAddress) {
@@ -138,7 +137,7 @@ async function deployContract<T extends BaseContract>(
         const params = [...initConfig, ...defaultConfig];
         const overrides = await getOverrides();
 
-        // @ts-ignore
+        // @ts-expect-error type missing
         const tx = await contract.initialize(...params, overrides);
         logger?.info(`🔎 Tx hash: ${tx.hash}`);
         await tx.wait(confirms);
@@ -172,7 +171,8 @@ export const deployProxy = async <C extends Contract>(
     await contractProxy.deployTransaction.wait(confirms);
 
     const proxy = contractFactory.attach(contractProxy.address) as C;
-    (proxy as any).deployTransaction = contractLogic.deployTransaction;
+    // @ts-expect-error type missing
+    proxy.deployTransaction = contractLogic.deployTransaction;
     return [proxy, contractLogic.address];
 };
 
@@ -597,7 +597,7 @@ export async function upgradeContracts(configs: {
         }
         const bytecodeHash = codeToHash(CONTRACTS[contract].bytecode);
         if (_deployment[contract] && bytecodeHash !== _deployment[contract].bytecodeHash) {
-            changed.push(contract as any);
+            changed.push(contract as unknown as keyof typeof CONTRACTS);
         } else {
             logger.info(`Contract ${contract} not changed`);
         }

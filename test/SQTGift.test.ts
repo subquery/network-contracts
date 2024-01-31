@@ -9,7 +9,6 @@ import { SQTGift } from '../src';
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 describe('SQT Gift Nft', () => {
-    const mockProvider = waffle.provider;
     let wallet_0: SignerWithAddress, wallet_1: SignerWithAddress, wallet_2: SignerWithAddress;
     let nft: SQTGift;
 

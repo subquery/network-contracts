@@ -7,14 +7,10 @@ import {
     ConsumerHost,
     EraManager,
     IndexerRegistry,
-    PermissionedExchange,
     PlanManager,
-    ProjectRegistry,
     PurchaseOfferMarket,
     RewardsDistributor,
     ERC20,
-    ServiceAgreementRegistry,
-    Settings,
     Staking,
     StakingManager
 } from '../src';
@@ -26,15 +22,12 @@ import { deployContracts } from './setup';
 describe('Maintenance Mode Test', () => {
     const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
-    let settings: Settings;
     let token: ERC20;
     let staking: Staking;
-    let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
     let rewardsDistributor: RewardsDistributor;
-    let serviceAgreementRegistry: ServiceAgreementRegistry;
     let consumerHost: ConsumerHost;
     let purchaseOfferMarket: PurchaseOfferMarket;
     let stakingManager: StakingManager;
@@ -47,14 +40,11 @@ describe('Maintenance Mode Test', () => {
     beforeEach(async () => {
         const deployment = await waffle.loadFixture(deployer);
         token = deployment.token;
-        settings = deployment.settings;
         staking = deployment.staking;
-        projectRegistry = deployment.projectRegistry;
         indexerRegistry = deployment.indexerRegistry;
         planManager = deployment.planManager;
         eraManager = deployment.eraManager;
         rewardsDistributor = deployment.rewardsDistributor;
-        serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         consumerHost = deployment.consumerHost;
         purchaseOfferMarket = deployment.purchaseOfferMarket;
         stakingManager = deployment.stakingManager;

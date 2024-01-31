@@ -1,4 +1,4 @@
-import { BigNumber, ContractReceipt, ContractTransaction, Overrides, Wallet, ethers, utils } from 'ethers';
+import { BigNumber, ContractReceipt, ContractTransaction, Overrides, Wallet, utils } from 'ethers';
 import Pino from 'pino';
 
 import { argv, setupCommon } from './setup';
@@ -14,7 +14,7 @@ import { parseEther } from 'ethers/lib/utils';
 import { getLogger } from './logger';
 import { networks } from '../src/networks';
 
-let startupConfig: any = startupTestnetConfig;
+let startupConfig: typeof startupTestnetConfig = startupTestnetConfig;
 let logger: Pino.Logger;
 let confirms = 0;
 let provider: Provider;
@@ -25,6 +25,7 @@ async function getOverrides(): Promise<Overrides> {
     return { gasPrice: price };
 }
 
+// eslint-disable-next-line no-unused-vars
 async function sendTx(transaction: (overrides: Overrides) => Promise<ContractTransaction>): Promise<ContractReceipt> {
     const overrides = await getOverrides();
     const tx = await transaction(overrides);
@@ -218,11 +219,12 @@ export async function ownerTransfer(sdk: ContractSDK) {
     ];
 
     for (const contract of contracts) {
-        // @ts-ignore
+        // @ts-expect-error owner type missing
         const owner = await contract.owner();
         if (owner != startupConfig.multiSign) {
             logger.info(`Transfer Ownership: ${contract.address}`);
-            // @ts-ignore
+
+            // @ts-expect-error transferOwnership type missing
             await sendTx((overrides) => contract.transferOwnership(startupConfig.multiSign, overrides));
         } else {
             console.info(`${contract.address} ownership has already transfered`);
@@ -254,7 +256,7 @@ export async function balanceTransfer(sdk: ContractSDK, wallet: Wallet) {
     }
 }
 
-async function setupVesting(sdk: ContractSDK) {
+//async function setupVesting(sdk: ContractSDK) {
     // logger = getLogger('Vesting');
     // logger.info('Creating vesting plans');
     //
@@ -294,7 +296,7 @@ async function setupVesting(sdk: ContractSDK) {
     // const startTime = Math.round(new Date().getTime() / 1000) + 21600;
     // await sendTx((overrides) => sdk.vesting.startVesting(startTime, overrides));
     // logger.info('Vesting started');
-}
+//}
 
 const main = async () => {
     const network = (argv.network ?? 'testnet') as SubqueryNetwork;
@@ -306,6 +308,7 @@ const main = async () => {
 
     switch (network) {
         case 'mainnet':
+            // @ts-expect-error mainnet config have different types with testnet
             startupConfig = startupMainnetConfig;
             confirms = 20;
             await createProjects(sdk);
@@ -323,7 +326,7 @@ const main = async () => {
             // child contracts
             await createProjects(sdk);
             await createPlanTemplates(sdk);
-            // await setupTokenExchange(sdk);
+            await setupTokenExchange(sdk);
             await transferTokenToIndexers(sdk);
 
             // await setupVesting(sdk);

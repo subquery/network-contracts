@@ -2,20 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { BigNumber } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 import {
     EraManager,
     IndexerRegistry,
-    InflationController,
     PlanManager,
     ProjectRegistry,
     RewardsDistributor,
     RewardsHelper,
-    RewardsStaking,
     ERC20,
-    ServiceAgreementRegistry,
-    Settings,
     Staking,
     StakingManager,
 } from '../src';
@@ -25,7 +20,7 @@ import { deployContracts } from './setup';
 
 describe.skip('Rewardflow tests', () => {
     const mockProvider = waffle.provider;
-    let root, runner, consumer, delegator1, delegator2, delegator3;
+    let root, runner, consumer, delegator1, delegator2;
 
     let token: ERC20;
     let staking: Staking;
@@ -34,14 +29,8 @@ describe.skip('Rewardflow tests', () => {
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
-    let serviceAgreementRegistry: ServiceAgreementRegistry;
     let rewardsDistributor: RewardsDistributor;
-    let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
-    let settings: Settings;
-    let inflationController: InflationController;
-
-    let rewards: BigNumber;
 
     const registerIndexer = async (rootWallet, wallet, amount, rate) => {
         await token.connect(rootWallet).transfer(wallet.address, amount);
@@ -83,7 +72,7 @@ describe.skip('Rewardflow tests', () => {
 
     const deployer = () => deployContracts(root, delegator2);
     before(async () => {
-        [root, runner, consumer, delegator1, delegator2, delegator3] = await ethers.getSigners();
+        [root, runner, consumer, delegator1, delegator2] = await ethers.getSigners();
     });
     describe('Rewardflow test', async () => {
         beforeEach(async () => {
@@ -92,16 +81,12 @@ describe.skip('Rewardflow tests', () => {
             indexerRegistry = deployment.indexerRegistry;
             projectRegistry = deployment.projectRegistry;
             planManager = deployment.planManager;
-            serviceAgreementRegistry = deployment.serviceAgreementRegistry;
             staking = deployment.staking;
             stakingManager = deployment.stakingManager;
             token = deployment.token;
             rewardsDistributor = deployment.rewardsDistributor;
-            rewardsStaking = deployment.rewardsStaking;
             rewardsHelper = deployment.rewardsHelper;
             eraManager = deployment.eraManager;
-            settings = deployment.settings;
-            inflationController = deployment.inflationController;
 
             // transfer SQT to accounts
             await token.connect(root).transfer(delegator1.address, etherParse('1000'));

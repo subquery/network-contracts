@@ -11,7 +11,7 @@ import {
     MockInflationDestination__factory, OpDestination,
     SQToken
 } from '../src';
-import { PER_MILL } from './constants';
+// import { PER_MILL } from './constants';
 import {eventFrom, time, timeTravel} from './helper';
 
 // TODO: as inflation controller will no longer dependent on `EraManager`, will need to refactor these test cases
@@ -24,20 +24,20 @@ describe('Inflation Controller Contract', () => {
     let inflationDestination2: OpDestination;
     let token: SQToken;
 
-    const YEAR_SECONDS = (3600 * 24 * 36525) / 100;
+    // const YEAR_SECONDS = (3600 * 24 * 36525) / 100;
 
-    async function startNewEra() {
-        for (let i=0;i<24*7;i++) {
-            await timeTravel(mockProvider, time.duration.hours(1).toNumber());
-        }
-    }
+    // async function startNewEra() {
+    //     for (let i=0;i<24*7;i++) {
+    //         await timeTravel(mockProvider, time.duration.hours(1).toNumber());
+    //     }
+    // }
 
     const triggerAndCheckInflation = async (duration: number) => {
-        const totalSupply = await token.totalSupply();
-        const inflationRate = await inflationController.inflationRate();
+        // const totalSupply = await token.totalSupply();
+        // const inflationRate = await inflationController.inflationRate();
         // const eraPeriod = await eraManager.eraPeriod();
-        const lastInflationTimestamp = await inflationController.lastInflationTimestamp();
-        const oldBalance = await token.balanceOf(inflationDestination1);
+        // const lastInflationTimestamp = await inflationController.lastInflationTimestamp();
+        // const oldBalance = await token.balanceOf(inflationDestination1);
         await timeTravel(mockProvider, duration);
         const tx = await inflationController.mintInflatedTokens();
         await tx.wait();
@@ -45,12 +45,12 @@ describe('Inflation Controller Contract', () => {
         block.timestamp;
         const currentInflationTimestamp = await inflationController.lastInflationTimestamp();
         expect(currentInflationTimestamp).to.be.eq(block.timestamp);
-        const newBalance = await token.balanceOf(inflationDestination1);
-        const newSupply = newBalance.sub(oldBalance);
-        const expectValue = totalSupply
-            .mul(inflationRate)
-            .div(PER_MILL * YEAR_SECONDS)
-            .mul(block.timestamp-lastInflationTimestamp.toNumber());
+        // const newBalance = await token.balanceOf(inflationDestination1);
+        // const newSupply = newBalance.sub(oldBalance);
+        // const expectValue = totalSupply
+        //     .mul(inflationRate)
+        //     .div(PER_MILL * YEAR_SECONDS)
+        //     .mul(block.timestamp-lastInflationTimestamp.toNumber());
     };
 
     const deployer = ()=>deployRootContracts(wallet_0, wallet_1);

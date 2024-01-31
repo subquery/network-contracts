@@ -1,11 +1,10 @@
 import {expect} from 'chai';
 import {ethers, waffle} from 'hardhat';
 import {deployContracts} from './setup';
-import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
+import { deploymentIds } from './constants';
 import {IndexerRegistry, RewardsPool, RewardsDistributor, EraManager, ERC20, Staking, StateChannel, StakingManager} from '../src';
-import {constants, registerRunner, startNewEra, time, delay, etherParse} from './helper';
-import {utils, Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
-import { MockProvider } from 'ethereum-waffle';
+import { registerRunner, startNewEra, time, etherParse} from './helper';
+import { Wallet, BigNumber} from 'ethers';
 
 
 describe('StateChannel Workflow Tests', () => {
@@ -88,43 +87,6 @@ describe('StateChannel Workflow Tests', () => {
             await stateChannel.connect(indexer).respond(query);
         }
     };
-
-    const extendChannel = async (
-        channelId: Uint8Array,
-        indexer: Wallet,
-        consumer: Wallet,
-        expiration: number
-    ) => {
-        const abi = ethers.utils.defaultAbiCoder;
-        const state = await stateChannel.channel(channelId);
-        const preExpirationAt = state.expiredAt;
-        const msg = abi.encode(
-            ['uint256', 'address', 'address', 'uint256', 'uint256'],
-            [channelId, indexer.address, consumer.address, preExpirationAt, expiration]
-        );
-        const payload = ethers.utils.keccak256(msg);
-        const indexerSign = await indexer.signMessage(ethers.utils.arrayify(payload));
-        const consumerSign = await consumer.signMessage(ethers.utils.arrayify(payload));
-
-        await stateChannel.extend(channelId, preExpirationAt, expiration, indexerSign, consumerSign);
-    }
-
-    const fundChannel = async (
-        channelId: Uint8Array,
-        indexer: Wallet,
-        consumer: Wallet,
-        amount: BigNumber
-    ) => {
-        const abi = ethers.utils.defaultAbiCoder;
-        const total = (await stateChannel.channel(channelId)).total;
-        const msg = abi.encode(
-            ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
-            [channelId, indexer.address, consumer.address, total, amount, '0x']
-        );
-        const payload = ethers.utils.keccak256(msg);
-        const sign = await consumer.signMessage(ethers.utils.arrayify(payload));
-        await stateChannel.fund(channelId, total, amount, '0x', sign);
-    }
 
     const deployer = ()=>deployContracts(wallet_0, runner);
     before(async ()=>{

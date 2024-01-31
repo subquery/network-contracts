@@ -6,10 +6,8 @@ import { ethers, waffle } from 'hardhat';
 import { InflationController, SQToken } from '../src';
 import { etherParse } from './helper';
 import {deployRootContracts} from './setup';
-import { ZERO_ADDRESS } from './constants';
 
 describe('SQToken Contract', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1;
     let inflationController: InflationController;
     let token: SQToken;

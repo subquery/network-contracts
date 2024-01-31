@@ -19,6 +19,7 @@ const ROOT_CONTRACTS = ['SQToken', 'Vesting', 'VTSQToken'];
 
 export class RootContractSDK {
     private _contractDeployments: ContractDeploymentInner;
+    private _signerOrProvider: AbstractProvider | Signer;
 
     readonly sqToken!: SQToken;
     readonly vtSQToken!: ERC20;
@@ -27,6 +28,7 @@ export class RootContractSDK {
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options: SdkOptions) {
         assert(this.options.deploymentDetails || DEPLOYMENT_DETAILS[options.network], ' missing contract deployment info');
         this._contractDeployments = this.options.deploymentDetails ?? DEPLOYMENT_DETAILS[options.network]!.root;
+        this._signerOrProvider = signerOrProvider;
         this._init();
     }
 
@@ -45,7 +47,7 @@ export class RootContractSDK {
 
         for (const {name, factory, address} of contracts) {
             if (!factory) continue;
-            const contractInstance = factory.connect(address, this.signerOrProvider);
+            const contractInstance = factory.connect(address, this._signerOrProvider);
             if (contractInstance) {
                 const key = name.charAt(0).toLowerCase() + name.slice(1);
                 const contractName = contractNameConversion[key] ?? key;

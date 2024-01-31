@@ -11,7 +11,6 @@ import {
     PlanManager,
     ProjectRegistry,
     RewardsDistributor,
-    SQToken,
     SUSD,
     SUSD__factory,
     ServiceAgreementRegistry,

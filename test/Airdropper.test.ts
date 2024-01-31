@@ -3,7 +3,7 @@
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-import { Airdropper, SQToken, Settings } from '../src';
+import { Airdropper, SQToken } from '../src';
 import { ZERO_ADDRESS } from './constants';
 import { etherParse, futureTimestamp, lastestTime, timeTravel } from './helper';
 import { deployRootContracts } from './setup';
@@ -13,7 +13,6 @@ describe.skip('Airdropper Contract', () => {
     const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2, wallet_3;
     let airdropper: Airdropper;
-    let settings: Settings;
     let token: SQToken;
     let sqtAddress;
 
@@ -21,7 +20,6 @@ describe.skip('Airdropper Contract', () => {
         [wallet_0, wallet_1, wallet_2, wallet_3] = await ethers.getSigners();
         const deployment = await deployRootContracts(wallet_0, wallet_1);
         airdropper = deployment.airdropper;
-        settings = deployment.settings;
         token = deployment.rootToken;
         sqtAddress = token.address;
     });

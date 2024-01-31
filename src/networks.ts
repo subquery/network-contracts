@@ -5,6 +5,7 @@ import {NetworkPair, SubqueryNetwork} from './types';
 
 export const CURRENT_NETWORK = 'testnet';
 
+// eslint-disable-next-line no-unused-vars
 export const networks: { [key in SubqueryNetwork]: NetworkPair } = {
     mainnet: {
         root: {

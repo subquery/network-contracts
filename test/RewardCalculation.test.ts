@@ -36,8 +36,6 @@ describe.skip('RewardsDistributor Contract', () => {
     let rewardsDistributor: RewardsDistributor;
     let rewardsHelper: RewardsHelper;
 
-    let rewards: BigNumber;
-
     const collectRewards = async () => {
         const currentEra = await eraManager.eraNumber();
         await rewardsDistributor.collectAndDistributeEraRewards(currentEra, runner.address);

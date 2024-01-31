@@ -10,6 +10,8 @@ import { etherParse, eventFrom } from "./helper";
 import { deployRootContracts } from './setup';
 import { VTSQToken } from "build";
 
+type ClaimVestingEvent = { user: string, amount: BigNumber };
+
 describe('Vesting Contract', () => {
     const mockProvider = waffle.provider;
     const [wallet, wallet1, wallet2, wallet3, wallet4] = mockProvider.getWallets();
@@ -21,11 +23,12 @@ describe('Vesting Contract', () => {
     let vestingPeriod: number;
     const initialUnlockPercent = 10;
 
-    async function claimVesting(wallet: Wallet): Promise<{user: string, amount: BigNumber}> {
+    
+    async function claimVesting(wallet: Wallet): Promise<ClaimVestingEvent> {
         await vtSQToken.connect(wallet).increaseAllowance(vestingContract.address, parseEther(10000));
         const tx = await vestingContract.connect(wallet).claim();
         const evt = await eventFrom(tx, vestingContract, 'VestingClaimed(address,uint256)');
-        return evt as any;
+        return evt as unknown as ClaimVestingEvent;
     }
 
     const timeTravel = async (seconds: number) => {

@@ -11,7 +11,6 @@ import {
     PurchaseOfferMarket,
     RewardsDistributor,
     ERC20,
-    ServiceAgreementRegistry,
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, poi } from './constants';
@@ -22,7 +21,6 @@ describe('Purchase Offer Market Contract', () => {
     const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
     let purchaseOfferMarket: PurchaseOfferMarket;
-    let serviceAgreementRegistry: ServiceAgreementRegistry;
     let indexerRegistry: IndexerRegistry;
     let projectRegistry: ProjectRegistry;
     let staking: Staking;
@@ -48,7 +46,6 @@ describe('Purchase Offer Market Contract', () => {
         const deployment = await waffle.loadFixture(deployer);
         futureDate = await futureTimestamp(mockProvider);
         purchaseOfferMarket = deployment.purchaseOfferMarket;
-        serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         indexerRegistry = deployment.indexerRegistry;
         projectRegistry = deployment.projectRegistry;
         staking = deployment.staking;
@@ -144,7 +141,6 @@ describe('Purchase Offer Market Contract', () => {
             it('cancel unexipred offer should work', async () => {
                 const consumerBalance = await token.balanceOf(wallet_0.address);
                 const offerMarketBalance = await token.balanceOf(purchaseOfferMarket.address);
-                const totalSupply = await token.totalSupply();
 
                 expect(await purchaseOfferMarket.cancelPurchaseOffer(offerId))
                     .to.be.emit(purchaseOfferMarket, 'PurchaseOfferCancelled')

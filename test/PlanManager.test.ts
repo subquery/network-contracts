@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { BigNumber, Contract, utils } from 'ethers';
+import { BigNumber, Contract } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 import {
     EraManager,
@@ -15,7 +15,6 @@ import {
     ERC20,
     ServiceAgreementRegistry,
     Staking,
-    StakingManager,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, metadatas } from './constants';
 import { Wallet, constants, deploySUSD, etherParse, eventFrom, registerRunner, startNewEra, time } from './helper';
@@ -30,7 +29,6 @@ describe('PlanManger Contract', () => {
 
     let token: ERC20;
     let staking: Staking;
-    let stakingManager: StakingManager;
     let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
@@ -61,7 +59,6 @@ describe('PlanManger Contract', () => {
         rewardsHelper = deployment.rewardsHelper;
         eraManager = deployment.eraManager;
         priceOracle = deployment.priceOracle;
-        stakingManager = deployment.stakingManager;
     });
 
     const indexerAndProjectReady = async () => {
@@ -386,7 +383,8 @@ describe('PlanManger Contract', () => {
             const rewardsRemoveTable = await rewardsHelper.getRewardsRemoveTable(runner.address, era.sub(1), 5);
             const [eraReward, totalReward] = rewardsAddTable.reduce(
                 (acc, val, idx) => {
-                    let [eraReward, total] = acc;
+                    let eraReward = acc[0];
+                    const total = acc[1];
                     eraReward = eraReward.add(val.sub(rewardsRemoveTable[idx]));
                     return [eraReward, total.add(eraReward)];
                 },

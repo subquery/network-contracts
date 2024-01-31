@@ -76,7 +76,6 @@ export async function setupCommon(pair: NetworkPair) {
 
 const setup = async (network?: string) => {
     const config:{network: NetworkPair, contracts: ContractConfig} = { contracts: null, network: null };
-    let name: SubqueryNetwork;
     let history = false;
     let checkOnly = false;
     let implementationOnly = false;
@@ -87,7 +86,7 @@ const setup = async (network?: string) => {
     config.contracts = contractsConfig[network];
     config.network = networks[network];
 
-    name = (argv.network ?? 'local') as SubqueryNetwork;
+    const name = (argv.network ?? 'local') as SubqueryNetwork;
 
     history = argv.history;
     checkOnly = argv["check-only"];

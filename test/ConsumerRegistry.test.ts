@@ -7,15 +7,14 @@ import { ConsumerHost, ConsumerRegistry } from '../src';
 import { deployContracts } from './setup';
 
 describe('ConsumerRegistry Contract', () => {
-    const mockProvider = waffle.provider;
-    let wallet_0, wallet_1, wallet_2, wallet_3;
+    let wallet_0, wallet_1, wallet_2;
     let consumerRegistry: ConsumerRegistry;
     let consumerHost: ConsumerHost;
 
 
     const deployer = ()=>deployContracts(wallet_0, wallet_1);
     before(async ()=>{
-        [wallet_0, wallet_1, wallet_2, wallet_3] = await ethers.getSigners();
+        [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
     });
 
     beforeEach(async () => {

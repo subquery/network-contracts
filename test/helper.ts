@@ -223,7 +223,7 @@ export function etherParse(etherNum: string | number) {
     return utils.parseEther(ether)
 }
 
-type Event = utils.Result;
+export type Event = utils.Result;
 export async function eventFrom(tx: ContractTransaction, contract: BaseContract, event: string): Promise<Event|undefined> {
     const receipt = await tx.wait();
     const evt = receipt.events.find((log) => log.topics[0] === utils.id(event));

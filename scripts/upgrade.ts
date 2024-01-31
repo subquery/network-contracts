@@ -1,4 +1,4 @@
-import fs, { writeFileSync } from 'fs';
+import fs from 'fs';
 import { upgradeContracts } from './deployContracts';
 import setup from './setup';
 import yargs from "yargs/yargs";

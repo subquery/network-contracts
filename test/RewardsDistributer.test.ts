@@ -7,23 +7,18 @@ import { ethers, waffle } from 'hardhat';
 import {
     EraManager,
     IndexerRegistry,
-    InflationController,
     PlanManager,
     ProjectRegistry,
     RewardsDistributor,
     RewardsHelper,
     RewardsStaking,
     ERC20,
-    ServiceAgreementRegistry,
-    Settings,
     Staking,
     StakingManager,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION } from './constants';
 import { acceptPlan, etherParse, startNewEra, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
-
-// FIXME: there are many values changed in the test, need to evalutate whether it is correct
 
 describe('RewardsDistributor Contract', () => {
     const mockProvider = waffle.provider;
@@ -36,12 +31,9 @@ describe('RewardsDistributor Contract', () => {
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
-    let serviceAgreementRegistry: ServiceAgreementRegistry;
     let rewardsDistributor: RewardsDistributor;
     let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
-    let settings: Settings;
-    let inflationController: InflationController;
 
     let rewards: BigNumber;
 
@@ -70,7 +62,6 @@ describe('RewardsDistributor Contract', () => {
         indexerRegistry = deployment.indexerRegistry;
         projectRegistry = deployment.projectRegistry;
         planManager = deployment.planManager;
-        serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         staking = deployment.staking;
         stakingManager = deployment.stakingManager;
         token = deployment.token;
@@ -78,7 +69,6 @@ describe('RewardsDistributor Contract', () => {
         rewardsStaking = deployment.rewardsStaking;
         rewardsHelper = deployment.rewardsHelper;
         eraManager = deployment.eraManager;
-        settings = deployment.settings;
 
         //init delegator account
         await token.connect(root).transfer(delegator.address, etherParse('10'));
@@ -147,7 +137,8 @@ describe('RewardsDistributor Contract', () => {
             );
             const [eraReward, totalReward] = rewardsAddTable.reduce(
                 (acc, val, idx) => {
-                    let [eraReward, total] = acc;
+                    let eraReward = acc[0];
+                    const total = acc[1];
                     eraReward = eraReward.add(val.sub(rewardsRemoveTable[idx]));
                     return [eraReward, total.add(eraReward)];
                 },
@@ -201,7 +192,7 @@ describe('RewardsDistributor Contract', () => {
             await startNewEra(mockProvider, eraManager);
             const balance = await token.balanceOf(rewardsDistributor.address);
             const stakingBalance = await token.balanceOf(staking.address);
-            const tx = await rewardsDistributor.collectAndDistributeRewards(runner.address);
+            await rewardsDistributor.collectAndDistributeRewards(runner.address);
 
             const eventFilter = staking.filters.UnbondRequested();
             const evt = (await staking.queryFilter(eventFilter))[0];

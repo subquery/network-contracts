@@ -1,6 +1,7 @@
 import { Logger } from '@subql/utils';
 import Pino from 'pino';
 
+/* eslint-disable no-unused-vars */
 export enum TextColor {
   RED = 31,
   GREEN,

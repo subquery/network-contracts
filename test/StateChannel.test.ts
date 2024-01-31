@@ -730,7 +730,7 @@ describe('StateChannel Contract', () => {
             expect(balanceBefore.sub(balanceAfter)).to.eq(etherParse('1'));
             // start new era so we can try collect the channel reward
             const era = await startNewEra(waffle.provider, eraManager);
-            const tx = await rewardsHelper.connect(runner2).indexerCatchup(runner2.address);
+            await rewardsHelper.connect(runner2).indexerCatchup(runner2.address);
             const tx2 = await rewardsHelper.connect(runner3).indexerCatchup(runner3.address);
             await rewardsHelper.connect(runner).indexerCatchup(runner.address);
 

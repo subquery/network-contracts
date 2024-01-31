@@ -1,7 +1,3 @@
-import { Provider } from '@ethersproject/abstract-provider';
-import { Wallet } from '@ethersproject/wallet';
-import { BaseContract, ContractFactory, Signer } from 'ethers';
-
 import CONTRACTS from '../src/contracts';
 
 import {
@@ -72,13 +68,8 @@ import {
     VTSQToken,
     VTSQToken__factory,
     L2SQToken__factory,
+    FactoryContstructor,
 } from '../src';
-
-export interface FactoryContstructor {
-    new(wallet: Wallet): ContractFactory;
-    connect: (address: string, signerOrProvider: Signer | Provider) => BaseContract;
-    readonly abi: any;
-}
 
 export type Contracts = {
     proxyAdmin: ProxyAdmin;
