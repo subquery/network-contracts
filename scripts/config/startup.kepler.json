@@ -5,7 +5,7 @@
     "airdrops": [],
     "exchange": [],
     "multiSign": "0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C",
-    "projects": [ 
+    "projects": [
         {
             "name": "Polkadot Dictionary",
             "deploymentId": "QmVUpDjYQJkSFB2vNsJbkdZ6JUw51v23S3jx7QuU9igr9v",
@@ -23,6 +23,6 @@
             "deploymentId": "QmZJ9whrhrMvn2HU8supcbGxCyCymdpzqWDgpaNuXCYXnk",
             "deploymentMetadata": "QmNr5DAJ7dQ51hB8J2jeQeSvvGwUQ8dFQYojvu9syMqMoQ",
             "projectMetadata": "Qmcf1Yp3NeLkfM78KjcK4JKdtY7N2eMEodCFKd1ZyQUdAX"
-      }
+        }
     ]
 }

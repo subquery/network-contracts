@@ -1,21 +1,16 @@
-// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { BigNumber } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 import {
     EraManager,
     IndexerRegistry,
-    InflationController,
     PlanManager,
     ProjectRegistry,
     RewardsDistributor,
     RewardsHelper,
-    RewardsStaking,
     ERC20,
-    ServiceAgreementRegistry,
-    Settings,
     Staking,
     StakingManager,
 } from '../src';
@@ -25,7 +20,7 @@ import { deployContracts } from './setup';
 
 describe.skip('Rewardflow tests', () => {
     const mockProvider = waffle.provider;
-    let root, runner, consumer, delegator1, delegator2, delegator3;
+    let root, runner, consumer, delegator1, delegator2;
 
     let token: ERC20;
     let staking: Staking;
@@ -34,14 +29,8 @@ describe.skip('Rewardflow tests', () => {
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
-    let serviceAgreementRegistry: ServiceAgreementRegistry;
     let rewardsDistributor: RewardsDistributor;
-    let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
-    let settings: Settings;
-    let inflationController: InflationController;
-
-    let rewards: BigNumber;
 
     const registerIndexer = async (rootWallet, wallet, amount, rate) => {
         await token.connect(rootWallet).transfer(wallet.address, amount);
@@ -51,8 +40,20 @@ describe.skip('Rewardflow tests', () => {
         await projectRegistry.connect(wallet).startService(DEPLOYMENT_ID);
         // create plan
         await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
-        await planManager.createPlanTemplate(time.duration.days(10).toString(), 1000, 100, token.address, METADATA_HASH);
-        await planManager.createPlanTemplate(time.duration.days(15).toString(), 1000, 100, token.address, METADATA_HASH);
+        await planManager.createPlanTemplate(
+            time.duration.days(10).toString(),
+            1000,
+            100,
+            token.address,
+            METADATA_HASH
+        );
+        await planManager.createPlanTemplate(
+            time.duration.days(15).toString(),
+            1000,
+            100,
+            token.address,
+            METADATA_HASH
+        );
         await planManager.connect(runner).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
         await planManager.connect(runner).createPlan(etherParse('10000'), 1, DEPLOYMENT_ID);
         await planManager.connect(runner).createPlan(etherParse('10000'), 2, DEPLOYMENT_ID);
@@ -62,28 +63,27 @@ describe.skip('Rewardflow tests', () => {
         await rewardsHelper.indexerCatchup(indexer.address);
         const currentEra = await eraManager.eraNumber();
         await rewardsDistributor.collectAndDistributeEraRewards(currentEra, indexer.address);
-    }
+    };
 
     const delegate = async (delegator, amount) => {
         await stakingManager.connect(delegator).delegate(runner.address, amount);
-    }
+    };
 
     const undelegate = async (delegator, amount) => {
         stakingManager.connect(delegator).undelegate(runner.address, amount);
-    }
+    };
 
     const stake = async (amount) => {
         await stakingManager.connect(runner).stake(runner.address, amount);
-    }
+    };
 
     const unstake = async (amount) => {
         await stakingManager.connect(runner).unstake(runner.address, amount);
-    }
-
+    };
 
     const deployer = () => deployContracts(root, delegator2);
     before(async () => {
-        [root, runner, consumer, delegator1, delegator2, delegator3] = await ethers.getSigners();
+        [root, runner, consumer, delegator1, delegator2] = await ethers.getSigners();
     });
     describe('Rewardflow test', async () => {
         beforeEach(async () => {
@@ -92,16 +92,12 @@ describe.skip('Rewardflow tests', () => {
             indexerRegistry = deployment.indexerRegistry;
             projectRegistry = deployment.projectRegistry;
             planManager = deployment.planManager;
-            serviceAgreementRegistry = deployment.serviceAgreementRegistry;
             staking = deployment.staking;
             stakingManager = deployment.stakingManager;
             token = deployment.token;
             rewardsDistributor = deployment.rewardsDistributor;
-            rewardsStaking = deployment.rewardsStaking;
             rewardsHelper = deployment.rewardsHelper;
             eraManager = deployment.eraManager;
-            settings = deployment.settings;
-            inflationController = deployment.inflationController;
 
             // transfer SQT to accounts
             await token.connect(root).transfer(delegator1.address, etherParse('1000'));
@@ -117,7 +113,7 @@ describe.skip('Rewardflow tests', () => {
             await startNewEra(mockProvider, eraManager);
 
             await registerIndexer(root, runner, etherParse('1000'), 0);
-        })
+        });
 
         it('Scenes 1', async () => {
             // purchase plan split in 1 era
@@ -189,7 +185,7 @@ describe.skip('Rewardflow tests', () => {
             await startNewEra(mockProvider, eraManager);
             await collectRewards(runner);
 
-            await delegate(delegator1, etherParse('100'))
+            await delegate(delegator1, etherParse('100'));
 
             await startNewEra(mockProvider, eraManager);
             await collectRewards(runner);
@@ -201,7 +197,9 @@ describe.skip('Rewardflow tests', () => {
             await rewardsDistributor.claimFrom(runner.address, runner.address);
             await rewardsDistributor.connect(delegator1).claimFrom(runner.address, delegator1.address);
 
-            expect((await token.balanceOf(runner.address)).add(await token.balanceOf(delegator1.address))).to.be.equal(etherParse('10000'));
+            expect((await token.balanceOf(runner.address)).add(await token.balanceOf(delegator1.address))).to.be.equal(
+                etherParse('10000')
+            );
             expect(token.balanceOf(rewardsDistributor.address)).to.be.equal(etherParse('0'));
         });
 
@@ -230,7 +228,11 @@ describe.skip('Rewardflow tests', () => {
             await rewardsDistributor.connect(delegator1).claimFrom(runner.address, delegator1.address);
             await rewardsDistributor.connect(delegator2).claimFrom(runner.address, delegator2.address);
 
-            expect((await token.balanceOf(runner.address)).add(await token.balanceOf(delegator1.address)).add(await token.balanceOf(delegator2.address))).to.be.equal(etherParse('10000'));
+            expect(
+                (await token.balanceOf(runner.address))
+                    .add(await token.balanceOf(delegator1.address))
+                    .add(await token.balanceOf(delegator2.address))
+            ).to.be.equal(etherParse('10000'));
             expect(token.balanceOf(rewardsDistributor.address)).to.be.equal(etherParse('0'));
         });
 
@@ -260,7 +262,11 @@ describe.skip('Rewardflow tests', () => {
             await rewardsDistributor.connect(delegator1).claimFrom(runner.address, delegator1.address);
             await rewardsDistributor.connect(delegator2).claimFrom(runner.address, delegator2.address);
 
-            expect((await token.balanceOf(runner.address)).add(await token.balanceOf(delegator1.address)).add(await token.balanceOf(delegator2.address))).to.be.equal(etherParse('10000'));
+            expect(
+                (await token.balanceOf(runner.address))
+                    .add(await token.balanceOf(delegator1.address))
+                    .add(await token.balanceOf(delegator2.address))
+            ).to.be.equal(etherParse('10000'));
             expect(token.balanceOf(rewardsDistributor.address)).to.be.equal(etherParse('0'));
         });
 
@@ -294,11 +300,12 @@ describe.skip('Rewardflow tests', () => {
             await rewardsDistributor.connect(delegator1).claimFrom(runner.address, delegator1.address);
             await rewardsDistributor.connect(delegator2).claimFrom(runner.address, delegator2.address);
 
-            expect((await token.balanceOf(runner.address)).add(await token.balanceOf(delegator1.address)).add(await token.balanceOf(delegator2.address))).to.be.equal(etherParse('10000'));
+            expect(
+                (await token.balanceOf(runner.address))
+                    .add(await token.balanceOf(delegator1.address))
+                    .add(await token.balanceOf(delegator2.address))
+            ).to.be.equal(etherParse('10000'));
             expect(token.balanceOf(rewardsDistributor.address)).to.be.equal(etherParse('0'));
         });
-    })
-
-
-
-})
+    });
+});

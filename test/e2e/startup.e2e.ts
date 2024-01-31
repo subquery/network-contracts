@@ -30,10 +30,9 @@ describe.skip('startup script', () => {
     });
 
     describe('startup', async () => {
-
         it('planTemplate setups should work', async () => {
             expect(await sdk.planManager.nextTemplateId()).to.be.equal(5);
-            const {planTemplates} = config;
+            const { planTemplates } = config;
 
             for (const [i, p] of planTemplates.entries()) {
                 expect((await sdk.planManager.getPlanTemplate(i)).period).to.be.equal(p.period);
@@ -41,11 +40,11 @@ describe.skip('startup script', () => {
         });
 
         it('dictionaries should be created', async () => {
-            const {projects} = config;
+            const { projects } = config;
             for (const [i, d] of projects.entries()) {
                 const info = await sdk.projectRegistry.projectInfos(i);
                 const version = await sdk.projectRegistry.deploymentInfos(info.latestDeploymentId);
-                const metadata = await sdk.projectRegistry.tokenURI(i+1);
+                const metadata = await sdk.projectRegistry.tokenURI(i + 1);
                 expect(info.latestDeploymentId).to.be.equal(cidToBytes32(d.deploymentId));
                 expect(version.metadata).to.be.equal(`ipfs://${d.deploymentMetadata}`);
                 expect(metadata).to.be.equal(`ipfs://${d.projectMetadata}`);

@@ -3,7 +3,6 @@ import { BigNumber, utils } from 'ethers';
 import Pino from 'pino';
 
 import { ContractSDK, SubqueryNetwork } from '../build';
-import startupKeplerConfig from './config/startup.kepler.json';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
 import { getLogger } from './logger';
@@ -230,9 +229,8 @@ async function checkOwnership(sdk: ContractSDK, owner: string) {
 }
 
 const main = async () => {
-    let sdk: ContractSDK;
-    let startupConfig: any = startupTestnetConfig;
-    const {wallet , config} = await setup(process.argv);
+    let startupConfig: typeof startupTestnetConfig = startupTestnetConfig;
+    const { wallet, config } = await setup(process.argv);
     const caller = wallet.address;
 
     const networkType = process.argv[2];
@@ -240,11 +238,8 @@ const main = async () => {
     switch (networkType) {
         case '--mainnet':
             network = 'mainnet';
+            // @ts-expect-error mainnet has diff config with testnet
             startupConfig = startupMainnetConfig;
-            break;
-        case '--kepler':
-            network = 'kepler';
-            startupConfig = startupKeplerConfig;
             break;
         case '--testnet':
             network = 'testnet';
@@ -254,7 +249,7 @@ const main = async () => {
             throw new Error(`Please provide correct network ${networkType}`);
     }
 
-    sdk = ContractSDK.create(wallet, {network});
+    const sdk = ContractSDK.create(wallet, { network });
 
     const verifyType = process.argv[3];
     switch (verifyType) {

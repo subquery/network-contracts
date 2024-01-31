@@ -1,8 +1,8 @@
-// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { BigNumber, Contract, utils } from 'ethers';
+import { BigNumber, Contract } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 import {
     EraManager,
@@ -15,12 +15,11 @@ import {
     ERC20,
     ServiceAgreementRegistry,
     Staking,
-    StakingManager,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, metadatas } from './constants';
 import { Wallet, constants, deploySUSD, etherParse, eventFrom, registerRunner, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
-import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 describe('PlanManger Contract', () => {
     const mockProvider = waffle.provider;
@@ -30,7 +29,6 @@ describe('PlanManger Contract', () => {
 
     let token: ERC20;
     let staking: Staking;
-    let stakingManager: StakingManager;
     let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
@@ -41,11 +39,11 @@ describe('PlanManger Contract', () => {
     let priceOracle: PriceOracle;
     let SUSD: Contract;
 
-    const deployer = async ()=>{
+    const deployer = async () => {
         SUSD = await deploySUSD(consumer as SignerWithAddress);
         return deployContracts(runner, consumer);
     };
-    before(async ()=>{
+    before(async () => {
         [runner, consumer] = await ethers.getSigners();
     });
 
@@ -61,7 +59,6 @@ describe('PlanManger Contract', () => {
         rewardsHelper = deployment.rewardsHelper;
         eraManager = deployment.eraManager;
         priceOracle = deployment.priceOracle;
-        stakingManager = deployment.stakingManager;
     });
 
     const indexerAndProjectReady = async () => {
@@ -69,10 +66,10 @@ describe('PlanManger Contract', () => {
         await token.transfer(consumer.address, etherParse('100'));
         await token.connect(consumer).increaseAllowance(planManager.address, etherParse('100'));
         // create query project
-        await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID,0);
+        await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
         // wallet_0 start project
         await projectRegistry.startService(DEPLOYMENT_ID);
-    }
+    };
 
     describe('Plan Manager Config', () => {
         it('set indexer plan limit should work', async () => {
@@ -90,7 +87,13 @@ describe('PlanManger Contract', () => {
 
     describe('Plan Templates Management', () => {
         beforeEach(async () => {
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
+            await planManager.createPlanTemplate(
+                time.duration.days(3).toString(),
+                1000,
+                100,
+                token.address,
+                METADATA_HASH
+            );
         });
 
         it('create plan template should work', async () => {
@@ -124,7 +127,7 @@ describe('PlanManger Contract', () => {
             await expect(planManager.updatePlanTemplateMetadata(0, metadatas[1]))
                 .to.be.emit(planManager, 'PlanTemplateMetadataChanged')
                 .withArgs(0, metadatas[1]);
-            let planTemplate = await planManager.getPlanTemplate(0);
+            const planTemplate = await planManager.getPlanTemplate(0);
             expect(planTemplate.metadata).to.equal(metadatas[1]);
         });
 
@@ -141,13 +144,9 @@ describe('PlanManger Contract', () => {
                 'Ownable: caller is not the owner'
             );
             // invalid `planTemplateId`
-            await expect(planManager.updatePlanTemplateStatus(1, false)).to.be.revertedWith(
-                'PM004'
-            );
+            await expect(planManager.updatePlanTemplateStatus(1, false)).to.be.revertedWith('PM004');
             // invalid `planTemplateId`
-            await expect(planManager.updatePlanTemplateMetadata(1, metadatas[1])).to.be.revertedWith(
-                'PM004'
-            );
+            await expect(planManager.updatePlanTemplateMetadata(1, metadatas[1])).to.be.revertedWith('PM004');
             // invalid period
             await expect(planManager.createPlanTemplate(0, 1000, 100, token.address, METADATA_HASH)).to.be.revertedWith(
                 'PM001'
@@ -157,17 +156,29 @@ describe('PlanManger Contract', () => {
                 'PM002'
             );
             // invalid rate limit
-            await expect(planManager.createPlanTemplate(1000, 1000, 0, token.address, METADATA_HASH)).to.be.revertedWith(
-                'PM003'
-            );
+            await expect(
+                planManager.createPlanTemplate(1000, 1000, 0, token.address, METADATA_HASH)
+            ).to.be.revertedWith('PM003');
         });
     });
 
     describe('Plan Management', () => {
         beforeEach(async () => {
             await registerRunner(token, indexerRegistry, staking, runner, runner, etherParse('2000'));
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH); // template_id = 0
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 100, 10, token.address, METADATA_HASH); // template_id = 1
+            await planManager.createPlanTemplate(
+                time.duration.days(3).toString(),
+                1000,
+                100,
+                token.address,
+                METADATA_HASH
+            ); // template_id = 0
+            await planManager.createPlanTemplate(
+                time.duration.days(3).toString(),
+                100,
+                10,
+                token.address,
+                METADATA_HASH
+            ); // template_id = 1
         });
 
         it('create plan should work', async () => {
@@ -201,30 +212,22 @@ describe('PlanManger Contract', () => {
             await expect(planManager.createPlan(0, 0, DEPLOYMENT_ID)).to.be.revertedWith('PM005');
             // inactive plan template
             await planManager.updatePlanTemplateStatus(0, false);
-            await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID)).to.be.revertedWith(
-                'PM006'
-            );
+            await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID)).to.be.revertedWith('PM006');
             // check overflow limit
             const limit = await planManager.limit();
             for (let i = 0; i < limit.toNumber(); i++) {
                 await planManager.createPlan(100, 1, DEPLOYMENT_ID);
             }
-            await expect(planManager.createPlan(100, 1, DEPLOYMENT_ID)).to.be.revertedWith(
-                'PM007'
-            );
+            await expect(planManager.createPlan(100, 1, DEPLOYMENT_ID)).to.be.revertedWith('PM007');
             // can not create plan during maintenance mode
             await eraManager.enableMaintenance();
-            await expect(planManager.createPlan(planPrice, 1, DEPLOYMENT_ID)).to.be.revertedWith(
-                'G019'
-            );
+            await expect(planManager.createPlan(planPrice, 1, DEPLOYMENT_ID)).to.be.revertedWith('G019');
         });
 
         it('create plan with inactive planTemplate should fail', async () => {
             // inactive planTemplate
             await planManager.updatePlanTemplateStatus(0, false);
-            await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID)).to.be.revertedWith(
-                'PM006'
-            );
+            await expect(planManager.createPlan(etherParse('2'), 0, DEPLOYMENT_ID)).to.be.revertedWith('PM006');
         });
 
         it('remove plan with invalid params should fail', async () => {
@@ -232,9 +235,7 @@ describe('PlanManger Contract', () => {
             await expect(planManager.removePlan(0)).to.be.revertedWith('PM008');
             // can not remove plan during maintenance mode
             await eraManager.enableMaintenance();
-            await expect(planManager.removePlan(1)).to.be.revertedWith(
-                'G019'
-            );
+            await expect(planManager.removePlan(1)).to.be.revertedWith('G019');
         });
     });
 
@@ -242,7 +243,13 @@ describe('PlanManger Contract', () => {
         beforeEach(async () => {
             await indexerAndProjectReady();
             // create plan template
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
+            await planManager.createPlanTemplate(
+                time.duration.days(3).toString(),
+                1000,
+                100,
+                token.address,
+                METADATA_HASH
+            );
             // default plan -> planId: 1
             await planManager.createPlan(planPrice, 0, constants.ZERO_BYTES32); // plan id = 1;
         });
@@ -277,35 +284,23 @@ describe('PlanManger Contract', () => {
 
         it('accept plan with invalid params should fail', async () => {
             // inactive plan
-            await expect(planManager.acceptPlan(2, DEPLOYMENT_ID)).to.be.revertedWith(
-                'PM009'
-            );
+            await expect(planManager.acceptPlan(2, DEPLOYMENT_ID)).to.be.revertedWith('PM009');
             // require no empty deployment_id for default plan
-            await expect(planManager.acceptPlan(1, constants.ZERO_BYTES32)).to.be.revertedWith(
-                'PM011'
-            );
+            await expect(planManager.acceptPlan(1, constants.ZERO_BYTES32)).to.be.revertedWith('PM011');
             // require same deployment_id with specific plan
             await planManager.createPlan(planPrice, 0, DEPLOYMENT_ID);
-            await expect(planManager.acceptPlan(2, deploymentIds[1])).to.be.revertedWith(
-                'PM010'
-            );
+            await expect(planManager.acceptPlan(2, deploymentIds[1])).to.be.revertedWith('PM010');
             // require to use specific plan when indexer have both default plan and specific plan for the same deployment
-            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
-                'PM012'
-            );
+            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith('PM012');
             // can not accept plan during maintenance mode
             await eraManager.enableMaintenance();
-            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
-                'G019'
-            );
+            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith('G019');
         });
 
         it('accept plan with inactive planTemplate should fail', async () => {
             // inactive planTemplate
             await planManager.updatePlanTemplateStatus(0, false);
-            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith(
-                'PM006'
-            );
+            await expect(planManager.acceptPlan(1, DEPLOYMENT_ID)).to.be.revertedWith('PM006');
         });
 
         // it('threshold work for accept plan', async () => {
@@ -386,7 +381,8 @@ describe('PlanManger Contract', () => {
             const rewardsRemoveTable = await rewardsHelper.getRewardsRemoveTable(runner.address, era.sub(1), 5);
             const [eraReward, totalReward] = rewardsAddTable.reduce(
                 (acc, val, idx) => {
-                    let [eraReward, total] = acc;
+                    let eraReward = acc[0];
+                    const total = acc[1];
                     eraReward = eraReward.add(val.sub(rewardsRemoveTable[idx]));
                     return [eraReward, total.add(eraReward)];
                 },
@@ -417,10 +413,16 @@ describe('PlanManger Contract', () => {
             //1 USDC(ether) = 13 SQT(ether), <> 1 USDC = 13e12
             await priceOracle.setAssetPrice(SUSD.address, token.address, 1, 13e12);
             // create plan template
-            await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, SUSD.address, METADATA_HASH);
+            await planManager.createPlanTemplate(
+                time.duration.days(3).toString(),
+                1000,
+                100,
+                SUSD.address,
+                METADATA_HASH
+            );
             // default plan -> planId: 1
             //price: 2.73 usdc
-            await planManager.createPlan(BigNumber.from("2730000"), 0, constants.ZERO_BYTES32); // plan id = 1;
+            await planManager.createPlan(BigNumber.from('2730000'), 0, constants.ZERO_BYTES32); // plan id = 1;
         });
 
         it('accept the plan with allowed stable price should work', async () => {

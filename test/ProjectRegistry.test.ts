@@ -1,31 +1,25 @@
-import { metadatas } from './constants';
-// Copyright (C) 2020-2023 SubProject Pte Ltd authors & contributors
+// Copyright (C) 2020-2024 SubProject Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { constants } from 'ethers';
 
-import { IndexerRegistry, PlanManager, ProjectRegistry, PurchaseOfferMarket, ERC20, Settings, Staking } from '../src';
-import { METADATA_HASH, POI, deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
+import { metadatas } from './constants';
 import {
-    Wallet,
-    createPurchaseOffer,
-    etherParse,
-    futureTimestamp,
-    registerRunner
-} from './helper';
+    IndexerRegistry,
+    PlanManager,
+    ProjectRegistry,
+    PurchaseOfferMarket,
+    ERC20,
+    Settings,
+    Staking,
+    ProjectType,
+    ServiceStatus,
+} from '../src';
+import { METADATA_HASH, POI, deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
+import { Wallet, createPurchaseOffer, etherParse, futureTimestamp, registerRunner } from './helper';
 import { deployContracts } from './setup';
-
-enum ServiceStatus {
-    TERMINATED,
-    READY,
-}
-
-enum ProjectType {
-  SUBQUERY,
-  RPC
-}
 
 describe('Project Registry Contract', () => {
     const mockProvider = waffle.provider;
@@ -47,19 +41,16 @@ describe('Project Registry Contract', () => {
 
     // create query project
     const createProject = (wallet = wallet_0) => {
-        return projectRegistry.connect(wallet).createProject(
-            projectMetadata,
-            deploymentMetadata,
-            deploymentId,
-            ProjectType.SUBQUERY
-        );
+        return projectRegistry
+            .connect(wallet)
+            .createProject(projectMetadata, deploymentMetadata, deploymentId, ProjectType.SUBQUERY);
     };
 
     const checkTokenUri = async (tokenId: number, uri: string) => {
         expect(await projectRegistry.tokenURI(tokenId)).to.equal(`ipfs://${uri}`);
-    }
-    const deployer = ()=>deployContracts(wallet_0, wallet_1);
-    before(async ()=>{
+    };
+    const deployer = () => deployContracts(wallet_0, wallet_1);
+    before(async () => {
         [wallet_0, wallet_1] = await ethers.getSigners();
     });
 
@@ -75,7 +66,7 @@ describe('Project Registry Contract', () => {
     });
 
     describe('Initialisation', () => {
-        it('initialisation should work', async () =>  {
+        it('initialisation should work', async () => {
             expect(await projectRegistry.name()).to.equal('SubQueryProject');
             expect(await projectRegistry.symbol()).to.equal('SP');
             expect(await projectRegistry.totalSupply()).to.equal(0);
@@ -115,7 +106,14 @@ describe('Project Registry Contract', () => {
             const projectId = 1;
             await expect(createProject())
                 .to.be.emit(projectRegistry, 'ProjectCreated')
-                .withArgs(wallet_0.address, projectId, projectMetadata, ProjectType.SUBQUERY, deploymentId, deploymentMetadata);
+                .withArgs(
+                    wallet_0.address,
+                    projectId,
+                    projectMetadata,
+                    ProjectType.SUBQUERY,
+                    deploymentId,
+                    deploymentMetadata
+                );
 
             // check state updates
             const projectInfos = await projectRegistry.projectInfos(projectId);
@@ -203,7 +201,7 @@ describe('Project Registry Contract', () => {
             expect(deploymentInfo.metadata).to.equal(metadata);
         });
 
-        it('update deployment\'s metadata should work', async () => {
+        it("update deployment's metadata should work", async () => {
             const projectId = 1;
             const metadata = deploymentMetadatas[1];
             await expect(projectRegistry.addOrUpdateDeployment(1, deploymentId, metadata, false))
@@ -245,7 +243,7 @@ describe('Project Registry Contract', () => {
             expect(await projectRegistry.ownerOf(projectId)).to.equal(wallet_1.address);
             await projectRegistry.connect(wallet_1).updateProjectMetadata(projectId, newProjectMetadata);
             const [metadata, deploymentId] = [deploymentMetadatas[1], deploymentIds[1]];
-            await projectRegistry.connect(wallet_1).addOrUpdateDeployment(projectId, deploymentId, metadata, true)
+            await projectRegistry.connect(wallet_1).addOrUpdateDeployment(projectId, deploymentId, metadata, true);
 
             // check state changes
             const tokenUri = await projectRegistry.tokenURI(projectId);
@@ -273,7 +271,7 @@ describe('Project Registry Contract', () => {
             // empty metadata or deploymentId
             await expect(
                 projectRegistry.addOrUpdateDeployment(1, deploymentId, constants.HashZero, true)
-            ).to.be.revertedWith('PR009');    
+            ).to.be.revertedWith('PR009');
             await expect(
                 projectRegistry.addOrUpdateDeployment(1, constants.HashZero, metadatas[0], true)
             ).to.be.revertedWith('PR009');
@@ -295,18 +293,14 @@ describe('Project Registry Contract', () => {
         });
 
         it('set project latest deployment with invalid params should fail', async () => {
-            // invalid owner 
+            // invalid owner
             await expect(
                 projectRegistry.connect(wallet_1).setProjectLatestDeployment(1, deploymentId)
             ).to.be.revertedWith('PR004');
             // inconsistent project id and deployment id
-            await expect(
-                projectRegistry.setProjectLatestDeployment(1, deploymentIds[1])
-            ).to.be.revertedWith('PR007');
+            await expect(projectRegistry.setProjectLatestDeployment(1, deploymentIds[1])).to.be.revertedWith('PR007');
             // deployment id already set as latest
-            await expect(
-                projectRegistry.setProjectLatestDeployment(1, deploymentId)
-            ).to.be.revertedWith('PR010');
+            await expect(projectRegistry.setProjectLatestDeployment(1, deploymentId)).to.be.revertedWith('PR010');
         });
     });
 
@@ -322,7 +316,9 @@ describe('Project Registry Contract', () => {
                 .withArgs(wallet_0.address, deploymentId, ServiceStatus.READY);
 
             // check state changes
-            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address)).to.equal(ServiceStatus.READY);
+            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address)).to.equal(
+                ServiceStatus.READY
+            );
             expect(await projectRegistry.numberOfDeployments(wallet_0.address)).to.equal(1);
         });
 
@@ -334,12 +330,16 @@ describe('Project Registry Contract', () => {
                 .withArgs(wallet_0.address, deploymentId, ServiceStatus.TERMINATED);
 
             // check state changes
-            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address)).to.equal(ServiceStatus.TERMINATED);
+            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address)).to.equal(
+                ServiceStatus.TERMINATED
+            );
             expect(await projectRegistry.numberOfDeployments(wallet_0.address)).to.equal(0);
 
             // can restart service project
             await projectRegistry.startService(deploymentId);
-            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address)).to.equal(ServiceStatus.READY);
+            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, wallet_0.address)).to.equal(
+                ServiceStatus.READY
+            );
             expect(await projectRegistry.numberOfDeployments(wallet_0.address)).to.equal(1);
         });
 

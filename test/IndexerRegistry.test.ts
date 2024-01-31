@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
@@ -25,8 +25,8 @@ describe('IndexerRegistry Contract', () => {
         expect(await indexerRegistry.getController(wallet_0.address)).to.equal(constants.ZERO_ADDRESS);
     };
 
-    const deployer = ()=>deployContracts(wallet_0, wallet_1);
-    before(async ()=>{
+    const deployer = () => deployContracts(wallet_0, wallet_1);
+    before(async () => {
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
     });
 

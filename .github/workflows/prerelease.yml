@@ -1,52 +1,52 @@
-name: "Prerelease"
+name: 'Prerelease'
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - '.github/workflows/**'
-  workflow_dispatch:
+    push:
+        branches:
+            - main
+        paths-ignore:
+            - '.github/workflows/**'
+    workflow_dispatch:
 
 jobs:
-  Bump-Prerelease-Publish:
-    name: Bump-Prerelease-Publish
-    if: "!startsWith(github.event.head_commit.message, '[SKIP CI]') && !startsWith(github.event.head_commit.message, '[release]') && github.repository == 'subquery/network-contracts'"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 100
-          token: ${{ secrets.GITHUB_TOKEN }}
+    Bump-Prerelease-Publish:
+        name: Bump-Prerelease-Publish
+        if: "!startsWith(github.event.head_commit.message, '[SKIP CI]') && !startsWith(github.event.head_commit.message, '[release]') && github.repository == 'subquery/network-contracts'"
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+              with:
+                  fetch-depth: 100
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 18
-          registry-url: 'https://registry.npmjs.org'
+            - uses: actions/setup-node@v1
+              with:
+                  node-version: 18
+                  registry-url: 'https://registry.npmjs.org'
 
-      - uses: marceloprado/has-changed-path@v1
-        id: changed
-        with:
-          paths: contracts src publish
+            - uses: marceloprado/has-changed-path@v1
+              id: changed
+              with:
+                  paths: contracts src publish
 
-      - run: yarn
+            - run: yarn
 
-      - name: Bump & build
-        #if: steps.changed.outputs.changed == 'true'
-        run: echo "Changes found" && npm version prerelease --no-git-tag-version && yarn build
+            - name: Bump & build
+              #if: steps.changed.outputs.changed == 'true'
+              run: echo "Changes found" && npm version prerelease --no-git-tag-version && yarn build
 
-      - uses: JS-DevTools/npm-publish@v1
-        name: Publish
-        #if: steps.changed.outputs.changed == 'true'
-        with:
-            token: ${{ secrets.NPM_TOKEN }}
-            tag: dev
-            access: public
-            package: build/build/package.json
+            - uses: JS-DevTools/npm-publish@v1
+              name: Publish
+              #if: steps.changed.outputs.changed == 'true'
+              with:
+                  token: ${{ secrets.NPM_TOKEN }}
+                  tag: dev
+                  access: public
+                  package: build/build/package.json
 
-      - name: Commit changes
-        uses: EndBug/add-and-commit@v5
-        with:
-          add: 'package.json'
-          message: '[SKIP CI] Prerelease'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            - name: Commit changes
+              uses: EndBug/add-and-commit@v5
+              with:
+                  add: 'package.json'
+                  message: '[SKIP CI] Prerelease'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
@@ -20,8 +20,8 @@ describe('VSQToken Contract', () => {
 
     const amount = '2000';
 
-    const deployer = ()=>deployContracts(root, root);
-    before(async ()=>{
+    const deployer = () => deployContracts(root, root);
+    before(async () => {
         [root, runner, runner2, delegator] = await ethers.getSigners();
     });
 

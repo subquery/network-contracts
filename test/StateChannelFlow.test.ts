@@ -1,12 +1,19 @@
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
-import {METADATA_HASH, DEPLOYMENT_ID, deploymentIds, metadatas, VERSION} from './constants';
-import {IndexerRegistry, RewardsPool, RewardsDistributor, EraManager, ERC20, Staking, StateChannel, StakingManager} from '../src';
-import {constants, registerRunner, startNewEra, time, delay, etherParse} from './helper';
-import {utils, Wallet, BigNumberish, BytesLike, BigNumber} from 'ethers';
-import { MockProvider } from 'ethereum-waffle';
-
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
+import { deployContracts } from './setup';
+import { deploymentIds } from './constants';
+import {
+    IndexerRegistry,
+    RewardsPool,
+    RewardsDistributor,
+    EraManager,
+    ERC20,
+    Staking,
+    StateChannel,
+    StakingManager,
+} from '../src';
+import { registerRunner, startNewEra, time, etherParse } from './helper';
+import { Wallet, BigNumber } from 'ethers';
 
 describe('StateChannel Workflow Tests', () => {
     const mockProvider = waffle.provider;
@@ -36,10 +43,10 @@ describe('StateChannel Workflow Tests', () => {
             ['uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'bytes32', 'bytes'],
             [channelId, indexer.address, consumer.address, amount, price, expiration, deploymentId, '0x']
         );
-        let payloadHash = ethers.utils.keccak256(msg);
+        const payloadHash = ethers.utils.keccak256(msg);
 
-        let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
-        let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
+        const indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+        const consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
 
         await stateChannel
             .connect(consumer)
@@ -67,12 +74,12 @@ describe('StateChannel Workflow Tests', () => {
     ) => {
         const abi = ethers.utils.defaultAbiCoder;
         const msg = abi.encode(['uint256', 'uint256', 'bool'], [channelId, spent, isFinal]);
-        let payloadHash = ethers.utils.keccak256(msg);
+        const payloadHash = ethers.utils.keccak256(msg);
 
-        let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
-        let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
+        const indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+        const consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
 
-        let query = {
+        const query = {
             channelId: channelId,
             spent: spent,
             isFinal: isFinal,
@@ -80,54 +87,17 @@ describe('StateChannel Workflow Tests', () => {
             consumerSign: consumerSign,
         };
 
-        if(mode == 0) {
+        if (mode == 0) {
             await stateChannel.checkpoint(query);
-        }else if(mode == 1) {
+        } else if (mode == 1) {
             await stateChannel.connect(consumer).terminate(query);
-        }else {
+        } else {
             await stateChannel.connect(indexer).respond(query);
         }
     };
 
-    const extendChannel = async (
-        channelId: Uint8Array,
-        indexer: Wallet,
-        consumer: Wallet,
-        expiration: number
-    ) => {
-        const abi = ethers.utils.defaultAbiCoder;
-        const state = await stateChannel.channel(channelId);
-        const preExpirationAt = state.expiredAt;
-        const msg = abi.encode(
-            ['uint256', 'address', 'address', 'uint256', 'uint256'],
-            [channelId, indexer.address, consumer.address, preExpirationAt, expiration]
-        );
-        let payload = ethers.utils.keccak256(msg);
-        let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payload));
-        let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payload));
-
-        await stateChannel.extend(channelId, preExpirationAt, expiration, indexerSign, consumerSign);
-    }
-
-    const fundChannel = async (
-        channelId: Uint8Array,
-        indexer: Wallet,
-        consumer: Wallet,
-        amount: BigNumber
-    ) => {
-        const abi = ethers.utils.defaultAbiCoder;
-        let total = (await stateChannel.channel(channelId)).total;
-        const msg = abi.encode(
-            ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
-            [channelId, indexer.address, consumer.address, total, amount, '0x']
-        );
-        let payload = ethers.utils.keccak256(msg);
-        let sign = await consumer.signMessage(ethers.utils.arrayify(payload));
-        await stateChannel.fund(channelId, total, amount, '0x', sign);
-    }
-
-    const deployer = ()=>deployContracts(wallet_0, runner);
-    before(async ()=>{
+    const deployer = () => deployContracts(wallet_0, runner);
+    before(async () => {
         [wallet_0, runner, runner2, consumer, consumer2] = await ethers.getSigners();
     });
 
@@ -152,17 +122,49 @@ describe('StateChannel Workflow Tests', () => {
         await token.connect(consumer2).increaseAllowance(stateChannel.address, etherParse('500'));
 
         await eraManager.connect(wallet_0).updateEraPeriod(time.duration.days(1).toString());
-        await startNewEra(mockProvider,eraManager);
+        await startNewEra(mockProvider, eraManager);
 
         //create statechannels
         channelId = ethers.utils.randomBytes(32);
         channelId2 = ethers.utils.randomBytes(32);
         channelId3 = ethers.utils.randomBytes(32);
         channelId4 = ethers.utils.randomBytes(32);
-        await openChannel(channelId, runner, consumer, etherParse('10'), etherParse('1'), 3000000000000000, deploymentIds[0]);
-        await openChannel(channelId2, runner, consumer2, etherParse('10'), etherParse('1'), 3000000000000000, deploymentIds[1]);
-        await openChannel(channelId3, runner2, consumer, etherParse('10'), etherParse('1'), 3000000000000000, deploymentIds[0]);
-        await openChannel(channelId4, runner2, consumer2, etherParse('10'), etherParse('1'), 3000000000000000, deploymentIds[1]);
+        await openChannel(
+            channelId,
+            runner,
+            consumer,
+            etherParse('10'),
+            etherParse('1'),
+            3000000000000000,
+            deploymentIds[0]
+        );
+        await openChannel(
+            channelId2,
+            runner,
+            consumer2,
+            etherParse('10'),
+            etherParse('1'),
+            3000000000000000,
+            deploymentIds[1]
+        );
+        await openChannel(
+            channelId3,
+            runner2,
+            consumer,
+            etherParse('10'),
+            etherParse('1'),
+            3000000000000000,
+            deploymentIds[0]
+        );
+        await openChannel(
+            channelId4,
+            runner2,
+            consumer2,
+            etherParse('10'),
+            etherParse('1'),
+            3000000000000000,
+            deploymentIds[1]
+        );
     });
 
     it('check balance when one indexer with no staking', async () => {
@@ -176,17 +178,19 @@ describe('StateChannel Workflow Tests', () => {
         expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('37'));
         expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('3'));
 
-        await startNewEra(mockProvider,eraManager);
+        await startNewEra(mockProvider, eraManager);
 
         //batchCollect at rewardpool
         await rewardsPool.batchCollect(runner.address);
         expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0'));
         expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('3'));
-        expect(await rewardsDistributor.getRewardAddTable(runner.address, (await eraManager.eraNumber()).sub(1))).to.equal(etherParse('3'));
+        expect(
+            await rewardsDistributor.getRewardAddTable(runner.address, (await eraManager.eraNumber()).sub(1))
+        ).to.equal(etherParse('3'));
     });
 
     it('check balance when two indexer with staking', async () => {
-        //indexer: 
+        //indexer:
         //stakeRatio = 1/4
         //feeRatio = 1/5
         //stakeRatio > feeRatio
@@ -195,9 +199,9 @@ describe('StateChannel Workflow Tests', () => {
         //feeRatio = 4/5
         //feeRatio > stakeRatio
         //delegator apply staking
-        await token.increaseAllowance(staking.address, etherParse("100"));
-        await stakingManager.delegate(runner.address, etherParse("1"));
-        await stakingManager.delegate(runner2.address, etherParse("3"));
+        await token.increaseAllowance(staking.address, etherParse('100'));
+        await stakingManager.delegate(runner.address, etherParse('1'));
+        await stakingManager.delegate(runner2.address, etherParse('3'));
 
         //checkpoint channel
         await operateChannel(channelId, runner, consumer, etherParse('1'), false, 0);
@@ -209,21 +213,25 @@ describe('StateChannel Workflow Tests', () => {
         expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('35'));
         expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('5'));
 
-        await startNewEra(mockProvider,eraManager);
+        await startNewEra(mockProvider, eraManager);
 
         //batchCollect at rewardpool
         await rewardsPool.batchCollect(runner.address);
         await rewardsPool.batchCollect(runner2.address);
         expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0'));
         expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('4.766033487533059372'));
-        expect(await rewardsDistributor.getRewardAddTable(runner.address, (await eraManager.eraNumber()).sub(1))).to.equal(etherParse('1.842015749320193294'));
-        expect(await rewardsDistributor.getRewardAddTable(runner2.address, (await eraManager.eraNumber()).sub(1))).to.equal(etherParse('2.924017738212866078'));
+        expect(
+            await rewardsDistributor.getRewardAddTable(runner.address, (await eraManager.eraNumber()).sub(1))
+        ).to.equal(etherParse('1.842015749320193294'));
+        expect(
+            await rewardsDistributor.getRewardAddTable(runner2.address, (await eraManager.eraNumber()).sub(1))
+        ).to.equal(etherParse('2.924017738212866078'));
     });
 
     it('check balance when two indexer with staking and deploymentIds', async () => {
-        await token.increaseAllowance(staking.address, etherParse("100"));
-        await stakingManager.delegate(runner.address, etherParse("1"));
-        await stakingManager.delegate(runner2.address, etherParse("3"));
+        await token.increaseAllowance(staking.address, etherParse('100'));
+        await stakingManager.delegate(runner.address, etherParse('1'));
+        await stakingManager.delegate(runner2.address, etherParse('3'));
 
         //checkpoint channel
         await operateChannel(channelId, runner, consumer, etherParse('1'), false, 0);
@@ -239,14 +247,18 @@ describe('StateChannel Workflow Tests', () => {
         expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('30'));
         expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('10'));
 
-        await startNewEra(mockProvider,eraManager);
+        await startNewEra(mockProvider, eraManager);
 
         //batchCollect at rewardpool
         await rewardsPool.batchCollect(runner.address);
         await rewardsPool.batchCollect(runner2.address);
         expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0'));
         expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('9.743474327295976483'));
-        expect(await rewardsDistributor.getRewardAddTable(runner.address, (await eraManager.eraNumber()).sub(1))).to.equal(etherParse('4.162810166126582740'));
-        expect(await rewardsDistributor.getRewardAddTable(runner2.address, (await eraManager.eraNumber()).sub(1))).to.equal(etherParse('5.580664161169393743'));
+        expect(
+            await rewardsDistributor.getRewardAddTable(runner.address, (await eraManager.eraNumber()).sub(1))
+        ).to.equal(etherParse('4.162810166126582740'));
+        expect(
+            await rewardsDistributor.getRewardAddTable(runner2.address, (await eraManager.eraNumber()).sub(1))
+        ).to.equal(etherParse('5.580664161169393743'));
     });
-})
+});

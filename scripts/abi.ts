@@ -1,4 +1,4 @@
-import {readFileSync, writeFileSync} from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 
 const main = async () => {
     try {

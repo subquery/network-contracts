@@ -1,9 +1,9 @@
-// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
+import { deployContracts } from './setup';
 import {
     EraManager,
     ERC20,
@@ -11,7 +11,6 @@ import {
     ProjectRegistry,
     ProjectType,
     RewardsBooster,
-    SQContracts,
     Staking,
     StakingAllocation,
     StateChannel,
@@ -19,7 +18,7 @@ import {
     RewardsDistributor,
     RewardsStaking,
 } from '../src';
-import {deploymentIds, deploymentMetadatas, METADATA_HASH, projectMetadatas} from './constants';
+import { deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
 import {
     blockTravel,
     boosterDeployment,
@@ -33,8 +32,8 @@ import {
     startNewEra,
     timeTravel,
 } from './helper';
-import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
-import {BigNumber, constants} from 'ethers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { BigNumber, constants } from 'ethers';
 
 const PER_MILL = BigNumber.from(1e6);
 
@@ -73,40 +72,40 @@ describe('RewardsBooster Contract', () => {
         return deploymentReward.mul(queryRewardRatePerMill).div(PER_MILL);
     };
 
-    const getStats = async () => {
-        const [
-            accRewardsPerBoosterLastBlockUpdated,
-            accRewardsPerBooster,
-            newRewardsPerBooster,
-            accQueryRewardsPerBoosterDep3,
-            totalBoosterPoints,
-            deployment0,
-            deployment1,
-            deployment2,
-            deployment3,
-        ] = await Promise.all([
-            rewardsBooster.accRewardsPerBoosterLastBlockUpdated(),
-            rewardsBooster.getAccRewardsPerBooster(),
-            rewardsBooster.getNewRewardsPerBooster(),
-            rewardsBooster.getAccQueryRewardsPerBooster(deploymentId3),
-            rewardsBooster.totalBoosterPoint(),
-            rewardsBooster.deploymentPools(deploymentId0),
-            rewardsBooster.deploymentPools(deploymentId1),
-            rewardsBooster.deploymentPools(deploymentId2),
-            rewardsBooster.deploymentPools(deploymentId3),
-        ]);
-        return {
-            accRewardsPerBooster: accRewardsPerBooster.toString(),
-            accRewardsPerBoosterLastBlockUpdated: accRewardsPerBoosterLastBlockUpdated.toString(),
-            newRewardsPerBooster: newRewardsPerBooster.toString(),
-            totalBoosterPoints: totalBoosterPoints.toString(),
-            deployment0,
-            deployment1,
-            deployment2,
-            deployment3,
-            accQueryRewardsPerBoosterDep3,
-        };
-    };
+    // const getStats = async () => {
+    //     const [
+    //         accRewardsPerBoosterLastBlockUpdated,
+    //         accRewardsPerBooster,
+    //         newRewardsPerBooster,
+    //         accQueryRewardsPerBoosterDep3,
+    //         totalBoosterPoints,
+    //         deployment0,
+    //         deployment1,
+    //         deployment2,
+    //         deployment3,
+    //     ] = await Promise.all([
+    //         rewardsBooster.accRewardsPerBoosterLastBlockUpdated(),
+    //         rewardsBooster.getAccRewardsPerBooster(),
+    //         rewardsBooster.getNewRewardsPerBooster(),
+    //         rewardsBooster.getAccQueryRewardsPerBooster(deploymentId3),
+    //         rewardsBooster.totalBoosterPoint(),
+    //         rewardsBooster.deploymentPools(deploymentId0),
+    //         rewardsBooster.deploymentPools(deploymentId1),
+    //         rewardsBooster.deploymentPools(deploymentId2),
+    //         rewardsBooster.deploymentPools(deploymentId3),
+    //     ]);
+    //     return {
+    //         accRewardsPerBooster: accRewardsPerBooster.toString(),
+    //         accRewardsPerBoosterLastBlockUpdated: accRewardsPerBoosterLastBlockUpdated.toString(),
+    //         newRewardsPerBooster: newRewardsPerBooster.toString(),
+    //         totalBoosterPoints: totalBoosterPoints.toString(),
+    //         deployment0,
+    //         deployment1,
+    //         deployment2,
+    //         deployment3,
+    //         accQueryRewardsPerBoosterDep3,
+    //     };
+    // };
 
     const deployer = () => deployContracts(root, root, root);
     before(async () => {
@@ -203,7 +202,7 @@ describe('RewardsBooster Contract', () => {
             await token.increaseAllowance(rewardsBooster.address, boosterAmount);
             await rewardsBooster.boostDeployment(deploymentId0, boosterAmount);
             expect(await rewardsBooster.getRunnerDeploymentBooster(deploymentId0, root.address)).to.eq(boosterAmount);
-            let balanceAfter = await token.balanceOf(root.address);
+            const balanceAfter = await token.balanceOf(root.address);
             expect(balanceBefore.sub(balanceAfter)).to.eq(boosterAmount);
             await rewardsBooster.removeBoosterDeployment(deploymentId0, boosterAmount);
             expect(await token.balanceOf(root.address)).to.eq(balanceBefore);
@@ -221,7 +220,6 @@ describe('RewardsBooster Contract', () => {
             expect(reward).to.eq(perBlockReward.mul(1000));
         });
         it('can not get booster reward if boosted token less than minimum', async () => {
-            const perBlockReward = await rewardsBooster.issuancePerBlock();
             const boosterAmount = etherParse('9999');
             await boosterDeployment(token, rewardsBooster, root, deploymentId0, boosterAmount);
             let reward = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
@@ -235,7 +233,7 @@ describe('RewardsBooster Contract', () => {
             const perBlockReward = await rewardsBooster.issuancePerBlock();
             const boosterAmount = etherParse('10000');
             await boosterDeployment(token, rewardsBooster, runner0, deploymentId0, boosterAmount);
-            let blockNumber = await mockProvider.getBlockNumber();
+            const blockNumber = await mockProvider.getBlockNumber();
             let reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             let reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId1);
             let reward2 = await rewardsBooster.getAccRewardsForDeployment(deploymentId2);
@@ -281,10 +279,10 @@ describe('RewardsBooster Contract', () => {
                     ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
                     [defaultChannelId, runner0.address, consumer0.address, etherParse('1'), queryReward, '0x']
                 );
-                let payload = ethers.utils.keccak256(msg);
-                let sign = await consumer0.signMessage(ethers.utils.arrayify(payload));
+                const payload = ethers.utils.keccak256(msg);
+                const sign = await consumer0.signMessage(ethers.utils.arrayify(payload));
                 const tx = await stateChannel.fund(defaultChannelId, etherParse('1'), queryReward, '0x', sign);
-                const {value: spent} = await eventFrom(tx, token, 'Transfer(address,address,uint256)');
+                const { value: spent } = await eventFrom(tx, token, 'Transfer(address,address,uint256)');
                 expect(spent).to.eq(queryReward);
 
                 const queryReward1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
@@ -295,12 +293,10 @@ describe('RewardsBooster Contract', () => {
 
             it('can add/remove booster - 1 booster account', async () => {
                 // setup
-                const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.RPC);
                 await wrapTxs(mockProvider, async () => {
                     await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('10000'));
                 });
                 await blockTravel(mockProvider, 1000);
-                const block1 = await mockProvider.getBlockNumber();
                 const queryReward1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
                 // const queryState1 = await rewardsBooster.getBoosterQueryRewards(deploymentId3, consumer0.address);
                 // add booster
@@ -308,7 +304,6 @@ describe('RewardsBooster Contract', () => {
                     await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('10000'));
                 });
                 await blockTravel(mockProvider, 999);
-                const block2 = await mockProvider.getBlockNumber();
                 // const queryState2 = await rewardsBooster.getBoosterQueryRewards(deploymentId3, consumer0.address);
                 const queryReward2 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
                 expect(queryReward2).to.eq(queryReward1.mul(2));
@@ -330,16 +325,14 @@ describe('RewardsBooster Contract', () => {
                 expect(queryReward1C0.add(queryReward1C1)).to.eq(getQueryReward(reward0, queryRewardRatePerMill));
                 expect(queryReward1C0).to.eq(queryReward1C1);
                 // increase consumer0's booster
-                const block1 = await mockProvider.getBlockNumber();
-                // await blockTravel(mockProvider, 1);
                 await wrapTxs(mockProvider, async () => {
                     await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('20000'));
                 });
-                const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
-                const stat1 = await getStats();
-                const block2 = await mockProvider.getBlockNumber();
-                const queryReward3C0 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
-                const queryReward3C1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer1.address);
+                // const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
+                // const stat1 = await getStats();
+                // const block2 = await mockProvider.getBlockNumber();
+                // const queryReward3C0 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
+                // const queryReward3C1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer1.address);
                 await blockTravel(mockProvider, 1000);
                 // verify rewards
                 // first 1000 blocks, C0 and C1 have 2 portions rewards each
@@ -409,7 +402,7 @@ describe('RewardsBooster Contract', () => {
                 .addAllocation(deploymentId0, runner0.address, etherParse('1000'));
             // 1000 blocks' reward
             const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
-            const {value: collectedRewards} = await eventFrom(tx, token, 'Transfer(address,address,uint256)');
+            const { value: collectedRewards } = await eventFrom(tx, token, 'Transfer(address,address,uint256)');
             expect(collectedRewards).to.eq(getAllocationReward(reward1.sub(reward0), queryRewardRatePerMill));
             const [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId2, runner0.address);
             expect(allocReward).to.eq(0);
@@ -418,9 +411,7 @@ describe('RewardsBooster Contract', () => {
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await blockTravel(mockProvider, 1000);
             let reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
-            const tx = await stakingAllocation
-                .connect(runner0)
-                .addAllocation(deploymentId0, runner0.address, etherParse('1000'));
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
 
             // const {allocationId} = await eventFrom(tx, rewardsBooster, 'StakeAllocated(uint256,bytes32,address,uint256)');
             reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
@@ -432,20 +423,18 @@ describe('RewardsBooster Contract', () => {
             [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             expect(allocReward).to.eq(getAllocationReward(reward1.sub(reward0), queryRewardRatePerMill));
             await stakingAllocation.connect(runner1).addAllocation(deploymentId0, runner1.address, etherParse('1000'));
-            const accRewardsPerAllocatedToken = await rewardsBooster.getAccRewardsPerAllocatedToken(deploymentId0);
+            // const accRewardsPerAllocatedToken = await rewardsBooster.getAccRewardsPerAllocatedToken(deploymentId0);
             await blockTravel(mockProvider, 500);
-            const reward = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
-            const allo2 = await stakingAllocation.allocatedTokens(runner1.address, deploymentId0);
+            // const reward = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
+            // const allo2 = await stakingAllocation.allocatedTokens(runner1.address, deploymentId0);
             [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
-            const allocReward2 = await rewardsBooster.getAllocationRewards(deploymentId0, runner1.address);
+            // const allocReward2 = await rewardsBooster.getAllocationRewards(deploymentId0, runner1.address);
         });
 
         // FIXME: need to rewrite, missedLabor is now seconds instead of blocks
         it.skip('set missed labor will affact allocation reward', async () => {
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
-            const tx = await stakingAllocation
-                .connect(runner0)
-                .addAllocation(deploymentId0, runner0.address, etherParse('1000'));
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
             const reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             const blockNum = await mockProvider.getBlockNumber();
             await blockTravel(mockProvider, 500);
@@ -467,18 +456,18 @@ describe('RewardsBooster Contract', () => {
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await blockTravel(mockProvider, 1000);
             await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
-            let reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
+            const reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             let [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             expect(reward0).to.gt(0);
             expect(allocReward).to.eq(0);
             await blockTravel(mockProvider, 500);
             const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
-            const state1 = await getStats();
+            // const state1 = await getStats();
             expect(allocReward).to.eq(getAllocationReward(reward1.sub(reward0), queryRewardRatePerMill));
             // console.log(`allocReward: ${allocReward.toString()}`);
             await rewardsBooster.onAllocationUpdate(deploymentId0);
-            const state2 = await getStats();
+            // const state2 = await getStats();
             // await blockTravel(mockProvider, 1);
             [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             // console.log(`allocReward: ${allocReward.toString()}`);
@@ -488,7 +477,7 @@ describe('RewardsBooster Contract', () => {
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await blockTravel(mockProvider, 1000);
             await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
-            let reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
+            const reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             let [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             expect(reward0).to.gt(0);
             expect(allocReward).to.eq(0);
@@ -514,22 +503,22 @@ describe('RewardsBooster Contract', () => {
         });
 
         it('allocate before boosted', async () => {
-            const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
+            // const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await stakingAllocation.connect(runner0).addAllocation(deploymentId2, runner0.address, etherParse('1000'));
             await stakingAllocation.connect(runner1).addAllocation(deploymentId2, runner1.address, etherParse('1000'));
             const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId2);
             expect(reward1).to.eq(0);
             await boosterDeployment(token, rewardsBooster, root, deploymentId2, etherParse('10000'));
             await blockTravel(mockProvider, 1000);
-            const stats = await getStats();
-            const reward2 = await rewardsBooster.getAccRewardsForDeployment(deploymentId2);
+            // const stats = await getStats();
+            // const reward2 = await rewardsBooster.getAccRewardsForDeployment(deploymentId2);
             const [allocReward1I0] = await rewardsBooster.getAllocationRewards(deploymentId2, runner0.address);
             const [allocReward1I1] = await rewardsBooster.getAllocationRewards(deploymentId2, runner1.address);
             expect(allocReward1I0).to.eq(allocReward1I1);
         });
 
         it('claim allocation reward, multiple indexer', async () => {
-            const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
+            // const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await wrapTxs(mockProvider, async () => {
                 await stakingAllocation
                     .connect(runner0)
@@ -541,13 +530,13 @@ describe('RewardsBooster Contract', () => {
             // accumulate rewards
             const reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             await blockTravel(mockProvider, 499);
-            const [allocReward1I0] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
-            const [allocReward1I1] = await rewardsBooster.getAllocationRewards(deploymentId0, runner1.address);
+            // const [allocReward1I0] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
+            // const [allocReward1I1] = await rewardsBooster.getAllocationRewards(deploymentId0, runner1.address);
             // allocate more
-            let tx = await stakingAllocation
+            const tx = await stakingAllocation
                 .connect(runner0)
                 .addAllocation(deploymentId0, runner0.address, etherParse('3000'));
-            const {value: reward1I0} = await eventFrom(tx, token, 'Transfer(address,address,uint256)');
+            const { value: reward1I0 } = await eventFrom(tx, token, 'Transfer(address,address,uint256)');
             await blockTravel(mockProvider, 500);
             const [allocReward2I0] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             const [allocReward2I1] = await rewardsBooster.getAllocationRewards(deploymentId0, runner1.address);
@@ -569,7 +558,7 @@ describe('RewardsBooster Contract', () => {
             //                                                         | I0 add allocation |
             //                                                                             | C0 add booster
             // set up allocation
-            const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.RPC);
+            // const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.RPC);
             await wrapTxs(mockProvider, async () => {
                 await stakingAllocation
                     .connect(runner0)
@@ -585,12 +574,12 @@ describe('RewardsBooster Contract', () => {
             });
             // accumulate rewards
             await blockTravel(mockProvider, 1000);
-            const dReward = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
+            // const dReward = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
 
-            const [allocRewardI0] = await rewardsBooster.getAllocationRewards(deploymentId3, runner0.address);
-            const [allocRewardI1] = await rewardsBooster.getAllocationRewards(deploymentId3, runner1.address);
-            const queryRewardC0 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
-            const queryRewardC1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer1.address);
+            // const [allocRewardI0] = await rewardsBooster.getAllocationRewards(deploymentId3, runner0.address);
+            // const [allocRewardI1] = await rewardsBooster.getAllocationRewards(deploymentId3, runner1.address);
+            // const queryRewardC0 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
+            // const queryRewardC1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer1.address);
 
             // 1000 * issurance per block of rewards
             await blockTravel(mockProvider, 199);
@@ -598,7 +587,7 @@ describe('RewardsBooster Contract', () => {
             const tx = await stakingAllocation
                 .connect(runner0)
                 .addAllocation(deploymentId3, runner0.address, etherParse('2000'));
-            const {value: collectedRewardsI0} = await eventFrom(tx, token, 'Transfer(address,address,uint256)');
+            const { value: collectedRewardsI0 } = await eventFrom(tx, token, 'Transfer(address,address,uint256)');
             await blockTravel(mockProvider, 199);
             await wrapTxs(mockProvider, async () => {
                 await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('20000'));

@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
@@ -7,60 +7,49 @@ import {
     ConsumerHost,
     EraManager,
     IndexerRegistry,
-    PermissionedExchange,
     PlanManager,
-    ProjectRegistry,
     PurchaseOfferMarket,
     RewardsDistributor,
     ERC20,
-    ServiceAgreementRegistry,
-    Settings,
     Staking,
-    StakingManager
+    StakingManager,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, poi } from './constants';
 import { etherParse, futureTimestamp, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
 
-
 describe('Maintenance Mode Test', () => {
     const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
-    let settings: Settings;
     let token: ERC20;
     let staking: Staking;
-    let projectRegistry: ProjectRegistry;
     let indexerRegistry: IndexerRegistry;
     let planManager: PlanManager;
     let eraManager: EraManager;
     let rewardsDistributor: RewardsDistributor;
-    let serviceAgreementRegistry: ServiceAgreementRegistry;
     let consumerHost: ConsumerHost;
     let purchaseOfferMarket: PurchaseOfferMarket;
     let stakingManager: StakingManager;
 
-    const deployer = ()=>deployContracts(wallet_0, wallet_1);
-    before(async ()=>{
+    const deployer = () => deployContracts(wallet_0, wallet_1);
+    before(async () => {
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
     });
 
     beforeEach(async () => {
         const deployment = await waffle.loadFixture(deployer);
         token = deployment.token;
-        settings = deployment.settings;
         staking = deployment.staking;
-        projectRegistry = deployment.projectRegistry;
         indexerRegistry = deployment.indexerRegistry;
         planManager = deployment.planManager;
         eraManager = deployment.eraManager;
         rewardsDistributor = deployment.rewardsDistributor;
-        serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         consumerHost = deployment.consumerHost;
         purchaseOfferMarket = deployment.purchaseOfferMarket;
         stakingManager = deployment.stakingManager;
 
-        await token.transfer(wallet_1.address, etherParse("10000"));
-        await token.transfer(wallet_2.address, etherParse("10000"));
+        await token.transfer(wallet_1.address, etherParse('10000'));
+        await token.transfer(wallet_2.address, etherParse('10000'));
         await token.connect(wallet_1).increaseAllowance(staking.address, etherParse('10000'));
         await token.connect(wallet_2).increaseAllowance(staking.address, etherParse('10000'));
         await token.increaseAllowance(staking.address, etherParse('10000'));
@@ -108,7 +97,9 @@ describe('Maintenance Mode Test', () => {
 
     describe('IndexerRegistry check', () => {
         it('registerIndexer should ban in maintenance mode', async () => {
-            await expect(indexerRegistry.connect(wallet_1).registerIndexer(etherParse('1000'), METADATA_HASH, 0)).to.be.revertedWith('G019');
+            await expect(
+                indexerRegistry.connect(wallet_1).registerIndexer(etherParse('1000'), METADATA_HASH, 0)
+            ).to.be.revertedWith('G019');
         });
         it('unregisterIndexer should ban in maintenance mode', async () => {
             await expect(indexerRegistry.unregisterIndexer()).to.be.revertedWith('G019');
@@ -144,15 +135,17 @@ describe('Maintenance Mode Test', () => {
 
     describe('PurchaseOfferMarket check', () => {
         it('createPurchaseOffer should ban in maintenance mode', async () => {
-            await expect(purchaseOfferMarket.createPurchaseOffer(
-                DEPLOYMENT_ID,
-                0,
-                etherParse('1'),
-                1,
-                100,
-                etherParse('1000'),
-                await futureTimestamp(mockProvider)
-            )).to.be.revertedWith('G019');
+            await expect(
+                purchaseOfferMarket.createPurchaseOffer(
+                    DEPLOYMENT_ID,
+                    0,
+                    etherParse('1'),
+                    1,
+                    100,
+                    etherParse('1000'),
+                    await futureTimestamp(mockProvider)
+                )
+            ).to.be.revertedWith('G019');
         });
 
         it('cancelPurchaseOffer should ban in maintenance mode', async () => {
@@ -181,13 +174,19 @@ describe('Maintenance Mode Test', () => {
             await expect(stakingManager.unstake(wallet_0.address, etherParse('1'))).to.be.revertedWith('G019');
         });
         it('delegate should ban in maintenance mode', async () => {
-            await expect(stakingManager.connect(wallet_1).delegate(wallet_0.address, etherParse('1'))).to.be.revertedWith('G019');
+            await expect(
+                stakingManager.connect(wallet_1).delegate(wallet_0.address, etherParse('1'))
+            ).to.be.revertedWith('G019');
         });
         it('undelegate should ban in maintenance mode', async () => {
-            await expect(stakingManager.connect(wallet_1).undelegate(wallet_0.address, etherParse('1'))).to.be.revertedWith('G019');
+            await expect(
+                stakingManager.connect(wallet_1).undelegate(wallet_0.address, etherParse('1'))
+            ).to.be.revertedWith('G019');
         });
         it('redelegate should ban in maintenance mode', async () => {
-            await expect(stakingManager.connect(wallet_1).redelegate(wallet_0.address, wallet_2.address, etherParse('1'))).to.be.revertedWith('G019');
+            await expect(
+                stakingManager.connect(wallet_1).redelegate(wallet_0.address, wallet_2.address, etherParse('1'))
+            ).to.be.revertedWith('G019');
         });
         it('widthdraw should ban in maintenance mode', async () => {
             await expect(stakingManager.connect(wallet_1).widthdraw()).to.be.revertedWith('G019');
@@ -196,5 +195,4 @@ describe('Maintenance Mode Test', () => {
             await expect(stakingManager.connect(wallet_1).cancelUnbonding(0)).to.be.revertedWith('G019');
         });
     });
-
 });

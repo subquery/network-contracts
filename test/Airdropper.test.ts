@@ -1,9 +1,9 @@
-// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-import { Airdropper, SQToken, Settings } from '../src';
+import { Airdropper, SQToken } from '../src';
 import { ZERO_ADDRESS } from './constants';
 import { etherParse, futureTimestamp, lastestTime, timeTravel } from './helper';
 import { deployRootContracts } from './setup';
@@ -13,7 +13,6 @@ describe.skip('Airdropper Contract', () => {
     const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2, wallet_3;
     let airdropper: Airdropper;
-    let settings: Settings;
     let token: SQToken;
     let sqtAddress;
 
@@ -21,7 +20,6 @@ describe.skip('Airdropper Contract', () => {
         [wallet_0, wallet_1, wallet_2, wallet_3] = await ethers.getSigners();
         const deployment = await deployRootContracts(wallet_0, wallet_1);
         airdropper = deployment.airdropper;
-        settings = deployment.settings;
         token = deployment.rootToken;
         sqtAddress = token.address;
     });
@@ -66,12 +64,9 @@ describe.skip('Airdropper Contract', () => {
         });
 
         it('create round should work', async () => {
-            await expect(airdropper.createRound(
-                sqtAddress,
-                startTime,
-                endTime
-            )).to.be.emit(airdropper, 'RoundCreated')
-            .withArgs(0, sqtAddress, startTime, endTime);
+            await expect(airdropper.createRound(sqtAddress, startTime, endTime))
+                .to.be.emit(airdropper, 'RoundCreated')
+                .withArgs(0, sqtAddress, startTime, endTime);
 
             const round = await airdropper.roundRecord(0);
             expect(round.tokenAddress).to.equal(sqtAddress);
@@ -93,7 +88,9 @@ describe.skip('Airdropper Contract', () => {
             ).to.be.revertedWith('A001');
         });
         it('create round with invaild caller should fail', async () => {
-            await expect(airdropper.connect(wallet_1).createRound(sqtAddress, startTime, endTime)).to.be.revertedWith('A010');
+            await expect(airdropper.connect(wallet_1).createRound(sqtAddress, startTime, endTime)).to.be.revertedWith(
+                'A010'
+            );
         });
         it('update round should work', async () => {
             await airdropper.createRound(sqtAddress, startTime, endTime);
@@ -141,13 +138,15 @@ describe.skip('Airdropper Contract', () => {
             await token.increaseAllowance(airdropper.address, etherParse('100'));
         });
         it('batch airdrop should work', async () => {
-            await expect(airdropper.batchAirdrop(
-                    [wallet_1.address, wallet_2.address], 
-                    [1, 1], 
-                    [etherParse('10'), etherParse('20')])
+            await expect(
+                airdropper.batchAirdrop(
+                    [wallet_1.address, wallet_2.address],
+                    [1, 1],
+                    [etherParse('10'), etherParse('20')]
                 )
-            .to.be.emit(airdropper, 'AddAirdrop')
-            .withArgs(wallet_1.address, 1, etherParse('10'));
+            )
+                .to.be.emit(airdropper, 'AddAirdrop')
+                .withArgs(wallet_1.address, 1, etherParse('10'));
 
             expect(await airdropper.airdropRecord(wallet_1.address, 1)).to.be.eq(etherParse('10'));
             expect(await airdropper.airdropRecord(wallet_2.address, 1)).to.be.eq(etherParse('20'));
@@ -155,13 +154,11 @@ describe.skip('Airdropper Contract', () => {
             expect(await token.balanceOf(airdropper.address)).to.be.eq(etherParse('30'));
         });
         it('batch airdrop with invaild caller should fail', async () => {
-            await expect(airdropper.connect(wallet_1)
-                .batchAirdrop(
-                    [wallet_1.address, wallet_2.address], 
-                    [1, 1], 
-                    [etherParse('10'), etherParse('20')])
-                )
-            .to.be.revertedWith('A010');
+            await expect(
+                airdropper
+                    .connect(wallet_1)
+                    .batchAirdrop([wallet_1.address, wallet_2.address], [1, 1], [etherParse('10'), etherParse('20')])
+            ).to.be.revertedWith('A010');
         });
         it('duplicate airdrop should fail', async () => {
             await airdropper.batchAirdrop([wallet_1.address], [1], [etherParse('10')]);
@@ -188,8 +185,8 @@ describe.skip('Airdropper Contract', () => {
 
             await timeTravel(mockProvider, 60 * 60 * 24 * 3);
             await expect(airdropper.settleEndedRound(0))
-            .to.be.emit(airdropper, 'RoundSettled')
-            .withArgs(0, wallet_3.address, etherParse('10'));
+                .to.be.emit(airdropper, 'RoundSettled')
+                .withArgs(0, wallet_3.address, etherParse('10'));
             await expect(airdropper.settleEndedRound(0)).to.be.revertedWith('A009');
 
             expect(await token.balanceOf(airdropper.address)).to.be.eq(etherParse('0'));
@@ -220,8 +217,8 @@ describe.skip('Airdropper Contract', () => {
             await timeTravel(mockProvider, 60 * 60 * 3);
 
             await expect(airdropper.connect(wallet_1).claimAirdrop(0))
-            .to.be.emit(airdropper, 'AirdropClaimed')
-            .withArgs(wallet_1.address, 0, etherParse('10'));
+                .to.be.emit(airdropper, 'AirdropClaimed')
+                .withArgs(wallet_1.address, 0, etherParse('10'));
 
             expect(await airdropper.airdropRecord(wallet_1.address, 0)).to.be.eq(etherParse('0'));
             expect(await (await airdropper.roundRecord(0)).unclaimedAmount).to.be.eq(etherParse('0'));
@@ -232,8 +229,8 @@ describe.skip('Airdropper Contract', () => {
             await timeTravel(mockProvider, 60 * 60 * 3);
 
             await expect(airdropper.connect(wallet_1).batchClaimAirdrop([0, 1]))
-            .to.be.emit(airdropper, 'AirdropClaimed')
-            .withArgs(wallet_1.address, 0, etherParse('10'));
+                .to.be.emit(airdropper, 'AirdropClaimed')
+                .withArgs(wallet_1.address, 0, etherParse('10'));
 
             expect(await airdropper.airdropRecord(wallet_1.address, 0)).to.be.eq(etherParse('0'));
             expect(await (await airdropper.roundRecord(0)).unclaimedAmount).to.be.eq(etherParse('0'));

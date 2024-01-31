@@ -1,8 +1,8 @@
-// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { BigNumber } from "ethers";
+import { BigNumber } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 import {
     IndexerRegistry,
@@ -11,7 +11,6 @@ import {
     PurchaseOfferMarket,
     RewardsDistributor,
     ERC20,
-    ServiceAgreementRegistry,
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, poi } from './constants';
@@ -22,7 +21,6 @@ describe('Purchase Offer Market Contract', () => {
     const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
     let purchaseOfferMarket: PurchaseOfferMarket;
-    let serviceAgreementRegistry: ServiceAgreementRegistry;
     let indexerRegistry: IndexerRegistry;
     let projectRegistry: ProjectRegistry;
     let staking: Staking;
@@ -39,8 +37,8 @@ describe('Purchase Offer Market Contract', () => {
     const planTemplateId = 0;
     let offerId: BigNumber;
 
-    const deployer = ()=>deployContracts(wallet_0, wallet_1, wallet_2);
-    before(async ()=>{
+    const deployer = () => deployContracts(wallet_0, wallet_1, wallet_2);
+    before(async () => {
         [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
     });
 
@@ -48,7 +46,6 @@ describe('Purchase Offer Market Contract', () => {
         const deployment = await waffle.loadFixture(deployer);
         futureDate = await futureTimestamp(mockProvider);
         purchaseOfferMarket = deployment.purchaseOfferMarket;
-        serviceAgreementRegistry = deployment.serviceAgreementRegistry;
         indexerRegistry = deployment.indexerRegistry;
         projectRegistry = deployment.projectRegistry;
         staking = deployment.staking;
@@ -119,7 +116,9 @@ describe('Purchase Offer Market Contract', () => {
 
             it('create offer with inactive planTemplate should fail', async () => {
                 await planManager.updatePlanTemplateStatus(0, false);
-                await expect(createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate)).to.revertedWith("PO005");
+                await expect(
+                    createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate)
+                ).to.revertedWith('PO005');
             });
         });
 
@@ -144,7 +143,6 @@ describe('Purchase Offer Market Contract', () => {
             it('cancel unexipred offer should work', async () => {
                 const consumerBalance = await token.balanceOf(wallet_0.address);
                 const offerMarketBalance = await token.balanceOf(purchaseOfferMarket.address);
-                const totalSupply = await token.totalSupply();
 
                 expect(await purchaseOfferMarket.cancelPurchaseOffer(offerId))
                     .to.be.emit(purchaseOfferMarket, 'PurchaseOfferCancelled')
@@ -166,9 +164,7 @@ describe('Purchase Offer Market Contract', () => {
                 await expect(purchaseOfferMarket.connect(wallet_1).setPenaltyRate(200)).to.be.revertedWith(
                     'Ownable: caller is not the owner'
                 );
-                await expect(purchaseOfferMarket.connect(wallet_0).setPenaltyRate(1000001)).to.be.revertedWith(
-                    'PO001'
-                );
+                await expect(purchaseOfferMarket.connect(wallet_0).setPenaltyRate(1000001)).to.be.revertedWith('PO001');
                 await purchaseOfferMarket.connect(wallet_0).setPenaltyRate(200);
                 expect(await purchaseOfferMarket.penaltyRate()).to.equal(200);
             });
@@ -220,9 +216,9 @@ describe('Purchase Offer Market Contract', () => {
 
             it('accept offer with invalid params and caller should fail', async () => {
                 // invalid caller
-                await expect(purchaseOfferMarket.connect(wallet_2).acceptPurchaseOffer(offerId, poi)).to.be.revertedWith(
-                    'G002'
-                );
+                await expect(
+                    purchaseOfferMarket.connect(wallet_2).acceptPurchaseOffer(offerId, poi)
+                ).to.be.revertedWith('G002');
                 // create second offer
                 const offerId2 = await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
 
@@ -230,25 +226,25 @@ describe('Purchase Offer Market Contract', () => {
                 await expect(purchaseOfferMarket.acceptPurchaseOffer(10, poi)).to.be.revertedWith('PO007');
                 // offer already accepted
                 await purchaseOfferMarket.acceptPurchaseOffer(offerId, poi);
-                await expect(purchaseOfferMarket.acceptPurchaseOffer(offerId, poi)).to.be.revertedWith(
-                    'PO009'
-                );
+                await expect(purchaseOfferMarket.acceptPurchaseOffer(offerId, poi)).to.be.revertedWith('PO009');
                 // offer cancelled
                 await purchaseOfferMarket.cancelPurchaseOffer(offerId2);
                 await expect(purchaseOfferMarket.acceptPurchaseOffer(offerId2, poi)).to.be.revertedWith('PO007');
                 // contracts reacheed limit
-                await expect(purchaseOfferMarket.connect(wallet_1).acceptPurchaseOffer(offerId, poi)).to.be.revertedWith(
-                    'PO010'
-                );
+                await expect(
+                    purchaseOfferMarket.connect(wallet_1).acceptPurchaseOffer(offerId, poi)
+                ).to.be.revertedWith('PO010');
             });
 
             it('accept offer with inactive planTemplate should fail', async () => {
                 const offerId2 = await createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate);
                 expect(offerId2).to.exist;
                 await planManager.updatePlanTemplateStatus(0, false);
-                await expect(createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate)).to.revertedWith("PO005");
+                await expect(
+                    createPurchaseOffer(purchaseOfferMarket, token, DEPLOYMENT_ID, futureDate)
+                ).to.revertedWith('PO005');
 
-                await expect(purchaseOfferMarket.acceptPurchaseOffer(offerId2, poi)).to.revertedWith("PO005");
+                await expect(purchaseOfferMarket.acceptPurchaseOffer(offerId2, poi)).to.revertedWith('PO005');
             });
 
             it('accept offer not meet mimum staking amount shoud fail', async () => {
@@ -265,7 +261,7 @@ describe('Purchase Offer Market Contract', () => {
                 );
 
                 expect(offerId2).to.exist;
-                await expect(purchaseOfferMarket.acceptPurchaseOffer(offerId2, poi)).to.revertedWith("PO013");
+                await expect(purchaseOfferMarket.acceptPurchaseOffer(offerId2, poi)).to.revertedWith('PO013');
             });
         });
     });

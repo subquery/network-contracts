@@ -9,12 +9,12 @@
 - kind: Faucet
   account: indexer1
   amounts:
-    SQT: 10000
-    Fee: 100
+      SQT: 10000
+      Fee: 100
 - kind: Faucet
   account: controller1
   amounts:
-    Fee: 100
+      Fee: 100
 - kind: Indexer
   account: indexer1
   stake: 1000

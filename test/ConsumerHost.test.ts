@@ -1,16 +1,10 @@
-// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
 import { BigNumber, BigNumberish, BytesLike, Wallet } from 'ethers';
 import { ethers, waffle } from 'hardhat';
-import {
-    ConsumerHost,
-    IndexerRegistry,
-    ERC20,
-    Staking,
-    StateChannel
-} from '../src';
+import { ConsumerHost, IndexerRegistry, ERC20, Staking, StateChannel } from '../src';
 import { deploymentIds } from './constants';
 import { delay, etherParse, registerRunner } from './helper';
 import { deployContracts } from './setup';
@@ -62,10 +56,10 @@ describe('ConsumerHost Contract', () => {
                 consumerCallback,
             ]
         );
-        let payloadHash = ethers.utils.keccak256(msg);
+        const payloadHash = ethers.utils.keccak256(msg);
 
-        let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
-        let hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
+        const indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+        const hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
 
         const recoveredIndexer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), indexerSign);
         expect(indexer.address).to.equal(recoveredIndexer);
@@ -132,8 +126,8 @@ describe('ConsumerHost Contract', () => {
             ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
             [channelId, indexer.address, consumerHost.address, preTotal, amount, consumerCallback]
         );
-        let payloadHash = ethers.utils.keccak256(msg);
-        let hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
+        const payloadHash = ethers.utils.keccak256(msg);
+        const hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
 
         const recoveredHoster = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), hosterSign);
         expect(hoster.address).to.equal(recoveredHoster);
@@ -160,10 +154,10 @@ describe('ConsumerHost Contract', () => {
     }> => {
         const abi = ethers.utils.defaultAbiCoder;
         const msg = abi.encode(['uint256', 'uint256', 'bool'], [channelId, spent, isFinal]);
-        let payloadHash = ethers.utils.keccak256(msg);
+        const payloadHash = ethers.utils.keccak256(msg);
 
-        let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
-        let hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
+        const indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+        const hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
 
         const recoveredIndexer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), indexerSign);
         expect(indexer.address).to.equal(recoveredIndexer);
@@ -180,9 +174,8 @@ describe('ConsumerHost Contract', () => {
         };
     };
 
-
-    const deployer = ()=>deployContracts(wallet_0, runner);
-    before(async ()=>{
+    const deployer = () => deployContracts(wallet_0, runner);
+    before(async () => {
         [wallet_0, runner, consumer, consumer2, hoster] = await ethers.getSigners();
     });
 
@@ -299,7 +292,6 @@ describe('ConsumerHost Contract', () => {
                 60,
                 false
             );
-            const fee = await consumerHost.feePerMill();
             expect((await consumerHost.consumers(consumer.address)).balance).to.equal(etherParse('8.99')); // 10 - 1 - 0.01
             expect(await consumerHost.channels(channelId)).to.equal(consumer.address);
 
@@ -337,9 +329,7 @@ describe('ConsumerHost Contract', () => {
             const fee1 = await consumerHost.fee();
             expect(fee1).to.equal(etherParse('0.04')); // 0.01 + 0.02 + 0.01
             await consumerHost.connect(wallet_0).setFeeRate(BigNumber.from(20000));
-            await expect(consumerHost.connect(wallet_0).setFeeRate(BigNumber.from(1010000))).to.be.revertedWith(
-                'C001'
-            );
+            await expect(consumerHost.connect(wallet_0).setFeeRate(BigNumber.from(1010000))).to.be.revertedWith('C001');
             await fundChannel(
                 channelId3,
                 runner,

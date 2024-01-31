@@ -1,7 +1,3 @@
-import { Provider } from '@ethersproject/abstract-provider';
-import { Wallet } from '@ethersproject/wallet';
-import { BaseContract, ContractFactory, Signer } from 'ethers';
-
 import CONTRACTS from '../src/contracts';
 
 import {
@@ -71,15 +67,9 @@ import {
     SQTRedeem,
     VTSQToken,
     VTSQToken__factory,
-    L2SQToken,
     L2SQToken__factory,
+    FactoryContstructor,
 } from '../src';
-
-export interface FactoryContstructor {
-    new(wallet: Wallet): ContractFactory;
-    connect: (address: string, signerOrProvider: Signer | Provider) => BaseContract;
-    readonly abi: any;
-}
 
 export type Contracts = {
     proxyAdmin: ProxyAdmin;
@@ -117,8 +107,9 @@ export type Contracts = {
     sqtRedeem: SQTRedeem;
 };
 
-export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ bytecode: string }, FactoryContstructor]>> =
-{
+export const UPGRADEBAL_CONTRACTS: Partial<
+    Record<keyof typeof CONTRACTS, [{ bytecode: string }, FactoryContstructor]>
+> = {
     InflationController: [CONTRACTS.InflationController, InflationController__factory],
     IndexerRegistry: [CONTRACTS.IndexerRegistry, IndexerRegistry__factory],
     PlanManager: [CONTRACTS.PlanManager, PlanManager__factory],

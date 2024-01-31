@@ -1,9 +1,9 @@
-// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
-import {deployContracts} from './setup';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
+import { deployContracts } from './setup';
 import {
     EraManager,
     ERC20,
@@ -17,18 +17,14 @@ import {
     StakingManager,
     StakingAllocation,
 } from '../src';
-import {deploymentIds, deploymentMetadatas, METADATA_HASH, projectMetadatas} from './constants';
-import {blockTravel, etherParse, eventFrom, time, startNewEra, wrapTxs, timeTravel, registerRunner} from './helper';
-import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
-import {BigNumber, providers, constants} from 'ethers';
-
-const PER_MILL = BigNumber.from(1e6);
+import { deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
+import { etherParse, time, startNewEra, timeTravel, registerRunner } from './helper';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { constants } from 'ethers';
 
 describe('StakingAllocation Contract', () => {
     const deploymentId0 = deploymentIds[0];
     const deploymentId1 = deploymentIds[1];
-    const deploymentId2 = deploymentIds[2];
-    const deploymentId3 = deploymentIds[3];
 
     const mockProvider = waffle.provider;
     let root: SignerWithAddress,
@@ -148,8 +144,6 @@ describe('StakingAllocation Contract', () => {
             await stakingManager.connect(runner0).stake(runner0.address, etherParse('10000'));
             await checkAllocation(runner0, etherParse('10000'), 0, false, false);
             await applyStaking(runner0, runner0);
-
-            const status1 = await stakingAllocation.runnerAllocation(runner0.address);
             await checkAllocation(runner0, etherParse('20000'), 0, false, false);
 
             await stakingAllocation

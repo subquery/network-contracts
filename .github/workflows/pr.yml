@@ -1,24 +1,24 @@
 name: PR
 on:
-  pull_request:
-    paths-ignore:
+    pull_request:
+        paths-ignore:
 
 jobs:
-  pr:
-    name: pr
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: install node v18
-      uses: actions/setup-node@v1
-      with:
-        node-version: 18
-    - run: yarn
-    - name: clean cache
-      run: yarn clean
-    - name: build
-      run: yarn build
-    - name: lint
-      run: yarn lint
-    - name: test
-      run: yarn test:all
+    pr:
+        name: pr
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v1
+            - name: install node v18
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 18
+            - run: yarn
+            - name: clean cache
+              run: yarn clean
+            - name: build
+              run: yarn build
+            - name: lint
+              run: yarn lint
+            - name: test
+              run: yarn test:all

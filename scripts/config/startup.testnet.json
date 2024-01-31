@@ -13,12 +13,12 @@
     ],
     "amounts": [10000, 20000, 30000, 40000, 10000, 20000, 30000, 40000, 10000, 40000],
     "vestingPlans": [
-        {"initPercentage": 20, "vestingPeriod": 604800, "lockPeriod": 8640000},
-        {"initPercentage": 30, "vestingPeriod": 7776000, "lockPeriod": 8640000},
-        {"initPercentage": 0, "vestingPeriod": 7776000, "lockPeriod": 8640000},
-        {"initPercentage": 30, "vestingPeriod": 7776000, "lockPeriod": 0},
-        {"initPercentage": 30, "vestingPeriod": 0, "lockPeriod": 8640000},
-        {"initPercentage": 100, "vestingPeriod": 7776000, "lockPeriod": 8640000}
+        { "initPercentage": 20, "vestingPeriod": 604800, "lockPeriod": 8640000 },
+        { "initPercentage": 30, "vestingPeriod": 7776000, "lockPeriod": 8640000 },
+        { "initPercentage": 0, "vestingPeriod": 7776000, "lockPeriod": 8640000 },
+        { "initPercentage": 30, "vestingPeriod": 7776000, "lockPeriod": 0 },
+        { "initPercentage": 30, "vestingPeriod": 0, "lockPeriod": 8640000 },
+        { "initPercentage": 100, "vestingPeriod": 7776000, "lockPeriod": 8640000 }
     ],
     "planTemplates": [
         {

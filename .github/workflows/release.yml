@@ -1,50 +1,50 @@
-name: "Release"
+name: 'Release'
 on:
-  push:
-    branches:
-      - main
-      - kepler-network
-      - develop
-    paths-ignore:
-      - '.github/workflows/**'
-  workflow_dispatch:
+    push:
+        branches:
+            - main
+            - kepler-network
+            - develop
+        paths-ignore:
+            - '.github/workflows/**'
+    workflow_dispatch:
 
 jobs:
-  Build-Publish:
-    name: Build-Publish
-    if: "!startsWith(github.event.head_commit.message, '[SKIP CI]') && startsWith(github.event.head_commit.message, '[release]') && github.repository == 'subquery/network-contracts'"
-    runs-on: ubuntu-latest
-    steps:
-      #Check out
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 100
+    Build-Publish:
+        name: Build-Publish
+        if: "!startsWith(github.event.head_commit.message, '[SKIP CI]') && startsWith(github.event.head_commit.message, '[release]') && github.repository == 'subquery/network-contracts'"
+        runs-on: ubuntu-latest
+        steps:
+            #Check out
+            - uses: actions/checkout@v2
+              with:
+                  fetch-depth: 100
 
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 18
-          registry-url: 'https://registry.npmjs.org'
+            - uses: actions/setup-node@v1
+              with:
+                  node-version: 18
+                  registry-url: 'https://registry.npmjs.org'
 
-    #Identify changes
-      - uses: marceloprado/has-changed-path@v1
-        id: changed
-        with:
-            paths: package.json
+            #Identify changes
+            - uses: marceloprado/has-changed-path@v1
+              id: changed
+              with:
+                  paths: package.json
 
-      - run: yarn
+            - run: yarn
 
-      - name: build
-        run: yarn build
-      #Publish to npm
-      - uses: JS-DevTools/npm-publish@v1
-        name: Publish
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          tag: latest
-          access: public
-          package: build/build/package.json
-      - uses: christophebedard/tag-version-commit@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          version_tag_prefix: 'v'
-          version_regex: '([0-9]+\.[0-9]+\.[0-9]+)'
+            - name: build
+              run: yarn build
+            #Publish to npm
+            - uses: JS-DevTools/npm-publish@v1
+              name: Publish
+              with:
+                  token: ${{ secrets.NPM_TOKEN }}
+                  tag: latest
+                  access: public
+                  package: build/build/package.json
+            - uses: christophebedard/tag-version-commit@v1
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  version_tag_prefix: 'v'
+                  version_regex: '([0-9]+\.[0-9]+\.[0-9]+)'
