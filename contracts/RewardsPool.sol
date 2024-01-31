@@ -110,7 +110,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
      * @param _alphaDenominator the denominator of the alpha
      */
     function setAlpha(int32 _alphaNumerator, int32 _alphaDenominator) public onlyOwner {
-        require(_alphaNumerator > 0 && _alphaDenominator > 0, "RP001");
+        require(_alphaNumerator > 0 && _alphaDenominator > 0, 'RP001');
         alphaNumerator = _alphaNumerator;
         alphaDenominator = _alphaDenominator;
 
@@ -123,7 +123,11 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
      * @param era era number
      * @param runner runner address
      */
-    function getReward(bytes32 deploymentId, uint256 era, address runner) public view returns (uint256, uint256) {
+    function getReward(
+        bytes32 deploymentId,
+        uint256 era,
+        address runner
+    ) public view returns (uint256, uint256) {
         Pool storage pool = pools[era].pools[deploymentId];
         return (pool.labor[runner], pool.totalReward);
     }
@@ -136,9 +140,14 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
      */
     function labor(bytes32 deploymentId, address runner, uint256 amount) external {
         require(amount > 0, 'RP002');
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
+            msg.sender,
+            address(this),
+            amount
+        );
 
-        uint256 era = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        uint256 era = IEraManager(settings.getContractAddress(SQContracts.EraManager))
+            .safeUpdateAndGetEra();
         EraPool storage eraPool = pools[era];
         Pool storage pool = eraPool.pools[deploymentId];
 
@@ -149,7 +158,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
 
         // runner joined the deployment pool firstly.
         if (pool.labor[runner] == 0) {
-            IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
+            IStakingManager stakingManager = IStakingManager(
+                settings.getContractAddress(SQContracts.StakingManager)
+            );
             uint256 myStake = stakingManager.getEffectiveTotalStake(runner);
             if (myStake == 0) {
                 // skip unclaimDeployments change, this runner can not claim
@@ -188,7 +199,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
      * @param runner runner address
      */
     function collect(bytes32 deploymentId, address runner) external {
-        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager))
+            .safeUpdateAndGetEra();
         _collect(currentEra - 1, deploymentId, runner);
     }
 
@@ -197,7 +209,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
      * @param runner runner address
      */
     function batchCollect(address runner) external {
-        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager))
+            .safeUpdateAndGetEra();
         _batchCollect(currentEra - 1, runner);
     }
 
@@ -208,7 +221,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
      * @param runner runner address
      */
     function collectEra(uint256 era, bytes32 deploymentId, address runner) external {
-        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager))
+            .safeUpdateAndGetEra();
         require(currentEra > era, 'RP004');
         _collect(era, deploymentId, runner);
     }
@@ -219,7 +233,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
      * @param runner runner address
      */
     function batchCollectEra(uint256 era, address runner) external {
-        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager))
+            .safeUpdateAndGetEra();
         require(currentEra > era, 'RP004');
         _batchCollect(era, runner);
     }
@@ -240,7 +255,10 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
      * @param runner runner address
      * @return bytes32List list of deploymentIds
      */
-    function getUnclaimDeployments(uint256 era, address runner) external view returns (bytes32[] memory) {
+    function getUnclaimDeployments(
+        uint256 era,
+        address runner
+    ) external view returns (bytes32[] memory) {
         return pools[era].unclaimedDeployments[runner].deployments;
     }
 
@@ -263,7 +281,12 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
         // this is to prevent duplicated collect
         require(pool.totalStake > 0 && pool.totalReward > 0 && pool.labor[runner] > 0, 'RP005');
 
-        uint256 amount = _cobbDouglas(pool.totalReward, pool.labor[runner], pool.stake[runner], pool.totalStake);
+        uint256 amount = _cobbDouglas(
+            pool.totalReward,
+            pool.labor[runner],
+            pool.stake[runner],
+            pool.totalStake
+        );
 
         address rewardDistributer = settings.getContractAddress(SQContracts.RewardsDistributor);
         IRewardsDistributor distributer = IRewardsDistributor(rewardDistributer);
@@ -293,7 +316,10 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
             // burn the remained
             if (pool.unclaimReward > 0) {
                 address treasury = settings.getContractAddress(SQContracts.Treasury);
-                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(treasury, pool.unclaimReward);
+                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
+                    treasury,
+                    pool.unclaimReward
+                );
             }
 
             delete eraPool.pools[deploymentId];
@@ -317,7 +343,12 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
     /// @notice and fixed-point math easily overflows with multiplication,
     /// @notice we will choose the following if `stakeRatio > feeRatio`:
     /// @notice `reward * stakeRatio / e^(alpha * (ln(stakeRatio / feeRatio)))`
-    function _cobbDouglas(uint256 reward, uint256 myLabor, uint256 myStake, uint256 totalStake) private view returns (uint256) {
+    function _cobbDouglas(
+        uint256 reward,
+        uint256 myLabor,
+        uint256 myStake,
+        uint256 totalStake
+    ) private view returns (uint256) {
         if (myStake == totalStake) {
             return reward;
         }
@@ -336,20 +367,14 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
             ? FixedMath.div(feeRatio, stakeRatio)
             : FixedMath.div(stakeRatio, feeRatio);
         n = FixedMath.exp(
-            FixedMath.mulDiv(
-                FixedMath.ln(n),
-                int256(alphaNumerator),
-                int256(alphaDenominator)
-            )
+            FixedMath.mulDiv(FixedMath.ln(n), int256(alphaNumerator), int256(alphaDenominator))
         );
         // Compute
         // `reward * n` if feeRatio <= stakeRatio
         // or
         // `reward / n` if stakeRatio > feeRatio
         // depending on the choice we made earlier.
-        n = feeRatio <= stakeRatio
-            ? FixedMath.mul(stakeRatio, n)
-            : FixedMath.div(stakeRatio, n);
+        n = feeRatio <= stakeRatio ? FixedMath.mul(stakeRatio, n) : FixedMath.div(stakeRatio, n);
         // Multiply the above with reward.
         return FixedMath.uintMul(n, reward);
     }

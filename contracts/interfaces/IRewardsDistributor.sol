@@ -21,11 +21,19 @@ interface IRewardsDistributor {
 
     function collectAndDistributeRewards(address indexer) external;
 
-    function collectAndDistributeEraRewards(uint256 era, address indexer) external returns (uint256);
+    function collectAndDistributeEraRewards(
+        uint256 era,
+        address indexer
+    ) external returns (uint256);
 
     function increaseAgreementRewards(uint256 agreementId) external;
 
-    function addInstantRewards(address indexer, address sender, uint256 amount, uint256 era) external;
+    function addInstantRewards(
+        address indexer,
+        address sender,
+        uint256 amount,
+        uint256 era
+    ) external;
 
     function claim(address indexer) external;
 

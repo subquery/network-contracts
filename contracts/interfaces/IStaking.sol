@@ -8,9 +8,9 @@ pragma solidity 0.8.15;
  * Stake amount change need to be applied at next Era.
  */
 struct StakingAmount {
-    uint256 era;         // last update era
-    uint256 valueAt;     // value at the era
-    uint256 valueAfter;  // value to be refreshed from next era
+    uint256 era; // last update era
+    uint256 valueAt; // value at the era
+    uint256 valueAfter; // value to be refreshed from next era
 }
 
 /**
@@ -18,8 +18,8 @@ struct StakingAmount {
  * Delegator can withdraw the unbond amount after the lockPeriod.
  */
 struct UnbondAmount {
-    address indexer;   // the indexer before delegate.
-    uint256 amount;    // pending unbonding amount
+    address indexer; // the indexer before delegate.
+    uint256 amount; // pending unbonding amount
     uint256 startTime; // unbond start time
 }
 

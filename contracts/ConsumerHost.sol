@@ -56,7 +56,6 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     /// @notice controller account belongs to consumer
     mapping(address => address) public controllers;
 
-
     /// @dev ### EVENTS
     /// @notice Emitted when consumer approve host to manager the balance.
     event Approve(address consumer);
@@ -71,10 +70,23 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     event Withdraw(address consumer, uint256 amount, uint256 balance);
 
     /// @notice Emitted when consumer pay for open a state channel
-    event Paid(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance, uint256 fee);
+    event Paid(
+        uint256 channelId,
+        address consumer,
+        address caller,
+        uint256 amount,
+        uint256 balance,
+        uint256 fee
+    );
 
     /// @notice Emitted when consumer pay for open a state channel
-    event Claimed(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance);
+    event Claimed(
+        uint256 channelId,
+        address consumer,
+        address caller,
+        uint256 amount,
+        uint256 balance
+    );
 
     /// @notice Emitted when consumer set the controller account.
     event SetControllerAccount(address consumer, address controller);
@@ -130,9 +142,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         emit SetControllerAccount(msg.sender, controller);
     }
 
-
     /**
-     * @notice consumer call to remove the controller account. 
+     * @notice consumer call to remove the controller account.
      */
     function removeControllerAccount() public {
         address controller = controllers[msg.sender];
@@ -198,7 +209,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @notice Approve host can use consumer balance
      */
     function approve() external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         Consumer storage consumer = consumers[msg.sender];
         consumer.approved = true;
         emit Approve(msg.sender);
@@ -208,7 +222,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @notice Disapprove host can use consumer balance
      */
     function disapprove() external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         Consumer storage consumer = consumers[msg.sender];
         consumer.approved = false;
         emit Disapprove(msg.sender);
@@ -219,7 +236,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param amount the amount
      */
     function deposit(uint256 amount, bool isApprove) external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         // transfer the balance to contract
         IERC20 sqt = IERC20(settings.getContractAddress(SQContracts.SQToken));
         sqt.safeTransferFrom(msg.sender, address(this), amount);
@@ -240,7 +260,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param amount the amount
      */
     function withdraw(uint256 amount) external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         Consumer storage consumer = consumers[msg.sender];
         require(consumer.balance >= amount, 'C002');
 
@@ -281,7 +304,12 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
             bytes32 payload = keccak256(abi.encode(channelId, amount, nonce));
             bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
             address sConsumer = ECDSA.recover(hash, sign);
-            require(sConsumer == consumer || IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(consumer, sConsumer), 'C006');
+            require(
+                sConsumer == consumer ||
+                    IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry))
+                        .isController(consumer, sConsumer),
+                'C006'
+            );
             info.nonce = nonce + 1;
 
             require(sConsumer == sender, 'C010');
@@ -329,7 +357,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         if (signerIndex[sConsumer] > 0) {
             return true;
         }
-        return channels[channelId] == sConsumer || IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(channels[channelId], sConsumer);
+        return
+            channels[channelId] == sConsumer ||
+            IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry))
+                .isController(channels[channelId], sConsumer);
     }
 
     /**
@@ -360,7 +391,9 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param interfaceId interface ID
      * @return Result of support or not
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC165) returns (bool) {
         return interfaceId == type(IConsumer).interfaceId || super.supportsInterface(interfaceId);
     }
 }

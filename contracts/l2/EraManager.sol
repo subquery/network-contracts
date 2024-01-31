@@ -79,10 +79,10 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
         eraNumber++;
         eraStartTime = block.timestamp;
 
-//        IInflationController inflationController = IInflationController(settings.getContractAddress(SQContracts.InflationController));
-//        if (inflationController.inflationRate() > 0) {
-//            inflationController.mintInflatedTokens();
-//        }
+        //        IInflationController inflationController = IInflationController(settings.getContractAddress(SQContracts.InflationController));
+        //        if (inflationController.inflationRate() > 0) {
+        //            inflationController.mintInflatedTokens();
+        //        }
 
         emit NewEraStart(eraNumber, msg.sender);
     }

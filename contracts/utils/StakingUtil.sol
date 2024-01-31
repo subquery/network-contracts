@@ -10,7 +10,10 @@ import '../interfaces/IStaking.sol';
  * @dev
  */
 library StakingUtil {
-    function currentStaking(StakingAmount memory amount, uint256 era) internal pure returns (uint256) {
+    function currentStaking(
+        StakingAmount memory amount,
+        uint256 era
+    ) internal pure returns (uint256) {
         if (amount.era < era) {
             return amount.valueAfter;
         }

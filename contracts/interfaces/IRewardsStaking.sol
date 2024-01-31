@@ -12,7 +12,10 @@ interface IRewardsStaking {
 
     function applyICRChange(address indexer) external;
 
-    function checkAndReflectSettlement(address indexer, uint256 lastClaimEra) external returns (bool);
+    function checkAndReflectSettlement(
+        address indexer,
+        uint256 lastClaimEra
+    ) external returns (bool);
 
     function getTotalStakingAmount(address _indexer) external view returns (uint256);
 

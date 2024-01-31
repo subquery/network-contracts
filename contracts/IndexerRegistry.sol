@@ -47,13 +47,13 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
 
     /**
-    * @dev Commission rate information. One per Indexer.
-    * Commission rate change need to be applied at the Era after next Era
-    */
+     * @dev Commission rate information. One per Indexer.
+     * Commission rate change need to be applied at the Era after next Era
+     */
     struct CommissionRate {
-        uint256 era;         // last update era
-        uint256 valueAt;     // value at the era
-        uint256 valueAfter;  // value to be refreshed from next era
+        uint256 era; // last update era
+        uint256 valueAt; // value at the era
+        uint256 valueAfter; // value to be refreshed from next era
     }
 
     /// @dev ### STATES
@@ -136,7 +136,10 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
 
         metadata[msg.sender] = _metadata;
         setInitialCommissionRate(msg.sender, rate);
-        IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).stake(msg.sender, amount);
+        IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).stake(
+            msg.sender,
+            amount
+        );
 
         emit RegisterIndexer(msg.sender, amount, _metadata);
     }
@@ -146,12 +149,18 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
      *  This function will call unstake for Indexer to make sure indexer unstaking all staked SQT Token after unregister.
      */
     function unregisterIndexer() external onlyIndexer {
-        require(IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).numberOfDeployments(msg.sender) == 0, 'IR004');
+        require(
+            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
+                .numberOfDeployments(msg.sender) == 0,
+            'IR004'
+        );
 
         delete metadata[msg.sender];
         delete controllers[msg.sender];
 
-        IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
+        IStakingManager stakingManager = IStakingManager(
+            settings.getContractAddress(SQContracts.StakingManager)
+        );
         uint256 amount = stakingManager.getAfterDelegationAmount(msg.sender, msg.sender);
         stakingManager.unstake(msg.sender, amount);
 
@@ -203,11 +212,14 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
      * when indexer do registration. The commissionRate need to apply at once.
      */
     function setInitialCommissionRate(address indexer, uint256 rate) private {
-        IRewardsStaking rewardsStaking = IRewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
+        IRewardsStaking rewardsStaking = IRewardsStaking(
+            settings.getContractAddress(SQContracts.RewardsStaking)
+        );
         require(rewardsStaking.getTotalStakingAmount(indexer) == 0, 'RS001');
         require(rate <= PER_MILL, 'IR006');
 
-        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
+        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager))
+            .safeUpdateAndGetEra();
         commissionRates[indexer] = CommissionRate(eraNumber, rate, rate);
 
         emit SetCommissionRate(indexer, rate);
@@ -220,8 +232,12 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
     function setCommissionRate(uint256 rate) external onlyIndexer {
         require(rate <= PER_MILL, 'IR006');
 
-        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager)).safeUpdateAndGetEra();
-        IRewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking)).onICRChange(msg.sender, eraNumber + 2);
+        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager))
+            .safeUpdateAndGetEra();
+        IRewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking)).onICRChange(
+            msg.sender,
+            eraNumber + 2
+        );
 
         CommissionRate storage commissionRate = commissionRates[msg.sender];
         if (commissionRate.era < eraNumber) {

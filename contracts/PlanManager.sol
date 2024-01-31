@@ -63,7 +63,13 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     event PlanTemplateStatusChanged(uint256 indexed templateId, bool active);
 
     /// @notice Emitted when Indexer create a Plan.
-    event PlanCreated(uint256 indexed planId, address creator, bytes32 deploymentId, uint256 planTemplateId, uint256 price);
+    event PlanCreated(
+        uint256 indexed planId,
+        address creator,
+        bytes32 deploymentId,
+        uint256 planTemplateId,
+        uint256 price
+    );
 
     /// @notice Emitted when Indexer remove a Plan.
     event PlanRemoved(uint256 indexed planId);
@@ -103,12 +109,25 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param rateLimit request rate limit
      * @param metadata plan metadata
      */
-    function createPlanTemplate(uint256 period, uint256 dailyReqCap, uint256 rateLimit, address priceToken, bytes32 metadata) external onlyOwner {
+    function createPlanTemplate(
+        uint256 period,
+        uint256 dailyReqCap,
+        uint256 rateLimit,
+        address priceToken,
+        bytes32 metadata
+    ) external onlyOwner {
         require(period > 0, 'PM001');
         require(dailyReqCap > 0, 'PM002');
         require(rateLimit > 0, 'PM003');
 
-        v2templates[nextTemplateId] = PlanTemplateV2(period, dailyReqCap, rateLimit, priceToken, metadata, true);
+        v2templates[nextTemplateId] = PlanTemplateV2(
+            period,
+            dailyReqCap,
+            rateLimit,
+            priceToken,
+            metadata,
+            true
+        );
 
         emit PlanTemplateCreated(nextTemplateId);
         nextTemplateId++;
@@ -154,7 +173,10 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param deploymentId project deployment Id on plan
      */
     function createPlan(uint256 price, uint256 templateId, bytes32 deploymentId) external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         require(price > 0, 'PM005');
         require(getPlanTemplate(templateId).active, 'PM006');
         require(limits[msg.sender][deploymentId] < limit, 'PM007');
@@ -171,7 +193,10 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param planId Plan id to remove
      */
     function removePlan(uint256 planId) external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         require(plans[planId].indexer == msg.sender, 'PM008');
 
         bytes32 deploymentId = plans[planId].deploymentId;
@@ -188,7 +213,10 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param deploymentId project deployment Id
      */
     function acceptPlan(uint256 planId, bytes32 deploymentId) external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         Plan memory plan = plans[planId];
         require(plan.active, 'PM009');
         if (plan.deploymentId != bytes32(0)) {
@@ -201,7 +229,12 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         //stable price mode
         PlanTemplateV2 memory template = getPlanTemplate(plan.templateId);
         require(template.active, 'PM006');
-        uint256 sqtPrice = IPriceOracle(settings.getContractAddress(SQContracts.PriceOracle)).convertPrice(template.priceToken, settings.getContractAddress(SQContracts.SQToken), plan.price);
+        uint256 sqtPrice = IPriceOracle(settings.getContractAddress(SQContracts.PriceOracle))
+            .convertPrice(
+                template.priceToken,
+                settings.getContractAddress(SQContracts.SQToken),
+                plan.price
+            );
 
         // create closed service agreement contract
         ClosedServiceAgreementInfo memory agreement = ClosedServiceAgreementInfo(
@@ -216,10 +249,16 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         );
 
         // deposit SQToken into serviceAgreementRegistry contract
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).transferFrom(msg.sender, settings.getContractAddress(SQContracts.ServiceAgreementRegistry), sqtPrice);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).transferFrom(
+            msg.sender,
+            settings.getContractAddress(SQContracts.ServiceAgreementRegistry),
+            sqtPrice
+        );
 
         // register the agreement to service agreement registry contract
-        IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getContractAddress(SQContracts.ServiceAgreementRegistry));
+        IServiceAgreementRegistry registry = IServiceAgreementRegistry(
+            settings.getContractAddress(SQContracts.ServiceAgreementRegistry)
+        );
         registry.createClosedServiceAgreement(agreement);
     }
 
@@ -244,7 +283,15 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
             return v2templates[templateId];
         } else {
             PlanTemplate memory v1template = templates[templateId];
-            return PlanTemplateV2(v1template.period, v1template.dailyReqCap, v1template.rateLimit, settings.getContractAddress(SQContracts.SQToken), v1template.metadata, v1template.active);
+            return
+                PlanTemplateV2(
+                    v1template.period,
+                    v1template.dailyReqCap,
+                    v1template.rateLimit,
+                    settings.getContractAddress(SQContracts.SQToken),
+                    v1template.metadata,
+                    v1template.active
+                );
         }
     }
 }

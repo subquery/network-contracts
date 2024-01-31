@@ -60,7 +60,13 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         uint256 expireDate
     );
     /// @notice Emitted when trader trade on exist orders.
-    event Trade(uint256 indexed orderId, address tokenGive, uint256 amountGive, address tokenGet, uint256 amountGet);
+    event Trade(
+        uint256 indexed orderId,
+        address tokenGive,
+        uint256 amountGive,
+        address tokenGet,
+        uint256 amountGet
+    );
     /// @notice Emitted when expired exchange order settled.
     event OrderSettled(
         uint256 indexed orderId,
@@ -107,7 +113,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     }
 
     /**
-     * @notice Set the stable coin trading limitation in single transaction. 
+     * @notice Set the stable coin trading limitation in single transaction.
      * @param _limit New limitation.
      */
     function setTradeLimitation(uint256 _limit) external onlyOwner {
@@ -133,12 +139,12 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
 
     /**
      * @notice Add liquidity to a exist order.
-     * @param _orderId order id 
-     * @param _amount amount to add 
+     * @param _orderId order id
+     * @param _amount amount to add
      */
     function addLiquidity(uint256 _orderId, uint256 _amount) external onlyOwner {
         ExchangeOrder storage order = orders[_orderId];
-        require(order.expireDate > block.timestamp, 'PE006');      
+        require(order.expireDate > block.timestamp, 'PE006');
         require(_amount > 0, 'PE007');
         IERC20(order.tokenGive).safeTransferFrom(msg.sender, address(this), _amount);
         order.tokenGiveBalance = order.tokenGiveBalance + _amount;
@@ -151,11 +157,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      * @param _account Trader address to add quota.
      * @param _account Quota amount to add.
      */
-    function addQuota(
-        address _token,
-        address _account,
-        uint256 _amount
-    ) external {
+    function addQuota(address _token, address _account, uint256 _amount) external {
         require(exchangeController[msg.sender] == true, 'PE001');
         tradeQuota[_token][_account] += _amount;
         emit QuotaAdded(_token, _account, _amount);
@@ -182,7 +184,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
     ) public onlyOwner {
         require(_expireDate > block.timestamp, 'PE002');
         require(_amountGive > 0 && _amountGet > 0, 'PE003');
-        if (_tokenGiveBalance > 0){
+        if (_tokenGiveBalance > 0) {
             IERC20(_tokenGive).safeTransferFrom(msg.sender, address(this), _tokenGiveBalance);
         }
         orders[nextOrderId] = ExchangeOrder(
@@ -195,7 +197,15 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
             _pairId,
             _tokenGiveBalance
         );
-        emit ExchangeOrderSent(nextOrderId, msg.sender, _tokenGive, _tokenGet, _amountGive, _amountGet, _expireDate);
+        emit ExchangeOrderSent(
+            nextOrderId,
+            msg.sender,
+            _tokenGive,
+            _tokenGet,
+            _amountGive,
+            _amountGet,
+            _expireDate
+        );
         nextOrderId += 1;
     }
 
@@ -217,8 +227,16 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         uint256 _tokenGiveBalance
     ) public onlyOwner {
         require(_tokenGiveBalance > 0, 'PE004');
-        sendOrder(_tokenGive, _tokenGet, _amountGive, _amountGet, _expireDate, nextOrderId+1, _tokenGiveBalance);
-        sendOrder(_tokenGet, _tokenGive, _amountGet, _amountGive, _expireDate, nextOrderId-1, 0);
+        sendOrder(
+            _tokenGive,
+            _tokenGet,
+            _amountGive,
+            _amountGet,
+            _expireDate,
+            nextOrderId + 1,
+            _tokenGiveBalance
+        );
+        sendOrder(_tokenGet, _tokenGive, _amountGet, _amountGive, _expireDate, nextOrderId - 1, 0);
     }
 
     /**
@@ -228,7 +246,10 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      * @param _amount The amount to trade.
      */
     function trade(uint256 _orderId, uint256 _amount) public {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         ExchangeOrder storage order = orders[_orderId];
         if (order.tokenGet == settings.getContractAddress(SQContracts.SQToken)) {
             require(tradeQuota[order.tokenGet][msg.sender] >= _amount, 'PE005');
@@ -246,11 +267,11 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         if (order.tokenGet == settings.getContractAddress(SQContracts.SQToken)) {
             tradeQuota[order.tokenGet][msg.sender] -= _amount;
         }
-        if (order.pairOrderId != 0){
+        if (order.pairOrderId != 0) {
             IERC20(order.tokenGet).safeTransferFrom(msg.sender, address(this), _amount);
             ExchangeOrder storage pairOrder = orders[order.pairOrderId];
             pairOrder.tokenGiveBalance += _amount;
-        }else{
+        } else {
             IERC20(order.tokenGet).safeTransferFrom(msg.sender, order.sender, _amount);
         }
         IERC20(order.tokenGive).safeTransfer(msg.sender, amount);
@@ -262,7 +283,10 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      * @param _orderId The order id to settle.
      */
     function settleExpiredOrder(uint256 _orderId) public {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         ExchangeOrder memory order = orders[_orderId];
         require(order.expireDate != 0, 'PE009');
         require(order.expireDate < block.timestamp, 'PE010');
@@ -290,7 +314,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         if (order.tokenGiveBalance != 0) {
             IERC20(order.tokenGive).safeTransfer(order.sender, order.tokenGiveBalance);
         }
-        if (order.pairOrderId != 0){
+        if (order.pairOrderId != 0) {
             ExchangeOrder storage pairOrder = orders[order.pairOrderId];
             pairOrder.pairOrderId = 0;
         }

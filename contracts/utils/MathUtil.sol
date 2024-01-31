@@ -16,11 +16,7 @@ library MathUtil {
         return (x - 1) / y + 1;
     }
 
-    function mulDiv(
-        uint256 x,
-        uint256 y,
-        uint256 z
-    ) internal pure returns (uint256) {
+    function mulDiv(uint256 x, uint256 y, uint256 z) internal pure returns (uint256) {
         return (x * y) / z;
     }
 
