@@ -1,4 +1,3 @@
-import { SQToken } from './src/typechain/contracts/root/SQToken';
 import * as dotenv from 'dotenv';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomiclabs/hardhat-waffle';
@@ -57,7 +56,6 @@ task('publishRoot', "verify and publish contracts on etherscan")
     .addParam('networkpair','testnet|kepler|mainnet')
     .setAction(async (taskArgs, hre) => {
         const deployment = require(taskArgs.deployment).root;
-        const childDeployment = require(taskArgs.deployment).child;
         const config = contractsConfig[taskArgs.networkpair];
 
         try {

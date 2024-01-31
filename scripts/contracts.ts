@@ -71,7 +71,6 @@ import {
     SQTRedeem,
     VTSQToken,
     VTSQToken__factory,
-    L2SQToken,
     L2SQToken__factory,
 } from '../src';
 

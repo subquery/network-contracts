@@ -1,4 +1,4 @@
-// Copyright (C) 2020-2023 SubQuery Pte Ltd authors & contributors
+// Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import Airdropper from './artifacts/contracts/Airdropper.sol/Airdropper.json';
