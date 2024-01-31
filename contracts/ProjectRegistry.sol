@@ -3,9 +3,9 @@
 
 pragma solidity 0.8.15;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
@@ -24,7 +24,14 @@ import './interfaces/IServiceAgreementRegistry.sol';
  * Indexers are able to start and stop service with a specific deployment from this conttact. Also Indexers can update and report
  * their service status from this contarct.
  */
-contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, ERC721URIStorageUpgradeable, ERC721EnumerableUpgradeable, IProjectRegistry {
+contract ProjectRegistry is
+    Initializable,
+    OwnableUpgradeable,
+    ERC721Upgradeable,
+    ERC721URIStorageUpgradeable,
+    ERC721EnumerableUpgradeable,
+    IProjectRegistry
+{
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubProject network contracts address
     ISettings public settings;
@@ -52,13 +59,25 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
 
     /// @dev EVENTS
     /// @notice Emitted when project created.
-    event ProjectCreated(address indexed creator, uint256 indexed projectId, string projectMetadata, ProjectType projectType, bytes32 deploymentId, bytes32 deploymentMetadata);
+    event ProjectCreated(
+        address indexed creator,
+        uint256 indexed projectId,
+        string projectMetadata,
+        ProjectType projectType,
+        bytes32 deploymentId,
+        bytes32 deploymentMetadata
+    );
 
     /// @notice Emitted when the metadata of the project updated.
     event ProjectMetadataUpdated(address indexed owner, uint256 indexed projectId, string metadata);
 
     /// @notice Emitted when the latestDeploymentId of the project updated.
-    event ProjectDeploymentUpdated(address indexed owner, uint256 indexed projectId, bytes32 deploymentId, bytes32 metadata);
+    event ProjectDeploymentUpdated(
+        address indexed owner,
+        uint256 indexed projectId,
+        bytes32 deploymentId,
+        bytes32 metadata
+    );
 
     /// @notice Emitted when project latest deployment updated.
     event ProjectLatestDeploymentUpdated(address indexed owner, uint256 projectId, bytes32 deploymentId);
@@ -69,7 +88,10 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /// @dev MODIFIER
     /// @notice only indexer can call
     modifier onlyIndexer() {
-        require(IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).isIndexer(msg.sender), 'G002');
+        require(
+            IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).isIndexer(msg.sender),
+            'G002'
+        );
         _;
     }
 
@@ -80,7 +102,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
      */
     function initialize(ISettings _settings) external initializer {
         __Ownable_init();
-        __ERC721_init("SubQueryProject", "SP");
+        __ERC721_init('SubQueryProject', 'SP');
         __ERC721URIStorage_init();
         __ERC721Enumerable_init();
 
@@ -118,18 +140,27 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     }
 
     function _baseURI() internal view virtual override returns (string memory) {
-        return "ipfs://";
+        return 'ipfs://';
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId,
+        uint256 batchSize
+    ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
-    function tokenURI(uint256 tokenId) public view override(ERC721Upgradeable, ERC721URIStorageUpgradeable) returns (string memory) {
+    function tokenURI(
+        uint256 tokenId
+    ) public view override(ERC721Upgradeable, ERC721URIStorageUpgradeable) returns (string memory) {
         return super.tokenURI(tokenId);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC721URIStorageUpgradeable) returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC721URIStorageUpgradeable) returns (bool) {
         return interfaceId == type(IProjectRegistry).interfaceId || super.supportsInterface(interfaceId);
     }
 
@@ -140,7 +171,12 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice create a project, if in the restrict mode, only creator allowed to call this function
      */
-    function createProject(string memory projectMetadataUri, bytes32 deploymentMetdata, bytes32 deploymentId, ProjectType projectType) external {
+    function createProject(
+        string memory projectMetadataUri,
+        bytes32 deploymentMetdata,
+        bytes32 deploymentId,
+        ProjectType projectType
+    ) external {
         if (creatorRestricted[projectType]) {
             require(creatorWhitelist[msg.sender], 'PR001');
         }
@@ -179,7 +215,12 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     /**
      * @notice add a deployment to a project.
      */
-    function addOrUpdateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata, bool updateLatest) external {
+    function addOrUpdateDeployment(
+        uint256 projectId,
+        bytes32 deploymentId,
+        bytes32 metadata,
+        bool updateLatest
+    ) external {
         require(ownerOf(projectId) == msg.sender, 'PR004');
         require(deploymentId != bytes32(0) && metadata != bytes32(0), 'PR009');
 
@@ -227,10 +268,8 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
 
         require(currentStatus == ServiceStatus.READY, 'PR005');
         require(
-            !IServiceAgreementRegistry(settings.getContractAddress(SQContracts.ServiceAgreementRegistry)).hasOngoingClosedServiceAgreement(
-                msg.sender,
-                deploymentId
-            ),
+            !IServiceAgreementRegistry(settings.getContractAddress(SQContracts.ServiceAgreementRegistry))
+                .hasOngoingClosedServiceAgreement(msg.sender, deploymentId),
             'PR006'
         );
 
@@ -247,7 +286,7 @@ contract ProjectRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable
     }
 
     function getDeploymentProjectType(bytes32 _deploymentId) external view returns (ProjectType) {
-        require(isDeploymentRegistered(_deploymentId), "PR011");
+        require(isDeploymentRegistered(_deploymentId), 'PR011');
         return projectInfos[deploymentInfos[_deploymentId].projectId].projectType;
     }
 

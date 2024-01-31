@@ -56,7 +56,6 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     /// @notice controller account belongs to consumer
     mapping(address => address) public controllers;
 
-
     /// @dev ### EVENTS
     /// @notice Emitted when consumer approve host to manager the balance.
     event Approve(address consumer);
@@ -88,12 +87,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param _settings Settings contract address
      * @param _feePerMill fee percentage
      */
-    function initialize(
-        ISettings _settings,
-        address _sqt,
-        address _channel,
-        uint256 _feePerMill
-    ) external initializer {
+    function initialize(ISettings _settings, address _sqt, address _channel, uint256 _feePerMill) external initializer {
         __Ownable_init();
         settings = _settings;
         feePerMill = _feePerMill;
@@ -130,9 +124,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         emit SetControllerAccount(msg.sender, controller);
     }
 
-
     /**
-     * @notice consumer call to remove the controller account. 
+     * @notice consumer call to remove the controller account.
      */
     function removeControllerAccount() public {
         address controller = controllers[msg.sender];
@@ -257,12 +250,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param amount the amount need to pay
      * @param callback the info include consumer and signature(if approve, no signature))
      */
-    function paid(
-        uint256 channelId,
-        address sender,
-        uint256 amount,
-        bytes memory callback
-    ) external {
+    function paid(uint256 channelId, address sender, uint256 amount, bytes memory callback) external {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'G011');
         (address consumer, bytes memory sign) = abi.decode(callback, (address, bytes));
         if (channels[channelId] == address(0)) {
@@ -281,7 +269,14 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
             bytes32 payload = keccak256(abi.encode(channelId, amount, nonce));
             bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
             address sConsumer = ECDSA.recover(hash, sign);
-            require(sConsumer == consumer || IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(consumer, sConsumer), 'C006');
+            require(
+                sConsumer == consumer ||
+                    IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(
+                        consumer,
+                        sConsumer
+                    ),
+                'C006'
+            );
             info.nonce = nonce + 1;
 
             require(sConsumer == sender, 'C010');
@@ -319,17 +314,18 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param sign the signature
      * @return Result of check
      */
-    function checkSign(
-        uint256 channelId,
-        bytes32 payload,
-        bytes memory sign
-    ) external view returns (bool) {
+    function checkSign(uint256 channelId, bytes32 payload, bytes memory sign) external view returns (bool) {
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
         address sConsumer = ECDSA.recover(hash, sign);
         if (signerIndex[sConsumer] > 0) {
             return true;
         }
-        return channels[channelId] == sConsumer || IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(channels[channelId], sConsumer);
+        return
+            channels[channelId] == sConsumer ||
+            IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(
+                channels[channelId],
+                sConsumer
+            );
     }
 
     /**

@@ -9,8 +9,7 @@ import '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
-
-import "./IInflationDestination.sol";
+import './IInflationDestination.sol';
 import '../interfaces/ISettings.sol';
 import '../interfaces/ISQToken.sol';
 import '../Constants.sol';
@@ -24,8 +23,8 @@ contract InflationController is Initializable, OwnableUpgradeable {
     using MathUtil for uint256;
     using ERC165CheckerUpgradeable for address;
 
-//    /// @dev ### STATES
-//    /// @notice ISettings contract which stores SubQuery network contracts address
+    //    /// @dev ### STATES
+    //    /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
 
     /// @notice The one year inflation rate for SQT token
@@ -61,7 +60,7 @@ contract InflationController is Initializable, OwnableUpgradeable {
         settings = _settings;
         inflationRate = _inflationRate;
         inflationDestination = _inflationDestination;
-//        lastInflationTimestamp = block.timestamp;
+        //        lastInflationTimestamp = block.timestamp;
     }
 
     /**

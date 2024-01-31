@@ -31,12 +31,12 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
 
     struct Dispute {
         uint256 disputeId;
-        address runner;                  // runner address
-        address fisherman;                // fisherman address
-        uint256 depositAmount;            // fisherman deposit amount
-        bytes32 deploymentId;             // project deployment id
-        DisputeType dtype;                // dispute type (POI or Query)
-        DisputeState state;               // dispute state, defult ongoing (ongoing, accept, reject, cancelled)
+        address runner; // runner address
+        address fisherman; // fisherman address
+        uint256 depositAmount; // fisherman deposit amount
+        bytes32 deploymentId; // project deployment id
+        DisputeType dtype; // dispute type (POI or Query)
+        DisputeState state; // dispute state, defult ongoing (ongoing, accept, reject, cancelled)
     }
 
     ISettings public settings;
@@ -69,12 +69,7 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
         minimumDeposit = _minimumDeposit;
     }
 
-    function createDispute(
-        address _runner,
-        bytes32 _deploymentId,
-        uint256 _deposit,  
-        DisputeType _type
-    ) external {
+    function createDispute(address _runner, bytes32 _deploymentId, uint256 _deposit, DisputeType _type) external {
         require(disputeIdByRunner[_runner].length <= 20, 'D001');
         require(_deposit >= minimumDeposit, 'D002');
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), _deposit);
@@ -94,7 +89,12 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
         nextDisputeId++;
     }
 
-    function finalizeDispute(uint256 disputeId, DisputeState state, uint256 runnerSlashAmount, uint256 newDeposit) external onlyOwner {
+    function finalizeDispute(
+        uint256 disputeId,
+        DisputeState state,
+        uint256 runnerSlashAmount,
+        uint256 newDeposit
+    ) external onlyOwner {
         require(state != DisputeState.Ongoing, 'D003');
         Dispute storage dispute = disputes[disputeId];
         require(dispute.state == DisputeState.Ongoing, 'D004');
@@ -103,7 +103,10 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
             require(newDeposit > dispute.depositAmount, 'D005');
             uint256 rewardAmount = newDeposit - dispute.depositAmount;
             require(rewardAmount <= runnerSlashAmount, 'D005');
-            IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).slashRunner(dispute.runner, runnerSlashAmount);
+            IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).slashRunner(
+                dispute.runner,
+                runnerSlashAmount
+            );
         } else if (state == DisputeState.Rejected) {
             //reject dispute, slash fisherman
             require(newDeposit < dispute.depositAmount, 'D005');

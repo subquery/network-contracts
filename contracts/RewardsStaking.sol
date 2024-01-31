@@ -132,7 +132,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             totalStakingAmount[_indexer] = stakingManager.getTotalStakingAmount(_indexer);
 
             //apply first onICRChgange
-            uint256 newCommissionRate = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).getCommissionRate(_indexer);
+            uint256 newCommissionRate = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
+                .getCommissionRate(_indexer);
             commissionRates[_indexer] = newCommissionRate;
 
             emit StakeChanged(_indexer, _indexer, newDelegation);
@@ -140,7 +141,9 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             emit SettledEraUpdated(_indexer, currentEra - 1);
 
             // notify stake allocation
-            IStakingAllocation stakingAllocation = IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation));
+            IStakingAllocation stakingAllocation = IStakingAllocation(
+                settings.getContractAddress(SQContracts.StakingAllocation)
+            );
             stakingAllocation.onStakeUpdate(_indexer);
         } else {
             require(rewardsDistributor.collectAndDistributeEraRewards(currentEra, _indexer) == currentEra - 1, 'RS002');
@@ -207,7 +210,9 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
         emit StakeChanged(indexer, staker, newDelegation);
 
         // notify stake allocation
-        IStakingAllocation stakingAllocation = IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation));
+        IStakingAllocation stakingAllocation = IStakingAllocation(
+            settings.getContractAddress(SQContracts.StakingAllocation)
+        );
         stakingAllocation.onStakeUpdate(indexer);
     }
 
@@ -216,14 +221,18 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      */
     function applyICRChange(address indexer) external {
         uint256 currentEra = _getCurrentEra();
-        require(pendingCommissionRateChange[indexer] != 0 && pendingCommissionRateChange[indexer] <= currentEra, 'RS005');
+        require(
+            pendingCommissionRateChange[indexer] != 0 && pendingCommissionRateChange[indexer] <= currentEra,
+            'RS005'
+        );
 
         IRewardsDistributor rewardsDistributor = _getRewardsDistributor();
         IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(indexer);
         require(lastSettledEra[indexer] < rewardInfo.lastClaimEra, 'RS006');
 
         IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
-        uint256 newCommissionRate = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).getCommissionRate(indexer);
+        uint256 newCommissionRate = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
+            .getCommissionRate(indexer);
         commissionRates[indexer] = newCommissionRate;
         pendingCommissionRateChange[indexer] = 0;
         _updateTotalStakingAmount(stakingManager, indexer, rewardInfo.lastClaimEra);

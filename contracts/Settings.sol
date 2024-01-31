@@ -18,12 +18,12 @@ contract Settings is ISettings, Initializable, OwnableUpgradeable {
         contractAddresses[sq] = _address;
     }
 
-    function getContractAddress(SQContracts sq) public view returns (address)  {
+    function getContractAddress(SQContracts sq) public view returns (address) {
         return contractAddresses[sq];
     }
 
     function setBatchAddress(SQContracts[] calldata _sq, address[] calldata _address) external {
-        require(_sq.length == _address.length, "ST001");
+        require(_sq.length == _address.length, 'ST001');
         for (uint256 i = 0; i < _sq.length; i++) {
             contractAddresses[_sq[i]] = _address[i];
         }

@@ -6,7 +6,7 @@ pragma solidity 0.8.15;
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
@@ -18,7 +18,6 @@ import './interfaces/IEraManager.sol';
 import './interfaces/IStakingManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
-
 
 /**
  * @title Purchase Offer Market Contract
@@ -114,7 +113,10 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     /// @dev MODIFIER
     /// @notice require caller is indexer
     modifier onlyIndexer() {
-        require(IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).isIndexer(msg.sender), 'G002');
+        require(
+            IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).isIndexer(msg.sender),
+            'G002'
+        );
         _;
     }
 
@@ -124,11 +126,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * @param _penaltyRate penaltyRate that consumer cancel unexpired purchase offer
      * @param _penaltyDestination penaltyDestination that consumer cancel unexpired purchase offer
      */
-    function initialize(
-        ISettings _settings,
-        uint256 _penaltyRate,
-        address _penaltyDestination
-    ) external initializer {
+    function initialize(ISettings _settings, uint256 _penaltyRate, address _penaltyDestination) external initializer {
         __Ownable_init();
         require(_penaltyRate < PER_MILL, 'PO001');
 
@@ -206,7 +204,11 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
 
         // send SQToken from msg.sender to the contract (this) - deposit * limit
         require(
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).transferFrom(msg.sender, address(this), _deposit * _limit),
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).transferFrom(
+                msg.sender,
+                address(this),
+                _deposit * _limit
+            ),
             'G013'
         );
 
@@ -250,7 +252,10 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         }
 
         // send remaining SQToken from the contract to consumer (this)
-        require(IERC20(settings.getContractAddress(SQContracts.SQToken)).transfer(msg.sender, unfulfilledValue), 'G013');
+        require(
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).transfer(msg.sender, unfulfilledValue),
+            'G013'
+        );
 
         delete offers[_offerId];
 
@@ -301,11 +306,16 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
 
         // deposit SQToken into the service agreement registry contract
         require(
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).transfer(settings.getContractAddress(SQContracts.ServiceAgreementRegistry), offer.deposit),
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).transfer(
+                settings.getContractAddress(SQContracts.ServiceAgreementRegistry),
+                offer.deposit
+            ),
             'G013'
         );
         // register the agreement to service agreement registry contract
-        IServiceAgreementRegistry registry = IServiceAgreementRegistry(settings.getContractAddress(SQContracts.ServiceAgreementRegistry));
+        IServiceAgreementRegistry registry = IServiceAgreementRegistry(
+            settings.getContractAddress(SQContracts.ServiceAgreementRegistry)
+        );
         uint256 agreementId = registry.createClosedServiceAgreement(agreement);
 
         emit OfferAccepted(msg.sender, _offerId, agreementId);

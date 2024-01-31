@@ -5,7 +5,7 @@ pragma solidity 0.8.15;
 
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
@@ -60,7 +60,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
      */
     function initialize(ISettings _settings, address[] calldata _whitelist) external initializer {
         __Ownable_init();
-        __ERC721_init("SuqueryAgreement", "SA");
+        __ERC721_init('SuqueryAgreement', 'SA');
 
         settings = _settings;
         nextServiceAgreementId = 1;
@@ -89,7 +89,7 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
     function _afterTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override {
         super._afterTokenTransfer(from, to, tokenId, batchSize);
         closedServiceAgreements[tokenId].consumer = to;
-    } 
+    }
 
     function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement) external returns (uint256) {
         if (msg.sender != address(this)) {
@@ -127,7 +127,10 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         require(agreement.consumer != address(0), 'SA001');
 
         require(
-            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).isServiceAvailable(agreement.deploymentId, agreement.indexer),
+            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).isServiceAvailable(
+                agreement.deploymentId,
+                agreement.indexer
+            ),
             'SA005'
         );
         uint256 expires = agreement.startDate + agreement.period;
@@ -140,7 +143,9 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         IERC20(SQToken).approve(settings.getContractAddress(SQContracts.RewardsDistributor), agreement.lockedAmount);
 
         // increase agreement rewards
-        IRewardsDistributor rewardsDistributor = IRewardsDistributor(settings.getContractAddress(SQContracts.RewardsDistributor));
+        IRewardsDistributor rewardsDistributor = IRewardsDistributor(
+            settings.getContractAddress(SQContracts.RewardsDistributor)
+        );
         rewardsDistributor.increaseAgreementRewards(agreementId);
     }
 
@@ -178,7 +183,11 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
             agreement.planTemplateId
         );
         // deposit SQToken into service agreement registry contract
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).transferFrom(msg.sender, address(this), agreement.lockedAmount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).transferFrom(
+            msg.sender,
+            address(this),
+            agreement.lockedAmount
+        );
         this.createClosedServiceAgreement(newAgreement);
     }
 

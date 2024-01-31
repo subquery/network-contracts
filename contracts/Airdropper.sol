@@ -25,7 +25,7 @@ contract Airdropper is Ownable {
     mapping(address => bool) public controllers;
 
     event RoundCreated(uint256 indexed roundId, address tokenAddress, uint256 roundStartTime, uint256 roundDeadline);
-    
+
     event RoundUpdated(uint256 roundId, uint256 roundStartTime, uint256 roundDeadline);
 
     event AddAirdrop(address indexed addr, uint256 roundId, uint256 amount);
@@ -40,8 +40,8 @@ contract Airdropper is Ownable {
     }
 
     constructor(address _settleDestination) {
-      controllers[msg.sender] = true;
-      settleDestination = _settleDestination;
+        controllers[msg.sender] = true;
+        settleDestination = _settleDestination;
     }
 
     function setSettleDestination(address _settleDestination) external onlyOwner {
@@ -69,11 +69,7 @@ contract Airdropper is Ownable {
         return nextRoundId - 1;
     }
 
-    function updateRound(
-        uint256 _roundId,
-        uint256 _roundStartTime,
-        uint256 _roundDeadline
-    ) external onlyController {
+    function updateRound(uint256 _roundId, uint256 _roundStartTime, uint256 _roundDeadline) external onlyController {
         Round memory round = roundRecord[_roundId];
         require(round.roundStartTime > 0 && round.roundDeadline > block.timestamp, 'A011');
         require(_roundStartTime > round.roundStartTime && _roundDeadline > _roundStartTime, 'A001');
@@ -84,11 +80,7 @@ contract Airdropper is Ownable {
         emit RoundUpdated(_roundId, _roundStartTime, _roundDeadline);
     }
 
-    function _airdrop(
-        address _addr,
-        uint256 _roundId,
-        uint256 _amount
-    ) private {
+    function _airdrop(address _addr, uint256 _roundId, uint256 _amount) private {
         require(roundRecord[_roundId].roundStartTime > block.timestamp, 'A002');
         require(airdropRecord[_addr][_roundId] == 0, 'A003');
         require(_amount > 0, 'A004');
@@ -119,10 +111,7 @@ contract Airdropper is Ownable {
         uint256 amount = airdropRecord[msg.sender][_roundId];
         require(amount != 0, 'A006');
 
-        require(
-            IERC20(roundRecord[_roundId].tokenAddress).balanceOf(address(this)) >= amount,
-            'A007'
-        );
+        require(IERC20(roundRecord[_roundId].tokenAddress).balanceOf(address(this)) >= amount, 'A007');
         IERC20(roundRecord[_roundId].tokenAddress).safeTransfer(msg.sender, amount);
         airdropRecord[msg.sender][_roundId] = 0;
 

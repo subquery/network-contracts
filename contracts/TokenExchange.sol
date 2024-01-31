@@ -12,9 +12,9 @@ import './interfaces/ISQToken.sol';
 
 /**
  * @title Token Exchange Contract
- * @notice This smart contract enables single-direction token trading between two predefined tokens ('tokenGet' and 'tokenGive'). 
- * It features owner-exclusive rights for trade cancellations, adding a layer of control and security. After each trade, 
- * the 'tokenGet' is automatically burned, reducing its total supply in circulation. This contract is ideal for controlled 
+ * @notice This smart contract enables single-direction token trading between two predefined tokens ('tokenGet' and 'tokenGive').
+ * It features owner-exclusive rights for trade cancellations, adding a layer of control and security. After each trade,
+ * the 'tokenGet' is automatically burned, reducing its total supply in circulation. This contract is ideal for controlled
  * trading environments with a focus on token supply management.
  */
 contract TokenExchange is Initializable, OwnableUpgradeable {
@@ -47,12 +47,7 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
         uint256 tokenGiveBalance
     );
     /// @notice Emitted when expired exchange order settled.
-    event OrderSettled(
-        uint256 indexed orderId,
-        address tokenGive,
-        address tokenGet,
-        uint256 amountGive
-    );
+    event OrderSettled(uint256 indexed orderId, address tokenGive, address tokenGet, uint256 amountGive);
     /// @notice Emitted when trader trade on exist orders.
     event Trade(uint256 indexed orderId, address tokenGive, address tokenGet, uint256 amountGive, uint256 amountGet);
 
@@ -76,7 +71,7 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
         uint256 _tokenGiveBalance
     ) public onlyOwner {
         require(_tokenGiveBalance > 0, 'TE001');
-        
+
         IERC20(_tokenGive).safeTransferFrom(msg.sender, address(this), _tokenGiveBalance);
         orders[nextOrderId] = ExchangeOrder(
             _tokenGive,
@@ -96,7 +91,7 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
             _amountGet,
             _tokenGiveBalance
         );
-    
+
         nextOrderId += 1;
     }
 
@@ -104,7 +99,7 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
      * @notice Owner can cancel the sent order anytime, and this will return leftgiven token back to owner.
      * @param orderId The order id to cancel.
      */
-    function cancelOrder(uint256 orderId) onlyOwner public {
+    function cancelOrder(uint256 orderId) public onlyOwner {
         ExchangeOrder memory order = orders[orderId];
         require(order.sender != address(0), 'TE002');
 
@@ -112,13 +107,8 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
             IERC20(order.tokenGive).safeTransfer(order.sender, order.tokenGiveBalance);
         }
 
-        emit OrderSettled(
-            orderId,
-            order.tokenGive,
-            order.tokenGet,
-            order.tokenGiveBalance
-        );
-        
+        emit OrderSettled(orderId, order.tokenGive, order.tokenGet, order.tokenGiveBalance);
+
         delete orders[orderId];
     }
 

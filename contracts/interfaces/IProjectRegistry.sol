@@ -24,16 +24,25 @@ struct DeploymentInfo {
 }
 
 interface IProjectRegistry {
-
     function numberOfDeployments(address _address) external view returns (uint256);
 
     function isServiceAvailable(bytes32 deploymentId, address indexer) external view returns (bool);
 
-    function createProject(string memory projectMetadataUri,bytes32 deploymentMetdata, bytes32 deploymentId, ProjectType projectType) external;
+    function createProject(
+        string memory projectMetadataUri,
+        bytes32 deploymentMetdata,
+        bytes32 deploymentId,
+        ProjectType projectType
+    ) external;
 
     function updateProjectMetadata(uint256 projectId, string memory metadataUri) external;
 
-    function addOrUpdateDeployment(uint256 projectId, bytes32 deploymentId, bytes32 metadata, bool updateLatest) external;
+    function addOrUpdateDeployment(
+        uint256 projectId,
+        bytes32 deploymentId,
+        bytes32 metadata,
+        bool updateLatest
+    ) external;
 
     function setProjectLatestDeployment(uint256 projectId, bytes32 deploymentId) external;
 

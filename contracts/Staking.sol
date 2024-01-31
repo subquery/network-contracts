@@ -132,7 +132,13 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
     /**
      * @dev Emitted when request unbond.
      */
-    event UnbondRequested(address indexed source, address indexed indexer, uint256 amount, uint256 index, UnbondType _type);
+    event UnbondRequested(
+        address indexed source,
+        address indexed indexer,
+        uint256 amount,
+        uint256 index,
+        UnbondType _type
+    );
 
     /**
      * @dev Emitted when request withdraw.
@@ -233,7 +239,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         if (_unbondReqId == firstIndex) {
             for (uint256 i = firstIndex; i <= lastIndex; i++) {
                 if (unbondingAmount[_source][i].amount == 0) {
-                    withdrawnLength[_source] ++;
+                    withdrawnLength[_source]++;
                 } else {
                     break;
                 }
@@ -241,7 +247,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         } else if (_unbondReqId == lastIndex) {
             for (uint256 i = lastIndex; i >= firstIndex; i--) {
                 if (unbondingAmount[_source][i].amount == 0) {
-                    unbondingLength[_source] --;
+                    unbondingLength[_source]--;
                 } else {
                     break;
                 }
@@ -251,12 +257,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         emit UnbondCancelled(_source, ua.indexer, ua.amount, _unbondReqId);
     }
 
-    function addDelegation(
-        address _source,
-        address _runner,
-        uint256 _amount
-    ) external {
-        require(msg.sender == settings.getContractAddress(SQContracts.StakingManager) || msg.sender == address(this), 'G008');
+    function addDelegation(address _source, address _runner, uint256 _amount) external {
+        require(
+            msg.sender == settings.getContractAddress(SQContracts.StakingManager) || msg.sender == address(this),
+            'G008'
+        );
         require(_amount > 0, 'S003');
         if (this.isEmptyDelegation(_source, _runner)) {
             stakingIndexerNos[_source][_runner] = stakingIndexerLengths[_source];
@@ -283,22 +288,17 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         emit DelegationAdded(_source, _runner, _amount);
     }
 
-    function delegateToIndexer(
-        address _source,
-        address _runner,
-        uint256 _amount
-    ) external onlyStakingManager {
+    function delegateToIndexer(address _source, address _runner, uint256 _amount) external onlyStakingManager {
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(_source, address(this), _amount);
 
         this.addDelegation(_source, _runner, _amount);
     }
 
-    function removeDelegation(
-        address _source,
-        address _runner,
-        uint256 _amount
-    ) external {
-        require(msg.sender == settings.getContractAddress(SQContracts.StakingManager) || msg.sender == address(this), 'G008');
+    function removeDelegation(address _source, address _runner, uint256 _amount) external {
+        require(
+            msg.sender == settings.getContractAddress(SQContracts.StakingManager) || msg.sender == address(this),
+            'G008'
+        );
         require(delegation[_source][_runner].valueAfter >= _amount && _amount > 0, 'S005');
 
         delegation[_source][_runner].valueAfter -= _amount;
@@ -317,13 +317,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         rewardsStaking.onStakeChange(_runner, _source);
     }
 
-    function startUnbond(
-        address _source,
-        address _runner,
-        uint256 _amount,
-        UnbondType _type
-    ) external {
-        require(msg.sender == settings.getContractAddress(SQContracts.StakingManager) || msg.sender == address(this), 'G008');
+    function startUnbond(address _source, address _runner, uint256 _amount, UnbondType _type) external {
+        require(
+            msg.sender == settings.getContractAddress(SQContracts.StakingManager) || msg.sender == address(this),
+            'G008'
+        );
         uint256 nextIndex = unbondingLength[_source];
         if (_type == UnbondType.Undelegation) {
             require(nextIndex - withdrawnLength[_source] < maxUnbondingRequest - 1, 'S006');
@@ -335,7 +333,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
 
         if (nextIndex - withdrawnLength[_source] == maxUnbondingRequest) {
             _type = UnbondType.Merge;
-            nextIndex --;
+            nextIndex--;
         } else {
             unbondingLength[_source]++;
         }
@@ -381,7 +379,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
                 amount -= unbondingAmount[_runner][i].amount;
                 delete unbondingAmount[_runner][i];
                 withdrawnLength[_runner]++;
-            } else if (amount == unbondingAmount[_runner][i].amount){
+            } else if (amount == unbondingAmount[_runner][i].amount) {
                 delete unbondingAmount[_runner][i];
                 withdrawnLength[_runner]++;
                 amount = 0;
@@ -400,7 +398,10 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
             totalStakingAmount[_runner].valueAfter -= amount;
         }
 
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(settings.getContractAddress(SQContracts.DisputeManager), _amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
+            settings.getContractAddress(SQContracts.DisputeManager),
+            _amount
+        );
     }
 
     function unbondCommission(address _runner, uint256 _amount) external {

@@ -29,11 +29,11 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
 
     /**
-    * @notice The channel status.
-    * When channel is Open, it can checkpoint/terminate/claim/fund.
-    * When channle is Challenging, it can respond/claim.
-    * When channel is Finalized. it is over.
-    */
+     * @notice The channel status.
+     * When channel is Open, it can checkpoint/terminate/claim/fund.
+     * When channle is Challenging, it can respond/claim.
+     * When channel is Finalized. it is over.
+     */
     enum ChannelStatus {
         Finalized,
         Open,
@@ -75,7 +75,16 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
     /// @dev ### EVENTS
     /// @notice Emitted when open a channel for Pay-as-you-go service
-    event ChannelOpen(uint256 indexed channelId, address indexer, address consumer, uint256 total, uint256 price, uint256 expiredAt, bytes32 deploymentId, bytes callback);
+    event ChannelOpen(
+        uint256 indexed channelId,
+        address indexer,
+        address consumer,
+        uint256 total,
+        uint256 price,
+        uint256 expiredAt,
+        bytes32 deploymentId,
+        bytes callback
+    );
     /// @notice Emitted when extend the channel
     event ChannelExtend(uint256 indexed channelId, uint256 expiredAt);
     /// @notice Emitted when deposit more amount to the channel
@@ -193,7 +202,16 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         // set channel price
         channelPrice[channelId] = price;
 
-        emit ChannelOpen(channelId, indexer, consumer, amount, price, block.timestamp + expiration, deploymentId, callback);
+        emit ChannelOpen(
+            channelId,
+            indexer,
+            consumer,
+            amount,
+            price,
+            block.timestamp + expiration,
+            deploymentId,
+            callback
+        );
     }
 
     /**
@@ -236,7 +254,13 @@ contract StateChannel is Initializable, OwnableUpgradeable {
      * @param callback callback info for contract
      * @param sign the signature of the consumer
      */
-    function fund(uint256 channelId, uint256 preTotal, uint256 amount, bytes memory callback, bytes memory sign) external {
+    function fund(
+        uint256 channelId,
+        uint256 preTotal,
+        uint256 amount,
+        bytes memory callback,
+        bytes memory sign
+    ) external {
         require(
             channels[channelId].status == ChannelStatus.Open && channels[channelId].expiredAt > block.timestamp,
             'SC003'
@@ -260,15 +284,28 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         // transfer the rewards to channel
         address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
-        uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(channels[channelId].deploymentId, realConsumer, amount, abi.encode(channelId));
+        uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(
+            channels[channelId].deploymentId,
+            realConsumer,
+            amount,
+            abi.encode(channelId)
+        );
         if (rewardsAmount > 0) {
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(rbAddress, address(this), rewardsAmount);
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
+                rbAddress,
+                address(this),
+                rewardsAmount
+            );
         }
 
         if (rewardsAmount < amount) {
             // transfer the balance to contract
             uint256 realAmount = amount - rewardsAmount;
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(consumer, address(this), realAmount);
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
+                consumer,
+                address(this),
+                realAmount
+            );
             channels[channelId].realTotal += realAmount;
         }
 
@@ -407,12 +444,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
     }
 
     /// @notice Check the signature of the hash with given addresses
-    function _checkSign(
-        bytes32 payload,
-        bytes memory sign,
-        address checkSigner,
-        bool isIndexer
-    ) private view {
+    function _checkSign(bytes32 payload, bytes memory sign, address checkSigner, bool isIndexer) private view {
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
         address signer = ECDSA.recover(hash, sign);
 
@@ -422,7 +454,8 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             }
 
             // check indexer registered
-            address controller = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).getController(checkSigner);
+            address controller = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
+                .getController(checkSigner);
             require(signer == controller, 'SC009');
         } else {
             if (signer == checkSigner) {
@@ -430,7 +463,8 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             }
 
             //check consumer registered
-            bool isController = IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(checkSigner, signer);
+            bool isController = IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry))
+                .isController(checkSigner, signer);
             require(isController, 'SC011');
         }
     }
@@ -486,9 +520,18 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         uint256 rewardsTotal = total - realTotal;
         if (spent > rewardsTotal) {
             // transfer the rewards to channel
-            uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(channels[channelId].deploymentId, realConsumer, spent - rewardsTotal, abi.encode(channelId));
+            uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(
+                channels[channelId].deploymentId,
+                realConsumer,
+                spent - rewardsTotal,
+                abi.encode(channelId)
+            );
             if (rewardsAmount > 0) {
-                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(rbAddress, address(this), rewardsAmount);
+                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
+                    rbAddress,
+                    address(this),
+                    rewardsAmount
+                );
             }
             total += rewardsAmount;
         }
@@ -497,13 +540,18 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         uint256 realRemain = MathUtil.min(totalRemain, realTotal);
         uint256 rewardsRemain = totalRemain - realRemain;
 
-        if(realRemain > 0) {
+        if (realRemain > 0) {
             IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(consumer, realRemain);
         }
 
         if (rewardsRemain > 0) {
             IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(rbAddress, rewardsRemain);
-            IRewardsBooster(rbAddress).refundQueryRewards(channels[channelId].deploymentId, realConsumer, rewardsRemain, abi.encode(channelId));
+            IRewardsBooster(rbAddress).refundQueryRewards(
+                channels[channelId].deploymentId,
+                realConsumer,
+                rewardsRemain,
+                abi.encode(channelId)
+            );
         }
 
         if (_isContract(consumer)) {

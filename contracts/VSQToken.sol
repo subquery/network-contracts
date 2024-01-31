@@ -30,7 +30,6 @@ contract VSQToken is Initializable, OwnableUpgradeable {
         settings = _settings;
     }
 
-
     function name() public view returns (string memory) {
         return _name;
     }

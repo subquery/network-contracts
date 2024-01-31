@@ -47,13 +47,13 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
 
     /**
-    * @dev Commission rate information. One per Indexer.
-    * Commission rate change need to be applied at the Era after next Era
-    */
+     * @dev Commission rate information. One per Indexer.
+     * Commission rate change need to be applied at the Era after next Era
+     */
     struct CommissionRate {
-        uint256 era;         // last update era
-        uint256 valueAt;     // value at the era
-        uint256 valueAfter;  // value to be refreshed from next era
+        uint256 era; // last update era
+        uint256 valueAt; // value at the era
+        uint256 valueAfter; // value to be refreshed from next era
     }
 
     /// @dev ### STATES
@@ -146,7 +146,12 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
      *  This function will call unstake for Indexer to make sure indexer unstaking all staked SQT Token after unregister.
      */
     function unregisterIndexer() external onlyIndexer {
-        require(IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).numberOfDeployments(msg.sender) == 0, 'IR004');
+        require(
+            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).numberOfDeployments(
+                msg.sender
+            ) == 0,
+            'IR004'
+        );
 
         delete metadata[msg.sender];
         delete controllers[msg.sender];

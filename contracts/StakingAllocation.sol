@@ -63,7 +63,9 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     function onStakeUpdate(address _runner) external {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'SAL01');
         RunnerAllocation storage ia = _runnerAllocations[_runner];
-        ia.total = IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).getEffectiveTotalStake(_runner);
+        ia.total = IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).getEffectiveTotalStake(
+            _runner
+        );
 
         if (ia.overflowAt == 0 && ia.total < ia.used) {
             // new overflow
@@ -80,7 +82,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     }
 
     function addAllocation(bytes32 _deployment, address _runner, uint256 _amount) external {
-        require(_isAuth(_runner), "SAL02");
+        require(_isAuth(_runner), 'SAL02');
 
         // collect rewards (if any) before change allocation
         IRewardsBooster rb = IRewardsBooster(settings.getContractAddress(SQContracts.RewardsBooster));
@@ -96,7 +98,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     }
 
     function removeAllocation(bytes32 _deployment, address _runner, uint256 _amount) external {
-        require(_isAuth(_runner), "SAL02");
+        require(_isAuth(_runner), 'SAL02');
         require(allocatedTokens[_runner][_deployment] >= _amount, 'SAL04');
 
         // collect rewards (if any) before change allocation
@@ -140,7 +142,9 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     }
 
     function _isAuth(address _runner) private view returns (bool) {
-        IIndexerRegistry indexerRegistry = IIndexerRegistry(ISettings(settings).getContractAddress(SQContracts.IndexerRegistry));
+        IIndexerRegistry indexerRegistry = IIndexerRegistry(
+            ISettings(settings).getContractAddress(SQContracts.IndexerRegistry)
+        );
         address controller = indexerRegistry.getController(_runner);
         return msg.sender == _runner || msg.sender == controller;
     }

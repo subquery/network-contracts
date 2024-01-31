@@ -110,7 +110,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
      * @param _alphaDenominator the denominator of the alpha
      */
     function setAlpha(int32 _alphaNumerator, int32 _alphaDenominator) public onlyOwner {
-        require(_alphaNumerator > 0 && _alphaDenominator > 0, "RP001");
+        require(_alphaNumerator > 0 && _alphaDenominator > 0, 'RP001');
         alphaNumerator = _alphaNumerator;
         alphaDenominator = _alphaDenominator;
 
@@ -317,7 +317,12 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
     /// @notice and fixed-point math easily overflows with multiplication,
     /// @notice we will choose the following if `stakeRatio > feeRatio`:
     /// @notice `reward * stakeRatio / e^(alpha * (ln(stakeRatio / feeRatio)))`
-    function _cobbDouglas(uint256 reward, uint256 myLabor, uint256 myStake, uint256 totalStake) private view returns (uint256) {
+    function _cobbDouglas(
+        uint256 reward,
+        uint256 myLabor,
+        uint256 myStake,
+        uint256 totalStake
+    ) private view returns (uint256) {
         if (myStake == totalStake) {
             return reward;
         }
@@ -332,24 +337,14 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
         // `e^(alpha * ln(feeRatio/stakeRatio))` if feeRatio <= stakeRatio
         // or
         // `e^(alpa * ln(stakeRatio/feeRatio))` if feeRatio > stakeRatio
-        int256 n = feeRatio <= stakeRatio
-            ? FixedMath.div(feeRatio, stakeRatio)
-            : FixedMath.div(stakeRatio, feeRatio);
-        n = FixedMath.exp(
-            FixedMath.mulDiv(
-                FixedMath.ln(n),
-                int256(alphaNumerator),
-                int256(alphaDenominator)
-            )
-        );
+        int256 n = feeRatio <= stakeRatio ? FixedMath.div(feeRatio, stakeRatio) : FixedMath.div(stakeRatio, feeRatio);
+        n = FixedMath.exp(FixedMath.mulDiv(FixedMath.ln(n), int256(alphaNumerator), int256(alphaDenominator)));
         // Compute
         // `reward * n` if feeRatio <= stakeRatio
         // or
         // `reward / n` if stakeRatio > feeRatio
         // depending on the choice we made earlier.
-        n = feeRatio <= stakeRatio
-            ? FixedMath.mul(stakeRatio, n)
-            : FixedMath.div(stakeRatio, n);
+        n = feeRatio <= stakeRatio ? FixedMath.mul(stakeRatio, n) : FixedMath.div(stakeRatio, n);
         // Multiply the above with reward.
         return FixedMath.uintMul(n, reward);
     }
