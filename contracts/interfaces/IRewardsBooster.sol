@@ -52,13 +52,21 @@ interface IRewardsBooster {
 
     function getAccRewardsForDeployment(bytes32 _deploymentId) external view returns (uint256);
 
-    function onDeploymentBoosterUpdate(bytes32 _deploymentId, address _account) external returns (uint256);
+    function onDeploymentBoosterUpdate(
+        bytes32 _deploymentId,
+        address _account
+    ) external returns (uint256);
 
     function onAllocationUpdate(bytes32 _deploymentId) external returns (uint256);
 
-    function getAccRewardsPerAllocatedToken(bytes32 _deploymentId) external view returns (uint256, uint256);
+    function getAccRewardsPerAllocatedToken(
+        bytes32 _deploymentId
+    ) external view returns (uint256, uint256);
 
-    function getAllocationRewards(bytes32 _deploymentId, address _runner) external view returns (uint256, uint256);
+    function getAllocationRewards(
+        bytes32 _deploymentId,
+        address _runner
+    ) external view returns (uint256, uint256);
 
     function collectAllocationReward(bytes32 _deploymentId, address _runner) external;
 
@@ -69,5 +77,10 @@ interface IRewardsBooster {
         bytes calldata data
     ) external returns (uint256);
 
-    function refundQueryRewards(bytes32 _deploymentId, address _spender, uint256 _amount, bytes calldata data) external;
+    function refundQueryRewards(
+        bytes32 _deploymentId,
+        address _spender,
+        uint256 _amount,
+        bytes calldata data
+    ) external;
 }

@@ -19,7 +19,13 @@ contract SQTRedeem is Initializable, OwnableUpgradeable {
     /// @notice nft address => seriesId => redeemable amount for each NFT in the series
     mapping(address => mapping(uint256 => uint256)) public redeemableAmount;
 
-    event SQTRedeemed(address indexed to, uint256 indexed tokenId, uint256 seriesId, address nft, uint256 sqtValue);
+    event SQTRedeemed(
+        address indexed to,
+        uint256 indexed tokenId,
+        uint256 seriesId,
+        address nft,
+        uint256 sqtValue
+    );
 
     function initialize(address _sqtoken) external initializer {
         __Ownable_init();

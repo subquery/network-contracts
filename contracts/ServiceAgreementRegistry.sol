@@ -26,7 +26,12 @@ import './interfaces/IPlanManager.sol';
  * All generated service agreement need to register in this contract by calling establishServiceAgreement(). After this all SQT Toaken
  * from agreements will be temporary hold in this contract, and approve reward distributor contract to take and distribute these Token.
  */
-contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Upgradeable, IServiceAgreementRegistry {
+contract ServiceAgreementRegistry is
+    Initializable,
+    OwnableUpgradeable,
+    ERC721Upgradeable,
+    IServiceAgreementRegistry
+{
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
@@ -70,8 +75,12 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         }
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721Upgradeable) returns (bool) {
-        return interfaceId == type(IServiceAgreementRegistry).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721Upgradeable) returns (bool) {
+        return
+            interfaceId == type(IServiceAgreementRegistry).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     function setSettings(ISettings _settings) external onlyOwner {
@@ -86,12 +95,19 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         establisherWhitelist[establisher] = false;
     }
 
-    function _afterTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize) internal override {
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId,
+        uint256 batchSize
+    ) internal override {
         super._afterTokenTransfer(from, to, tokenId, batchSize);
         closedServiceAgreements[tokenId].consumer = to;
     }
 
-    function createClosedServiceAgreement(ClosedServiceAgreementInfo memory agreement) external returns (uint256) {
+    function createClosedServiceAgreement(
+        ClosedServiceAgreementInfo memory agreement
+    ) external returns (uint256) {
         if (msg.sender != address(this)) {
             require(establisherWhitelist[msg.sender], 'SA004');
         }
@@ -100,7 +116,12 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         closedServiceAgreements[agreementId] = agreement;
 
         _safeMint(agreement.consumer, agreementId);
-        emit ClosedAgreementCreated(agreement.consumer, agreement.indexer, agreement.deploymentId, agreementId);
+        emit ClosedAgreementCreated(
+            agreement.consumer,
+            agreement.indexer,
+            agreement.deploymentId,
+            agreementId
+        );
         _establishServiceAgreement(agreementId);
 
         nextServiceAgreementId += 1;
@@ -127,10 +148,8 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         require(agreement.consumer != address(0), 'SA001');
 
         require(
-            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry)).isServiceAvailable(
-                agreement.deploymentId,
-                agreement.indexer
-            ),
+            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
+                .isServiceAvailable(agreement.deploymentId, agreement.indexer),
             'SA005'
         );
         uint256 expires = agreement.startDate + agreement.period;
@@ -140,7 +159,10 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
 
         // approve token to reward distributor contract
         address SQToken = settings.getContractAddress(SQContracts.SQToken);
-        IERC20(SQToken).approve(settings.getContractAddress(SQContracts.RewardsDistributor), agreement.lockedAmount);
+        IERC20(SQToken).approve(
+            settings.getContractAddress(SQContracts.RewardsDistributor),
+            agreement.lockedAmount
+        );
 
         // increase agreement rewards
         IRewardsDistributor rewardsDistributor = IRewardsDistributor(
@@ -165,7 +187,9 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         require(agreement.startDate < block.timestamp, 'SA008');
         require((agreement.startDate + agreement.period) > block.timestamp, 'SA009');
 
-        IPlanManager planManager = IPlanManager(settings.getContractAddress(SQContracts.PlanManager));
+        IPlanManager planManager = IPlanManager(
+            settings.getContractAddress(SQContracts.PlanManager)
+        );
         Plan memory plan = planManager.getPlan(agreement.planId);
         require(plan.active, 'PM009');
         PlanTemplateV2 memory template = planManager.getPlanTemplate(plan.templateId);
@@ -196,11 +220,16 @@ contract ServiceAgreementRegistry is Initializable, OwnableUpgradeable, ERC721Up
         return block.timestamp > (agreement.startDate + agreement.period);
     }
 
-    function getClosedServiceAgreement(uint256 agreementId) external view returns (ClosedServiceAgreementInfo memory) {
+    function getClosedServiceAgreement(
+        uint256 agreementId
+    ) external view returns (ClosedServiceAgreementInfo memory) {
         return closedServiceAgreements[agreementId];
     }
 
-    function hasOngoingClosedServiceAgreement(address runner, bytes32 deploymentId) external view returns (bool) {
+    function hasOngoingClosedServiceAgreement(
+        address runner,
+        bytes32 deploymentId
+    ) external view returns (bool) {
         return runnerAgreementExpires[runner][deploymentId] > block.timestamp;
     }
 }

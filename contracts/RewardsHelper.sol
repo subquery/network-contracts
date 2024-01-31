@@ -44,7 +44,9 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
      * @dev Apply a list of stakers' StakeChanges, call applyStakeChange one by one.
      */
     function batchApplyStakeChange(address runner, address[] memory stakers) public {
-        RewardsStaking rewardsStaking = RewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
+        RewardsStaking rewardsStaking = RewardsStaking(
+            settings.getContractAddress(SQContracts.RewardsStaking)
+        );
         for (uint256 i = 0; i < stakers.length; i++) {
             rewardsStaking.applyStakeChange(runner, stakers[i]);
         }
@@ -79,11 +81,17 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
         RewardsDistributor rewardsDistributor = RewardsDistributor(
             settings.getContractAddress(SQContracts.RewardsDistributor)
         );
-        RewardsStaking rewardsStaking = RewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
-        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager)).eraNumber();
+        RewardsStaking rewardsStaking = RewardsStaking(
+            settings.getContractAddress(SQContracts.RewardsStaking)
+        );
+        uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager))
+            .eraNumber();
 
         uint256 lastClaimEra = rewardsDistributor.getRewardInfo(runner).lastClaimEra;
-        if (rewardsStaking.getLastSettledEra(runner) >= lastClaimEra && lastClaimEra < currentEra - 1) {
+        if (
+            rewardsStaking.getLastSettledEra(runner) >= lastClaimEra &&
+            lastClaimEra < currentEra - 1
+        ) {
             rewardsDistributor.collectAndDistributeRewards(runner);
         }
 
@@ -97,7 +105,10 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
         }
 
         lastClaimEra = rewardsDistributor.getRewardInfo(runner).lastClaimEra;
-        if (rewardsStaking.getLastSettledEra(runner) >= lastClaimEra && lastClaimEra < currentEra - 1) {
+        if (
+            rewardsStaking.getLastSettledEra(runner) >= lastClaimEra &&
+            lastClaimEra < currentEra - 1
+        ) {
             rewardsDistributor.collectAndDistributeRewards(runner);
         }
 
@@ -114,7 +125,9 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
     }
 
     function batchCollectWithPool(address runner, bytes32[] memory deployments) public {
-        IRewardsPool rewardsPool = IRewardsPool(settings.getContractAddress(SQContracts.RewardsPool));
+        IRewardsPool rewardsPool = IRewardsPool(
+            settings.getContractAddress(SQContracts.RewardsPool)
+        );
         for (uint256 i = 0; i < deployments.length; i++) {
             rewardsPool.collect(deployments[i], runner);
         }
@@ -126,7 +139,9 @@ contract RewardsHelper is Initializable, OwnableUpgradeable {
     }
 
     function getPendingStakers(address runner) public view returns (address[] memory) {
-        RewardsStaking rewardsStaking = RewardsStaking(settings.getContractAddress(SQContracts.RewardsStaking));
+        RewardsStaking rewardsStaking = RewardsStaking(
+            settings.getContractAddress(SQContracts.RewardsStaking)
+        );
         uint256 length = rewardsStaking.getPendingStakeChangeLength(runner);
         address[] memory _stakers = new address[](length);
         for (uint256 i = 0; i < length; i++) {

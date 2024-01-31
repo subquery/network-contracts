@@ -80,16 +80,26 @@ contract ProjectRegistry is
     );
 
     /// @notice Emitted when project latest deployment updated.
-    event ProjectLatestDeploymentUpdated(address indexed owner, uint256 projectId, bytes32 deploymentId);
+    event ProjectLatestDeploymentUpdated(
+        address indexed owner,
+        uint256 projectId,
+        bytes32 deploymentId
+    );
 
     /// @notice Emitted when service status changed with a specific deploymentId.
-    event ServiceStatusChanged(address indexed indexer, bytes32 indexed deploymentId, ServiceStatus status);
+    event ServiceStatusChanged(
+        address indexed indexer,
+        bytes32 indexed deploymentId,
+        ServiceStatus status
+    );
 
     /// @dev MODIFIER
     /// @notice only indexer can call
     modifier onlyIndexer() {
         require(
-            IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).isIndexer(msg.sender),
+            IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).isIndexer(
+                msg.sender
+            ),
             'G002'
         );
         _;
@@ -160,11 +170,20 @@ contract ProjectRegistry is
 
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC721URIStorageUpgradeable) returns (bool) {
-        return interfaceId == type(IProjectRegistry).interfaceId || super.supportsInterface(interfaceId);
+    )
+        public
+        view
+        override(ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC721URIStorageUpgradeable)
+        returns (bool)
+    {
+        return
+            interfaceId == type(IProjectRegistry).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
-    function _burn(uint256 tokenId) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
+    function _burn(
+        uint256 tokenId
+    ) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
         super._burn(tokenId);
     }
 
@@ -193,7 +212,14 @@ contract ProjectRegistry is
         _safeMint(msg.sender, projectId);
         _setTokenURI(projectId, projectMetadataUri);
 
-        emit ProjectCreated(msg.sender, projectId, projectMetadataUri, projectType, deploymentId, deploymentMetdata);
+        emit ProjectCreated(
+            msg.sender,
+            projectId,
+            projectMetadataUri,
+            projectType,
+            deploymentId,
+            deploymentMetdata
+        );
     }
 
     /**
@@ -268,8 +294,9 @@ contract ProjectRegistry is
 
         require(currentStatus == ServiceStatus.READY, 'PR005');
         require(
-            !IServiceAgreementRegistry(settings.getContractAddress(SQContracts.ServiceAgreementRegistry))
-                .hasOngoingClosedServiceAgreement(msg.sender, deploymentId),
+            !IServiceAgreementRegistry(
+                settings.getContractAddress(SQContracts.ServiceAgreementRegistry)
+            ).hasOngoingClosedServiceAgreement(msg.sender, deploymentId),
             'PR006'
         );
 
@@ -281,7 +308,10 @@ contract ProjectRegistry is
     /**
      * @notice is the indexer available to provide service with a specific deploymentId
      */
-    function isServiceAvailable(bytes32 deploymentId, address indexer) external view returns (bool) {
+    function isServiceAvailable(
+        bytes32 deploymentId,
+        address indexer
+    ) external view returns (bool) {
         return deploymentStatusByIndexer[deploymentId][indexer] == ServiceStatus.READY;
     }
 

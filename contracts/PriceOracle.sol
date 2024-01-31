@@ -59,7 +59,12 @@ contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable {
     ///Thus, if we wanted set 1 USDC (decimal=6) = 13 SQT(decimal=18) The price be 13e(18-6+6)
     ///@param assetFrom priceToken
     ///@param assetTo sqtToken
-    function setAssetPrice(address assetFrom, address assetTo, uint256 assetFromAmount, uint256 assetToAmount) public {
+    function setAssetPrice(
+        address assetFrom,
+        address assetTo,
+        uint256 assetFromAmount,
+        uint256 assetToAmount
+    ) public {
         uint256 prePrice = prices[assetFrom][assetTo];
         uint256 price = (assetToAmount * enlargementFactor) / assetFromAmount;
         if (msg.sender == controller) {
@@ -78,7 +83,11 @@ contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable {
         emit PricePosted(assetFrom, assetTo, prePrice, price);
     }
 
-    function convertPrice(address fromToken, address toToken, uint256 amount) public view returns (uint256) {
+    function convertPrice(
+        address fromToken,
+        address toToken,
+        uint256 amount
+    ) public view returns (uint256) {
         if (fromToken == toToken) {
             return amount;
         }

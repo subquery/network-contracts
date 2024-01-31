@@ -24,7 +24,12 @@ contract Airdropper is Ownable {
     address public settleDestination;
     mapping(address => bool) public controllers;
 
-    event RoundCreated(uint256 indexed roundId, address tokenAddress, uint256 roundStartTime, uint256 roundDeadline);
+    event RoundCreated(
+        uint256 indexed roundId,
+        address tokenAddress,
+        uint256 roundStartTime,
+        uint256 roundDeadline
+    );
 
     event RoundUpdated(uint256 roundId, uint256 roundStartTime, uint256 roundDeadline);
 
@@ -69,7 +74,11 @@ contract Airdropper is Ownable {
         return nextRoundId - 1;
     }
 
-    function updateRound(uint256 _roundId, uint256 _roundStartTime, uint256 _roundDeadline) external onlyController {
+    function updateRound(
+        uint256 _roundId,
+        uint256 _roundStartTime,
+        uint256 _roundDeadline
+    ) external onlyController {
         Round memory round = roundRecord[_roundId];
         require(round.roundStartTime > 0 && round.roundDeadline > block.timestamp, 'A011');
         require(_roundStartTime > round.roundStartTime && _roundDeadline > _roundStartTime, 'A001');
@@ -85,7 +94,11 @@ contract Airdropper is Ownable {
         require(airdropRecord[_addr][_roundId] == 0, 'A003');
         require(_amount > 0, 'A004');
 
-        IERC20(roundRecord[_roundId].tokenAddress).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(roundRecord[_roundId].tokenAddress).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _amount
+        );
         airdropRecord[_addr][_roundId] = _amount;
         roundRecord[_roundId].unclaimedAmount += _amount;
         emit AddAirdrop(_addr, _roundId, _amount);
@@ -111,7 +124,10 @@ contract Airdropper is Ownable {
         uint256 amount = airdropRecord[msg.sender][_roundId];
         require(amount != 0, 'A006');
 
-        require(IERC20(roundRecord[_roundId].tokenAddress).balanceOf(address(this)) >= amount, 'A007');
+        require(
+            IERC20(roundRecord[_roundId].tokenAddress).balanceOf(address(this)) >= amount,
+            'A007'
+        );
         IERC20(roundRecord[_roundId].tokenAddress).safeTransfer(msg.sender, amount);
         airdropRecord[msg.sender][_roundId] = 0;
 

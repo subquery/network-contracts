@@ -45,9 +45,19 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
     mapping(uint256 => Dispute) public disputes;
     mapping(address => uint256[]) public disputeIdByRunner;
 
-    event DisputeOpen(uint256 indexed disputeId, address fisherman, address runner, DisputeType _type);
+    event DisputeOpen(
+        uint256 indexed disputeId,
+        address fisherman,
+        address runner,
+        DisputeType _type
+    );
 
-    event DisputeFinalized(uint256 indexed disputeId, DisputeState state, uint256 slashAmount, uint256 returnAmount);
+    event DisputeFinalized(
+        uint256 indexed disputeId,
+        DisputeState state,
+        uint256 slashAmount,
+        uint256 returnAmount
+    );
 
     function initialize(ISettings _settings, uint256 _minimumDeposit) external initializer {
         __Ownable_init();
@@ -69,10 +79,19 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
         minimumDeposit = _minimumDeposit;
     }
 
-    function createDispute(address _runner, bytes32 _deploymentId, uint256 _deposit, DisputeType _type) external {
+    function createDispute(
+        address _runner,
+        bytes32 _deploymentId,
+        uint256 _deposit,
+        DisputeType _type
+    ) external {
         require(disputeIdByRunner[_runner].length <= 20, 'D001');
         require(_deposit >= minimumDeposit, 'D002');
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(msg.sender, address(this), _deposit);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _deposit
+        );
 
         Dispute storage dispute = disputes[nextDisputeId];
         dispute.disputeId = nextDisputeId;
@@ -116,7 +135,10 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
         }
 
         dispute.state = state;
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(dispute.fisherman, newDeposit);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
+            dispute.fisherman,
+            newDeposit
+        );
 
         uint256[] memory ids = disputeIdByRunner[dispute.runner];
         delete disputeIdByRunner[dispute.runner];

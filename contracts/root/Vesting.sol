@@ -28,7 +28,12 @@ contract Vesting is Ownable {
     mapping(address => uint256) public allocations;
     mapping(address => uint256) public claimed;
 
-    event VestingPlanAdded(uint256 planId, uint256 lockPeriod, uint256 vestingPeriod, uint256 initialUnlockPercent);
+    event VestingPlanAdded(
+        uint256 planId,
+        uint256 lockPeriod,
+        uint256 vestingPeriod,
+        uint256 initialUnlockPercent
+    );
     event VestingAllocated(address indexed user, uint256 planId, uint256 allocation);
     event VestingClaimed(address indexed user, uint256 amount);
 

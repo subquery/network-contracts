@@ -14,8 +14,12 @@ contract MockInflationDestination is IInflationDestination, ERC165 {
      * @param interfaceId interface ID
      * @return Result of support or not
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
-        return interfaceId == type(IInflationDestination).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC165) returns (bool) {
+        return
+            interfaceId == type(IInflationDestination).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     function afterReceiveInflatedTokens(uint256 tokenAmount) external {

@@ -70,10 +70,23 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     event Withdraw(address consumer, uint256 amount, uint256 balance);
 
     /// @notice Emitted when consumer pay for open a state channel
-    event Paid(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance, uint256 fee);
+    event Paid(
+        uint256 channelId,
+        address consumer,
+        address caller,
+        uint256 amount,
+        uint256 balance,
+        uint256 fee
+    );
 
     /// @notice Emitted when consumer pay for open a state channel
-    event Claimed(uint256 channelId, address consumer, address caller, uint256 amount, uint256 balance);
+    event Claimed(
+        uint256 channelId,
+        address consumer,
+        address caller,
+        uint256 amount,
+        uint256 balance
+    );
 
     /// @notice Emitted when consumer set the controller account.
     event SetControllerAccount(address consumer, address controller);
@@ -87,7 +100,12 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param _settings Settings contract address
      * @param _feePerMill fee percentage
      */
-    function initialize(ISettings _settings, address _sqt, address _channel, uint256 _feePerMill) external initializer {
+    function initialize(
+        ISettings _settings,
+        address _sqt,
+        address _channel,
+        uint256 _feePerMill
+    ) external initializer {
         __Ownable_init();
         settings = _settings;
         feePerMill = _feePerMill;
@@ -191,7 +209,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @notice Approve host can use consumer balance
      */
     function approve() external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         Consumer storage consumer = consumers[msg.sender];
         consumer.approved = true;
         emit Approve(msg.sender);
@@ -201,7 +222,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @notice Disapprove host can use consumer balance
      */
     function disapprove() external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         Consumer storage consumer = consumers[msg.sender];
         consumer.approved = false;
         emit Disapprove(msg.sender);
@@ -212,7 +236,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param amount the amount
      */
     function deposit(uint256 amount, bool isApprove) external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         // transfer the balance to contract
         IERC20 sqt = IERC20(settings.getContractAddress(SQContracts.SQToken));
         sqt.safeTransferFrom(msg.sender, address(this), amount);
@@ -233,7 +260,10 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param amount the amount
      */
     function withdraw(uint256 amount) external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         Consumer storage consumer = consumers[msg.sender];
         require(consumer.balance >= amount, 'C002');
 
@@ -250,7 +280,12 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param amount the amount need to pay
      * @param callback the info include consumer and signature(if approve, no signature))
      */
-    function paid(uint256 channelId, address sender, uint256 amount, bytes memory callback) external {
+    function paid(
+        uint256 channelId,
+        address sender,
+        uint256 amount,
+        bytes memory callback
+    ) external {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'G011');
         (address consumer, bytes memory sign) = abi.decode(callback, (address, bytes));
         if (channels[channelId] == address(0)) {
@@ -271,10 +306,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
             address sConsumer = ECDSA.recover(hash, sign);
             require(
                 sConsumer == consumer ||
-                    IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(
-                        consumer,
-                        sConsumer
-                    ),
+                    IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry))
+                        .isController(consumer, sConsumer),
                 'C006'
             );
             info.nonce = nonce + 1;
@@ -314,7 +347,11 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param sign the signature
      * @return Result of check
      */
-    function checkSign(uint256 channelId, bytes32 payload, bytes memory sign) external view returns (bool) {
+    function checkSign(
+        uint256 channelId,
+        bytes32 payload,
+        bytes memory sign
+    ) external view returns (bool) {
         bytes32 hash = keccak256(abi.encodePacked('\x19Ethereum Signed Message:\n32', payload));
         address sConsumer = ECDSA.recover(hash, sign);
         if (signerIndex[sConsumer] > 0) {
@@ -322,10 +359,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         }
         return
             channels[channelId] == sConsumer ||
-            IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(
-                channels[channelId],
-                sConsumer
-            );
+            IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry))
+                .isController(channels[channelId], sConsumer);
     }
 
     /**
@@ -356,7 +391,9 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
      * @param interfaceId interface ID
      * @return Result of support or not
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC165) returns (bool) {
         return interfaceId == type(IConsumer).interfaceId || super.supportsInterface(interfaceId);
     }
 }

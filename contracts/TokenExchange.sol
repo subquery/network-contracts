@@ -47,9 +47,20 @@ contract TokenExchange is Initializable, OwnableUpgradeable {
         uint256 tokenGiveBalance
     );
     /// @notice Emitted when expired exchange order settled.
-    event OrderSettled(uint256 indexed orderId, address tokenGive, address tokenGet, uint256 amountGive);
+    event OrderSettled(
+        uint256 indexed orderId,
+        address tokenGive,
+        address tokenGet,
+        uint256 amountGive
+    );
     /// @notice Emitted when trader trade on exist orders.
-    event Trade(uint256 indexed orderId, address tokenGive, address tokenGet, uint256 amountGive, uint256 amountGet);
+    event Trade(
+        uint256 indexed orderId,
+        address tokenGive,
+        address tokenGet,
+        uint256 amountGive,
+        uint256 amountGet
+    );
 
     function initialize() external initializer {
         __Ownable_init();

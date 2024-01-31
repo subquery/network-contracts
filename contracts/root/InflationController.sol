@@ -101,7 +101,11 @@ contract InflationController is Initializable, OwnableUpgradeable {
         require(passedTime > 0, 'IC002');
 
         // passedTimeRate is enlarged by 1e9 (PER_BILL)
-        uint256 passedTimeRate = MathUtil.mulDiv(passedTime * inflationRate, PER_BILL / PER_MILL, YEAR_SECONDS);
+        uint256 passedTimeRate = MathUtil.mulDiv(
+            passedTime * inflationRate,
+            PER_BILL / PER_MILL,
+            YEAR_SECONDS
+        );
         lastInflationTimestamp = block.timestamp;
 
         address sqToken = settings.getContractAddress(SQContracts.SQToken);

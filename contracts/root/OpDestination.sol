@@ -52,8 +52,12 @@ contract OpDestination is IInflationDestination, Ownable, ERC165 {
      * @param interfaceId interface ID
      * @return Result of support or not
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
-        return interfaceId == type(IInflationDestination).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC165) returns (bool) {
+        return
+            interfaceId == type(IInflationDestination).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     /**
@@ -63,7 +67,14 @@ contract OpDestination is IInflationDestination, Ownable, ERC165 {
     function afterReceiveInflatedTokens(uint256 amount) external {
         require(l2Token != address(0), 'OPD01');
         ERC20(l1Token).increaseAllowance(l1StandardBridge, amount);
-        IL1ERC20Bridge(l1StandardBridge).depositERC20To(l1Token, l2Token, xcRecipient, amount, 300000, new bytes(0));
+        IL1ERC20Bridge(l1StandardBridge).depositERC20To(
+            l1Token,
+            l2Token,
+            xcRecipient,
+            amount,
+            300000,
+            new bytes(0)
+        );
     }
 
     function withdraw(address _token) external onlyOwner {

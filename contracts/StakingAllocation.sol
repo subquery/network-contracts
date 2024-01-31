@@ -63,9 +63,8 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     function onStakeUpdate(address _runner) external {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'SAL01');
         RunnerAllocation storage ia = _runnerAllocations[_runner];
-        ia.total = IStakingManager(settings.getContractAddress(SQContracts.StakingManager)).getEffectiveTotalStake(
-            _runner
-        );
+        ia.total = IStakingManager(settings.getContractAddress(SQContracts.StakingManager))
+            .getEffectiveTotalStake(_runner);
 
         if (ia.overflowAt == 0 && ia.total < ia.used) {
             // new overflow
@@ -85,7 +84,9 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         require(_isAuth(_runner), 'SAL02');
 
         // collect rewards (if any) before change allocation
-        IRewardsBooster rb = IRewardsBooster(settings.getContractAddress(SQContracts.RewardsBooster));
+        IRewardsBooster rb = IRewardsBooster(
+            settings.getContractAddress(SQContracts.RewardsBooster)
+        );
         rb.collectAllocationReward(_deployment, _runner);
 
         RunnerAllocation storage ia = _runnerAllocations[_runner];
@@ -102,7 +103,9 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         require(allocatedTokens[_runner][_deployment] >= _amount, 'SAL04');
 
         // collect rewards (if any) before change allocation
-        IRewardsBooster rb = IRewardsBooster(settings.getContractAddress(SQContracts.RewardsBooster));
+        IRewardsBooster rb = IRewardsBooster(
+            settings.getContractAddress(SQContracts.RewardsBooster)
+        );
         rb.collectAllocationReward(_deployment, _runner);
 
         RunnerAllocation storage ia = _runnerAllocations[_runner];

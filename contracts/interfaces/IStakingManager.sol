@@ -14,5 +14,8 @@ interface IStakingManager {
 
     function getEffectiveTotalStake(address _runner) external view returns (uint256);
 
-    function getAfterDelegationAmount(address _delegator, address _runner) external view returns (uint256);
+    function getAfterDelegationAmount(
+        address _delegator,
+        address _runner
+    ) external view returns (uint256);
 }

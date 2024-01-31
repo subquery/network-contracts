@@ -4,7 +4,11 @@
 pragma solidity ^0.8.15;
 
 interface IRewardsPool {
-    function getReward(bytes32 deploymentId, uint256 era, address indexer) external returns (uint256, uint256);
+    function getReward(
+        bytes32 deploymentId,
+        uint256 era,
+        address indexer
+    ) external returns (uint256, uint256);
 
     function labor(bytes32 deploymentId, address indexer, uint256 amount) external;
 
@@ -16,5 +20,8 @@ interface IRewardsPool {
 
     function isClaimed(uint256 era, address indexer) external returns (bool);
 
-    function getUnclaimDeployments(uint256 era, address indexer) external view returns (bytes32[] memory);
+    function getUnclaimDeployments(
+        uint256 era,
+        address indexer
+    ) external view returns (bytes32[] memory);
 }

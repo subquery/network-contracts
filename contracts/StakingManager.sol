@@ -78,8 +78,9 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         } else {
             require(msg.sender == _runner, 'G002');
 
-            uint256 minimumStakingAmount = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
-                .minimumStakingAmount();
+            uint256 minimumStakingAmount = IIndexerRegistry(
+                settings.getContractAddress(SQContracts.IndexerRegistry)
+            ).minimumStakingAmount();
             uint256 stakingAmountAfter = this.getAfterDelegationAmount(_runner, _runner) - _amount;
             require(stakingAmountAfter >= minimumStakingAmount, 'S008');
             // allow self stake under the amount calculated by indexerLeverageLimit
@@ -118,12 +119,17 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
     }
 
     function cancelUnbonding(uint256 unbondReqId) external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         require(unbondReqId >= staking.withdrawnLength(msg.sender), 'S007');
         (address indexer, uint256 amount, ) = staking.unbondingAmount(msg.sender, unbondReqId);
         require(amount > 0, 'S007');
-        IIndexerRegistry indexerRegistry = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry));
+        IIndexerRegistry indexerRegistry = IIndexerRegistry(
+            settings.getContractAddress(SQContracts.IndexerRegistry)
+        );
         require(indexerRegistry.isIndexer(indexer), 'S007');
 
         staking.removeUnbondingAmount(msg.sender, unbondReqId);
@@ -138,17 +144,27 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      * Each withdraw need to exceed lockPeriod.
      */
     function widthdraw() external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         require(
-            !IDisputeManager(settings.getContractAddress(SQContracts.DisputeManager)).isOnDispute(msg.sender),
+            !IDisputeManager(settings.getContractAddress(SQContracts.DisputeManager)).isOnDispute(
+                msg.sender
+            ),
             'G006'
         );
-        uint256 withdrawingLength = staking.unbondingLength(msg.sender) - staking.withdrawnLength(msg.sender);
+        uint256 withdrawingLength = staking.unbondingLength(msg.sender) -
+            staking.withdrawnLength(msg.sender);
         require(withdrawingLength > 0, 'S009');
 
         uint256 latestWithdrawnLength = staking.withdrawnLength(msg.sender);
-        for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
+        for (
+            uint256 i = latestWithdrawnLength;
+            i < latestWithdrawnLength + withdrawingLength;
+            i++
+        ) {
             (, , uint256 startTime) = staking.unbondingAmount(msg.sender, i);
             if (block.timestamp - startTime < staking.lockPeriod()) {
                 break;
@@ -180,7 +196,8 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
     }
 
     function getTotalStakingAmount(address _runner) public view override returns (uint256) {
-        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager)).eraNumber();
+        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager))
+            .eraNumber();
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         (uint256 era, uint256 valueAt, uint256 valueAfter) = staking.totalStakingAmount(_runner);
         StakingAmount memory sm = StakingAmount(era, valueAt, valueAfter);
@@ -188,7 +205,8 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
     }
 
     function getEffectiveTotalStake(address _runner) external view override returns (uint256) {
-        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager)).eraNumber();
+        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager))
+            .eraNumber();
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         uint256 totalStake = getTotalStakingAmount(_runner);
         uint256 selfStake = _getCurrentDelegationAmount(_runner, _runner, eraNumber);
@@ -196,7 +214,10 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         return MathUtil.min(totalStake, totalStakeCap);
     }
 
-    function getAfterDelegationAmount(address _source, address _runner) external view override returns (uint256) {
+    function getAfterDelegationAmount(
+        address _source,
+        address _runner
+    ) external view override returns (uint256) {
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         (, , uint256 amount) = staking.delegation(_source, _runner);
         return amount;
@@ -204,13 +225,21 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
 
     function getUnbondingAmounts(address _source) external view returns (UnbondAmount[] memory) {
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        uint256 withdrawingLength = staking.unbondingLength(_source) - staking.withdrawnLength(_source);
+        uint256 withdrawingLength = staking.unbondingLength(_source) -
+            staking.withdrawnLength(_source);
         UnbondAmount[] memory unbondAmounts = new UnbondAmount[](withdrawingLength);
 
         uint256 i;
         uint256 latestWithdrawnLength = staking.withdrawnLength(_source);
-        for (uint256 j = latestWithdrawnLength; j < latestWithdrawnLength + withdrawingLength; j++) {
-            (address runner, uint256 amount, uint256 startTime) = staking.unbondingAmount(_source, j);
+        for (
+            uint256 j = latestWithdrawnLength;
+            j < latestWithdrawnLength + withdrawingLength;
+            j++
+        ) {
+            (address runner, uint256 amount, uint256 startTime) = staking.unbondingAmount(
+                _source,
+                j
+            );
             unbondAmounts[i] = UnbondAmount(runner, amount, startTime);
             i++;
         }
@@ -221,9 +250,14 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
     function getSlashableAmount(address _runner) external view returns (uint256) {
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         (, , uint256 slashableAmount) = staking.delegation(_runner, _runner);
-        uint256 withdrawingLength = staking.unbondingLength(_runner) - staking.withdrawnLength(_runner);
+        uint256 withdrawingLength = staking.unbondingLength(_runner) -
+            staking.withdrawnLength(_runner);
         uint256 latestWithdrawnLength = staking.withdrawnLength(_runner);
-        for (uint256 i = latestWithdrawnLength; i < latestWithdrawnLength + withdrawingLength; i++) {
+        for (
+            uint256 i = latestWithdrawnLength;
+            i < latestWithdrawnLength + withdrawingLength;
+            i++
+        ) {
             (, uint256 amount, ) = staking.unbondingAmount(_runner, i);
             slashableAmount += amount;
         }

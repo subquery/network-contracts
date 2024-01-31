@@ -118,12 +118,18 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             rewardsDistributor.setLastClaimEra(_indexer, currentEra - 1);
             lastSettledEra[_indexer] = currentEra - 1;
 
-            IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
+            IStakingManager stakingManager = IStakingManager(
+                settings.getContractAddress(SQContracts.StakingManager)
+            );
             //apply first onStakeChange
             uint256 newDelegation = stakingManager.getAfterDelegationAmount(_indexer, _indexer);
             delegation[_indexer][_indexer] = newDelegation;
 
-            uint256 newAmount = MathUtil.mulDiv(newDelegation, rewardInfo.accSQTPerStake, PER_TRILL);
+            uint256 newAmount = MathUtil.mulDiv(
+                newDelegation,
+                rewardInfo.accSQTPerStake,
+                PER_TRILL
+            );
             rewardsDistributor.setRewardDebt(_indexer, _indexer, newAmount);
 
             //make sure the eraReward be 0, when indexer reregister
@@ -132,8 +138,9 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             totalStakingAmount[_indexer] = stakingManager.getTotalStakingAmount(_indexer);
 
             //apply first onICRChgange
-            uint256 newCommissionRate = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
-                .getCommissionRate(_indexer);
+            uint256 newCommissionRate = IIndexerRegistry(
+                settings.getContractAddress(SQContracts.IndexerRegistry)
+            ).getCommissionRate(_indexer);
             commissionRates[_indexer] = newCommissionRate;
 
             emit StakeChanged(_indexer, _indexer, newDelegation);
@@ -146,7 +153,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             );
             stakingAllocation.onStakeUpdate(_indexer);
         } else {
-            require(rewardsDistributor.collectAndDistributeEraRewards(currentEra, _indexer) == currentEra - 1, 'RS002');
+            require(
+                rewardsDistributor.collectAndDistributeEraRewards(currentEra, _indexer) ==
+                    currentEra - 1,
+                'RS002'
+            );
             IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(_indexer);
 
             require(checkAndReflectSettlement(_indexer, rewardInfo.lastClaimEra), 'RS003');
@@ -170,7 +181,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
         require(startEra > currentEra, 'RS004');
 
         IRewardsDistributor rewardsDistributor = _getRewardsDistributor();
-        require(rewardsDistributor.collectAndDistributeEraRewards(currentEra, indexer) == currentEra - 1, 'RS002');
+        require(
+            rewardsDistributor.collectAndDistributeEraRewards(currentEra, indexer) ==
+                currentEra - 1,
+            'RS002'
+        );
         IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(indexer);
 
         require(checkAndReflectSettlement(indexer, rewardInfo.lastClaimEra), 'RS003');
@@ -191,7 +206,9 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
         rewardsDistributor.claimFrom(indexer, staker);
 
         // run hook for delegation change
-        IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
+        IStakingManager stakingManager = IStakingManager(
+            settings.getContractAddress(SQContracts.StakingManager)
+        );
         uint256 newDelegation = stakingManager.getAfterDelegationAmount(staker, indexer);
         delegation[staker][indexer] = newDelegation;
 
@@ -222,7 +239,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
     function applyICRChange(address indexer) external {
         uint256 currentEra = _getCurrentEra();
         require(
-            pendingCommissionRateChange[indexer] != 0 && pendingCommissionRateChange[indexer] <= currentEra,
+            pendingCommissionRateChange[indexer] != 0 &&
+                pendingCommissionRateChange[indexer] <= currentEra,
             'RS005'
         );
 
@@ -230,9 +248,12 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
         IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(indexer);
         require(lastSettledEra[indexer] < rewardInfo.lastClaimEra, 'RS006');
 
-        IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
-        uint256 newCommissionRate = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
-            .getCommissionRate(indexer);
+        IStakingManager stakingManager = IStakingManager(
+            settings.getContractAddress(SQContracts.StakingManager)
+        );
+        uint256 newCommissionRate = IIndexerRegistry(
+            settings.getContractAddress(SQContracts.IndexerRegistry)
+        ).getCommissionRate(indexer);
         commissionRates[indexer] = newCommissionRate;
         pendingCommissionRateChange[indexer] = 0;
         _updateTotalStakingAmount(stakingManager, indexer, rewardInfo.lastClaimEra);
@@ -243,7 +264,10 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      * @dev Check if the previous Era has been settled, also update lastSettledEra.
      * Require to be true when someone try to claimRewards() or onStakeChangeRequested().
      */
-    function checkAndReflectSettlement(address indexer, uint256 lastClaimEra) public returns (bool) {
+    function checkAndReflectSettlement(
+        address indexer,
+        uint256 lastClaimEra
+    ) public returns (bool) {
         uint256 currentEra = _getCurrentEra();
         if (lastSettledEra[indexer] == currentEra - 1) {
             return true;
@@ -253,7 +277,10 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             emit SettledEraUpdated(indexer, currentEra - 1);
             return true;
         }
-        if (pendingStakeChangeLength[indexer] == 0 && pendingCommissionRateChange[indexer] - 1 > lastClaimEra) {
+        if (
+            pendingStakeChangeLength[indexer] == 0 &&
+            pendingCommissionRateChange[indexer] - 1 > lastClaimEra
+        ) {
             lastSettledEra[indexer] = lastClaimEra;
             emit SettledEraUpdated(indexer, lastClaimEra);
             return true;
@@ -267,7 +294,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      * @param stakingManager Staking contract interface
      * @param indexer Indexer address
      */
-    function _updateTotalStakingAmount(IStakingManager stakingManager, address indexer, uint256 lastClaimEra) private {
+    function _updateTotalStakingAmount(
+        IStakingManager stakingManager,
+        address indexer,
+        uint256 lastClaimEra
+    ) private {
         if (checkAndReflectSettlement(indexer, lastClaimEra)) {
             totalStakingAmount[indexer] = stakingManager.getTotalStakingAmount(indexer);
         }

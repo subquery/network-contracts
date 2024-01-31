@@ -39,7 +39,12 @@ contract SQTGift is
     event SeriesCreated(uint256 indexed seriesId, uint256 maxSupply, string tokenURI);
     event SeriesActiveUpdated(uint256 indexed seriesId, bool active);
 
-    event GiftMinted(address indexed to, uint256 indexed seriesId, uint256 indexed tokenId, string tokenURI);
+    event GiftMinted(
+        address indexed to,
+        uint256 indexed seriesId,
+        uint256 indexed tokenId,
+        string tokenURI
+    );
 
     function initialize() external initializer {
         __Ownable_init();
@@ -67,7 +72,11 @@ contract SQTGift is
         emit AllowListAdded(_address, _seriesId, _amount);
     }
 
-    function removeFromAllowlist(uint256 _seriesId, address _address, uint8 _amount) public onlyOwner {
+    function removeFromAllowlist(
+        uint256 _seriesId,
+        address _address,
+        uint8 _amount
+    ) public onlyOwner {
         require(series[_seriesId].maxSupply > 0, 'SQG001');
         require(allowlist[_address][_seriesId] >= _amount, 'SQG002');
         allowlist[_address][_seriesId] -= _amount;
@@ -77,7 +86,12 @@ contract SQTGift is
 
     function createSeries(uint256 _maxSupply, string memory _tokenURI) external onlyOwner {
         require(_maxSupply > 0, 'SQG006');
-        series[nextSeriesId] = GiftSeries({ maxSupply: _maxSupply, totalSupply: 0, active: true, tokenURI: _tokenURI });
+        series[nextSeriesId] = GiftSeries({
+            maxSupply: _maxSupply,
+            totalSupply: 0,
+            active: true,
+            tokenURI: _tokenURI
+        });
 
         emit SeriesCreated(nextSeriesId, _maxSupply, _tokenURI);
 
@@ -110,7 +124,12 @@ contract SQTGift is
     )
         public
         view
-        override(IERC165Upgradeable, ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC721URIStorageUpgradeable)
+        override(
+            IERC165Upgradeable,
+            ERC721Upgradeable,
+            ERC721EnumerableUpgradeable,
+            ERC721URIStorageUpgradeable
+        )
         returns (bool)
     {
         return interfaceId == type(ISQTGift).interfaceId || super.supportsInterface(interfaceId);
@@ -122,7 +141,9 @@ contract SQTGift is
         return super.tokenURI(tokenId);
     }
 
-    function _burn(uint256 tokenId) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
+    function _burn(
+        uint256 tokenId
+    ) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
         super._burn(tokenId);
     }
 

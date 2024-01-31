@@ -114,7 +114,9 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     /// @notice require caller is indexer
     modifier onlyIndexer() {
         require(
-            IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).isIndexer(msg.sender),
+            IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).isIndexer(
+                msg.sender
+            ),
             'G002'
         );
         _;
@@ -126,7 +128,11 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * @param _penaltyRate penaltyRate that consumer cancel unexpired purchase offer
      * @param _penaltyDestination penaltyDestination that consumer cancel unexpired purchase offer
      */
-    function initialize(ISettings _settings, uint256 _penaltyRate, address _penaltyDestination) external initializer {
+    function initialize(
+        ISettings _settings,
+        uint256 _penaltyRate,
+        address _penaltyDestination
+    ) external initializer {
         __Ownable_init();
         require(_penaltyRate < PER_MILL, 'PO001');
 
@@ -179,12 +185,17 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         uint256 _minimumStakingAmount,
         uint256 _expireDate
     ) external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         require(_expireDate > block.timestamp, 'PO002');
         require(_deposit > 0, 'PO003');
         require(_limit > 0, 'PO004');
 
-        IPlanManager planManager = IPlanManager(settings.getContractAddress(SQContracts.PlanManager));
+        IPlanManager planManager = IPlanManager(
+            settings.getContractAddress(SQContracts.PlanManager)
+        );
         PlanTemplateV2 memory template = planManager.getPlanTemplate(_planTemplateId);
         require(template.active, 'PO005');
         require(template.priceToken == settings.getContractAddress(SQContracts.SQToken));
@@ -232,7 +243,10 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * @param _offerId purchase offer id to cancel
      */
     function cancelPurchaseOffer(uint256 _offerId) external {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         PurchaseOffer memory offer = offers[_offerId];
         require(msg.sender == offer.consumer, 'PO006');
         require(offers[_offerId].active, 'PO007');
@@ -244,16 +258,25 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
             penalty = MathUtil.mulDiv(penaltyRate, unfulfilledValue, PER_MILL);
             unfulfilledValue = unfulfilledValue - penalty;
             if (penaltyDestination != ZERO_ADDRESS) {
-                IERC20(settings.getContractAddress(SQContracts.SQToken)).transfer(penaltyDestination, penalty);
+                IERC20(settings.getContractAddress(SQContracts.SQToken)).transfer(
+                    penaltyDestination,
+                    penalty
+                );
             } else {
                 address treasury = settings.getContractAddress(SQContracts.Treasury);
-                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(treasury, penalty);
+                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
+                    treasury,
+                    penalty
+                );
             }
         }
 
         // send remaining SQToken from the contract to consumer (this)
         require(
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).transfer(msg.sender, unfulfilledValue),
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).transfer(
+                msg.sender,
+                unfulfilledValue
+            ),
             'G013'
         );
 
@@ -273,7 +296,10 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      * @param _poi proof of index (hash) to accept the purchase offer
      */
     function acceptPurchaseOffer(uint256 _offerId, bytes32 _poi) external onlyIndexer {
-        require(!(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()), 'G019');
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
         PurchaseOffer storage offer = offers[_offerId];
         require(offer.active, 'PO007');
         require(!isExpired(_offerId), 'PO008');
@@ -281,10 +307,17 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         require(offerPoi[_offerId][msg.sender] == bytes32(0), 'PO009');
         require(offer.limit > offer.numAcceptedContracts, 'PO010');
 
-        IStakingManager stakingManager = IStakingManager(settings.getContractAddress(SQContracts.StakingManager));
-        require(stakingManager.getTotalStakingAmount(msg.sender) >= offer.minimumStakingAmount, 'PO013');
+        IStakingManager stakingManager = IStakingManager(
+            settings.getContractAddress(SQContracts.StakingManager)
+        );
+        require(
+            stakingManager.getTotalStakingAmount(msg.sender) >= offer.minimumStakingAmount,
+            'PO013'
+        );
 
-        IPlanManager planManager = IPlanManager(settings.getContractAddress(SQContracts.PlanManager));
+        IPlanManager planManager = IPlanManager(
+            settings.getContractAddress(SQContracts.PlanManager)
+        );
         PlanTemplateV2 memory template = planManager.getPlanTemplate(offer.planTemplateId);
         require(template.active, 'PO005');
 
