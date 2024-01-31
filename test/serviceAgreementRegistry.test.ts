@@ -471,12 +471,12 @@ describe('Service Agreement Registry Contract', () => {
         it('cannot renew upcoming agreement', async () => {
             const plan = await planManager.getPlan(1);
             await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
-            let balanceBefore = await token.balanceOf(wallet2.address);
+            const balanceBefore = await token.balanceOf(wallet2.address);
             let tx = await planManager.connect(wallet2).acceptPlan(1, deploymentIds[0]);
             const agreementId = (
                 await eventFrom(tx, serviceAgreementRegistry, 'ClosedAgreementCreated(address,address,bytes32,uint256)')
             ).serviceAgreementId;
-            let balanceAfter = await token.balanceOf(wallet2.address);
+            const balanceAfter = await token.balanceOf(wallet2.address);
             expect(balanceBefore.sub(balanceAfter)).to.eq(plan.price);
 
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
@@ -484,7 +484,7 @@ describe('Service Agreement Registry Contract', () => {
             tx = await serviceAgreementRegistry.connect(wallet2).renewAgreement(agreementId);
             const upcomingAgreementId = (
                 await eventFrom(tx, serviceAgreementRegistry, 'ClosedAgreementCreated(address,address,bytes32,uint256)')
-            ).serviceAgreementId;;
+            ).serviceAgreementId;
             await timeTravel(mockProvider, time.duration.days(1).toNumber());
             await expect(
                 serviceAgreementRegistry.connect(wallet2).renewAgreement(upcomingAgreementId)

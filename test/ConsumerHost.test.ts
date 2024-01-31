@@ -62,10 +62,10 @@ describe('ConsumerHost Contract', () => {
                 consumerCallback,
             ]
         );
-        let payloadHash = ethers.utils.keccak256(msg);
+        const payloadHash = ethers.utils.keccak256(msg);
 
-        let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
-        let hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
+        const indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+        const hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
 
         const recoveredIndexer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), indexerSign);
         expect(indexer.address).to.equal(recoveredIndexer);
@@ -132,8 +132,8 @@ describe('ConsumerHost Contract', () => {
             ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
             [channelId, indexer.address, consumerHost.address, preTotal, amount, consumerCallback]
         );
-        let payloadHash = ethers.utils.keccak256(msg);
-        let hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
+        const payloadHash = ethers.utils.keccak256(msg);
+        const hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
 
         const recoveredHoster = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), hosterSign);
         expect(hoster.address).to.equal(recoveredHoster);
@@ -160,10 +160,10 @@ describe('ConsumerHost Contract', () => {
     }> => {
         const abi = ethers.utils.defaultAbiCoder;
         const msg = abi.encode(['uint256', 'uint256', 'bool'], [channelId, spent, isFinal]);
-        let payloadHash = ethers.utils.keccak256(msg);
+        const payloadHash = ethers.utils.keccak256(msg);
 
-        let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
-        let hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
+        const indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+        const hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
 
         const recoveredIndexer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), indexerSign);
         expect(indexer.address).to.equal(recoveredIndexer);

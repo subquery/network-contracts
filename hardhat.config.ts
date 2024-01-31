@@ -112,7 +112,7 @@ task('publishRoot', "verify and publish contracts on etherscan")
 
             // OpDestination
             console.log(`verify OpDestination`);
-            let l2bridge = l1StandardBridge[taskArgs.networkpair].address;
+            const l2bridge = l1StandardBridge[taskArgs.networkpair].address;
             await hre.run("verify:verify", {
                 address: deployment.OpDestination.address,
                 // TODO: better inject `L1TokenBridge` into the deployment

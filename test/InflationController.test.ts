@@ -24,7 +24,7 @@ describe('Inflation Controller Contract', () => {
     let inflationDestination2: OpDestination;
     let token: SQToken;
 
-    let YEAR_SECONDS = (3600 * 24 * 36525) / 100;
+    const YEAR_SECONDS = (3600 * 24 * 36525) / 100;
 
     async function startNewEra() {
         for (let i=0;i<24*7;i++) {
@@ -205,7 +205,7 @@ describe('Inflation Controller Contract', () => {
     describe('InflationDestination', () => {
         it('change recipient should only work for admin', async () => {
             expect(await inflationDestination2.xcRecipient()).not.to.eq(wallet_1.address);
-            let tx = await inflationDestination2.setXcRecipient(wallet_1.address);
+            const tx = await inflationDestination2.setXcRecipient(wallet_1.address);
             await tx.wait();
             expect(await inflationDestination2.xcRecipient()).to.eq(wallet_1.address);
             await expect(inflationDestination2.connect(wallet_1).setXcRecipient(wallet_2.address)).to.be.revertedWith('Ownable: caller is not the owner');

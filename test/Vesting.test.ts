@@ -19,7 +19,7 @@ describe('Vesting Contract', () => {
     let vestingContract: Vesting;
     let lockPeriod: number;
     let vestingPeriod: number;
-    let initialUnlockPercent = 10;
+    const initialUnlockPercent = 10;
 
     async function claimVesting(wallet: Wallet): Promise<{user: string, amount: BigNumber}> {
         await vtSQToken.connect(wallet).increaseAllowance(vestingContract.address, parseEther(10000));

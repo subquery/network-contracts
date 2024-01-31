@@ -203,7 +203,7 @@ describe('RewardsDistributor Contract', () => {
             const stakingBalance = await token.balanceOf(staking.address);
             const tx = await rewardsDistributor.collectAndDistributeRewards(runner.address);
 
-            let eventFilter = staking.filters.UnbondRequested();
+            const eventFilter = staking.filters.UnbondRequested();
             const evt = (await staking.queryFilter(eventFilter))[0];
             const unbondEvent = staking.interface.decodeEventLog(
                 staking.interface.getEvent("UnbondRequested"),

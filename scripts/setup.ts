@@ -75,7 +75,7 @@ export async function setupCommon(pair: NetworkPair) {
 }
 
 const setup = async (network?: string) => {
-    let config:{network: NetworkPair, contracts: ContractConfig} = { contracts: null, network: null };
+    const config:{network: NetworkPair, contracts: ContractConfig} = { contracts: null, network: null };
     let name: SubqueryNetwork;
     let history = false;
     let checkOnly = false;

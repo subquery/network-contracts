@@ -65,10 +65,10 @@ describe('StateChannel Contract', () => {
     }> => {
         const abi = ethers.utils.defaultAbiCoder;
         const msg = abi.encode(['uint256', 'uint256', 'bool'], [channelId, spent, isFinal]);
-        let payloadHash = ethers.utils.keccak256(msg);
+        const payloadHash = ethers.utils.keccak256(msg);
 
-        let indexerSign = await runner.signMessage(ethers.utils.arrayify(payloadHash));
-        let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
+        const indexerSign = await runner.signMessage(ethers.utils.arrayify(payloadHash));
+        const consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
 
         const recoveredIndexer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), indexerSign);
         expect(runner.address).to.equal(recoveredIndexer);
@@ -321,8 +321,8 @@ describe('StateChannel Contract', () => {
                 ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
                 [defaultChannelId, runner.address, consumer.address, etherParse('1'), queryRewards0, '0x']
             );
-            let payload = ethers.utils.keccak256(msg);
-            let sign = await consumer.signMessage(ethers.utils.arrayify(payload));
+            const payload = ethers.utils.keccak256(msg);
+            const sign = await consumer.signMessage(ethers.utils.arrayify(payload));
             await stateChannel.fund(defaultChannelId, etherParse('1'), queryRewards0, '0x', sign);
 
             const consumerRewards = await rewardsBooster.getBoosterQueryRewards(deploymentId, consumer.address);
@@ -382,8 +382,8 @@ describe('StateChannel Contract', () => {
                 ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
                 [defaultChannelId, runner.address, consumer.address, queryRewards0.add(etherParse(1)), nextFund, '0x']
             );
-            let payload = ethers.utils.keccak256(msg);
-            let sign = await consumer.signMessage(ethers.utils.arrayify(payload));
+            const payload = ethers.utils.keccak256(msg);
+            const sign = await consumer.signMessage(ethers.utils.arrayify(payload));
             expect(await token.balanceOf(consumer.address)).to.equal(etherParse('4'));
             await stateChannel.fund(defaultChannelId, queryRewards0.add(etherParse(1)), nextFund, '0x', sign);
 
@@ -528,8 +528,8 @@ describe('StateChannel Contract', () => {
                 ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
                 [channelId, runner.address, consumer.address, etherParse('1'), etherParse('0.1'), '0x']
             );
-            let payload = ethers.utils.keccak256(msg);
-            let sign = await consumer.signMessage(ethers.utils.arrayify(payload));
+            const payload = ethers.utils.keccak256(msg);
+            const sign = await consumer.signMessage(ethers.utils.arrayify(payload));
             const recover = ethers.utils.verifyMessage(ethers.utils.arrayify(payload), sign);
             expect(consumer.address).to.equal(recover);
 
@@ -545,9 +545,9 @@ describe('StateChannel Contract', () => {
                 ['uint256', 'address', 'address', 'uint256', 'uint256'],
                 [channelId, runner.address, consumer.address, preExpirationAt, nextExpiration]
             );
-            let payload2 = ethers.utils.keccak256(msg2);
-            let indexerSign = await runner.signMessage(ethers.utils.arrayify(payload2));
-            let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payload2));
+            const payload2 = ethers.utils.keccak256(msg2);
+            const indexerSign = await runner.signMessage(ethers.utils.arrayify(payload2));
+            const consumerSign = await consumer.signMessage(ethers.utils.arrayify(payload2));
 
             await stateChannel.extend(channelId, preExpirationAt, nextExpiration, indexerSign, consumerSign);
 

@@ -36,10 +36,10 @@ describe('StateChannel Workflow Tests', () => {
             ['uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'bytes32', 'bytes'],
             [channelId, indexer.address, consumer.address, amount, price, expiration, deploymentId, '0x']
         );
-        let payloadHash = ethers.utils.keccak256(msg);
+        const payloadHash = ethers.utils.keccak256(msg);
 
-        let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
-        let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
+        const indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+        const consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
 
         await stateChannel
             .connect(consumer)
@@ -67,12 +67,12 @@ describe('StateChannel Workflow Tests', () => {
     ) => {
         const abi = ethers.utils.defaultAbiCoder;
         const msg = abi.encode(['uint256', 'uint256', 'bool'], [channelId, spent, isFinal]);
-        let payloadHash = ethers.utils.keccak256(msg);
+        const payloadHash = ethers.utils.keccak256(msg);
 
-        let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
-        let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
+        const indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+        const consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
 
-        let query = {
+        const query = {
             channelId: channelId,
             spent: spent,
             isFinal: isFinal,
@@ -102,9 +102,9 @@ describe('StateChannel Workflow Tests', () => {
             ['uint256', 'address', 'address', 'uint256', 'uint256'],
             [channelId, indexer.address, consumer.address, preExpirationAt, expiration]
         );
-        let payload = ethers.utils.keccak256(msg);
-        let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payload));
-        let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payload));
+        const payload = ethers.utils.keccak256(msg);
+        const indexerSign = await indexer.signMessage(ethers.utils.arrayify(payload));
+        const consumerSign = await consumer.signMessage(ethers.utils.arrayify(payload));
 
         await stateChannel.extend(channelId, preExpirationAt, expiration, indexerSign, consumerSign);
     }
@@ -116,13 +116,13 @@ describe('StateChannel Workflow Tests', () => {
         amount: BigNumber
     ) => {
         const abi = ethers.utils.defaultAbiCoder;
-        let total = (await stateChannel.channel(channelId)).total;
+        const total = (await stateChannel.channel(channelId)).total;
         const msg = abi.encode(
             ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
             [channelId, indexer.address, consumer.address, total, amount, '0x']
         );
-        let payload = ethers.utils.keccak256(msg);
-        let sign = await consumer.signMessage(ethers.utils.arrayify(payload));
+        const payload = ethers.utils.keccak256(msg);
+        const sign = await consumer.signMessage(ethers.utils.arrayify(payload));
         await stateChannel.fund(channelId, total, amount, '0x', sign);
     }
 

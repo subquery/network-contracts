@@ -125,7 +125,7 @@ describe('Dispute Manager Contract', () => {
 
             expect((await stakingManager.getUnbondingAmounts(runner.address))[0].amount).equal(etherParse('1'));
 
-            let dispute = await disputeManager.disputes(1);
+            const dispute = await disputeManager.disputes(1);
             expect(dispute.state).to.equal(1);
         });
 

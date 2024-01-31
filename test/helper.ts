@@ -137,7 +137,7 @@ export function createProject(projectRegistry: ProjectRegistry, wallet: SignerWi
 export async function boosterDeployment(token: ERC20, rewardsBooster: RewardsBooster, signer: SignerWithAddress, deployment: string, amount) {
     await token.connect(signer).increaseAllowance(rewardsBooster.address, amount);
     await rewardsBooster.connect(signer).boostDeployment(deployment, amount);
-};
+}
 
 export async function openChannel(
     stateChannel: StateChannel,
@@ -154,10 +154,10 @@ export async function openChannel(
         ['uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'bytes32', 'bytes'],
         [channelId, indexer.address, consumer.address, amount, price, expiration, deploymentId, '0x']
     );
-    let payloadHash = ethers.utils.keccak256(msg);
+    const payloadHash = ethers.utils.keccak256(msg);
 
-    let indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
-    let consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
+    const indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+    const consumerSign = await consumer.signMessage(ethers.utils.arrayify(payloadHash));
 
     const recoveredIndexer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), indexerSign);
     expect(indexer.address).to.equal(recoveredIndexer);

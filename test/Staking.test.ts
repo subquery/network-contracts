@@ -365,7 +365,7 @@ describe('Staking Contract', () => {
         });
 
         it('cancelUnbonding should work', async () => {
-            let delegateAmount = await stakingManager.getAfterDelegationAmount(delegator.address, runner.address);
+            const delegateAmount = await stakingManager.getAfterDelegationAmount(delegator.address, runner.address);
             const delegatorBalance = await token.balanceOf(delegator.address);
             const contractBalance = await token.balanceOf(staking.address);
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('1'));

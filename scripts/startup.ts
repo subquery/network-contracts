@@ -119,7 +119,7 @@ export async function createPlanTemplates(sdk: ContractSDK, _provider?: StaticJs
     const templateId = await sdk.planManager.nextTemplateId();
     const templates = startupConfig.planTemplates;
     const defaultToken = sdk.sqToken.address;
-    for (var i = templateId.toNumber(); i < templates.length; i++) {
+    for (let i = templateId.toNumber(); i < templates.length; i++) {
         const { period, dailyReqCap, rateLimit, token } = templates[i];
         const templateToken = token ?? defaultToken;
         logger.info(`Create No. ${i} plan template: ${period} | ${dailyReqCap} | ${rateLimit}`);

@@ -77,7 +77,7 @@ function codeToHash(code: string) {
 }
 
 async function getOverrides(): Promise<Overrides> {
-    let price = await wallet.provider.getGasPrice();
+    const price = await wallet.provider.getGasPrice();
     // console.log(`gasprice: ${price.toString()}`)
     // price = price.add(15000000000); // add extra 15 gwei
     return { gasPrice: price, gasLimit: 3000000 };

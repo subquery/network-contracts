@@ -124,7 +124,7 @@ describe('PlanManger Contract', () => {
             await expect(planManager.updatePlanTemplateMetadata(0, metadatas[1]))
                 .to.be.emit(planManager, 'PlanTemplateMetadataChanged')
                 .withArgs(0, metadatas[1]);
-            let planTemplate = await planManager.getPlanTemplate(0);
+            const planTemplate = await planManager.getPlanTemplate(0);
             expect(planTemplate.metadata).to.equal(metadatas[1]);
         });
 
