@@ -26,7 +26,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet, treasury=
             // ServiceAgreementExtra: [1e6],
             PurchaseOfferMarket: [1e5, ZERO_ADDRESS],
             IndexerRegistry: [etherParse("1000").toString()],
-            ConsumerHost: [1],
+            ConsumerHost: [10000],
             DisputeManager: [etherParse("1000").toString()],
             Settings: [],
             VSQToken: [],

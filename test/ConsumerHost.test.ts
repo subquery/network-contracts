@@ -299,6 +299,7 @@ describe('ConsumerHost Contract', () => {
                 60,
                 false
             );
+            const fee = await consumerHost.feePerMill();
             expect((await consumerHost.consumers(consumer.address)).balance).to.equal(etherParse('8.99')); // 10 - 1 - 0.01
             expect(await consumerHost.channels(channelId)).to.equal(consumer.address);
 
@@ -335,8 +336,8 @@ describe('ConsumerHost Contract', () => {
             // update fee from 1% ~ 2%
             const fee1 = await consumerHost.fee();
             expect(fee1).to.equal(etherParse('0.04')); // 0.01 + 0.02 + 0.01
-            await consumerHost.connect(wallet_0).setFeePercentage(BigNumber.from(2));
-            await expect(consumerHost.connect(wallet_0).setFeePercentage(BigNumber.from(101))).to.be.revertedWith(
+            await consumerHost.connect(wallet_0).setFeeRate(BigNumber.from(20000));
+            await expect(consumerHost.connect(wallet_0).setFeeRate(BigNumber.from(1010000))).to.be.revertedWith(
                 'C001'
             );
             await fundChannel(

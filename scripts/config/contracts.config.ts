@@ -11,7 +11,7 @@ export default {
         ServiceAgreementExtra: [1e6], //threshold
         PurchaseOfferMarket: [1e5, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'],
         IndexerRegistry: [utils.parseEther("16000")],
-        ConsumerHost: [1], // Fee Percentage, default is 1%
+        ConsumerHost: [10000], // Fee Percentage, default is 1%
         DisputeManager: [utils.parseEther("10000")], // minimumDeposit
         RewardsBooster: [utils.parseEther("6.34"), utils.parseEther("10000")], // _issuancePerBlock, _minimumDeploymentBooster
         L2SQToken: ['', ''], // l2bridge, l1token
@@ -68,7 +68,7 @@ export default {
         ServiceAgreementExtra: [1e6], //threshold
         PurchaseOfferMarket: [1e5, '0x0000000000000000000000000000000000000000'],
         IndexerRegistry: [utils.parseEther("1000")],
-        ConsumerHost: [1], // Fee Percentage, default is 1%
+        ConsumerHost: [10000], // Fee Percentage, default is 1%
         DisputeManager: [utils.parseEther("10000")], // minimumDeposit
         // polygon: 10240000 blocks a year, 1% rewards = about 9.5 SQT per block
         RewardsBooster: [utils.parseEther("9.5"), utils.parseEther("10000")], // _issuancePerBlock, _minimumDeploymentBooster
