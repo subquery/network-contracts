@@ -10,7 +10,8 @@
         "build": "yarn build:contract && yarn build:ts && yarn build:abi",
         "clean": "rm -rf build artifacts",
         "lint": "solhint contracts/**/*.sol --fix",
-        "format": "prettier --write --plugin=prettier-plugin-solidity contracts/**/*.sol ",
+        "format:contracts": "prettier --write --plugin=prettier-plugin-solidity contracts/**/*.sol ",
+        "format": "eslint --fix . && prettier --write . && yarn format:contracts",
         "test": "hardhat test",
         "test:all": "hardhat test ./test/*.test.ts",
         "test:coverage": "hardhat coverage",
@@ -51,14 +52,18 @@
         "@typechain/ethers-v5": "11.1.1",
         "@typechain/hardhat": "^8.0.3",
         "@types/chai": "^4.3.0",
+        "@types/eslint": "^8",
         "@types/mocha": "^9.1.0",
         "@types/module-alias": "^2.0.1",
         "@types/node": "^17.0.23",
         "@types/prettier": "^2",
         "@types/sha256": "^0.2.0",
         "@types/yargs": "^16.0.8",
+        "@typescript-eslint/eslint-plugin": "^6.20.0",
+        "@typescript-eslint/parser": "^6.20.0",
         "chai": "^4.3.6",
         "dotenv": "^10.0.0",
+        "eslint": "^8.56.0",
         "ethereum-waffle": "^3.4.0",
         "ethers": "~5.5.4",
         "fs": "^0.0.1-security",
@@ -85,10 +90,11 @@
     },
     "lint-staged": {
         "*.ts": [
-            "prettier --write"
+            "prettier --write",
+            "eslint --fix"
         ],
-        "src/*.ts": [
-            "prettier --write"
+        "*.sol": [
+            "prettier --write --plugin=prettier-plugin-solidity"
         ]
     },
     "packageManager": "yarn@3.6.4"
