@@ -61,4 +61,11 @@ contract SQTRedeem is Initializable, OwnableUpgradeable {
 
         emit SQTRedeemed(msg.sender, tokenId, seriesId, nft, sqtValue);
     }
+
+    function batchRedeem(address[] calldata _nfts, uint256[] calldata _tokenIds) public {
+        require(_nfts.length == _tokenIds.length, 'G020');
+        for (uint256 i = 0; i < _nfts.length; i++) {
+            redeem(_nfts[i], _tokenIds[i]);
+        }
+    }
 }

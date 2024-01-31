@@ -66,25 +66,6 @@
                 "type": "address"
             },
             {
-                "indexed": true,
-                "internalType": "address",
-                "name": "controller",
-                "type": "address"
-            }
-        ],
-        "name": "RemoveControllerAccount",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "indexer",
-                "type": "address"
-            },
-            {
                 "indexed": false,
                 "internalType": "uint256",
                 "name": "amount",
@@ -313,13 +294,6 @@
             }
         ],
         "name": "registerIndexer",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "removeControllerAccount",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

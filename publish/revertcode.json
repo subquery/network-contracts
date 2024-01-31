@@ -18,6 +18,7 @@
     "G017": "Caller should only be IndexerRegistry",
     "G018": "Contract is not IConsumer",
     "G019": "Network in maintenance mode",
+    "G020": "Invalid Batch Parameters",
     "S001": "Invaild unbondFeeRate",
     "S002": "Reach delegation limitation",
     "S003": "Invalid delegation amount",
