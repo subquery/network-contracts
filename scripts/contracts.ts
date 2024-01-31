@@ -65,7 +65,6 @@ import {
     Vesting__factory,
     OpDestination,
     OpDestination__factory,
-    ChildERC20__factory,
     SQTGift__factory,
     SQTGift,
     SQTRedeem__factory,
@@ -73,7 +72,7 @@ import {
     VTSQToken,
     VTSQToken__factory,
     L2SQToken,
-    L2SQToken__factory,
+    L2SQToken__factory, BatchTransfer__factory,
 } from '../src';
 
 export interface FactoryContstructor {
@@ -142,43 +141,6 @@ export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ byt
     ConsumerRegistry: [CONTRACTS.ConsumerRegistry, ConsumerRegistry__factory],
     PriceOracle: [CONTRACTS.PriceOracle, PriceOracle__factory],
     Settings: [CONTRACTS.Settings, Settings__factory],
-};
-
-export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
-    ProxyAdmin: ProxyAdmin__factory,
-    Settings: Settings__factory,
-    InflationController: InflationController__factory,
-    SQToken: SQToken__factory,
-    VSQToken: VSQToken__factory,
-    Airdropper: Airdropper__factory,
-    Vesting: Vesting__factory,
-    VTSQToken: VTSQToken__factory,
-    Staking: Staking__factory,
-    StakingManager: StakingManager__factory,
-    StakingAllocation: StakingAllocation__factory,
-    EraManager: EraManager__factory,
-    IndexerRegistry: IndexerRegistry__factory,
-    ProjectRegistry: ProjectRegistry__factory,
-    PlanManager: PlanManager__factory,
-    PurchaseOfferMarket: PurchaseOfferMarket__factory,
-    ServiceAgreementRegistry: ServiceAgreementRegistry__factory,
-    RewardsDistributor: RewardsDistributor__factory,
-    RewardsPool: RewardsPool__factory,
-    RewardsStaking: RewardsStaking__factory,
-    RewardsHelper: RewardsHelper__factory,
-    RewardsBooster: RewardsBooster__factory,
-    StateChannel: StateChannel__factory,
-    PermissionedExchange: PermissionedExchange__factory,
-    TokenExchange: TokenExchange__factory,
-    ConsumerHost: ConsumerHost__factory,
-    DisputeManager: DisputeManager__factory,
-    ConsumerRegistry: ConsumerRegistry__factory,
-    PriceOracle: PriceOracle__factory,
-    ChildERC20: ChildERC20__factory,
-    OpDestination: OpDestination__factory,
-    SQTGift: SQTGift__factory,
-    SQTRedeem: SQTRedeem__factory,
-    L2SQToken: L2SQToken__factory,
 };
 
 export type Config = number | string | string[];

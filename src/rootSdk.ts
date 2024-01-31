@@ -4,7 +4,7 @@
 import type {Provider as AbstractProvider} from '@ethersproject/abstract-provider';
 import {Signer} from 'ethers';
 import {DEPLOYMENT_DETAILS} from './deployments';
-import {ERC20, SQToken, Vesting} from './typechain';
+import { BatchTransfer, ERC20, SQToken, Vesting } from './typechain';
 import {CONTRACT_FACTORY, ContractDeploymentInner, ContractName, FactoryContstructor, SdkOptions} from './types';
 import assert from "assert";
 
@@ -23,6 +23,7 @@ export class RootContractSDK {
     readonly sqToken!: SQToken;
     readonly vtSQToken!: ERC20;
     readonly vesting!: Vesting;
+    readonly batchTransfer!: BatchTransfer;
 
     constructor(private readonly signerOrProvider: AbstractProvider | Signer, public readonly options: SdkOptions) {
         assert(this.options.deploymentDetails || DEPLOYMENT_DETAILS[options.network], ' missing contract deployment info');

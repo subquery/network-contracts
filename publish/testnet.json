@@ -41,6 +41,12 @@
             "address": "0x91514003aDfb9371985cBEB59D10EdC784dec330",
             "bytecodeHash": "11ad2d6dd468c7c0df7d9fcbc2916e74ede7b991c641bfd5474425919bfca42b",
             "lastUpdate": "Mon, 22 Jan 2024 09:58:04 GMT"
+        },
+        "BatchTransfer": {
+            "innerAddress": "",
+            "address": "0xE50Bd61951B69334E1F095A1a8d4C1342BE3443A",
+            "bytecodeHash": "a34bf5224f28d8074e3ebf651c0d26370345bd58352a281bfa1b061b903bd399",
+            "lastUpdate": "Wed, 31 Jan 2024 06:09:27 GMT"
         }
     },
     "child": {

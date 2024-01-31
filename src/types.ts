@@ -40,6 +40,7 @@ import {
     RewardsBooster__factory,
     StakingAllocation__factory,
     L2SQToken__factory,
+    BatchTransfer__factory,
 } from './typechain';
 
 export type SubqueryNetwork = 'testnet' | 'testnet-mumbai' | 'mainnet' | 'local';
@@ -132,6 +133,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     SQTGift: SQTGift__factory,
     SQTRedeem: SQTRedeem__factory,
     L2SQToken: L2SQToken__factory,
+    BatchTransfer: BatchTransfer__factory,
 };
 
 export enum SQContracts {

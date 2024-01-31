@@ -9,7 +9,14 @@ import Pino from 'pino';
 import sha256 from 'sha256';
 
 import CONTRACTS from '../src/contracts';
-import {ContractDeployment, ContractDeploymentInner, ContractName, SQContracts, SubqueryNetwork} from '../src/types';
+import {
+    CONTRACT_FACTORY,
+    ContractDeployment,
+    ContractDeploymentInner,
+    ContractName,
+    SQContracts,
+    SubqueryNetwork
+} from '../src/types';
 import { getLogger } from './logger';
 
 import {
@@ -46,10 +53,9 @@ import {
     VTSQToken,
     RewardsBooster,
     StakingAllocation,
-    L2SQToken,
+    L2SQToken, BatchTransfer,
 } from '../src';
 import {
-    CONTRACT_FACTORY,
     Config,
     ContractConfig,
     Contracts,
@@ -57,6 +63,7 @@ import {
     UPGRADEBAL_CONTRACTS,
 } from './contracts';
 import { l1StandardBridge } from './L1StandardBridge';
+import { ZERO_ADDRESS } from "../test/constants";
 
 let wallet: Wallet;
 let network: SubqueryNetwork;
@@ -236,9 +243,13 @@ export async function deployRootContracts(
         });
         logger?.info('🤞 InflationController');
         // setup minter
-        let tx = await sqtToken.setMinter(inflationController.address);
-        await tx.wait(confirms);
-        logger?.info('🤞 Set SQToken minter');
+        let tx;
+        const minter = await sqtToken.getMinter();
+        if (minter === ZERO_ADDRESS) {
+            tx = await sqtToken.setMinter(inflationController.address);
+            await tx.wait(confirms);
+            logger?.info('🤞 Set SQToken minter');
+        }
 
         // deploy VTSQToken
         const vtSQToken = await deployContract<VTSQToken>('VTSQToken', 'root', {
@@ -251,9 +262,12 @@ export async function deployRootContracts(
         logger?.info('🤞 Vesting');
 
         // set vesting contract as the minter of vtSQToken
-        tx = await vtSQToken.setMinter(vesting.address);
-        await tx.wait(confirms);
-        logger?.info('🤞 Set VTSQToken minter');
+        const vtMinter = await vtSQToken.getMinter();
+        if (vtMinter !== vesting.address) {
+            tx = await vtSQToken.setMinter(vesting.address);
+            await tx.wait(confirms);
+            logger?.info('🤞 Set VTSQToken minter');
+        }
 
         let opDestination;
         if (network !== "testnet-mumbai") {
@@ -263,6 +277,10 @@ export async function deployRootContracts(
 
             logger?.info('🤞 OpDestination');
         }
+
+        //deploy batch transfer
+        const batchTransfer = await deployContract<BatchTransfer>('BatchTransfer', 'root', {deployConfig: []});
+        logger?.info('🤞 BatchTransfer');
 
         logger?.info('🤞 Set addresses');
         tx = await settings.setBatchAddress([
