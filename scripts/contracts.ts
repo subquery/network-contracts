@@ -65,7 +65,6 @@ import {
     Vesting__factory,
     OpDestination,
     OpDestination__factory,
-    ChildERC20__factory,
     SQTGift__factory,
     SQTGift,
     SQTRedeem__factory,
@@ -142,6 +141,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<Record<keyof typeof CONTRACTS, [{ byt
     ConsumerRegistry: [CONTRACTS.ConsumerRegistry, ConsumerRegistry__factory],
     PriceOracle: [CONTRACTS.PriceOracle, PriceOracle__factory],
     Settings: [CONTRACTS.Settings, Settings__factory],
+    SQTGift: [CONTRACTS.SQTGift, SQTGift__factory],
 };
 
 export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
@@ -174,7 +174,6 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     DisputeManager: DisputeManager__factory,
     ConsumerRegistry: ConsumerRegistry__factory,
     PriceOracle: PriceOracle__factory,
-    ChildERC20: ChildERC20__factory,
     OpDestination: OpDestination__factory,
     SQTGift: SQTGift__factory,
     SQTRedeem: SQTRedeem__factory,
