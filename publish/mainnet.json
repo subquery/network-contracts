@@ -147,10 +147,10 @@
             "lastUpdate": "Tue, 23 Jan 2024 06:18:11 GMT"
         },
         "SQTGift": {
-            "innerAddress": "0x82DF281C2cd9da593118f00A86d9998C91F1D1DC",
+            "innerAddress": "0x2d9da8D52E2439F10707821EF9936F69Ff624066",
             "address": "0x86DF167B61bd62320058FCc9099D82FebB9a054b",
-            "bytecodeHash": "3d7cdd1cbad232b4d9d6804bffbdf9f64804c89c0fab972e8a5839b6b51ee34a",
-            "lastUpdate": "Tue, 23 Jan 2024 06:18:39 GMT"
+            "bytecodeHash": "c6cc7648e047e8b8e32095993f4a3595fc8e55784b19b06d95a9305db51f2aee",
+            "lastUpdate": "Wed, 31 Jan 2024 07:08:26 GMT"
         }
     }
 }
