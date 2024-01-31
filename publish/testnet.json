@@ -177,10 +177,10 @@
             "lastUpdate": "Mon, 22 Jan 2024 09:43:50 GMT"
         },
         "SQTGift": {
-            "innerAddress": "0xa86D9008803D5a8531505ab2F61c57bE4AC4490D",
+            "innerAddress": "0xbB65dB1E920DCC59b0bfeC9E31e5485844507f06",
             "address": "0x3918087515024B49Aa2c197174ff3d96Ec579B30",
-            "bytecodeHash": "3d7cdd1cbad232b4d9d6804bffbdf9f64804c89c0fab972e8a5839b6b51ee34a",
-            "lastUpdate": "Mon, 22 Jan 2024 09:44:15 GMT"
+            "bytecodeHash": "c6cc7648e047e8b8e32095993f4a3595fc8e55784b19b06d95a9305db51f2aee",
+            "lastUpdate": "Wed, 31 Jan 2024 07:05:21 GMT"
         },
         "SQTRedeem": {
             "innerAddress": "0xea1A7b345BbA1498FA6E5a059839a8F767ca490C",
