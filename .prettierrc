@@ -3,5 +3,17 @@
   "trailingComma": "es5",
   "tabWidth": 4,
   "singleQuote": true,
-  "bracketSpacing": false
+  "bracketSpacing": false,
+  "overrides": [
+    {
+      "files": "*.sol",
+      "options": {
+        "printWidth": 120,
+        "tabWidth": 4,
+        "useTabs": false,
+        "singleQuote": true,
+        "bracketSpacing": true
+      }
+    }
+  ]
 }
