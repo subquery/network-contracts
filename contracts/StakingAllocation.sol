@@ -10,10 +10,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
-import './interfaces/ISQToken.sol';
-import './interfaces/IRewardsBooster.sol';
 import './interfaces/IStakingAllocation.sol';
-import './interfaces/IIndexerRegistry.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
 
@@ -27,7 +24,6 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     using MathUtil for uint256;
 
     // -- Storage --
-
     ISettings public settings;
 
     // The idle staking need allocated to projects
@@ -40,11 +36,13 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     // total allocation on the deployment
     mapping(bytes32 => uint256) public deploymentAllocations;
 
+
     // -- Events --
     event StakeAllocationAdded(bytes32 deploymentId, address runner, uint256 amount);
     event StakeAllocationRemoved(bytes32 deploymentId, address runner, uint256 amount);
     event OverAllocationStarted(address runner, uint256 start);
     event OverAllocationEnded(address runner, uint256 end, uint256 time);
+
     // -- Functions --
 
     /**
@@ -60,8 +58,15 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         settings = _settings;
     }
 
+
+    modifier onlyAllocationManager() {
+        require(msg.sender == settings.getContractAddress(SQContracts.AllocationManager), 'SAL009');
+        _;
+    }
+
     function onStakeUpdate(address _runner) external {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'SAL01');
+
         RunnerAllocation storage ia = _runnerAllocations[_runner];
         ia.total = IStakingManager(settings.getContractAddress(SQContracts.StakingManager))
             .getEffectiveTotalStake(_runner);
@@ -80,15 +85,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         }
     }
 
-    function addAllocation(bytes32 _deployment, address _runner, uint256 _amount) external {
-        require(_isAuth(_runner), 'SAL02');
-
-        // collect rewards (if any) before change allocation
-        IRewardsBooster rb = IRewardsBooster(
-            settings.getContractAddress(SQContracts.RewardsBooster)
-        );
-        rb.collectAllocationReward(_deployment, _runner);
-
+    function addAllocation(bytes32 _deployment, address _runner, uint256 _amount) external onlyAllocationManager {
         RunnerAllocation storage ia = _runnerAllocations[_runner];
         require(ia.total - ia.used >= _amount, 'SAL03');
         ia.used += _amount;
@@ -98,28 +95,18 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         emit StakeAllocationAdded(_deployment, _runner, _amount);
     }
 
-    function removeAllocation(bytes32 _deployment, address _runner, uint256 _amount) external {
-        require(_isAuth(_runner), 'SAL02');
-        require(allocatedTokens[_runner][_deployment] >= _amount, 'SAL04');
-
-        // collect rewards (if any) before change allocation
-        IRewardsBooster rb = IRewardsBooster(
-            settings.getContractAddress(SQContracts.RewardsBooster)
-        );
-        rb.collectAllocationReward(_deployment, _runner);
-
+    function removeAllocation(bytes32 _deployment, address _runner, uint256 _amount) external onlyAllocationManager {
         RunnerAllocation storage ia = _runnerAllocations[_runner];
-
         ia.used -= _amount;
-        // TODO: split to add and remove
-        deploymentAllocations[_deployment] -= _amount;
-        allocatedTokens[_runner][_deployment] -= _amount;
         if (ia.overflowAt != 0 && ia.total >= ia.used) {
             // collectAllocationReward had beed overflowClear, so just set overflowAt
             emit OverAllocationEnded(_runner, block.timestamp, block.timestamp - ia.overflowAt);
-
             ia.overflowAt = 0;
         }
+
+        // TODO: split to add and remove
+        deploymentAllocations[_deployment] -= _amount;
+        allocatedTokens[_runner][_deployment] -= _amount;
 
         emit StakeAllocationRemoved(_deployment, _runner, _amount);
     }
@@ -142,13 +129,5 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
 
     function isOverAllocation(address _runner) external view returns (bool) {
         return _runnerAllocations[_runner].total < _runnerAllocations[_runner].used;
-    }
-
-    function _isAuth(address _runner) private view returns (bool) {
-        IIndexerRegistry indexerRegistry = IIndexerRegistry(
-            ISettings(settings).getContractAddress(SQContracts.IndexerRegistry)
-        );
-        address controller = indexerRegistry.getController(_runner);
-        return msg.sender == _runner || msg.sender == controller;
     }
 }
