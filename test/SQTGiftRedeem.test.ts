@@ -3,7 +3,7 @@
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-import { etherParse, revertrMsg } from './helper';
+import { etherParse, eventsFrom, revertrMsg } from './helper';
 import { deployContracts } from './setup';
 import { SQTGift, SQTRedeem } from 'build';
 import { ERC20 } from '../src';
@@ -65,8 +65,8 @@ describe('Redeem Contract', () => {
     describe('NFT Redeem', () => {
         beforeEach(async () => {
             // create nft series 0 and mint token 0 to wallet_0
-            await nft.createSeries(100, 'abc');
-            await nft.addToAllowlist(0, wallet_0.address, 1);
+            await nft.createSeries(100, "abc");
+            await nft.addToAllowlist(0, wallet_0.address, 10);
             await nft.mint(0);
         });
 
@@ -77,8 +77,8 @@ describe('Redeem Contract', () => {
             await sqtRedeem.deposit(amount);
             await sqtRedeem.setRedeemableAmount(nft.address, 0, amount);
             await sqtGift.approve(sqtRedeem.address, 1);
-            await expect(sqtRedeem.redeem(nft.address, 1))
-                .to.be.emit(sqtRedeem, 'SQTRedeemed')
+            await expect(sqtRedeem.redeem(nft.address, 1)).to.be
+                .emit(sqtRedeem, 'SQTRedeemed')
                 .withArgs(wallet_0.address, 1, 0, nft.address, amount);
 
             await expect(sqtRedeem.redeem(nft.address, 1)).to.revertedWith('ERC721: invalid token ID');
@@ -96,6 +96,25 @@ describe('Redeem Contract', () => {
             // 4. can not redeem if sqt token is not enough
             await sqtRedeem.setRedeemableAmount(nft.address, 0, amount);
             await expect(sqtRedeem.redeem(nft.address, 1)).to.be.revertedWith(revertrMsg.insufficientBalance);
+        });
+
+        it('should be able to batch redeem with valid NFT token', async () => {
+            // set up redeem contract
+            await sqtRedeem.setRedeemable(true);
+            await sqToken.increaseAllowance(sqtRedeem.address, amount.mul(3));
+            await sqtRedeem.deposit(amount.mul(3));
+            await sqtRedeem.setRedeemableAmount(nft.address, 0, amount);
+            await nft.mint(0);
+            await nft.mint(0);
+            await sqtGift.approve(sqtRedeem.address, 1);
+            await sqtGift.approve(sqtRedeem.address, 2);
+            await sqtGift.approve(sqtRedeem.address, 3);
+            const balance = await sqToken.balanceOf(sqtRedeem.address);
+            console.log(`balance: ${balance.toString()}`)
+
+            const tx = await sqtRedeem.batchRedeem([nft.address, nft.address, nft.address], [1, 2, 3]);
+            const events = await eventsFrom(tx, sqtRedeem, 'SQTRedeemed(address,uint256,uint256,address,uint256)');
+            expect(events.length).to.eq(3);
         });
     });
 });
