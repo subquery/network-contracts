@@ -200,9 +200,7 @@ describe('StakingAllocation Contract', () => {
         });
 
         it('only RewardStaking can call applyStakeChange', async () => {
-            await expect(
-                stakingAllocation.connect(runner0).onStakeUpdate(runner0.address)
-            ).to.be.revertedWith('SAL01');
+            await expect(stakingAllocation.connect(runner0).onStakeUpdate(runner0.address)).to.be.revertedWith('SAL01');
         });
 
         it('add/del allocation', async () => {
@@ -272,16 +270,20 @@ describe('StakingAllocation Contract', () => {
                 stakingAllocation.connect(runner0).addAllocation(deploymentIds[0], runner0.address, etherParse('1000'))
             ).to.be.revertedWith('SAL06');
             await expect(
-                stakingAllocation.connect(runner0).removeAllocation(deploymentIds[0], runner0.address, etherParse('1000'))
+                stakingAllocation
+                    .connect(runner0)
+                    .removeAllocation(deploymentIds[0], runner0.address, etherParse('1000'))
             ).to.be.revertedWith('SAL06');
 
             // Caller is not `auth account`
-            await expect(allocationManager
-                .connect(runner0)
-                .addAllocation(deploymentIds[0], runner1.address, etherParse('5000'))).to.be.revertedWith('SAL02');
-            await expect(allocationManager
-                .connect(runner0)
-                .removeAllocation(deploymentIds[0], runner1.address, etherParse('5000'))).to.be.revertedWith('SAL02');
+            await expect(
+                allocationManager.connect(runner0).addAllocation(deploymentIds[0], runner1.address, etherParse('5000'))
+            ).to.be.revertedWith('SAL02');
+            await expect(
+                allocationManager
+                    .connect(runner0)
+                    .removeAllocation(deploymentIds[0], runner1.address, etherParse('5000'))
+            ).to.be.revertedWith('SAL02');
         });
     });
 });

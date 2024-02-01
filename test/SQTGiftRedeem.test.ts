@@ -65,7 +65,7 @@ describe('Redeem Contract', () => {
     describe('NFT Redeem', () => {
         beforeEach(async () => {
             // create nft series 0 and mint token 0 to wallet_0
-            await nft.createSeries(100, "abc");
+            await nft.createSeries(100, 'abc');
             await nft.addToAllowlist(0, wallet_0.address, 10);
             await nft.mint(0);
         });
@@ -77,8 +77,8 @@ describe('Redeem Contract', () => {
             await sqtRedeem.deposit(amount);
             await sqtRedeem.setRedeemableAmount(nft.address, 0, amount);
             await sqtGift.approve(sqtRedeem.address, 1);
-            await expect(sqtRedeem.redeem(nft.address, 1)).to.be
-                .emit(sqtRedeem, 'SQTRedeemed')
+            await expect(sqtRedeem.redeem(nft.address, 1))
+                .to.be.emit(sqtRedeem, 'SQTRedeemed')
                 .withArgs(wallet_0.address, 1, 0, nft.address, amount);
 
             await expect(sqtRedeem.redeem(nft.address, 1)).to.revertedWith('ERC721: invalid token ID');
@@ -110,7 +110,7 @@ describe('Redeem Contract', () => {
             await sqtGift.approve(sqtRedeem.address, 2);
             await sqtGift.approve(sqtRedeem.address, 3);
             const balance = await sqToken.balanceOf(sqtRedeem.address);
-            console.log(`balance: ${balance.toString()}`)
+            console.log(`balance: ${balance.toString()}`);
 
             const tx = await sqtRedeem.batchRedeem([nft.address, nft.address, nft.address], [1, 2, 3]);
             const events = await eventsFrom(tx, sqtRedeem, 'SQTRedeemed(address,uint256,uint256,address,uint256)');

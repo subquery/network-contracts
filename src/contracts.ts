@@ -1,4 +1,3 @@
-import { AllocationMananger } from './typechain/contracts/AllocationManager.sol/AllocationMananger';
 // Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 

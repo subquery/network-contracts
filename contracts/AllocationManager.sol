@@ -50,13 +50,19 @@ contract AllocationMananger is Initializable, OwnableUpgradeable {
             settings.getContractAddress(SQContracts.RewardsBooster)
         );
         rb.collectAllocationReward(_deployment, _runner);
-        StakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation)).addAllocation(_deployment, _runner, _amount);
+        StakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation)).addAllocation(
+            _deployment,
+            _runner,
+            _amount
+        );
     }
 
     function removeAllocation(bytes32 _deployment, address _runner, uint256 _amount) external {
         require(_isAuth(_runner), 'SAL02');
 
-        StakingAllocation sa = StakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation));
+        StakingAllocation sa = StakingAllocation(
+            settings.getContractAddress(SQContracts.StakingAllocation)
+        );
         require(sa.allocatedTokens(_runner, _deployment) >= _amount, 'SAL04');
 
         // collect rewards (if any) before change allocation

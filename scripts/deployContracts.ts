@@ -478,7 +478,6 @@ export async function deployContracts(
             initConfig: [settingsAddress],
         });
 
-
         // deploy StakingAllocation contract
         const allocationMananger = await deployContract<AllocationMananger>('AllocationManager', 'child', {
             proxyAdmin,

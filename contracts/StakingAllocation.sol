@@ -36,7 +36,6 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     // total allocation on the deployment
     mapping(bytes32 => uint256) public deploymentAllocations;
 
-
     // -- Events --
     event StakeAllocationAdded(bytes32 deploymentId, address runner, uint256 amount);
     event StakeAllocationRemoved(bytes32 deploymentId, address runner, uint256 amount);
@@ -57,7 +56,6 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     function setSettings(ISettings _settings) external onlyOwner {
         settings = _settings;
     }
-
 
     modifier onlyAllocationManager() {
         require(msg.sender == settings.getContractAddress(SQContracts.AllocationManager), 'SAL06');
@@ -85,7 +83,11 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         }
     }
 
-    function addAllocation(bytes32 _deployment, address _runner, uint256 _amount) external onlyAllocationManager {
+    function addAllocation(
+        bytes32 _deployment,
+        address _runner,
+        uint256 _amount
+    ) external onlyAllocationManager {
         RunnerAllocation storage ia = _runnerAllocations[_runner];
         require(ia.total - ia.used >= _amount, 'SAL03');
         ia.used += _amount;
@@ -95,7 +97,11 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         emit StakeAllocationAdded(_deployment, _runner, _amount);
     }
 
-    function removeAllocation(bytes32 _deployment, address _runner, uint256 _amount) external onlyAllocationManager {
+    function removeAllocation(
+        bytes32 _deployment,
+        address _runner,
+        uint256 _amount
+    ) external onlyAllocationManager {
         RunnerAllocation storage ia = _runnerAllocations[_runner];
         ia.used -= _amount;
         if (ia.overflowAt != 0 && ia.total >= ia.used) {
