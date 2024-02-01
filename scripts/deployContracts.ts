@@ -53,6 +53,7 @@ import {
     VTSQToken,
     RewardsBooster,
     StakingAllocation,
+    AllocationMananger,
     L2SQToken,
 } from '../src';
 import { CONTRACT_FACTORY, Config, ContractConfig, Contracts, UPGRADEBAL_CONTRACTS } from './contracts';
@@ -477,6 +478,13 @@ export async function deployContracts(
             initConfig: [settingsAddress],
         });
 
+
+        // deploy StakingAllocation contract
+        const allocationMananger = await deployContract<AllocationMananger>('AllocationManager', 'child', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+
         // Register addresses on settings contract
         logger?.info('🤞 Set settings addresses');
         const txToken = await settings.setBatchAddress(
@@ -499,6 +507,7 @@ export async function deployContracts(
                 SQContracts.ConsumerRegistry,
                 SQContracts.RewardsBooster,
                 SQContracts.StakingAllocation,
+                SQContracts.AllocationMananger,
             ],
             [
                 sqtToken.address,
@@ -519,6 +528,7 @@ export async function deployContracts(
                 consumerRegistry.address,
                 rewardsBooster.address,
                 stakingAllocation.address,
+                allocationMananger.address,
             ]
         );
 
@@ -539,7 +549,6 @@ export async function deployContracts(
                 planManager,
                 purchaseOfferMarket,
                 serviceAgreementRegistry,
-                // serviceAgreementExtra,
                 rewardsDistributor,
                 rewardsPool,
                 rewardsStaking,

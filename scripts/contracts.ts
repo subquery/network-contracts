@@ -53,6 +53,8 @@ import {
     StakingManager__factory,
     StakingAllocation,
     StakingAllocation__factory,
+    AllocationMananger,
+    AllocationMananger__factory,
     StateChannel,
     StateChannel__factory,
     VSQToken,
@@ -81,6 +83,7 @@ export type Contracts = {
     staking: Staking;
     stakingManager: StakingManager;
     stakingAllocation: StakingAllocation;
+    allocationMananger: AllocationMananger;
     eraManager: EraManager;
     indexerRegistry: IndexerRegistry;
     projectRegistry: ProjectRegistry;
@@ -123,6 +126,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<
     Staking: [CONTRACTS.Staking, Staking__factory],
     StakingManager: [CONTRACTS.StakingManager, StakingManager__factory],
     StakingAllocation: [CONTRACTS.StakingAllocation, StakingAllocation__factory],
+    AllocationManager: [CONTRACTS.AllocationManager, AllocationMananger__factory],
     EraManager: [CONTRACTS.EraManager, EraManager__factory],
     PurchaseOfferMarket: [CONTRACTS.PurchaseOfferMarket, PurchaseOfferMarket__factory],
     StateChannel: [CONTRACTS.StateChannel, StateChannel__factory],
@@ -147,6 +151,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     Staking: Staking__factory,
     StakingManager: StakingManager__factory,
     StakingAllocation: StakingAllocation__factory,
+    AllocationManager: AllocationMananger__factory,
     EraManager: EraManager__factory,
     IndexerRegistry: IndexerRegistry__factory,
     ProjectRegistry: ProjectRegistry__factory,

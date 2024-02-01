@@ -1,3 +1,4 @@
+import { AllocationMananger } from './typechain/contracts/AllocationManager.sol/AllocationMananger';
 // Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -26,6 +27,7 @@ import Settings from './artifacts/contracts/Settings.sol/Settings.json';
 import Staking from './artifacts/contracts/Staking.sol/Staking.json';
 import StakingManager from './artifacts/contracts/StakingManager.sol/StakingManager.json';
 import StakingAllocation from './artifacts/contracts/StakingAllocation.sol/StakingAllocation.json';
+import AllocationManager from './artifacts/contracts/AllocationManager.sol/AllocationMananger.json';
 import StateChannel from './artifacts/contracts/StateChannel.sol/StateChannel.json';
 import VSQToken from './artifacts/contracts/VSQToken.sol/VSQToken.json';
 import Vesting from './artifacts/contracts/root/Vesting.sol/Vesting.json';
@@ -42,6 +44,7 @@ export default {
     Staking,
     StakingManager,
     StakingAllocation,
+    AllocationManager,
     IndexerRegistry,
     ProjectRegistry,
     InflationController,

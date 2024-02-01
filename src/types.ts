@@ -1,3 +1,4 @@
+import { AllocationMananger } from './typechain/contracts/AllocationManager.sol/AllocationMananger';
 // Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -40,6 +41,7 @@ import {
     SQTRedeem__factory,
     RewardsBooster__factory,
     StakingAllocation__factory,
+    AllocationMananger__factory,
     L2SQToken__factory,
 } from './typechain';
 
@@ -111,6 +113,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     Staking: Staking__factory,
     StakingManager: StakingManager__factory,
     StakingAllocation: StakingAllocation__factory,
+    AllocationManager: AllocationMananger__factory,
     EraManager: EraManager__factory,
     IndexerRegistry: IndexerRegistry__factory,
     ProjectRegistry: ProjectRegistry__factory,
@@ -157,6 +160,7 @@ export enum SQContracts {
     Treasury,
     RewardsBooster,
     StakingAllocation,
+    AllocationMananger,
 }
 
 export enum ServiceStatus {

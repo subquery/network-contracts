@@ -57,7 +57,7 @@ contract AllocationMananger is Initializable, OwnableUpgradeable {
         require(_isAuth(_runner), 'SAL02');
 
         StakingAllocation sa = StakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation));
-        require(sa.allocatedTokens[_runner][_deployment] >= _amount, 'SAL04');
+        require(sa.allocatedTokens(_runner, _deployment) >= _amount, 'SAL04');
 
         // collect rewards (if any) before change allocation
         IRewardsBooster rb = IRewardsBooster(

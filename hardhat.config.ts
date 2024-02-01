@@ -361,10 +361,19 @@ task('publishChild', 'verify and publish contracts on etherscan')
             //StakingAllocation
             await hre.run('verify:verify', {
                 address: deployment.StakingAllocation.address,
-                constructorArguments: [deployment.StakingAllocation.innerAddress, deployment.ProxyAdmin.address, []],
+                constructorArguments: [deployment.AllocationMananger.innerAddress, deployment.ProxyAdmin.address, []],
             });
             await hre.run('verify:verify', {
                 address: deployment.StakingAllocation.innerAddress,
+                constructorArguments: [],
+            });
+            //AllocationMananger
+            await hre.run('verify:verify', {
+                address: deployment.AllocationMananger.address,
+                constructorArguments: [deployment.AllocationMananger.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run('verify:verify', {
+                address: deployment.AllocationMananger.innerAddress,
                 constructorArguments: [],
             });
         } catch (err) {

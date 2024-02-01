@@ -10,6 +10,7 @@ const main = async () => {
             'Staking',
             'StakingManager',
             'StakingAllocation',
+            'AllocationMananger',
             'IndexerRegistry',
             'ProjectRegistry',
             'PlanManager',
