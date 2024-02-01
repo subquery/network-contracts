@@ -60,7 +60,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
 
 
     modifier onlyAllocationManager() {
-        require(msg.sender == settings.getContractAddress(SQContracts.AllocationManager), 'SAL009');
+        require(msg.sender == settings.getContractAddress(SQContracts.AllocationManager), 'SAL06');
         _;
     }
 

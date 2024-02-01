@@ -198,6 +198,7 @@
     "SAL03": "Not enough staked token",
     "SAL04": "Not enough allocated token",
     "SAL05": "Can only be called by RewardsBooster",
+    "SAL06": "Can only be called by AllocationManager",
     "RB02": "Query refund can not be larger than spent",
     "OPD01": "l2token address is empty"
 }

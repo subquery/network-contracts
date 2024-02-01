@@ -16,6 +16,7 @@ import {
     Staking,
     StakingManager,
     StakingAllocation,
+    AllocationMananger,
 } from '../src';
 import { deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
 import { etherParse, time, startNewEra, timeTravel, registerRunner } from './helper';
@@ -44,6 +45,7 @@ describe('StakingAllocation Contract', () => {
     let rewardsStaking: RewardsStaking;
     let rewardsDistributor: RewardsDistributor;
     let stakingAllocation: StakingAllocation;
+    let allocationManager: AllocationMananger;
     let projectRegistry: ProjectRegistry;
 
     const boosterDeployment = async (signer: SignerWithAddress, deployment: string, amount) => {
@@ -98,6 +100,7 @@ describe('StakingAllocation Contract', () => {
         rewardsStaking = deployment.rewardsStaking;
         rewardsDistributor = deployment.rewardsDistributor;
         stakingAllocation = deployment.stakingAllocation;
+        allocationManager = deployment.allocationMananger;
         projectRegistry = deployment.projectRegistry;
 
         // config rewards booster
@@ -138,6 +141,7 @@ describe('StakingAllocation Contract', () => {
             await boosterDeployment(root, deploymentId0, etherParse('10000'));
             await boosterDeployment(root, deploymentId1, etherParse('10000'));
         });
+
         it('staking changed the allocation total & overflow', async () => {
             await checkAllocation(runner0, etherParse('10000'), 0, false, false);
 
@@ -146,7 +150,7 @@ describe('StakingAllocation Contract', () => {
             await applyStaking(runner0, runner0);
             await checkAllocation(runner0, etherParse('20000'), 0, false, false);
 
-            await stakingAllocation
+            await allocationManager
                 .connect(runner0)
                 .addAllocation(deploymentIds[0], runner0.address, etherParse('20000'));
             await checkAllocation(runner0, etherParse('20000'), etherParse('20000'), false, false);
@@ -194,30 +198,37 @@ describe('StakingAllocation Contract', () => {
             const overtime5 = await stakingAllocation.overAllocationTime(runner0.address);
             expect(overtime4).to.eq(overtime5);
         });
+
+        it('only RewardStaking can call applyStakeChange', async () => {
+            await expect(
+                stakingAllocation.connect(runner0).onStakeUpdate(runner0.address)
+            ).to.be.revertedWith('SAL01');
+        });
+
         it('add/del allocation', async () => {
             await checkAllocation(runner0, etherParse('10000'), 0, false, false);
 
-            await stakingAllocation
+            await allocationManager
                 .connect(runner0)
                 .addAllocation(deploymentIds[0], runner0.address, etherParse('5000'));
             await checkAllocation(runner0, etherParse('10000'), etherParse('5000'), false, false);
             const allocation1 = await stakingAllocation.allocatedTokens(runner0.address, deploymentIds[0]);
             expect(allocation1).to.eq(etherParse('5000'));
 
-            await stakingAllocation
+            await allocationManager
                 .connect(runner0)
                 .addAllocation(deploymentIds[0], runner0.address, etherParse('1000'));
             await checkAllocation(runner0, etherParse('10000'), etherParse('6000'), false, false);
             const allocation2 = await stakingAllocation.allocatedTokens(runner0.address, deploymentIds[0]);
             expect(allocation2).to.eq(etherParse('6000'));
 
-            await stakingAllocation
+            await allocationManager
                 .connect(runner0)
                 .addAllocation(deploymentIds[1], runner0.address, etherParse('1000'));
-            await stakingAllocation
+            await allocationManager
                 .connect(runner0)
                 .removeAllocation(deploymentIds[0], runner0.address, etherParse('2000'));
-            await stakingAllocation
+            await allocationManager
                 .connect(runner1)
                 .addAllocation(deploymentIds[0], runner1.address, etherParse('10000'));
 
@@ -233,10 +244,10 @@ describe('StakingAllocation Contract', () => {
             expect(da1).to.eq(etherParse('1000'));
 
             await expect(
-                stakingAllocation.connect(runner0).addAllocation(deploymentIds[1], runner0.address, etherParse('5001'))
+                allocationManager.connect(runner0).addAllocation(deploymentIds[1], runner0.address, etherParse('5001'))
             ).to.be.revertedWith('SAL03');
             await expect(
-                stakingAllocation
+                allocationManager
                     .connect(runner0)
                     .removeAllocation(deploymentIds[1], runner0.address, etherParse('2000'))
             ).to.be.revertedWith('SAL04');
@@ -245,14 +256,32 @@ describe('StakingAllocation Contract', () => {
             await applyStaking(runner1, runner1);
             await checkAllocation(runner1, etherParse('9000'), etherParse('10000'), true, false);
             await timeTravel(mockProvider, 10);
-            await stakingAllocation
+            await allocationManager
                 .connect(runner1)
                 .removeAllocation(deploymentIds[0], runner1.address, etherParse('500'));
             await checkAllocation(runner1, etherParse('9000'), etherParse('9500'), true, false);
-            await stakingAllocation
+            await allocationManager
                 .connect(runner1)
                 .removeAllocation(deploymentIds[0], runner1.address, etherParse('500'));
             await checkAllocation(runner1, etherParse('9000'), etherParse('9000'), false, false);
+        });
+
+        it('only allocationManager and auth account can add/del allocation', async () => {
+            // Caller is not `allocationManager`
+            await expect(
+                stakingAllocation.connect(runner0).addAllocation(deploymentIds[0], runner0.address, etherParse('1000'))
+            ).to.be.revertedWith('SAL06');
+            await expect(
+                stakingAllocation.connect(runner0).removeAllocation(deploymentIds[0], runner0.address, etherParse('1000'))
+            ).to.be.revertedWith('SAL06');
+
+            // Caller is not `auth account`
+            await expect(allocationManager
+                .connect(runner0)
+                .addAllocation(deploymentIds[0], runner1.address, etherParse('5000'))).to.be.revertedWith('SAL02');
+            await expect(allocationManager
+                .connect(runner0)
+                .removeAllocation(deploymentIds[0], runner1.address, etherParse('5000'))).to.be.revertedWith('SAL02');
         });
     });
 });
