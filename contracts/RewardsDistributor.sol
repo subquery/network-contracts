@@ -25,45 +25,42 @@ import './utils/MathUtil.sol';
  * @title Rewards Distributer Contract
  * @notice ### Overview
  * The Rewards distributer contract tracks and distriubtes the rewards Era by Era.
- * In each distribution, Indexers can take the commission part of rewards, the remaining
- * rewards are distributed according to the staking amount of indexers and delegators.
+ * In each distribution, Runners can take the commission part of rewards, the remaining
+ * rewards are distributed according to the staking amount of runners and delegators.
  *
  * ### Terminology
  * Era -- Era is the period of reward distribution. In our design, we must distribute the rewards of the previous Era
  * before we can move to the next Era.
- * Commission Rate -- Commission Rates are set by Indexers, it is the proportion to be taken by the indexer in each
+ * Runner -- is used to called Runner, they refer to same role in the network.
+ * Commission Rate -- Commission Rates are set by Runners, it is the proportion to be taken by the runner in each
  * reward distribution.
- * Rewards -- Rewards are paid by comsumer for the service agreements with indexer. All the rewards are
- * temporary hold by RewardsDistributor contract and distribute to Indexers and Delegator Era by Era.
+ * Rewards -- All the rewards are temporary hold by RewardsDistributor contract and distribute to Runners and Delegator Era by Era.
  *
  * ### Detail
- * In the design of rewards distribution, we have added a trade-off mechanism for Indexer and
- * Delegator to achieve a win-win situation.
- * The more SQT token staked on an indexer, the higher limitation of ongoing agreements the indexer can have. In order to earn more rewards with extra agreements,
- * Indexers can stake more to themself, or attract delegators delegate to them, and delegators can share the
- * rewards base on their delegation.
- * This distribution strategy ensures the quality of service and makes both indexers and delegators profitable.
+ * This contract manages the rewards of runner pool for each era, there are two ways rewards can arrive to runner's reward pool
+ * - addInstantRewards: rewards add to current era's runner reward pool. it can be State Channel Rewards or Allocation Rewards
+ * - increaseAgreementRewards: rewards add to current and future era's runner reward pool, base on the period of agreement.
  *
- * We apply delegation amount changes at next era and commission rate changes are applied at two Eras later. We design this
- * to allow time for the delegators to consider their delegation when an Indxer changes the commission rate. But the first stake
- * change and commission rate change of an indexer that made on registration are applied immediately, In this way, the rewards
- * on the era that indexer registered can also be distributed correctly.
+ * To avoid loop in splitting agreement rewards, we use add table and remove table to track the change of rewards for each era.
+ * So theoretically, depends on the length of agreement period, there are 4 possibilities how add table and remove table
+ * - eraN: add, eraN+1: remove - when agreement lives within 1 era
+ * - eraN: add, eraN+1: remove, eraN+2: remove - when agreement lives within 2 era, first era's reward is larger
+ * - eraN: add, eraN+1: add, eraN+2: remove - when agreement lives within 2 era, second era's reward is larger
+ * - eraN: add, eraN+1: add, eraM: remove, eraM+: remove - when agreement lives across more than 2 eras
+ * The most important principle is, after the change with rewards add and remove, in the end without new arrival rewards,
+ * era rewards should return to 0, otherwise we introduce imbalance.
  *
- * After the service agreements generated from PlanManager and PurchaseOfferMarket, the rewards paied by consumer are temporary hold by
- * RewardsDistributor contract. RewardsDistributor first linearly split these rewards into Eras according to the era period and the period
- * of the agreement. The distribution information are stored in eraRewardAddTable and eraRewardRemoveTable.
- * In the specific distribution process, we calculate the rewards need to be distributed according to eraRewardAddTable and eraRewardRemoveTable,
- * and distribute to Indexers and Delegators according to their stake amount at that time.
- * Indexer's commission part of the rewards will transfer to indexer immediately after each distribution. And Indexer and delegator can claim
- * accumulated rewards by call claim() any time.
+ * The stake changes are always hold until new era starts, so we need to sync stake changes from Staking Contract,
+ * this is done in RewardsStaking contract, which is splitted from this contract originally. Check there for more details.
  *
+ * Runner's commission is treated as unbond request to Staking Contract, which applies a lock period on it.
  */
 contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
     /**
-     * @notice Reward information. One per Indexer.
+     * @notice Reward information. One per Runner.
      */
     struct RewardInfo {
         uint256 accSQTPerStake;
@@ -77,30 +74,30 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
-    /// @notice Reward information: indexer => RewardInfo
+    /// @notice Reward information: runner => RewardInfo
     mapping(address => RewardInfo) private info;
 
     /// @dev ### EVENTS
     /// @notice Emitted when rewards are distributed for the earliest pending distributed Era.
     event DistributeRewards(
-        address indexed indexer,
+        address indexed runner,
         uint256 indexed eraIdx,
         uint256 rewards,
         uint256 commission
     );
     /// @notice Emitted when user claimed rewards.
-    event ClaimRewards(address indexed indexer, address indexed delegator, uint256 rewards);
+    event ClaimRewards(address indexed runner, address indexed delegator, uint256 rewards);
     /// @notice Emitted when the rewards change, such as when rewards coming from new agreement.
     event RewardsChanged(
-        address indexed indexer,
+        address indexed runner,
         uint256 indexed eraIdx,
         uint256 additions,
         uint256 removals
     );
     /// @notice Emitted when rewards arrive via addInstantRewards()
-    event InstantRewards(address indexed indexer, uint256 indexed eraIdx, uint256 token);
+    event InstantRewards(address indexed runner, uint256 indexed eraIdx, uint256 token);
     /// @notice Emitted when rewards arrive via increaseAgreementRewards()
-    event AgreementRewards(address indexed indexer, uint256 agreementId, uint256 token);
+    event AgreementRewards(address indexed runner, uint256 agreementId, uint256 token);
 
     modifier onlyRewardsStaking() {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'G014');
@@ -123,39 +120,39 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
     }
 
     /**
-     * @notice Initialize the indexer first last claim era.
+     * @notice Initialize the runner first last claim era.
      * Only RewardsStaking can call.
-     * @param indexer address
+     * @param runner address
      * @param era uint256
      */
-    function setLastClaimEra(address indexer, uint256 era) external onlyRewardsStaking {
-        info[indexer].lastClaimEra = era;
+    function setLastClaimEra(address runner, uint256 era) external onlyRewardsStaking {
+        info[runner].lastClaimEra = era;
     }
 
     /**
      * @notice Update delegator debt in rewards.
      * Only RewardsStaking can call.
-     * @param indexer address
+     * @param runner address
      * @param delegator address
      * @param amount uint256
      */
     function setRewardDebt(
-        address indexer,
+        address runner,
         address delegator,
         uint256 amount
     ) external onlyRewardsStaking {
-        info[indexer].rewardDebt[delegator] = amount;
+        info[runner].rewardDebt[delegator] = amount;
     }
 
     /**
      * @notice Reset era reward.
      * Only RewardsStaking can call.
-     * @param indexer address
+     * @param runner address
      * @param era uint256
      */
-    function resetEraReward(address indexer, uint256 era) external onlyRewardsStaking {
-        if (info[indexer].eraRewardRemoveTable[era] == 0) {
-            info[indexer].eraReward = 0;
+    function resetEraReward(address runner, uint256 era) external onlyRewardsStaking {
+        if (info[runner].eraRewardRemoveTable[era] == 0) {
+            info[runner].eraReward = 0;
         }
     }
 
@@ -179,7 +176,7 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
         require(agreement.consumer != address(0), 'SA001');
         IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
 
-        address indexer = agreement.indexer;
+        address runner = agreement.indexer;
         uint256 agreementPeriod = agreement.period;
         uint256 agreementValue = agreement.lockedAmount;
         uint256 agreementStartDate = agreement.startDate;
@@ -195,12 +192,12 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
         uint256 estAgreementEnd = agreementStartDate + agreementPeriod;
         uint256 firstEraPortion = MathUtil.min(
             eraManager.eraStartTime() +
-                (agreementStartEra - eraManager.eraNumber() + 1) *
-                eraPeriod,
+            (agreementStartEra - eraManager.eraNumber() + 1) *
+            eraPeriod,
             estAgreementEnd
         ) - agreementStartDate;
 
-        RewardInfo storage rewardInfo = info[indexer];
+        RewardInfo storage rewardInfo = info[runner];
 
         if (firstEraPortion == agreementPeriod) {
             // span in one era
@@ -220,7 +217,7 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
             rewardInfo.eraRewardAddTable[agreementStartEra + 1] += lastEraReward;
             rewardInfo.eraRewardRemoveTable[agreementStartEra + 2] += lastEraReward;
 
-            _emitRewardsChangedEvent(indexer, agreementStartEra + 2, rewardInfo);
+            _emitRewardsChangedEvent(runner, agreementStartEra + 2, rewardInfo);
         } else {
             // span in > two eras
             uint256 firstEraReward = MathUtil.mulDiv(
@@ -240,78 +237,78 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
                 uint256 rewardMinus = MathUtil.sub(rewardForMidEra, rewardForLastEra);
                 rewardInfo.eraRewardRemoveTable[restEras + agreementStartEra] += rewardMinus;
                 rewardInfo.eraRewardRemoveTable[
-                    restEras + agreementStartEra + 1
+                restEras + agreementStartEra + 1
                 ] += rewardForLastEra;
             } else {
                 // this could happen due to rounding that rewardForLastEra is one larger than rewardForMidEra
                 uint256 rewardAdd = MathUtil.sub(rewardForLastEra, rewardForMidEra);
                 rewardInfo.eraRewardAddTable[restEras + agreementStartEra] += rewardAdd;
                 rewardInfo.eraRewardRemoveTable[
-                    restEras + agreementStartEra + 1
+                restEras + agreementStartEra + 1
                 ] += rewardForLastEra;
             }
 
             uint256 lastEra = MathUtil.divUp(agreementPeriod - firstEraPortion, eraPeriod) +
-                agreementStartEra;
+                        agreementStartEra;
             // Last era
-            _emitRewardsChangedEvent(indexer, lastEra, rewardInfo);
+            _emitRewardsChangedEvent(runner, lastEra, rewardInfo);
 
             // Post last era
-            _emitRewardsChangedEvent(indexer, lastEra + 1, rewardInfo);
+            _emitRewardsChangedEvent(runner, lastEra + 1, rewardInfo);
         }
 
         // Current era will always change
-        _emitRewardsChangedEvent(indexer, agreementStartEra, rewardInfo);
+        _emitRewardsChangedEvent(runner, agreementStartEra, rewardInfo);
 
         // Next era will always change
-        _emitRewardsChangedEvent(indexer, agreementStartEra + 1, rewardInfo);
+        _emitRewardsChangedEvent(runner, agreementStartEra + 1, rewardInfo);
 
-        emit AgreementRewards(indexer, agreementId, agreementValue);
+        emit AgreementRewards(runner, agreementId, agreementValue);
     }
 
     /**
      * @notice Send rewards directly to the specified era.
      * Maybe RewardsPool call or others contracts.
-     * @param indexer address
+     * @param runner address
      * @param sender address
      * @param amount uint256
      * @param era uint256
      */
     function addInstantRewards(
-        address indexer,
+        address runner,
         address sender,
         uint256 amount,
         uint256 era
     ) external {
         require(era <= _getCurrentEra(), 'RD001');
-        require(era >= info[indexer].lastClaimEra, 'RD002');
+        require(era >= info[runner].lastClaimEra, 'RD002');
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
             sender,
             address(this),
             amount
         );
 
-        RewardInfo storage rewardInfo = info[indexer];
+        RewardInfo storage rewardInfo = info[runner];
         rewardInfo.eraRewardAddTable[era] += amount;
         rewardInfo.eraRewardRemoveTable[era + 1] += amount;
 
-        emit InstantRewards(indexer, era, amount);
+        emit InstantRewards(runner, era, amount);
 
         // Current era will always change
-        _emitRewardsChangedEvent(indexer, era, rewardInfo);
+        _emitRewardsChangedEvent(runner, era, rewardInfo);
 
         // Next era will always change
-        _emitRewardsChangedEvent(indexer, era + 1, rewardInfo);
+        _emitRewardsChangedEvent(runner, era + 1, rewardInfo);
     }
 
     /**
      * @notice check if the current Era is claimed.
      */
-    function collectAndDistributeRewards(address indexer) public {
+    function collectAndDistributeRewards(address runner) public {
         // check current era is after lastClaimEra
         uint256 currentEra = _getCurrentEra();
-        require(info[indexer].lastClaimEra < currentEra - 1, 'RD003');
-        collectAndDistributeEraRewards(currentEra, indexer);
+        require(info[runner].lastClaimEra < currentEra - 1, 'RD003');
+        collectAndDistributeEraRewards(currentEra, runner);
     }
 
     /**
@@ -321,9 +318,9 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
      */
     function collectAndDistributeEraRewards(
         uint256 currentEra,
-        address indexer
+        address runner
     ) public returns (uint256) {
-        RewardInfo storage rewardInfo = info[indexer];
+        RewardInfo storage rewardInfo = info[runner];
         require(rewardInfo.lastClaimEra > 0, 'RD004');
         // skip when it has been claimed for currentEra - 1, no throws
         if (rewardInfo.lastClaimEra >= currentEra - 1) {
@@ -333,8 +330,8 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
         IRewardsStaking rewardsStaking = IRewardsStaking(
             settings.getContractAddress(SQContracts.RewardsStaking)
         );
-        rewardsStaking.checkAndReflectSettlement(indexer, rewardInfo.lastClaimEra);
-        require(rewardInfo.lastClaimEra <= rewardsStaking.getLastSettledEra(indexer), 'RD005');
+        rewardsStaking.checkAndReflectSettlement(runner, rewardInfo.lastClaimEra);
+        require(rewardInfo.lastClaimEra <= rewardsStaking.getLastSettledEra(runner), 'RD005');
 
         rewardInfo.lastClaimEra++;
 
@@ -342,22 +339,22 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
         IRewardsPool rewardsPool = IRewardsPool(
             settings.getContractAddress(SQContracts.RewardsPool)
         );
-        rewardsPool.batchCollectEra(rewardInfo.lastClaimEra, indexer);
+        rewardsPool.batchCollectEra(rewardInfo.lastClaimEra, runner);
 
         rewardInfo.eraReward += rewardInfo.eraRewardAddTable[rewardInfo.lastClaimEra];
         rewardInfo.eraReward -= rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
         delete rewardInfo.eraRewardAddTable[rewardInfo.lastClaimEra];
         delete rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
         if (rewardInfo.eraReward != 0) {
-            uint256 totalStake = rewardsStaking.getTotalStakingAmount(indexer);
+            uint256 totalStake = rewardsStaking.getTotalStakingAmount(runner);
             require(totalStake > 0, 'RD006');
 
             uint256 commissionRate = IIndexerRegistry(
                 settings.getContractAddress(SQContracts.IndexerRegistry)
-            ).getCommissionRate(indexer);
+            ).getCommissionRate(runner);
             uint256 commission = MathUtil.mulDiv(commissionRate, rewardInfo.eraReward, PER_MILL);
 
-            info[indexer].accSQTPerStake += MathUtil.mulDiv(
+            info[runner].accSQTPerStake += MathUtil.mulDiv(
                 rewardInfo.eraReward - commission,
                 PER_TRILL,
                 totalStake
@@ -369,13 +366,13 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
                     commission
                 );
                 IStaking(settings.getContractAddress(SQContracts.Staking)).unbondCommission(
-                    indexer,
+                    runner,
                     commission
                 );
             }
 
             emit DistributeRewards(
-                indexer,
+                runner,
                 rewardInfo.lastClaimEra,
                 rewardInfo.eraReward,
                 commission
@@ -385,27 +382,27 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
     }
 
     /**
-     * @notice Claim rewards of msg.sender for specific indexer.
+     * @notice Claim rewards of msg.sender for specific runner.
      */
-    function claim(address indexer) public {
-        require(claimFrom(indexer, msg.sender) > 0, 'RD007');
+    function claim(address runner) public {
+        require(claimFrom(runner, msg.sender) > 0, 'RD007');
     }
 
     /**
      * @notice Claculate the Rewards for user and tranfrer token to user.
      */
-    function claimFrom(address indexer, address user) public returns (uint256) {
+    function claimFrom(address runner, address user) public returns (uint256) {
         require(
             !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
             'G019'
         );
-        uint256 rewards = userRewards(indexer, user);
+        uint256 rewards = userRewards(runner, user);
         if (rewards == 0) return 0;
-        info[indexer].rewardDebt[user] += rewards;
+        info[runner].rewardDebt[user] += rewards;
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(user, rewards);
 
-        emit ClaimRewards(indexer, user, rewards);
+        emit ClaimRewards(runner, user, rewards);
         return rewards;
     }
 
@@ -413,12 +410,12 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
      * @notice extract for reuse emit RewardsChanged event
      */
     function _emitRewardsChangedEvent(
-        address indexer,
+        address runner,
         uint256 eraNumber,
         RewardInfo storage rewardInfo
     ) private {
         emit RewardsChanged(
-            indexer,
+            runner,
             eraNumber,
             rewardInfo.eraRewardAddTable[eraNumber],
             rewardInfo.eraRewardRemoveTable[eraNumber]
@@ -433,31 +430,31 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
         return eraManager.safeUpdateAndGetEra();
     }
 
-    function userRewards(address indexer, address user) public view returns (uint256) {
+    function userRewards(address runner, address user) public view returns (uint256) {
         IRewardsStaking rewardsStaking = IRewardsStaking(
             settings.getContractAddress(SQContracts.RewardsStaking)
         );
-        uint256 delegationAmount = rewardsStaking.getDelegationAmount(user, indexer);
+        uint256 delegationAmount = rewardsStaking.getDelegationAmount(user, runner);
 
         return
-            MathUtil.mulDiv(delegationAmount, info[indexer].accSQTPerStake, PER_TRILL) -
-            info[indexer].rewardDebt[user];
+            MathUtil.mulDiv(delegationAmount, info[runner].accSQTPerStake, PER_TRILL) -
+            info[runner].rewardDebt[user];
     }
 
-    function getRewardInfo(address indexer) public view returns (IndexerRewardInfo memory) {
-        RewardInfo storage reward = info[indexer];
+    function getRewardInfo(address runner) public view returns (IndexerRewardInfo memory) {
+        RewardInfo storage reward = info[runner];
         return IndexerRewardInfo(reward.accSQTPerStake, reward.lastClaimEra, reward.eraReward);
     }
 
-    function getRewardAddTable(address indexer, uint256 era) public view returns (uint256) {
-        return info[indexer].eraRewardAddTable[era];
+    function getRewardAddTable(address runner, uint256 era) public view returns (uint256) {
+        return info[runner].eraRewardAddTable[era];
     }
 
-    function getRewardRemoveTable(address indexer, uint256 era) public view returns (uint256) {
-        return info[indexer].eraRewardRemoveTable[era];
+    function getRewardRemoveTable(address runner, uint256 era) public view returns (uint256) {
+        return info[runner].eraRewardRemoveTable[era];
     }
 
-    function getRewardDebt(address indexer, address user) public view returns (uint256) {
-        return info[indexer].rewardDebt[user];
+    function getRewardDebt(address runner, address user) public view returns (uint256) {
+        return info[runner].rewardDebt[user];
     }
 }

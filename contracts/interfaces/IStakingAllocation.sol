@@ -3,6 +3,7 @@
 
 pragma solidity 0.8.15;
 
+// the summary for runner allocation
 struct RunnerAllocation {
     uint256 total;
     uint256 used;

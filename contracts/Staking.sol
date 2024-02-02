@@ -20,41 +20,51 @@ import './utils/MathUtil.sol';
 /**
  * @title Staking Contract
  * @notice ### Overview
- * The Staking contract hold and track the changes of all staked SQT Token, It provides entry for the indexers and delegators to
- * stake/unstake, delegate/undelegate to available Indexers and withdraw their SQT Token. It also track the changes of the commission rate of each
- * Indexer and make these changes always applied at two Eras later. We design this to allow time for the delegators
- * to consider their delegation when an Indxer changes the commission rate.
+ * The Staking contract hold and track all staked SQT Token and runner commission rate. The entries for the runners and delegators to
+ * stake/unstake, delegate/undelegate to available runners and withdraw their SQT Token are organized in StakingManager contract though.
+ *
+ * In the contract, we may hold current and future value for staking amount and commission rate. We use a special struct
+ * { era, valueAt, valueAfter } to indicate which value should be used for current era. We design this to separate user requesting a
+ * staking change and the time the change actually become effective.
+ *
+ * Unbonding is also managed in this contract. There is a lock period for each unbonding request. We manage each request separately.
+ * There is a unbonding request limit as specified in maxUnbondingRequest. Though we do allow more request coming through, when
+ * it happens, the new request will be merged to the most recent request, and refresh its unlock date.
+ * Unbonding requests have a source field, when user cancel a request, the token goes back to its original place. (add back to someone's stake)
+ * if a commission unbonding is cancelled, it will be added to runner's stake.
+ * there are some cases cancellation may fail, e.g when the original runner is unregistered.
  *
  * ## Terminology
- * stake -- Indexers must stake SQT Token to themself and not less than the minimumStakingAmount we set in IndexerRegistry contract
- * delegate -- Delegators can delegate SQT Token to any indexer to share Indexer‘s Rewards.
- * total staked amount -- indexer's stake amount + total delegate amount.
- * The Indexer staked amount effects its max acceptable delegation amount.
- * The total staked amount of an Indexer effects the maximum reward it can earn in an Era.
+ * stake -- Runners must stake SQT Token to themself and not less than the minimumStakingAmount we set in IndexerRegistry contract
+ * delegate -- Delegators can delegate SQT Token to any runner to share Runner‘s Rewards.
+ * total staked amount -- runner's stake amount + total delegate amount.
+ * The Runner staked amount effects its max acceptable delegation amount.
+ * The total staked amount of a Runner effects the maximum allocation it allocate to different deployments.
  *
  * ## Detail
- * Since The change of stake or delegate amount and commission rate affects the rewards distribution. So when
+ * The change of stake or delegate amount and commission rate affects the rewards distribution, when
  * users make these changes, we call onStakeChange()/onICRChnage() from rewardsStaking/rewardsPool contract to notify it to
  * apply these changes for future distribution.
  * In our design rewardsStaking contract apply the first stake change and commission rate change immediately when
- * an Indexer make registration. Later on all the stake change apply at next Era, commission rate apply at two Eras later.
+ * a runner register. Later on all the stake change apply at next Era, commission rate apply at two Eras later.
  *
- * Since Indexers need to stake SQT Token at registration and the staked amount effects its max acceptable delegation amount.
- * So the implementation of stake() is diffrernt with delegate().
- * - stake() is for Indexers to stake on themself. There has no stake amount limitation.
- * - delegate() is for delegators to delegate on an indexer and need to consider the indexer's delegation limitation.
+ * Runners need to stake SQT Token at registration and the staked amount effects its max acceptable delegation amount.
+ * The implementation of stake() is different with delegate().
+ * - stake() is for Runners to stake on themself. There has no stake amount limitation. First stake must be called from IndexerRegistry.
+ * - delegate() is for delegators to delegate on an runner and need to consider the runner's delegation limitation.
  *
- * Also in this contarct we has two entries to set commission rate for indexers.
- * setInitialCommissionRate() is called by IndexrRegister contract when indexer register, this change need to take effect immediately.
- * setCommissionRate() is called by Indexers to set their commission rate, and will be take effect after two Eras.
+ * Also in this contarct we has two entries to set commission rate for runners.
+ * setInitialCommissionRate() is called by IndexrRegister contract when runner register, this change need to take effect immediately.
+ * setCommissionRate() is called by Runners to set their commission rate, and will be take effect after two Eras.
  *
- * Since Indexer must keep the minimumStakingAmount, so the implementation of unstake() also different with undelegate().
- * - unstake() is for Indexers to unstake their staking token. An indexer can not unstake all the token unless the indexer unregister from the network.
- * Indexer need to keep the minimumStakingAmount staked on itself when it unstake.
- * - undelegate() is for delegator to undelegate from an Indexer can be called by Delegators.
+ * Since Runner must keep the minimumStakingAmount, so the implementation of unstake() also different with undelegate().
+ * - unstake() is for Runners to unstake their staking token. A runner can not unstake to below minimumStakingAmount unless
+ * the runner unregister from the network.
+ * - undelegate() is for delegator to undelegate from a Runner, it can be called by Delegators. it will take a locking period until the token
+ * become available to withdraw.
  * Delegators can undelegate all their delegated tokens at one time.
  * Tokens will transfer to user's account after the lockPeriod when users apply withdraw.
- * Every widthdraw will cost a fix rate fees(unbondFeeRate), and these fees will be burned.
+ * Every widthdraw will cost a fix rate fees(unbondFeeRate), and these fees will be transferred to treasury.
  */
 contract Staking is IStaking, Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
@@ -65,9 +75,9 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
     ISettings public settings;
 
     /**
-     * The ratio of total stake amount to indexer self stake amount to limit the
+     * The ratio of total stake amount to runner self stake amount to limit the
      * total delegation amount. Initial value is set to 10, which means the total
-     * stake amount cannot exceed 10 times the indexer self stake amount.
+     * stake amount cannot exceed 10 times the runner self stake amount.
      */
     uint256 public indexerLeverageLimit;
 
@@ -77,19 +87,19 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
     // Lock period for withdraw, timestamp unit
     uint256 public lockPeriod;
 
-    // Number of registered indexers.
+    // Number of registered runners.
     uint256 public indexerLength;
 
     // Max limit of unbonding requests
     uint256 public maxUnbondingRequest;
 
-    // Staking address by indexer number.
+    // Staking address by runner number.
     mapping(uint256 => address) public indexers;
 
-    // Indexer number by staking address.
+    // Runner number by staking address.
     mapping(address => uint256) public indexerNo;
 
-    // Staking amount per indexer address.
+    // Staking amount per runner address.
     mapping(address => StakingAmount) public totalStakingAmount;
 
     // Delegator address -> unbond request index -> amount&startTime
@@ -101,40 +111,40 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
     // Delegator address -> length of widthdrawn requests
     mapping(address => uint256) public withdrawnLength;
 
-    // Active delegation from delegator to indexer, delegator->indexer->amount
+    // Active delegation from delegator to runner, delegator->runner->amount
     mapping(address => mapping(address => StakingAmount)) public delegation;
 
     // Each delegator total locked amount, delegator->amount
     // LockedAmount include stakedAmount + amount in locked period
     mapping(address => uint256) public lockedAmount;
 
-    // Actively staking indexers by delegator
+    // Actively staking runners by delegator
     mapping(address => mapping(uint256 => address)) public stakingIndexers;
 
-    // Delegating indexer number by delegator and indexer
+    // Delegating runner number by delegator and runner
     mapping(address => mapping(address => uint256)) public stakingIndexerNos;
 
-    // Staking indexer lengths
+    // Staking runner lengths
     mapping(address => uint256) public stakingIndexerLengths;
 
     // -- Events --
 
     /**
-     * @dev Emitted when stake to an Indexer.
+     * @dev Emitted when stake to an Runner.
      */
-    event DelegationAdded(address indexed source, address indexed indexer, uint256 amount);
+    event DelegationAdded(address indexed source, address indexed runner, uint256 amount);
 
     /**
-     * @dev Emitted when unstake to an Indexer.
+     * @dev Emitted when unstake to an Runner.
      */
-    event DelegationRemoved(address indexed source, address indexed indexer, uint256 amount);
+    event DelegationRemoved(address indexed source, address indexed runner, uint256 amount);
 
     /**
      * @dev Emitted when request unbond.
      */
     event UnbondRequested(
         address indexed source,
-        address indexed indexer,
+        address indexed runner,
         uint256 amount,
         uint256 index,
         UnbondType _type
@@ -150,7 +160,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
      */
     event UnbondCancelled(
         address indexed source,
-        address indexed indexer,
+        address indexed runner,
         uint256 amount,
         uint256 index
     );
@@ -285,7 +295,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
             stakingIndexers[_source][stakingIndexerLengths[_source]] = _runner;
             stakingIndexerLengths[_source]++;
         }
-        // first stake from indexer
+        // first stake from runner
         bool firstStake = this.isEmptyDelegation(_runner, _runner) &&
             totalStakingAmount[_runner].valueAt == 0 &&
             totalStakingAmount[_runner].valueAfter == 0;

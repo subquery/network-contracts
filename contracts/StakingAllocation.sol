@@ -20,7 +20,14 @@ import './utils/MathUtil.sol';
 /**
  * @title Staking Allocation Contract
  * @notice ### Overview
- * The staking allocated by indexer to different projects(deployments)
+ * The contract allows runner to manage (allocate) their stakings to different deployments
+ * onStakeUpdate() is called from RewardsStaking contract, so it is align with RewardsStaking regards total staking. (It may delay when
+ * runner stop applying its staking changes), and a total rewards is stored as a duplication.
+ *
+ * One runner,deployment pair can only have one deployment allocation. Deployment allocations don't have their own unique key.
+ *
+ * Accumulated over allocation time is also tracked in this contract. How much of it will affect the allocation rewards is
+ * further tracked and calculated from RewardsBooster contract, with an additional storage per deployment
  */
 contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
@@ -60,6 +67,11 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         settings = _settings;
     }
 
+    /**
+    * @notice called from RewardsStaking, when runner's first stake or when runner applies staking changes
+    * this is the only entry may turn a runner into over allocation.
+    * Be note that stake update may be delay if runner stop syncing staking changes.
+    */
     function onStakeUpdate(address _runner) external {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'SAL01');
         RunnerAllocation storage ia = _runnerAllocations[_runner];
