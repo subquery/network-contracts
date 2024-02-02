@@ -9,8 +9,6 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IStakingAllocation.sol';
-import './Constants.sol';
-import './utils/MathUtil.sol';
 
 /**
  * @title Staking Allocation Contract
@@ -18,17 +16,18 @@ import './utils/MathUtil.sol';
  * The staking allocated by indexer to different projects(deployments)
  */
 contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradeable {
-    // -- Storage --
+    /// @dev ### STATES
+    /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
 
-    // The idle staking need allocated to projects
+    /// @notice The idle staking need allocated to projects
     mapping(address => RunnerAllocation) private _runnerAllocations;
 
-    // The staking allocated by runner to different projects(deployments)
-    // runner => deployment => amount
+    /// @notice The staking allocated by runner to different projects(deployments)
+    /// @notice runner => deployment => amount
     mapping(address => mapping(bytes32 => uint256)) public allocatedTokens;
 
-    // total allocation on the deployment
+    /// @notice total allocation on the deployment
     mapping(bytes32 => uint256) public deploymentAllocations;
 
     // -- Events --

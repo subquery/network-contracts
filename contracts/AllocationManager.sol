@@ -9,9 +9,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IRewardsBooster.sol';
 import './interfaces/IIndexerRegistry.sol';
-import './Constants.sol';
 import './StakingAllocation.sol';
-import './utils/MathUtil.sol';
 
 /**
  * @title Staking Allocation Mananger Contract
