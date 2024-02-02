@@ -31,6 +31,7 @@ import {
     wrapTxs,
     startNewEra,
     timeTravel,
+    revertrMsg,
 } from './helper';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { BigNumber, constants } from 'ethers';
@@ -193,6 +194,41 @@ describe('RewardsBooster Contract', () => {
         await registerRunner(token, indexerRegistry, staking, root, runner2, etherParse('10000'), 1e5);
 
         await token.connect(runner0).increaseAllowance(staking.address, etherParse('100000'));
+    });
+
+    describe('owner operation', () => {
+        it('can set booster query reward rate', async () => {
+            await rewardsBooster.setBoosterQueryRewardRate(ProjectType.SUBQUERY, 5e5);
+            await rewardsBooster.setBoosterQueryRewardRate(ProjectType.RPC, 9e5);
+            expect(await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY)).to.eq(5e5);
+            expect(await rewardsBooster.boosterQueryRewardRate(ProjectType.RPC)).to.eq(9e5);
+        });
+        it('can set reporter', async () => {
+            await rewardsBooster.setReporter(root.address, true);
+            expect(await rewardsBooster.reporters(root.address)).to.eq(true);
+            await rewardsBooster.setReporter(root.address, false);
+            expect(await rewardsBooster.reporters(root.address)).to.eq(false);
+        });
+        it('can set issuance per block', async () => {
+            await rewardsBooster.setIssuancePerBlock(etherParse('1000'));
+            expect(await rewardsBooster.issuancePerBlock()).to.eq(etherParse('1000'));
+        });
+        it('set booster query reward rate with invalid param should fail', async () => {
+            await expect(rewardsBooster.setBoosterQueryRewardRate(ProjectType.SUBQUERY, 1e6)).to.be.revertedWith(
+                'RB002'
+            );
+        });
+        it('none owner can not call owner operation', async () => {
+            await expect(
+                rewardsBooster.connect(runner0).setBoosterQueryRewardRate(ProjectType.SUBQUERY, 5e5)
+            ).to.be.revertedWith(revertrMsg.notOwner);
+            await expect(rewardsBooster.connect(runner0).setIssuancePerBlock(etherParse('1000'))).to.be.revertedWith(
+                revertrMsg.notOwner
+            );
+            await expect(rewardsBooster.connect(runner0).setReporter(runner0.address, true)).to.be.revertedWith(
+                revertrMsg.notOwner
+            );
+        });
     });
 
     describe('boost deployments', () => {

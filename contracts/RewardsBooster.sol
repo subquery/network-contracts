@@ -66,7 +66,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     // --------- allocation end
 
     /// @notice ### EVENTS
-    event ParameterUpdated(string param);
+    event ParameterUpdated(string param, uint256 value);
     // Booster changes
     event DeploymentBoosterAdded(
         bytes32 indexed deploymentId,
@@ -129,7 +129,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     function setBoosterQueryRewardRate(ProjectType _type, uint256 _rate) external onlyOwner {
-        require(_rate < PER_MILL, 'invalid boosterQueryRewardRate');
+        require(_rate < PER_MILL, 'RB002');
         boosterQueryRewardRate[_type] = _rate;
     }
 
@@ -144,12 +144,20 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         updateAccRewardsPerBooster();
 
         issuancePerBlock = _issuancePerBlock;
-        emit ParameterUpdated('issuancePerBlock');
+        emit ParameterUpdated('issuancePerBlock', issuancePerBlock);
     }
 
     /**
-     * @notice add booster deployment staking
-     * modify eraPool and deployment map
+     * @notice update the reporter status
+     * @param reporter reporter address
+     * @param allow reporter allow or not
+     */
+    function setReporter(address reporter, bool allow) external onlyOwner {
+        reporters[reporter] = allow;
+    }
+
+    /**
+     * @notice add booster deployment staking modify eraPool and deployment map
      * @param _deploymentId the deployment id
      * @param _amount the added amount
      */
@@ -160,7 +168,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         deploymentPool.boosterPoint += _amount;
         deploymentPool.accountBooster[boosterAccount] += _amount;
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
-        // totalBoosterPoints
         totalBoosterPoint += _amount;
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
@@ -178,13 +185,12 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      */
     function removeBoosterDeployment(bytes32 deployment, uint256 amount) external {
         DeploymentPool storage deploymentPool = deploymentPools[deployment];
-        require(deploymentPool.accountBooster[msg.sender] >= amount, 'not enough');
+        require(deploymentPool.accountBooster[msg.sender] >= amount, 'RB003');
 
         onDeploymentBoosterUpdate(deployment, msg.sender);
         deploymentPool.boosterPoint -= amount;
         deploymentPool.accountBooster[msg.sender] -= amount;
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
-        // totalBoosterPoints
         totalBoosterPoint -= amount;
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, amount);
@@ -196,15 +202,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         address _runner
     ) public view returns (uint256) {
         return deploymentPools[_deploymentId].accountBooster[_runner];
-    }
-
-    /**
-     * @notice update the reporter status
-     * @param reporter reporter address
-     * @param allow reporter allow or not
-     */
-    function setReporter(address reporter, bool allow) external onlyOwner {
-        reporters[reporter] = allow;
     }
 
     /**
@@ -309,16 +306,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     function getNewRewardsPerBooster() public view override returns (uint256) {
         // Calculate time steps
         uint256 t = block.number.sub(accRewardsPerBoosterLastBlockUpdated);
-        // Optimization to skip calculations if zero time steps elapsed
-        if (t == 0) {
-            return 0;
-        }
-        // ...or if issuance is zero
-        if (issuancePerBlock == 0) {
-            return 0;
-        }
-
-        if (totalBoosterPoint == 0) {
+        // Optimization to skip calculations if zero time steps elapsed or issuancePerBlock is zero or totalBoosterPoint is zero
+        if (t == 0 || issuancePerBlock == 0 || totalBoosterPoint == 0) {
             return 0;
         }
 
@@ -393,17 +382,13 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             uint256 accQueryRewardsPerBooster,
             uint256 accRewardsForDeploymentSnapshot
         ) = getAccQueryRewardsPerBooster(_deploymentId);
-        //        console.log(
-        //            "2)accQueryRewardsPerBooster %s",
-        //            accQueryRewardsPerBooster
-        //        );
-        boosterQueryReward.accQueryRewards = getAccQueryRewards(_deploymentId, _account); // getAccQueryRewards(_deploymentId, _account);
+        boosterQueryReward.accQueryRewards = getAccQueryRewards(_deploymentId, _account);
         boosterQueryReward.accQueryRewardsPerBoosterSnapshot = accQueryRewardsPerBooster;
         deployment.accQueryRewardsPerBooster = accQueryRewardsPerBooster;
+
         // also update perAllocatedToken
         (uint256 accRewardsPerAllocatedToken, ) = getAccRewardsPerAllocatedToken(_deploymentId);
         deployment.accRewardsPerAllocatedToken = accRewardsPerAllocatedToken;
-        // end
         deployment.accRewardsForDeploymentSnapshot = accRewardsForDeploymentSnapshot;
 
         return deployment.accRewardsForDeployment;
@@ -426,8 +411,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         // also update for booster
         (uint256 accQueryRewardsPerBooster, ) = getAccQueryRewardsPerBooster(_deploymentId);
         deployment.accQueryRewardsPerBooster = accQueryRewardsPerBooster;
-        // end
         deployment.accRewardsForDeploymentSnapshot = accRewardsForDeployment;
+
         return deployment.accRewardsPerAllocatedToken;
     }
 
@@ -490,7 +475,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         address[] calldata _runners,
         uint256[] calldata _missedLabors
     ) external {
-        require(reporters[msg.sender], 'RR007');
+        require(reporters[msg.sender], 'RB004');
 
         for (uint256 i = 0; i < _runners.length; i++) {
             DeploymentPool storage deployment = deploymentPools[_deploymentIds[i]];
@@ -507,7 +492,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         require(
             msg.sender == _runner ||
                 msg.sender == settings.getContractAddress(SQContracts.StakingAllocation),
-            'not allowed'
+            'RB005'
         );
         _collectAllocationReward(_deploymentId, _runner);
     }
@@ -571,32 +556,16 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
 
         uint256 accRewardsForDeployment = getAccRewardsForDeployment(_deploymentId);
-        //        console.log(
-        //            "3)accRewardsForDeployment %s",
-        //            accRewardsForDeployment
-        //        );
-        //        console.log(
-        //            "3)deployment.accQueryRewardsForDeploymentSnapshot %s",
-        //            deployment.accQueryRewardsForDeploymentSnapshot
-        //        );
         uint256 newRewardsForDeployment = MathUtil.diffOrZero(
             accRewardsForDeployment,
             deployment.accRewardsForDeploymentSnapshot
         );
-        //        console.log(
-        //            "3)newRewardsForDeployment %s",
-        //            newRewardsForDeployment
-        //        );
 
         uint256 deploymentBoostedToken = deployment.boosterPoint;
         if (deploymentBoostedToken == 0) {
             return (0, accRewardsForDeployment);
         }
 
-        //        console.log(
-        //            "3)deploymentBoostedToken %s",
-        //            deploymentBoostedToken
-        //        );
         ProjectType projectType = IProjectRegistry(
             settings.getContractAddress(SQContracts.ProjectRegistry)
         ).getDeploymentProjectType(_deploymentId);
@@ -605,23 +574,13 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             boosterQueryRewardRate[projectType],
             PER_MILL
         );
-        //        console.log(
-        //            "3)newQueryRewardsForDeployment %s",
-        //            newQueryRewardsForDeployment
-        //        );
+
         uint256 newQueryRewardsPerBooster = MathUtil.mulDiv(
             newQueryRewardsForDeployment,
             FIXED_POINT_SCALING_FACTOR,
             deploymentBoostedToken
         );
-        //        console.log(
-        //            "3)newQueryRewardsPerBooster %s",
-        //            newQueryRewardsPerBooster
-        //        );
-        //        console.log(
-        //            "3)deployment.accQueryRewardsPerBooster %s",
-        //            deployment.accQueryRewardsPerBooster
-        //        );
+
         return (
             deployment.accQueryRewardsPerBooster + newQueryRewardsPerBooster,
             accRewardsForDeployment
@@ -685,7 +644,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         uint256 _amount,
         bytes calldata _data
     ) external override returns (uint256) {
-        require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB01');
+        require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB006');
         uint256 queryRewards = getQueryRewards(_deploymentId, _spender);
 
         if (queryRewards < _amount) {
@@ -715,11 +674,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         uint256 _amount,
         bytes calldata _data
     ) external override {
-        require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB01');
+        require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB006');
 
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
         BoosterQueryReward storage boosterQueryRewards = deployment.boosterQueryRewards[_spender];
-        require(boosterQueryRewards.spentQueryRewards >= _amount, 'RB02');
+        require(boosterQueryRewards.spentQueryRewards >= _amount, 'RB007');
         boosterQueryRewards.spentQueryRewards -= _amount;
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(

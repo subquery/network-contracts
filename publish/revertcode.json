@@ -198,6 +198,12 @@
     "SAL03": "Not enough staked token",
     "SAL04": "Not enough allocated token",
     "SAL05": "Can only be called by RewardsBooster",
-    "RB02": "Query refund can not be larger than spent",
+    "RB001": "Invalid project type",
+    "RB002": "Invalid boosterQueryRewardRate",
+    "RB003": "Balance of booster deployment is not enought",
+    "RB004": "Invalid reporter",
+    "RB005": "Caller must be runner or StakingAllocation contract",
+    "RB006": "Invalid caller",
+    "RB007": "Query refund can not be larger than spent",
     "OPD01": "l2token address is empty"
 }
