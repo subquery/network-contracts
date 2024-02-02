@@ -506,7 +506,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     function collectAllocationReward(bytes32 _deploymentId, address _runner) external override {
         require(
             msg.sender == _runner ||
-                msg.sender == settings.getContractAddress(SQContracts.StakingAllocation),
+                msg.sender == settings.getContractAddress(SQContracts.AllocationManager),
             'not allowed'
         );
         _collectAllocationReward(_deploymentId, _runner);

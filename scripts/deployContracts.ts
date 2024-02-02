@@ -564,6 +564,7 @@ export async function deployContracts(
                 sqtRedeem,
                 airdropper,
                 stakingAllocation,
+                allocationMananger,
             },
         ];
     } catch (error) {
