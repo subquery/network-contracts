@@ -129,7 +129,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     function setBoosterQueryRewardRate(ProjectType _type, uint256 _rate) external onlyOwner {
-        require(_type == ProjectType.RPC || _type == ProjectType.SUBQUERY, 'RB001');
         require(_rate < PER_MILL, 'RB002');
         boosterQueryRewardRate[_type] = _rate;
     }
@@ -311,7 +310,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         if (t == 0 || issuancePerBlock == 0 || totalBoosterPoint == 0) {
             return 0;
         }
-       
+
         uint256 x = issuancePerBlock * t;
 
         // Get the new issuance per booster token
