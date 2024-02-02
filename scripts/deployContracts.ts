@@ -479,7 +479,7 @@ export async function deployContracts(
         });
 
         // deploy StakingAllocation contract
-        const allocationMananger = await deployContract<AllocationMananger>('AllocationManager', 'child', {
+        const allocationManager = await deployContract<AllocationMananger>('AllocationManager', 'child', {
             proxyAdmin,
             initConfig: [settingsAddress],
         });
@@ -527,7 +527,7 @@ export async function deployContracts(
                 consumerRegistry.address,
                 rewardsBooster.address,
                 stakingAllocation.address,
-                allocationMananger.address,
+                allocationManager.address,
             ]
         );
 
@@ -564,7 +564,7 @@ export async function deployContracts(
                 sqtRedeem,
                 airdropper,
                 stakingAllocation,
-                allocationMananger,
+                allocationManager,
             },
         ];
     } catch (error) {

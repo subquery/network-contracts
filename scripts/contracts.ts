@@ -83,7 +83,7 @@ export type Contracts = {
     staking: Staking;
     stakingManager: StakingManager;
     stakingAllocation: StakingAllocation;
-    allocationMananger: AllocationMananger;
+    allocationManager: AllocationMananger;
     eraManager: EraManager;
     indexerRegistry: IndexerRegistry;
     projectRegistry: ProjectRegistry;

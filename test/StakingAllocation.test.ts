@@ -100,7 +100,7 @@ describe('StakingAllocation Contract', () => {
         rewardsStaking = deployment.rewardsStaking;
         rewardsDistributor = deployment.rewardsDistributor;
         stakingAllocation = deployment.stakingAllocation;
-        allocationManager = deployment.allocationMananger;
+        allocationManager = deployment.allocationManager;
         projectRegistry = deployment.projectRegistry;
 
         // config rewards booster
