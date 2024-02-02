@@ -28,7 +28,7 @@ import './utils/MathUtil.sol';
  * staking change and the time the change actually become effective.
  *
  * Unbonding is also managed in this contract. There is a lock period for each unbonding request. We manage each request separately.
- * There is a unbonding request limit as specified in @maxUnbondingRequest. Though we do allow more request coming through, when
+ * There is a unbonding request limit as specified in maxUnbondingRequest. Though we do allow more request coming through, when
  * it happens, the new request will be merged to the most recent request, and refresh its unlock date.
  * Unbonding requests have a source field, when user cancel a request, the token goes back to its original place. (add back to someone's stake)
  * if a commission unbonding is cancelled, it will be added to runner's stake.
