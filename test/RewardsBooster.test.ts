@@ -196,7 +196,7 @@ describe('RewardsBooster Contract', () => {
         await token.connect(runner0).increaseAllowance(staking.address, etherParse('100000'));
     });
 
-    describe.only('owner operation', () => {
+    describe('owner operation', () => {
         it('can set booster query reward rate', async () => {
             await rewardsBooster.setBoosterQueryRewardRate(ProjectType.SUBQUERY, 5e5);
             await rewardsBooster.setBoosterQueryRewardRate(ProjectType.RPC, 9e5);
