@@ -255,12 +255,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         uint256 _totalOverflowTime
     ) internal view returns (uint256, uint256) {
         uint256 rewardPeriod = block.timestamp - _runnerDepReward.lastClaimedAt;
-        if (_reward == 0) {
+        if (_reward == 0 || rewardPeriod == 0) {
             return (0, 0);
         }
-        if (rewardPeriod == 0) {
-            return (0, 0);
-        }
+
         uint256 overflowTime = _totalOverflowTime - _runnerDepReward.overflowTimeSnapshot;
 
         uint256 fixedRewardByMissedLabor = MathUtil.mulDiv(
@@ -513,7 +511,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             accRewardsPerAllocatedToken
         );
 
-        runnerDeplReward.accRewardsPerToken = accRewardsPerAllocatedToken;
         uint256 burnt;
         uint256 totalOverflowTime = sa.overAllocationTime(_runner);
         (reward, burnt) = _fixRewardsWithMissedLaborAndOverflow(
@@ -522,8 +519,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             totalOverflowTime
         );
 
+        runnerDeplReward.accRewardsPerToken = accRewardsPerAllocatedToken;
         runnerDeplReward.lastClaimedAt = block.timestamp;
         runnerDeplReward.overflowTimeSnapshot = totalOverflowTime;
+        runnerDeplReward.missedLaborTime = 0;
 
         if (reward > 0) {
             address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
