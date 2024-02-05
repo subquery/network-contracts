@@ -192,8 +192,8 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
         uint256 estAgreementEnd = agreementStartDate + agreementPeriod;
         uint256 firstEraPortion = MathUtil.min(
             eraManager.eraStartTime() +
-            (agreementStartEra - eraManager.eraNumber() + 1) *
-            eraPeriod,
+                (agreementStartEra - eraManager.eraNumber() + 1) *
+                eraPeriod,
             estAgreementEnd
         ) - agreementStartDate;
 
@@ -237,19 +237,19 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
                 uint256 rewardMinus = MathUtil.sub(rewardForMidEra, rewardForLastEra);
                 rewardInfo.eraRewardRemoveTable[restEras + agreementStartEra] += rewardMinus;
                 rewardInfo.eraRewardRemoveTable[
-                restEras + agreementStartEra + 1
+                    restEras + agreementStartEra + 1
                 ] += rewardForLastEra;
             } else {
                 // this could happen due to rounding that rewardForLastEra is one larger than rewardForMidEra
                 uint256 rewardAdd = MathUtil.sub(rewardForLastEra, rewardForMidEra);
                 rewardInfo.eraRewardAddTable[restEras + agreementStartEra] += rewardAdd;
                 rewardInfo.eraRewardRemoveTable[
-                restEras + agreementStartEra + 1
+                    restEras + agreementStartEra + 1
                 ] += rewardForLastEra;
             }
 
             uint256 lastEra = MathUtil.divUp(agreementPeriod - firstEraPortion, eraPeriod) +
-                        agreementStartEra;
+                agreementStartEra;
             // Last era
             _emitRewardsChangedEvent(runner, lastEra, rewardInfo);
 

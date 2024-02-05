@@ -68,10 +68,10 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     }
 
     /**
-    * @notice called from RewardsStaking, when runner's first stake or when runner applies staking changes
-    * this is the only entry may turn a runner into over allocation.
-    * Be note that stake update may be delay if runner stop syncing staking changes.
-    */
+     * @notice called from RewardsStaking, when runner's first stake or when runner applies staking changes
+     * this is the only entry may turn a runner into over allocation.
+     * Be note that stake update may be delay if runner stop syncing staking changes.
+     */
     function onStakeUpdate(address _runner) external {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'SAL01');
         RunnerAllocation storage ia = _runnerAllocations[_runner];

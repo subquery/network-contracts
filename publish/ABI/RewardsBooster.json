@@ -164,6 +164,12 @@
                 "internalType": "string",
                 "name": "param",
                 "type": "string"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
             }
         ],
         "name": "ParameterUpdated",
