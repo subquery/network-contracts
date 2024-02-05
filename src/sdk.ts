@@ -70,7 +70,7 @@ export class ContractSDK {
     readonly vSQToken!: VSQToken;
     readonly sqtGift!: SQTGift;
     readonly sqtRedeem!: SQTRedeem;
-    readonly stakingAllocation: StakingAllocation;
+    readonly stakingAllocation!: StakingAllocation;
 
     constructor(
         // eslint-disable-next-line no-unused-vars
