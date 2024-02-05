@@ -693,12 +693,4 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
         emit QueryRewardsRefunded(_deploymentId, _spender, _amount, _data);
     }
-
-    function _isAuth(address _runner) private view returns (bool) {
-        IIndexerRegistry indexerRegistry = IIndexerRegistry(
-            ISettings(settings).getContractAddress(SQContracts.IndexerRegistry)
-        );
-        address controller = indexerRegistry.getController(_runner);
-        return msg.sender == _runner || msg.sender == controller;
-    }
 }
