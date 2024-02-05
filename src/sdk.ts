@@ -26,11 +26,11 @@ import {
     StakingManager,
     StateChannel,
     VSQToken,
-    TokenExchange,
     SQTGift,
     SQTRedeem,
     ERC20,
     RewardsBooster,
+    StakingAllocation,
 } from './typechain';
 import { CONTRACT_FACTORY, ContractDeploymentInner, ContractName, FactoryContstructor, SdkOptions } from './types';
 import assert from 'assert';
@@ -68,9 +68,9 @@ export class ContractSDK {
     readonly consumerRegistry!: ConsumerRegistry;
     readonly priceOracle!: PriceOracle;
     readonly vSQToken!: VSQToken;
-    readonly tokenExchange!: TokenExchange;
     readonly sqtGift!: SQTGift;
     readonly sqtRedeem!: SQTRedeem;
+    readonly stakingAllocation: StakingAllocation;
 
     constructor(
         // eslint-disable-next-line no-unused-vars
