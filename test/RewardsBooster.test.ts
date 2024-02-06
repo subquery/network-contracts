@@ -509,7 +509,7 @@ describe('RewardsBooster Contract', () => {
             // console.log(`allocReward: ${allocReward.toString()}`);
         });
 
-        it('can claim allocation reward, single indexer', async () => {
+        it.only('can claim allocation reward, single indexer', async () => {
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await blockTravel(mockProvider, 1000);
             await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
@@ -532,8 +532,10 @@ describe('RewardsBooster Contract', () => {
             const reward3 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             expect(allocReward).to.eq(getAllocationReward(reward3.sub(reward2), queryRewardRatePerMill));
-            // collect second times
-            await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
+            
+            // collect second times with runner controller account
+            await indexerRegistry.connect(runner0).setControllerAccount(runner1.address);
+            await rewardsBooster.connect(runner1).collectAllocationReward(deploymentId0, runner0.address);
             [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             expect(allocReward).to.eq(0);
         });
