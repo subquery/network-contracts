@@ -14,6 +14,7 @@ import './Constants.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IStakingAllocation.sol';
 import './interfaces/IStakingManager.sol';
+import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IRewardsDistributor.sol';
@@ -487,13 +488,17 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         }
     }
 
-    // for test purpose
     function collectAllocationReward(bytes32 _deploymentId, address _runner) external override {
+        IIndexerRegistry indexerRegistry = IIndexerRegistry(
+            ISettings(settings).getContractAddress(SQContracts.IndexerRegistry)
+        );
+        address controller = indexerRegistry.getController(_runner);
+        address stakingAllocation = settings.getContractAddress(SQContracts.StakingAllocation);
         require(
-            msg.sender == _runner ||
-                msg.sender == settings.getContractAddress(SQContracts.StakingAllocation),
+            msg.sender == _runner || msg.sender == controller || msg.sender == stakingAllocation,
             'RB005'
         );
+
         _collectAllocationReward(_deploymentId, _runner);
     }
 
