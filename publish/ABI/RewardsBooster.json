@@ -678,7 +678,7 @@
                     },
                     {
                         "internalType": "uint256",
-                        "name": "lastReportMissedLabor",
+                        "name": "lastReportMissedLaborTime",
                         "type": "uint256"
                     },
                     {
@@ -919,6 +919,11 @@
                 "internalType": "bool[]",
                 "name": "_laborStatuses",
                 "type": "bool[]"
+            },
+            {
+                "internalType": "uint256[]",
+                "name": "_lastReportTimes",
+                "type": "uint256[]"
             },
             {
                 "internalType": "uint256[]",

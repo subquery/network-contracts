@@ -205,5 +205,7 @@
     "RB005": "Caller must be runner or StakingAllocation contract",
     "RB006": "Invalid caller",
     "RB007": "Query refund can not be larger than spent",
+    "RB008": "MissedLabor's lastReportTime doesn't match",
+    "RB009": "MissedLaborTime exceed total reward period",
     "OPD01": "l2token address is empty"
 }
