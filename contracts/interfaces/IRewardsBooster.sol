@@ -41,7 +41,7 @@ interface IRewardsBooster {
         uint256 lastClaimedAt;
         uint256 overflowTimeSnapshot;
         uint256 lastReportMissedLaborTime;
-        bool    laborStatus;
+        bool disabled;
     }
 
     function setIssuancePerBlock(uint256 _issuancePerBlock) external;

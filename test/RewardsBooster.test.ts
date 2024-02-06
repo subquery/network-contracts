@@ -467,26 +467,56 @@ describe('RewardsBooster Contract', () => {
             // const allocReward2 = await rewardsBooster.getAllocationRewards(deploymentId0, runner1.address);
         });
 
-        // FIXME: need to rewrite, missedLabor is now seconds instead of blocks
-        it.skip('set missed labor will affact allocation reward', async () => {
+        it('set missed labor will affact allocation reward', async () => {
+            // setup, use deploymentId0, runner0
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
-            const reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
-            const blockNum = await mockProvider.getBlockNumber();
+            const perBlockAllocationReward = (await rewardsBooster.issuancePerBlock()).div(2).mul(queryRewardRatePerMill).div(1e6);
+            // accumulate rewards
             await blockTravel(mockProvider, 500);
-            await rewardsBooster.setMissedLabor([deploymentId0], [runner0.address], [600]);
-            const blockNum2 = await mockProvider.getBlockNumber();
-            await blockTravel(mockProvider, 1000 - (blockNum2 - blockNum));
-            const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
-            const [allocReward, burntReward] = await rewardsBooster.getAllocationRewards(
-                deploymentId0,
-                runner0.address
-            );
-            expect(allocReward.add(burntReward)).to.eq(
-                reward1.sub(reward0).mul(PER_MILL.sub(queryRewardRatePerMill)).div(PER_MILL)
-            );
-            expect(allocReward.div(burntReward)).to.eq(9);
+            let block = await mockProvider.getBlock('latest');
+            let runnerDeploymentReward = await rewardsBooster.getRunnerDeploymentRewards(deploymentId0, runner0.address);
+            const rewardPeriod = block.timestamp - runnerDeploymentReward.lastClaimedAt.toNumber();
+            const missedLabor = await rewardsBooster.getMissedLabor(deploymentId0, runner0.address);
+            const [allocationReward, allocationRewardBurnt] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
+            expect(missedLabor).to.eq(0);
+            expect(allocationReward).to.gt(0);
+            // set missed labor time = whole rewardPeriod
+            await rewardsBooster.setMissedLabor([deploymentId0], [runner0.address], [true], [runnerDeploymentReward.lastReportMissedLaborTime], [rewardPeriod], block.timestamp);
+            const missedLabor1 = await rewardsBooster.getMissedLabor(deploymentId0, runner0.address);
+            const [allocationReward2, allocationRewardBurnt2] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
+            expect(allocationReward2).to.eq(0);
+            expect(missedLabor1).to.gt(rewardPeriod);
+            // burnt reward = allocationReward + reward for last block
+            expect(allocationRewardBurnt2).to.eq(allocationReward.add(perBlockAllocationReward));
+
+            // back to online
+            runnerDeploymentReward = await rewardsBooster.getRunnerDeploymentRewards(deploymentId0, runner0.address);
+            block = await mockProvider.getBlock('latest');
+            await rewardsBooster.setMissedLabor([deploymentId0], [runner0.address], [false], [runnerDeploymentReward.lastReportMissedLaborTime], [0], block.timestamp);
+            // accumulate rewards
+            await blockTravel(mockProvider, 500);
+            // claim reward
+            const missedLabor2 = await rewardsBooster.getMissedLabor(deploymentId0, runner0.address);
+            const [allocationReward3, allocationRewardBurnt3] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
+            const tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
+            const {amount: rewardCollected} = await eventFrom(tx, rewardsBooster, 'AllocationRewardsGiven(bytes32,address,uint256)');
+            const {amount: rewardBurnt} = await eventFrom(tx, rewardsBooster, 'AllocationRewardsBurnt(bytes32,address,uint256)');
+            const missedLabor3 = await rewardsBooster.getMissedLabor(deploymentId0, runner0.address);
+            expect(rewardCollected.add(rewardBurnt).sub(allocationReward3.add(allocationRewardBurnt3))).to.eq(perBlockAllocationReward);
+            expect(rewardCollected).to.gt(allocationReward3);
+            expect(rewardCollected.sub(allocationReward3)).to.lt(perBlockAllocationReward.mul(2));
+            expect(missedLabor3).to.eq(0);
         });
+
+        // FIXME: more missed labor tests
+        // misslabor, disabled=true, continue increase
+
+        // misslabor, disabled=false, not increase
+
+        // disabled=true, without change amount
+        // disabled=false, without change amount
+        // lastReportMissedLaborTime not match
 
         it('(debug) can claim allocation reward, single indexer', async () => {
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);

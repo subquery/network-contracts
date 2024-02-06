@@ -683,7 +683,7 @@
                     },
                     {
                         "internalType": "bool",
-                        "name": "laborStatus",
+                        "name": "disabled",
                         "type": "bool"
                     }
                 ],
@@ -917,7 +917,7 @@
             },
             {
                 "internalType": "bool[]",
-                "name": "_laborStatuses",
+                "name": "_disableds",
                 "type": "bool[]"
             },
             {
@@ -929,6 +929,11 @@
                 "internalType": "uint256[]",
                 "name": "_missedLaborChanges",
                 "type": "uint256[]"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_reportAt",
+                "type": "uint256"
             }
         ],
         "name": "setMissedLabor",
