@@ -323,7 +323,7 @@ describe('RewardsBooster Contract', () => {
 
                 const queryReward1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
                 const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
-                // has 1 block's reward, not zero
+                // has at least 1 block's reward, not zero
                 expect(queryReward1).to.eq(getQueryReward(reward1.sub(reward0), queryRewardRatePerMill));
             });
 
@@ -414,7 +414,6 @@ describe('RewardsBooster Contract', () => {
                 );
             });
 
-            it.skip('can spend free query in state channel', () => {});
         });
     });
 
@@ -461,6 +460,7 @@ describe('RewardsBooster Contract', () => {
             await stakingAllocation.connect(runner1).addAllocation(deploymentId0, runner1.address, etherParse('1000'));
             // const accRewardsPerAllocatedToken = await rewardsBooster.getAccRewardsPerAllocatedToken(deploymentId0);
             await blockTravel(mockProvider, 500);
+            // FIXME:
             // const reward = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             // const allo2 = await stakingAllocation.allocatedTokens(runner1.address, deploymentId0);
             [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
@@ -585,6 +585,21 @@ describe('RewardsBooster Contract', () => {
             // allow some rounding errors
             expect(indexer0TotalReward.mul(7).sub(indexer1TotalReward.mul(13)).abs()).to.lt(20000);
         });
+
+        it('can remove and add allocation again', async () => {
+            const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
+            await blockTravel(mockProvider, 999);
+            await stakingAllocation.connect(runner0).removeAllocation(deploymentId0, runner0.address, etherParse('1000'));
+            await blockTravel(mockProvider, 999);
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
+            const reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
+            await blockTravel(mockProvider, 999);
+            const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
+
+            let [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
+        });
+
     });
 
     describe('complex scenario - booster + allocation - 1 deployment', () => {
