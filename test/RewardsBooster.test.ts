@@ -509,7 +509,7 @@ describe('RewardsBooster Contract', () => {
             // console.log(`allocReward: ${allocReward.toString()}`);
         });
 
-        it.only('can claim allocation reward, single indexer', async () => {
+        it('can claim allocation reward, single indexer', async () => {
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await blockTravel(mockProvider, 1000);
             await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
