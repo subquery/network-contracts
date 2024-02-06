@@ -195,8 +195,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
 
         IRewardsDistributor rewardsDistributor = _getRewardsDistributor();
         require(
-            rewardsDistributor.collectAndDistributeEraRewards(currentEra, runner) ==
-                currentEra - 1,
+            rewardsDistributor.collectAndDistributeEraRewards(currentEra, runner) == currentEra - 1,
             'RS002'
         );
         IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(runner);
@@ -277,10 +276,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      * @dev Check if the previous Era has been settled, also update lastSettledEra.
      * Require to be true when someone try to claimRewards() or onStakeChangeRequested().
      */
-    function checkAndReflectSettlement(
-        address runner,
-        uint256 lastClaimEra
-    ) public returns (bool) {
+    function checkAndReflectSettlement(address runner, uint256 lastClaimEra) public returns (bool) {
         uint256 currentEra = _getCurrentEra();
         if (lastSettledEra[runner] == currentEra - 1) {
             return true;

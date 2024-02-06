@@ -202,7 +202,7 @@
     "RB002": "Invalid boosterQueryRewardRate",
     "RB003": "Balance of booster deployment is not enought",
     "RB004": "Invalid reporter",
-    "RB005": "Caller must be runner or StakingAllocation contract",
+    "RB005": "Caller must be runner, controller or StakingAllocation contract",
     "RB006": "Invalid caller",
     "RB007": "Query refund can not be larger than spent",
     "RB008": "MissedLabor's lastReportTime doesn't match",

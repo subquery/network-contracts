@@ -562,8 +562,10 @@ describe('RewardsBooster Contract', () => {
             const reward3 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             expect(allocReward).to.eq(getAllocationReward(reward3.sub(reward2), queryRewardRatePerMill));
-            // collect second times
-            await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
+            
+            // collect second times with runner controller account
+            await indexerRegistry.connect(runner0).setControllerAccount(runner1.address);
+            await rewardsBooster.connect(runner1).collectAllocationReward(deploymentId0, runner0.address);
             [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             expect(allocReward).to.eq(0);
         });
