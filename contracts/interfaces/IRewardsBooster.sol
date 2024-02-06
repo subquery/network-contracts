@@ -40,6 +40,8 @@ interface IRewardsBooster {
         uint256 accRewardsPerToken;
         uint256 lastClaimedAt;
         uint256 overflowTimeSnapshot;
+        uint256 lastReportMissedLabor;
+        bool    laborStatus;
     }
 
     function setIssuancePerBlock(uint256 _issuancePerBlock) external;

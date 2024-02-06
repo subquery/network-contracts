@@ -164,6 +164,12 @@
                 "internalType": "string",
                 "name": "param",
                 "type": "string"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
             }
         ],
         "name": "ParameterUpdated",
@@ -549,6 +555,30 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_runner",
+                "type": "address"
+            }
+        ],
+        "name": "getMissedLabor",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "getNewRewardsPerBooster",
         "outputs": [
@@ -645,6 +675,16 @@
                         "internalType": "uint256",
                         "name": "overflowTimeSnapshot",
                         "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "lastReportMissedLabor",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "laborStatus",
+                        "type": "bool"
                     }
                 ],
                 "internalType": "struct IRewardsBooster.RunnerDeploymentReward",
@@ -876,8 +916,13 @@
                 "type": "address[]"
             },
             {
+                "internalType": "bool[]",
+                "name": "_laborStatuses",
+                "type": "bool[]"
+            },
+            {
                 "internalType": "uint256[]",
-                "name": "_missedLabors",
+                "name": "_missedLaborChanges",
                 "type": "uint256[]"
             }
         ],

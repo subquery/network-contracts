@@ -223,10 +223,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         uint256 runnerAllocAmount = sa.allocatedTokens(_runner, _deploymentId);
 
         RunnerDeploymentReward memory runnerDeplReward = deployment.runnerAllocationRewards[
-            _runner
-        ];
+                    _runner
+            ];
 
-        (uint256 accRewardsPerAllocatedToken, ) = getAccRewardsPerAllocatedToken(_deploymentId);
+        (uint256 accRewardsPerAllocatedToken,) = getAccRewardsPerAllocatedToken(_deploymentId);
 
         uint256 totalRewards = _calcRewards(
             runnerAllocAmount,
@@ -236,10 +236,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
         return
             _fixRewardsWithMissedLaborAndOverflow(
-                totalRewards,
-                runnerDeplReward,
-                sa.overAllocationTime(_runner)
-            );
+            totalRewards,
+            runnerDeplReward,
+            sa.overAllocationTime(_runner)
+        );
     }
 
     /**
@@ -265,7 +265,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
         uint256 fixedRewardByMissedLabor = MathUtil.mulDiv(
             _reward,
-            rewardPeriod - _runnerDepReward.missedLaborTime,
+            rewardPeriod - _getMissedLabor(_runnerDepReward),
             rewardPeriod
         );
         uint256 fixedReward = MathUtil.mulDiv(
@@ -387,7 +387,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         deployment.accQueryRewardsPerBooster = accQueryRewardsPerBooster;
 
         // also update perAllocatedToken
-        (uint256 accRewardsPerAllocatedToken, ) = getAccRewardsPerAllocatedToken(_deploymentId);
+        (uint256 accRewardsPerAllocatedToken,) = getAccRewardsPerAllocatedToken(_deploymentId);
         deployment.accRewardsPerAllocatedToken = accRewardsPerAllocatedToken;
         deployment.accRewardsForDeploymentSnapshot = accRewardsForDeploymentSnapshot;
 
@@ -409,7 +409,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         ) = getAccRewardsPerAllocatedToken(_deploymentId);
         deployment.accRewardsPerAllocatedToken = accRewardsPerAllocatedToken;
         // also update for booster
-        (uint256 accQueryRewardsPerBooster, ) = getAccQueryRewardsPerBooster(_deploymentId);
+        (uint256 accQueryRewardsPerBooster,) = getAccQueryRewardsPerBooster(_deploymentId);
         deployment.accQueryRewardsPerBooster = accQueryRewardsPerBooster;
         deployment.accRewardsForDeploymentSnapshot = accRewardsForDeployment;
 
@@ -468,30 +468,68 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      * @notice Add Labor(online status) for current era project pool
      * @param _deploymentIds deployment id
      * @param _runners all runner addresses
-     * @param _missedLabors all missed labor seconds
+     * @param _laborStatuses latest labor status
+     * @param _missedLaborChanges all missed labor within the current report period
      */
     function setMissedLabor(
         bytes32[] calldata _deploymentIds,
         address[] calldata _runners,
-        uint256[] calldata _missedLabors
+        bool[] calldata _laborStatuses,
+        uint256[] calldata _missedLaborChanges
     ) external {
         require(reporters[msg.sender], 'RB004');
 
         for (uint256 i = 0; i < _runners.length; i++) {
             DeploymentPool storage deployment = deploymentPools[_deploymentIds[i]];
             RunnerDeploymentReward storage runnerDeplReward = deployment.runnerAllocationRewards[
-                _runners[i]
-            ];
-            runnerDeplReward.missedLaborTime = _missedLabors[i];
-            emit MissedLabor(_deploymentIds[i], _runners[i], _missedLabors[i]);
+                            _runners[i]
+                ];
+            bool laborStatus = _laborStatuses[i];
+            // scenario#1: if status changes from false|true -> true, by default we consider between lastReportMissedLabor and block.timestamp no misslabor
+            // unless specified in _missedLaborChanges
+            // scenario#2: if status changes from false|true -> false, by default we consider between lastReportMissedLabor and block.timestamp is all misslabored
+            // unless specified in _missedLaborChanges
+            uint256 missedLaborAdd;
+            if (_laborStatuses[i] == false) {
+                missedLaborAdd = block.timestamp - runnerDeplReward.lastReportMissedLabor;
+            }
+            if (_missedLaborChanges[i] > 0) {
+                missedLaborAdd = _missedLaborChanges[i];
+            }
+            runnerDeplReward.missedLaborTime += missedLaborAdd;
+            runnerDeplReward.laborStatus = _laborStatuses[i];
+            runnerDeplReward.missedLaborTime = _missedLaborChanges[i];
+            runnerDeplReward.lastReportMissedLabor = block.timestamp;
+
+            uint256 rewardPeriod = block.timestamp - runnerDeplReward.lastClaimedAt;
+            require(runnerDeplReward.missedLaborTime <= rewardPeriod, "TBD");
+            if (missedLaborAdd > 0) {
+                emit MissedLabor(_deploymentIds[i], _runners[i], missedLaborAdd);
+            }
         }
+    }
+
+    function getMissedLabor(bytes32 _deploymentId, address _runner) public view returns (uint256) {
+        DeploymentPool storage deployment = deploymentPools[_deploymentId];
+        RunnerDeploymentReward memory runnerDeplReward = deployment.runnerAllocationRewards[
+                    _runner
+            ];
+        return _getMissedLabor(runnerDeplReward);
+    }
+
+    function _getMissedLabor(RunnerDeploymentReward memory _runnerDepReward) internal view returns (uint256) {
+        uint256 missedLabor = _runnerDepReward.missedLaborTime;
+        if (!_runnerDepReward.laborStatus) {
+            missedLabor += block.timestamp - _runnerDepReward.lastReportMissedLabor;
+        }
+        return missedLabor;
     }
 
     // for test purpose
     function collectAllocationReward(bytes32 _deploymentId, address _runner) external override {
         require(
             msg.sender == _runner ||
-                msg.sender == settings.getContractAddress(SQContracts.StakingAllocation),
+            msg.sender == settings.getContractAddress(SQContracts.StakingAllocation),
             'RB005'
         );
         _collectAllocationReward(_deploymentId, _runner);
@@ -505,8 +543,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         );
         uint256 runnerAllocAmount = sa.allocatedTokens(_runner, _deploymentId);
         RunnerDeploymentReward storage runnerDeplReward = deployment.runnerAllocationRewards[
-            _runner
-        ];
+                    _runner
+            ];
         uint256 reward = _calcRewards(
             runnerAllocAmount,
             runnerDeplReward.accRewardsPerToken,
@@ -522,7 +560,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             totalOverflowTime
         );
 
+        // clean missedlabor
         runnerDeplReward.lastClaimedAt = block.timestamp;
+        runnerDeplReward.missedLaborTime = 0;
+        runnerDeplReward.lastReportMissedLabor = block.timestamp;
         runnerDeplReward.overflowTimeSnapshot = totalOverflowTime;
 
         if (reward > 0) {
@@ -593,7 +634,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     ) public view returns (uint256) {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
 
-        (uint256 accQueryRewardsPerBoostedToken, ) = getAccQueryRewardsPerBooster(_deploymentId);
+        (uint256 accQueryRewardsPerBoostedToken,) = getAccQueryRewardsPerBooster(_deploymentId);
 
         uint256 newRewards = _calcRewards(
             deployment.accountBooster[_account],
@@ -613,7 +654,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     ) public view returns (uint256) {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
 
-        (uint256 accQueryRewardsPerBoostedToken, ) = getAccQueryRewardsPerBooster(_deploymentId);
+        (uint256 accQueryRewardsPerBoostedToken,) = getAccQueryRewardsPerBooster(_deploymentId);
         BoosterQueryReward memory boosterQueryRewards = deployment.boosterQueryRewards[_account];
 
         uint256 newRewards = _calcRewards(

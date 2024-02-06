@@ -11,7 +11,7 @@
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "indexer",
+                "name": "runner",
                 "type": "address"
             },
             {
@@ -36,7 +36,7 @@
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "indexer",
+                "name": "runner",
                 "type": "address"
             },
             {
@@ -93,7 +93,7 @@
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "indexer",
+                "name": "runner",
                 "type": "address"
             },
             {
@@ -124,7 +124,7 @@
             {
                 "indexed": true,
                 "internalType": "address",
-                "name": "indexer",
+                "name": "runner",
                 "type": "address"
             },
             {
