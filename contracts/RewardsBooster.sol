@@ -482,6 +482,13 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         uint256 _reportAt
     ) external {
         require(reporters[msg.sender], 'RB004');
+        require(
+            _deploymentIds.length == _runners.length &&
+                _deploymentIds.length == _disableds.length &&
+                _deploymentIds.length == _lastReportTimes.length &&
+                _deploymentIds.length == _missedLaborChanges.length,
+            'G020'
+        );
 
         for (uint256 i = 0; i < _runners.length; i++) {
             RunnerDeploymentReward storage runnerDeplReward = deploymentPools[_deploymentIds[i]]
