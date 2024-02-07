@@ -183,6 +183,7 @@ contract SQTGift is
     }
 
     function getSeries(uint256 tokenId) external view returns (uint256) {
+        require(ownerOf(tokenId) != address(0), 'SQR006');
         return gifts[tokenId].seriesId;
     }
 }

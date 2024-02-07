@@ -440,7 +440,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         );
         uint256 deploymentAllocatedTokens = sa.deploymentAllocations(_deploymentId);
         if (deploymentAllocatedTokens == 0) {
-            return (0, accRewardsForDeployment);
+            // newRewardsPerAllocatedToken is zero
+            return (deployment.accRewardsPerAllocatedToken, accRewardsForDeployment);
         }
 
         ProjectType projectType = IProjectRegistry(

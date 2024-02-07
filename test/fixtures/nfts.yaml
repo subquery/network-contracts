@@ -38,6 +38,16 @@
           'external_url': 'https://subquery.network',
           'image': 'https://static.subquery.network/token/sqt-nft/private-sale.png',
       }
+- kind: SQTGiftSeries
+  seriesId: 4
+  maxSupply: 20000
+  metadata:
+    {
+      "name": "SubQuery Genesis - Public Sale Participant",
+      "description": "This NFT is granted for all those that participated in SubQuery's public sale, helping us innovate in Web3 infrastructure so builders can decentralise the future.",
+      "external_url": "https://subquery.network",
+      "image": "https://static.subquery.network/token/sqt-nft/public-sale.png",
+    }
 #- kind: SQTGiftAllowList
 #  seriesId: 2
 #  list:
