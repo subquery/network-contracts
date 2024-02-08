@@ -314,7 +314,7 @@ describe('StateChannel Contract', () => {
 
             await boosterDeployment(token, rewardsBooster, consumer, deploymentId, etherParse('10000'));
 
-            await blockTravel(waffle.provider, 1000);
+            await blockTravel(1000);
             queryRewards0 = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
             const abi = ethers.utils.defaultAbiCoder;
             const msg = abi.encode(
@@ -373,7 +373,7 @@ describe('StateChannel Contract', () => {
 
             // This is related to the reward for each block time. If the test fails, it needs to be modified.
             // use 1 block travel to get the reward
-            await blockTravel(waffle.provider, 1);
+            await blockTravel(1);
             const queryRewards3 = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
             const nextFund = queryRewards3.sub(queryRewards2).mul(2).add(etherParse(1)).add(queryRewards2);
 
