@@ -623,7 +623,7 @@ describe('RewardsBooster Contract', () => {
         });
 
         // disabled=true with overrides should ignore the ovverides and count the whole period from lastMissedLaborReportAt
-        it.only('set missed labor complex #3', async () => {
+        it('set missed labor complex #3', async () => {
             // setup, use deploymentId0, runner0
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
