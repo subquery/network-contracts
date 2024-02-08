@@ -44,7 +44,7 @@ describe('Purchase Offer Market Contract', () => {
 
     beforeEach(async () => {
         const deployment = await waffle.loadFixture(deployer);
-        futureDate = await futureTimestamp(mockProvider);
+        futureDate = await futureTimestamp();
         purchaseOfferMarket = deployment.purchaseOfferMarket;
         indexerRegistry = deployment.indexerRegistry;
         projectRegistry = deployment.projectRegistry;

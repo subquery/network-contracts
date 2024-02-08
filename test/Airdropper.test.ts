@@ -2,15 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { ethers, waffle } from 'hardhat';
+import { ethers } from 'hardhat';
 import { Airdropper, SQToken } from '../src';
 import { ZERO_ADDRESS } from './constants';
-import { etherParse, futureTimestamp, lastestTime, timeTravel } from './helper';
+import { etherParse, futureTimestamp, lastestBlockTime, timeTravel } from './helper';
 import { deployRootContracts } from './setup';
 
 // `Airdropper` only available on Kepler Network
 describe.skip('Airdropper Contract', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2, wallet_3;
     let airdropper: Airdropper;
     let token: SQToken;
@@ -59,8 +58,8 @@ describe.skip('Airdropper Contract', () => {
         let endTime: number;
 
         beforeEach(async () => {
-            startTime = (await lastestTime(mockProvider)) + 3600;
-            endTime = await futureTimestamp(mockProvider, 60 * 60 * 24 * 3);
+            startTime = (await lastestBlockTime()) + 3600;
+            endTime = await futureTimestamp(60 * 60 * 24 * 3);
         });
 
         it('create round should work', async () => {
@@ -82,8 +81,8 @@ describe.skip('Airdropper Contract', () => {
             await expect(
                 airdropper.createRound(
                     sqtAddress,
-                    (await lastestTime(mockProvider)) + 60 * 60 * 2,
-                    (await lastestTime(mockProvider)) + 60 * 60
+                    (await lastestBlockTime()) + 60 * 60 * 2,
+                    (await lastestBlockTime()) + 60 * 60
                 )
             ).to.be.revertedWith('A001');
         });
@@ -125,14 +124,14 @@ describe.skip('Airdropper Contract', () => {
             //roundId 0: expire
             await airdropper.createRound(
                 sqtAddress,
-                await futureTimestamp(mockProvider, 60 * 60 * 2),
-                await futureTimestamp(mockProvider, 60 * 60 * 24 * 2)
+                await futureTimestamp(60 * 60 * 2),
+                await futureTimestamp(60 * 60 * 24 * 2)
             );
             //roundId 1: ongoing
             await airdropper.createRound(
                 sqtAddress,
-                await futureTimestamp(mockProvider, 60 * 60 * 3),
-                await futureTimestamp(mockProvider, 60 * 60 * 24 * 5)
+                await futureTimestamp(60 * 60 * 3),
+                await futureTimestamp(60 * 60 * 24 * 5)
             );
 
             await token.increaseAllowance(airdropper.address, etherParse('100'));
@@ -199,13 +198,13 @@ describe.skip('Airdropper Contract', () => {
             await token.increaseAllowance(airdropper.address, etherParse('100'));
             await airdropper.createRound(
                 sqtAddress,
-                await futureTimestamp(mockProvider, 60 * 60 * 2),
-                await futureTimestamp(mockProvider, 60 * 60 * 24 * 2)
+                await futureTimestamp(60 * 60 * 2),
+                await futureTimestamp(60 * 60 * 24 * 2)
             );
             await airdropper.createRound(
                 sqtAddress,
-                await futureTimestamp(mockProvider, 60 * 60 * 2),
-                await futureTimestamp(mockProvider, 60 * 60 * 24 * 2)
+                await futureTimestamp(60 * 60 * 2),
+                await futureTimestamp(60 * 60 * 24 * 2)
             );
             await airdropper.batchAirdrop(
                 [wallet_1.address, wallet_1.address],

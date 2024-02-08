@@ -102,7 +102,7 @@ describe.skip('RewardsDistributor Contract', () => {
             await planManager.connect(runner).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
             // purchase plan
             await startNewEra(mockProvider, eraManager);
-            await futureTimestamp(mockProvider, time.duration.days(2));
+            await futureTimestamp(time.duration.days(2));
             await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
         });
 
@@ -146,7 +146,7 @@ describe.skip('RewardsDistributor Contract', () => {
             // new agreement\
             await token.connect(root).transfer(consumer.address, etherParse('10000'));
             await token.connect(consumer).increaseAllowance(planManager.address, etherParse('10000'));
-            await futureTimestamp(mockProvider, time.duration.days(2));
+            await futureTimestamp(time.duration.days(2));
             await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
 
             await startNewEra(mockProvider, eraManager);
@@ -211,7 +211,7 @@ describe.skip('RewardsDistributor Contract', () => {
             await planManager.connect(runner).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
             // purchase plan
             await startNewEra(mockProvider, eraManager);
-            await futureTimestamp(mockProvider, time.duration.days(4));
+            await futureTimestamp(time.duration.days(4));
             await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
         });
 

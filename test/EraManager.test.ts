@@ -4,7 +4,7 @@
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { EraManager } from '../src';
-import { lastestTime, timeTravel } from './helper';
+import { lastestBlockTime, timeTravel } from './helper';
 import { deployContracts } from './setup';
 const { time } = require('@openzeppelin/test-helpers');
 
@@ -84,7 +84,7 @@ describe('Era Manager Contract', () => {
             await timeTravel(time.duration.days(3).toNumber());
             await eraManager.safeUpdateAndGetEra();
             expect(await eraManager.eraNumber()).to.equal(2);
-            let timestamp = await lastestTime(mockProvider);
+            let timestamp = await lastestBlockTime();
             expect(await eraManager.timestampToEraNumber(timestamp)).to.equal(2);
             timestamp += time.duration.days(13).toNumber();
             expect(await eraManager.timestampToEraNumber(timestamp)).to.equal(6);

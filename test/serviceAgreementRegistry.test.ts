@@ -111,19 +111,19 @@ describe('Service Agreement Registry Contract', () => {
                 purchaseOfferMarket,
                 token,
                 deploymentIds[0],
-                await futureTimestamp(mockProvider)
+                await futureTimestamp()
             );
             await createPurchaseOffer(
                 purchaseOfferMarket,
                 token,
                 deploymentIds[1],
-                await futureTimestamp(mockProvider)
+                await futureTimestamp()
             );
             await createPurchaseOffer(
                 purchaseOfferMarket,
                 token,
                 deploymentIds[2],
-                await futureTimestamp(mockProvider)
+                await futureTimestamp()
             );
         });
 
@@ -155,7 +155,7 @@ describe('Service Agreement Registry Contract', () => {
                 2,
                 100,
                 minimumStakingAmount,
-                (await futureTimestamp(mockProvider)) + 86400
+                (await futureTimestamp(86400))
             );
 
             // SA006 error has been removed
@@ -170,7 +170,7 @@ describe('Service Agreement Registry Contract', () => {
                 2,
                 100,
                 minimumStakingAmount,
-                (await futureTimestamp(mockProvider)) + 86400
+                (await futureTimestamp(86400))
             );
             await expect(purchaseOfferMarket.connect(wallet).acceptPurchaseOffer(4, poi)).to.be.revertedWith('SA005');
         });
@@ -218,7 +218,7 @@ describe('Service Agreement Registry Contract', () => {
                     2,
                     100,
                     minimumStakingAmount,
-                    await futureTimestamp(mockProvider)
+                    await futureTimestamp()
                 );
             // create plan
             // value 100

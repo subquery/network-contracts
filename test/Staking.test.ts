@@ -15,7 +15,7 @@ import {
     Staking,
     StakingManager,
 } from '../src';
-import { etherParse, lastestTime, registerRunner, startNewEra, timeTravel } from './helper';
+import { etherParse, lastestBlockTime, registerRunner, startNewEra, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
 describe('Staking Contract', () => {
@@ -266,7 +266,7 @@ describe('Staking Contract', () => {
 
         it('request unbond by indexer registry should work', async () => {
             await stakingManager.connect(runner).unstake(runner.address, etherParse('0.5'), { gasLimit: '1000000' });
-            const startTime = await lastestTime(mockProvider);
+            const startTime = await lastestBlockTime();
 
             // check changes of staking storage
             await startNewEra(mockProvider, eraManager);
@@ -296,7 +296,7 @@ describe('Staking Contract', () => {
             await expect(stakingManager.connect(delegator).undelegate(runner.address, etherParse('1')))
                 .to.be.emit(staking, 'UnbondRequested')
                 .withArgs(delegator.address, runner.address, etherParse('1'), 0, 0);
-            const startTime = await lastestTime(mockProvider);
+            const startTime = await lastestBlockTime();
 
             // check changes of staking storage
             await startNewEra(mockProvider, eraManager);

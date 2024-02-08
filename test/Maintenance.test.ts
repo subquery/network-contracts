@@ -66,7 +66,7 @@ describe('Maintenance Mode Test', () => {
             1,
             100,
             etherParse('1000'),
-            await futureTimestamp(mockProvider)
+            await futureTimestamp()
         );
 
         await stakingManager.connect(wallet_1).delegate(wallet_0.address, etherParse('10'));
@@ -143,7 +143,7 @@ describe('Maintenance Mode Test', () => {
                     1,
                     100,
                     etherParse('1000'),
-                    await futureTimestamp(mockProvider)
+                    await futureTimestamp()
                 )
             ).to.be.revertedWith('G019');
         });

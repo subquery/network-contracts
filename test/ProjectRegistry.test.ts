@@ -360,7 +360,7 @@ describe('Project Registry Contract', () => {
             await projectRegistry.startService(deploymentId);
             await token.increaseAllowance(purchaseOfferMarket.address, etherParse('5'));
             await planManager.createPlanTemplate(1000, 1000, 100, token.address, METADATA_HASH);
-            await createPurchaseOffer(purchaseOfferMarket, token, deploymentId, await futureTimestamp(mockProvider));
+            await createPurchaseOffer(purchaseOfferMarket, token, deploymentId, await futureTimestamp());
             await purchaseOfferMarket.acceptPurchaseOffer(0, POI);
             await expect(projectRegistry.stopService(deploymentId)).to.be.revertedWith('PR006');
         });

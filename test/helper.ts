@@ -39,6 +39,7 @@ export function createProvider(url: string, chain: number): StaticJsonRpcProvide
     return new ethers.providers.StaticJsonRpcProvider(url, chain);
 }
 
+/// helper functions for chain manipulation
 export async function timeTravel(seconds: number) {
     const provider = waffle.provider;
     await provider.send('evm_increaseTime', [seconds]);
@@ -71,16 +72,6 @@ export async function wrapTxs(callFn: () => Promise<void>) {
     await callFn().finally(() => resumeAutoMine(provider));
 }
 
-export async function lastestBlock(provider: MockProvider | StaticJsonRpcProvider) {
-    const blockBefore = await provider.send('eth_getBlockByNumber', ['latest', false]);
-    return blockBefore;
-}
-
-export async function lastestTime(provider: MockProvider | StaticJsonRpcProvider) {
-    const block = await lastestBlock(provider);
-    return BigNumber.from(block.timestamp).toNumber();
-}
-
 export async function lastestBlockTime(): Promise<number> {
     const provider = waffle.provider;
     const blockTime = (await provider.getBlock('latest')).timestamp;
@@ -92,10 +83,12 @@ export function getCurrentTime() {
 }
 
 //use the lastest block timestamp and add 5 days
-export async function futureTimestamp(provider: MockProvider, sec: number = 60 * 60 * 24 * 5) {
-    return (await lastestTime(provider)) + sec;
+const days_5 = 3600 * 24 * 5;
+export async function futureTimestamp(time: number = days_5) {
+    return (await lastestBlockTime()) + time;
 }
 
+/// helper functions for contract interaction
 // contract call helpers
 export async function registerRunner(
     token: Contract,
@@ -126,7 +119,7 @@ export async function createPurchaseOffer(
     minimumStakingAmount = etherParse('1000')
 ): Promise<BigNumber> {
     await token.increaseAllowance(purchaseOfferMarket.address, deposit);
-    const tx = await purchaseOfferMarket.createPurchaseOffer(
+    await purchaseOfferMarket.createPurchaseOffer(
         deploymentId,
         planTemplateId,
         deposit,
@@ -135,12 +128,8 @@ export async function createPurchaseOffer(
         minimumStakingAmount,
         expireDate
     );
-    const evt = await eventFrom(
-        tx,
-        purchaseOfferMarket,
-        'PurchaseOfferCreated(address,uint256,bytes32,uint256,uint256,uint16,uint256,uint256,uint256)'
-    );
-    return evt.offerId;
+    const offerId = ((await purchaseOfferMarket.numOffers()).sub(1));
+    return offerId;
 }
 
 export function createProject(
