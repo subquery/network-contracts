@@ -16,7 +16,6 @@ import { registerRunner, startNewEra, time, etherParse } from './helper';
 import { Wallet, BigNumber } from 'ethers';
 
 describe('StateChannel Workflow Tests', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, runner, runner2, consumer, consumer2;
     let channelId, channelId2, channelId3, channelId4;
 
@@ -122,7 +121,7 @@ describe('StateChannel Workflow Tests', () => {
         await token.connect(consumer2).increaseAllowance(stateChannel.address, etherParse('500'));
 
         await eraManager.connect(wallet_0).updateEraPeriod(time.duration.days(1).toString());
-        await startNewEra(mockProvider, eraManager);
+        await startNewEra(eraManager);
 
         //create statechannels
         channelId = ethers.utils.randomBytes(32);
@@ -178,7 +177,7 @@ describe('StateChannel Workflow Tests', () => {
         expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('37'));
         expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('3'));
 
-        await startNewEra(mockProvider, eraManager);
+        await startNewEra(eraManager);
 
         //batchCollect at rewardpool
         await rewardsPool.batchCollect(runner.address);
@@ -213,7 +212,7 @@ describe('StateChannel Workflow Tests', () => {
         expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('35'));
         expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('5'));
 
-        await startNewEra(mockProvider, eraManager);
+        await startNewEra(eraManager);
 
         //batchCollect at rewardpool
         await rewardsPool.batchCollect(runner.address);
@@ -247,7 +246,7 @@ describe('StateChannel Workflow Tests', () => {
         expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('30'));
         expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('10'));
 
-        await startNewEra(mockProvider, eraManager);
+        await startNewEra(eraManager);
 
         //batchCollect at rewardpool
         await rewardsPool.batchCollect(runner.address);

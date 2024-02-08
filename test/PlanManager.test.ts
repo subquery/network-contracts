@@ -17,12 +17,21 @@ import {
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, metadatas } from './constants';
-import { Wallet, constants, deploySUSD, etherParse, eventFrom, registerRunner, startNewEra, time } from './helper';
+import {
+    Wallet,
+    constants,
+    deploySUSD,
+    etherParse,
+    eventFrom,
+    registerRunner,
+    revertMsg,
+    startNewEra,
+    time,
+} from './helper';
 import { deployContracts } from './setup';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 describe('PlanManger Contract', () => {
-    const mockProvider = waffle.provider;
     const planPrice = etherParse('6');
 
     let runner: Wallet, consumer: Wallet;
@@ -79,9 +88,7 @@ describe('PlanManger Contract', () => {
         });
 
         it('set indexer plan limit without owner should fail', async () => {
-            await expect(planManager.connect(consumer).setPlanLimit(10)).to.be.revertedWith(
-                'Ownable: caller is not the owner'
-            );
+            await expect(planManager.connect(consumer).setPlanLimit(10)).to.be.revertedWith(revertMsg.notOwner);
         });
     });
 
@@ -135,13 +142,13 @@ describe('PlanManger Contract', () => {
             // not owner
             await expect(
                 planManager.connect(consumer).createPlanTemplate(1000, 1000, 100, token.address, METADATA_HASH)
-            ).to.be.revertedWith('Ownable: caller is not the owner');
+            ).to.be.revertedWith(revertMsg.notOwner);
             // not owner
             await expect(planManager.connect(consumer).updatePlanTemplateStatus(0, false)).to.be.revertedWith(
-                'Ownable: caller is not the owner'
+                revertMsg.notOwner
             );
             await expect(planManager.connect(consumer).updatePlanTemplateMetadata(0, metadatas[1])).to.be.revertedWith(
-                'Ownable: caller is not the owner'
+                revertMsg.notOwner
             );
             // invalid `planTemplateId`
             await expect(planManager.updatePlanTemplateStatus(1, false)).to.be.revertedWith('PM004');
@@ -322,7 +329,7 @@ describe('PlanManger Contract', () => {
         //     await stakingManager.connect(runner).stake(runner.address, newStake);
         //
         //     await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).to.revertedWith('SA006');
-        //     const era = await startNewEra(mockProvider, eraManager);
+        //     const era = await startNewEra(eraManager);
         //     await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).not.to.reverted;
         // });
         //
@@ -374,7 +381,7 @@ describe('PlanManger Contract', () => {
             await checkAcceptPlan(1, DEPLOYMENT_ID);
 
             expect((await rewardsDistributor.getRewardInfo(runner.address)).accSQTPerStake).eq(0);
-            const era = await startNewEra(mockProvider, eraManager);
+            const era = await startNewEra(eraManager);
             await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
 
             const rewardsAddTable = await rewardsHelper.getRewardsAddTable(runner.address, era.sub(1), 5);
@@ -397,7 +404,7 @@ describe('PlanManger Contract', () => {
 
         it('reward claim should work', async () => {
             await checkAcceptPlan(1, DEPLOYMENT_ID);
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
             const balance = await token.balanceOf(runner.address);
             const reward = await rewardsDistributor.userRewards(runner.address, runner.address);

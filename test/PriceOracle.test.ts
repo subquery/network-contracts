@@ -8,7 +8,6 @@ import { blockTravel } from './helper';
 import { deployContracts } from './setup';
 
 describe('PriceOracle Contract', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
     let priceOracle: PriceOracle;
     const assetFrom = '0x0000000000000000000000000000000000000000';
@@ -58,7 +57,7 @@ describe('PriceOracle Contract', () => {
             await priceOracle.setLimit(10, 100);
             await priceOracle.setController(wallet_1.address);
 
-            await blockTravel(mockProvider, 100);
+            await blockTravel(100);
 
             const price1 = (price / 100) * 91; // -9%
             await priceOracle.connect(wallet_1).setAssetPrice(assetFrom, assetTo, 1, price1);
@@ -69,13 +68,13 @@ describe('PriceOracle Contract', () => {
                 'OR002'
             );
 
-            await blockTravel(mockProvider, 100);
+            await blockTravel(100);
 
             const price2 = (price / 100) * 109; // +9%
             await priceOracle.connect(wallet_1).setAssetPrice(assetFrom, assetTo, 1, price2);
             await priceOracle.setAssetPrice(assetFrom, assetTo, 1, price);
 
-            await blockTravel(mockProvider, 100);
+            await blockTravel(100);
 
             const price3 = (price / 100) * 110; // +10%
             await expect(priceOracle.connect(wallet_1).setAssetPrice(assetFrom, assetTo, 1, price3)).to.be.revertedWith(

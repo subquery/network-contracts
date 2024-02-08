@@ -25,7 +25,6 @@ import { deployContracts } from './setup';
 
 // PermissionedExchange only available on Kepler Network
 describe.skip('PermissionedExchange Contract', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2, runner, consumer;
     let permissionedExchange: PermissionedExchange;
     let settings: Settings;
@@ -139,7 +138,7 @@ describe.skip('PermissionedExchange Contract', () => {
 
         it('claimed reward should add to quota', async () => {
             const balance_before = await sqToken.balanceOf(runner.address);
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await expect(rewardsDistributor.collectAndDistributeRewards(runner.address));
             let balance = await sqToken.balanceOf(runner.address);
             let quota = await permissionedExchange.tradeQuota(sqToken.address, runner.address);
@@ -154,7 +153,7 @@ describe.skip('PermissionedExchange Contract', () => {
     describe('order operations', () => {
         it('only send order should work', async () => {
             expect(await permissionedExchange.nextOrderId()).to.be.eq(1);
-            const expiredTime = await futureTimestamp(mockProvider, 60 * 60 * 24);
+            const expiredTime = await futureTimestamp(60 * 60 * 24);
             await expect(
                 permissionedExchange.sendOrder(
                     usdAddress,
@@ -178,7 +177,7 @@ describe.skip('PermissionedExchange Contract', () => {
 
         it('add liquidity to order should work', async () => {
             expect(await permissionedExchange.nextOrderId()).to.be.eq(1);
-            const expiredTime = await futureTimestamp(mockProvider, 60 * 60 * 24);
+            const expiredTime = await futureTimestamp(60 * 60 * 24);
             await expect(
                 permissionedExchange.sendOrder(
                     usdAddress,
@@ -218,7 +217,7 @@ describe.skip('PermissionedExchange Contract', () => {
                     sqtAddress,
                     0,
                     etherParse('5'),
-                    await futureTimestamp(mockProvider, 60 * 60 * 24),
+                    await futureTimestamp(60 * 60 * 24),
                     0,
                     etherParse('10')
                 )
@@ -229,7 +228,7 @@ describe.skip('PermissionedExchange Contract', () => {
                     sqtAddress,
                     etherParse('1'),
                     0,
-                    await futureTimestamp(mockProvider, 60 * 60 * 24),
+                    await futureTimestamp(60 * 60 * 24),
                     0,
                     etherParse('10')
                 )
@@ -241,7 +240,7 @@ describe.skip('PermissionedExchange Contract', () => {
                 sqtAddress,
                 etherParse('1'),
                 etherParse('5'),
-                await futureTimestamp(mockProvider, 60 * 60 * 24),
+                await futureTimestamp(60 * 60 * 24),
                 0,
                 etherParse('10')
             );
@@ -257,12 +256,12 @@ describe.skip('PermissionedExchange Contract', () => {
                 sqtAddress,
                 etherParse('1'),
                 etherParse('5'),
-                await futureTimestamp(mockProvider, 60 * 60 * 24),
+                await futureTimestamp(60 * 60 * 24),
                 0,
                 etherParse('10')
             );
             await expect(permissionedExchange.connect(wallet_2).settleExpiredOrder(1)).to.be.revertedWith('PE010');
-            await timeTravel(mockProvider, 2 * 60 * 60 * 24);
+            await timeTravel(2 * 60 * 60 * 24);
             await permissionedExchange.connect(wallet_2).settleExpiredOrder(1);
             expect(await usdToken.balanceOf(permissionedExchange.address)).to.be.eq(etherParse('0'));
             expect(await (await permissionedExchange.orders(1)).sender).to.be.eq(ZERO_ADDRESS);
@@ -283,7 +282,7 @@ describe.skip('PermissionedExchange Contract', () => {
                 sqtAddress,
                 BigNumber.from('1000000'),
                 etherParse('50'),
-                await futureTimestamp(mockProvider, 60 * 60 * 24),
+                await futureTimestamp(60 * 60 * 24),
                 0,
                 order1Balance // 1000 usd
             );
@@ -293,7 +292,7 @@ describe.skip('PermissionedExchange Contract', () => {
                 usdAddress,
                 etherParse('50'),
                 BigNumber.from('1000000'),
-                await futureTimestamp(mockProvider, 60 * 60 * 24),
+                await futureTimestamp(60 * 60 * 24),
                 0,
                 order2Balance
             );
@@ -303,7 +302,7 @@ describe.skip('PermissionedExchange Contract', () => {
                 sqtAddress,
                 BigNumber.from('1000000'),
                 etherParse('50'),
-                await futureTimestamp(mockProvider, 60 * 60 * 24),
+                await futureTimestamp(60 * 60 * 24),
                 0,
                 order3Balance // 1000 usd
             );
@@ -359,7 +358,7 @@ describe.skip('PermissionedExchange Contract', () => {
         });
         it('trade on invalid order should fail', async () => {
             await expect(permissionedExchange.connect(wallet_2).trade(10, etherParse('2'))).to.be.revertedWith('PE006');
-            await timeTravel(mockProvider, 2 * 60 * 60 * 24);
+            await timeTravel(2 * 60 * 60 * 24);
             await expect(permissionedExchange.connect(wallet_2).trade(1, etherParse('2'))).to.be.revertedWith('PE006');
         });
     });
@@ -371,7 +370,7 @@ describe.skip('PermissionedExchange Contract', () => {
                 sqtAddress,
                 etherParse('1'),
                 etherParse('5'),
-                await futureTimestamp(mockProvider, 60 * 60 * 24),
+                await futureTimestamp(60 * 60 * 24),
                 etherParse('10')
             );
             expect(await permissionedExchange.nextOrderId()).to.be.eq(3);
@@ -404,7 +403,7 @@ describe.skip('PermissionedExchange Contract', () => {
                 sqtAddress,
                 BigNumber.from(1e6),
                 etherParse('50'),
-                await futureTimestamp(mockProvider, 60 * 60 * 24),
+                await futureTimestamp(60 * 60 * 24),
                 BigNumber.from(1e8) // 100usd
             );
             const usdBefore = await usdToken.balanceOf(wallet_2.address);
@@ -456,7 +455,7 @@ describe.skip('PermissionedExchange Contract', () => {
                 sqtAddress,
                 etherParse('1'),
                 etherParse('5'),
-                await futureTimestamp(mockProvider, 60 * 60 * 24),
+                await futureTimestamp(60 * 60 * 24),
                 etherParse('10')
             );
 

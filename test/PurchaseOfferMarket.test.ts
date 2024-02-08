@@ -14,11 +14,18 @@ import {
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, poi } from './constants';
-import { createPurchaseOffer, etherParse, futureTimestamp, registerRunner, time, timeTravel } from './helper';
+import {
+    createPurchaseOffer,
+    etherParse,
+    futureTimestamp,
+    registerRunner,
+    revertMsg,
+    time,
+    timeTravel,
+} from './helper';
 import { deployContracts } from './setup';
 
 describe('Purchase Offer Market Contract', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
     let purchaseOfferMarket: PurchaseOfferMarket;
     let indexerRegistry: IndexerRegistry;
@@ -44,7 +51,7 @@ describe('Purchase Offer Market Contract', () => {
 
     beforeEach(async () => {
         const deployment = await waffle.loadFixture(deployer);
-        futureDate = await futureTimestamp(mockProvider);
+        futureDate = await futureTimestamp();
         purchaseOfferMarket = deployment.purchaseOfferMarket;
         indexerRegistry = deployment.indexerRegistry;
         projectRegistry = deployment.projectRegistry;
@@ -124,7 +131,7 @@ describe('Purchase Offer Market Contract', () => {
 
         describe('Cancel Purchase Offer', () => {
             it('cancel exipred offer should work', async () => {
-                await timeTravel(mockProvider, time.duration.days(20).toNumber());
+                await timeTravel(time.duration.days(20).toNumber());
                 const consumerBalance = await token.balanceOf(wallet_0.address);
                 const offerMarketBalance = await token.balanceOf(purchaseOfferMarket.address);
 
@@ -162,7 +169,7 @@ describe('Purchase Offer Market Contract', () => {
 
             it('setPenaltyRate should work', async () => {
                 await expect(purchaseOfferMarket.connect(wallet_1).setPenaltyRate(200)).to.be.revertedWith(
-                    'Ownable: caller is not the owner'
+                    revertMsg.notOwner
                 );
                 await expect(purchaseOfferMarket.connect(wallet_0).setPenaltyRate(1000001)).to.be.revertedWith('PO001');
                 await purchaseOfferMarket.connect(wallet_0).setPenaltyRate(200);
@@ -172,7 +179,7 @@ describe('Purchase Offer Market Contract', () => {
             it('setPenaltyDestination should work', async () => {
                 await expect(
                     purchaseOfferMarket.connect(wallet_1).setPenaltyDestination(wallet_0.address)
-                ).to.be.revertedWith('Ownable: caller is not the owner');
+                ).to.be.revertedWith(revertMsg.notOwner);
                 await purchaseOfferMarket.connect(wallet_0).setPenaltyDestination(wallet_0.address);
                 expect(await purchaseOfferMarket.penaltyDestination()).to.equal(wallet_0.address);
             });

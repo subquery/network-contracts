@@ -13,7 +13,7 @@ import {
     SQToken,
 } from '../src';
 // import { PER_MILL } from './constants';
-import { eventFrom, time, timeTravel } from './helper';
+import { eventFrom, revertMsg, time, timeTravel } from './helper';
 
 // TODO: as inflation controller will no longer dependent on `EraManager`, will need to refactor these test cases
 describe('Inflation Controller Contract', () => {
@@ -29,7 +29,7 @@ describe('Inflation Controller Contract', () => {
 
     // async function startNewEra() {
     //     for (let i=0;i<24*7;i++) {
-    //         await timeTravel(mockProvider, time.duration.hours(1).toNumber());
+    //         await timeTravel(time.duration.hours(1).toNumber());
     //     }
     // }
 
@@ -39,7 +39,7 @@ describe('Inflation Controller Contract', () => {
         // const eraPeriod = await eraManager.eraPeriod();
         // const lastInflationTimestamp = await inflationController.lastInflationTimestamp();
         // const oldBalance = await token.balanceOf(inflationDestination1);
-        await timeTravel(mockProvider, duration);
+        await timeTravel(duration);
         const tx = await inflationController.mintInflatedTokens();
         await tx.wait();
         const block = await mockProvider.getBlock('latest');
@@ -81,7 +81,7 @@ describe('Inflation Controller Contract', () => {
         it('set inflation destination without owner should fail', async () => {
             await expect(
                 inflationController.connect(wallet_1).setInflationDestination(wallet_2.address)
-            ).to.be.revertedWith('Ownable: caller is not the owner');
+            ).to.be.revertedWith(revertMsg.notOwner);
         });
 
         it('set inflation rate should work', async () => {
@@ -171,7 +171,7 @@ describe('Inflation Controller Contract', () => {
         it("mint inflation to smart contract doesn't not implements IInflationDestination should work", async () => {
             const dest = await new MockInflationDestination2__factory(wallet_0).deploy();
             let tx = await inflationController.setInflationDestination(dest.address);
-            await timeTravel(mockProvider, time.duration.days(7).toNumber());
+            await timeTravel(time.duration.days(7).toNumber());
             tx = await inflationController.mintInflatedTokens();
             await tx.wait();
             const balance = await token.balanceOf(dest.address);
@@ -181,7 +181,7 @@ describe('Inflation Controller Contract', () => {
         it('mint inflation to smart contract implements IInflationDestination should work', async () => {
             const dest = await new MockInflationDestination__factory(wallet_0).deploy();
             let tx = await inflationController.setInflationDestination(dest.address);
-            await timeTravel(mockProvider, time.duration.days(7).toNumber());
+            await timeTravel(time.duration.days(7).toNumber());
             tx = await inflationController.mintInflatedTokens();
             const evt = await eventFrom(tx, dest, 'HookCalled()');
             expect(evt).to.exist;
@@ -201,7 +201,7 @@ describe('Inflation Controller Contract', () => {
 
         it('mintSQT only be called by owner', async () => {
             await expect(inflationController.connect(wallet_2).mintSQT(inflationDestination1, 1000)).to.be.revertedWith(
-                'Ownable: caller is not the owner'
+                revertMsg.notOwner
             );
         });
     });
@@ -213,7 +213,7 @@ describe('Inflation Controller Contract', () => {
             await tx.wait();
             expect(await inflationDestination2.xcRecipient()).to.eq(wallet_1.address);
             await expect(inflationDestination2.connect(wallet_1).setXcRecipient(wallet_2.address)).to.be.revertedWith(
-                'Ownable: caller is not the owner'
+                revertMsg.notOwner
             );
             expect(await inflationDestination2.xcRecipient()).to.eq(wallet_1.address);
         });
@@ -225,7 +225,7 @@ describe('Inflation Controller Contract', () => {
             const ownerBalanceBefore = await token.balanceOf(wallet_0.address);
             expect(balanceBefore).to.eq(amount);
             await expect(inflationDestination2.connect(wallet_2).withdraw(token.address)).to.be.revertedWith(
-                'Ownable: caller is not the owner'
+                revertMsg.notOwner
             );
             tx = await inflationDestination2.withdraw(token.address);
             await tx.wait();

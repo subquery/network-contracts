@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { ERC20, SQToken__factory, Settings, SQContracts } from '../src';
 import { ZERO_ADDRESS } from './constants';
-import { etherParse, revertrMsg } from './helper';
+import { etherParse, revertMsg } from './helper';
 import { deployContracts } from './setup';
 import { TokenExchange } from 'build';
 
@@ -75,7 +75,7 @@ describe('TokenExchange Contract', () => {
                 tokenExchange
                     .connect(wallet_1)
                     .sendOrder(sqtAddress, ksqtAddress, etherParse('1'), etherParse('2'), etherParse('3000'))
-            ).to.be.revertedWith(revertrMsg.notOwner);
+            ).to.be.revertedWith(revertMsg.notOwner);
         });
         it('owner cancel the order should work', async () => {
             await tokenExchange.sendOrder(
@@ -86,7 +86,7 @@ describe('TokenExchange Contract', () => {
                 etherParse('3000')
             );
 
-            await expect(tokenExchange.connect(wallet_1).cancelOrder(1)).to.be.revertedWith(revertrMsg.notOwner);
+            await expect(tokenExchange.connect(wallet_1).cancelOrder(1)).to.be.revertedWith(revertMsg.notOwner);
             await expect(tokenExchange.cancelOrder(1))
                 .to.be.emit(tokenExchange, 'OrderSettled')
                 .withArgs(1, sqtAddress, ksqtAddress, etherParse('3000'));

@@ -39,23 +39,26 @@ export function createProvider(url: string, chain: number): StaticJsonRpcProvide
     return new ethers.providers.StaticJsonRpcProvider(url, chain);
 }
 
-export async function timeTravel(provider: MockProvider, seconds: number) {
+/// helper functions for chain manipulation
+export async function timeTravel(seconds: number) {
+    const provider = waffle.provider;
     await provider.send('evm_increaseTime', [seconds]);
     await provider.send('evm_mine', []);
 }
 
-export async function blockTravel(provider: MockProvider, blocks: number, interval = 6) {
+export async function blockTravel(blocks: number, interval = 6) {
+    const provider = waffle.provider;
     for (let i = 0; i < blocks; i++) {
         await provider.send('evm_increaseTime', [interval]);
         await provider.send('evm_mine', []);
     }
 }
 
-export async function stopAutoMine(provider: MockProvider) {
+async function stopAutoMine(provider: MockProvider) {
     await provider.send('evm_setAutomine', [false]);
 }
 
-export async function resumeAutoMine(provider: MockProvider, increaseTime = 0) {
+async function resumeAutoMine(provider: MockProvider, increaseTime = 0) {
     if (increaseTime) {
         await provider.send('evm_increaseTime', [increaseTime]);
     }
@@ -63,19 +66,10 @@ export async function resumeAutoMine(provider: MockProvider, increaseTime = 0) {
     await provider.send('evm_mine', []);
 }
 
-export async function wrapTxs(provider: MockProvider, callFn: () => Promise<void>) {
+export async function wrapTxs(callFn: () => Promise<void>) {
+    const provider = waffle.provider;
     await stopAutoMine(provider);
     await callFn().finally(() => resumeAutoMine(provider));
-}
-
-export async function lastestBlock(provider: MockProvider | StaticJsonRpcProvider) {
-    const blockBefore = await provider.send('eth_getBlockByNumber', ['latest', false]);
-    return blockBefore;
-}
-
-export async function lastestTime(provider: MockProvider | StaticJsonRpcProvider) {
-    const block = await lastestBlock(provider);
-    return BigNumber.from(block.timestamp).toNumber();
 }
 
 export async function lastestBlockTime(): Promise<number> {
@@ -89,10 +83,47 @@ export function getCurrentTime() {
 }
 
 //use the lastest block timestamp and add 5 days
-export async function futureTimestamp(provider: MockProvider, sec: number = 60 * 60 * 24 * 5) {
-    return (await lastestTime(provider)) + sec;
+const days_5 = 3600 * 24 * 5;
+export async function futureTimestamp(time: number = days_5) {
+    return (await lastestBlockTime()) + time;
 }
 
+export async function delay(sec: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, sec * 1000));
+}
+
+export function cidToBytes32(cid: string): string {
+    return '0x' + Buffer.from(utils.base58.decode(cid)).slice(2).toString('hex');
+}
+
+export function etherParse(etherNum: string | number) {
+    const ether = typeof etherNum === 'string' ? etherNum : etherNum.toString();
+    return utils.parseEther(ether);
+}
+
+export type Event = utils.Result;
+export async function eventFrom(
+    tx: ContractTransaction,
+    contract: BaseContract,
+    event: string
+): Promise<Event | undefined> {
+    const receipt = await tx.wait();
+    const evt = receipt.events.find((log) => log.topics[0] === utils.id(event));
+    if (!evt) return;
+    const eventName = event.split('(')[0];
+    return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics);
+}
+
+export async function eventsFrom(tx: ContractTransaction, contract: BaseContract, event: string): Promise<Event[]> {
+    const receipt = await tx.wait();
+    const evts = receipt.events.filter((log) => log.topics[0] === utils.id(event));
+    const eventName = event.split('(')[0];
+    return evts.map((evt) =>
+        contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics)
+    );
+}
+
+/// helper functions for contract interaction
 // contract call helpers
 export async function registerRunner(
     token: Contract,
@@ -158,7 +189,7 @@ export async function boosterDeployment(
     rewardsBooster: RewardsBooster,
     signer: SignerWithAddress,
     deployment: string,
-    amount
+    amount: BigNumber
 ) {
     await token.connect(signer).increaseAllowance(rewardsBooster.address, amount);
     await rewardsBooster.connect(signer).boostDeployment(deployment, amount);
@@ -206,29 +237,21 @@ export async function openChannel(
         );
 }
 
-export async function startNewEra(mockProvider: MockProvider, eraManager: EraManager): Promise<BigNumber> {
+export async function startNewEra(eraManager: EraManager): Promise<BigNumber> {
     const eraPeroid = await eraManager.eraPeriod();
-    await timeTravel(mockProvider, eraPeroid.toNumber() + 10);
+    await timeTravel(eraPeroid.toNumber() + 10);
     await eraManager.startNewEra();
     return eraManager.eraNumber();
-}
-
-export async function delay(sec: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, sec * 1000));
-}
-
-export function cidToBytes32(cid: string): string {
-    return '0x' + Buffer.from(utils.base58.decode(cid)).slice(2).toString('hex');
 }
 
 //generate CSAgreement with indexer, consumer, agreement period and agreement value
 //instead of checkAcceptPlan in PlanManager
 export async function acceptPlan(
-    indexer,
-    consumer,
+    indexer: string,
+    consumer: string,
     period: number,
     value: BigNumber,
-    DEPLOYMENT_ID,
+    DEPLOYMENT_ID: string,
     sqtToken: ERC20,
     planManager: PlanManager
 ) {
@@ -243,32 +266,6 @@ export async function acceptPlan(
     await planManager.connect(consumer).acceptPlan((await planManager.nextPlanId()).toNumber() - 1, DEPLOYMENT_ID);
 }
 
-export function etherParse(etherNum: string | number) {
-    const ether = typeof etherNum === 'string' ? etherNum : etherNum.toString();
-    return utils.parseEther(ether);
-}
-
-export type Event = utils.Result;
-export async function eventFrom(
-    tx: ContractTransaction,
-    contract: BaseContract,
-    event: string
-): Promise<Event | undefined> {
-    const receipt = await tx.wait();
-    const evt = receipt.events.find((log) => log.topics[0] === utils.id(event));
-    if (!evt) return;
-    const eventName = event.split('(')[0];
-    return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics);
-}
-export async function eventsFrom(tx: ContractTransaction, contract: BaseContract, event: string): Promise<Event[]> {
-    const receipt = await tx.wait();
-    const evts = receipt.events.filter((log) => log.topics[0] === utils.id(event));
-    const eventName = event.split('(')[0];
-    return evts.map((evt) =>
-        contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics)
-    );
-}
-
 export async function deploySUSD(siger: SignerWithAddress) {
     const MockSUSD = await ethers.getContractFactory('SUSD', siger);
     const USDC = await MockSUSD.deploy(ethers.utils.parseUnits('1000000000', 6));
@@ -276,7 +273,7 @@ export async function deploySUSD(siger: SignerWithAddress) {
     return USDC;
 }
 
-export const revertrMsg = {
+export const revertMsg = {
     notOwner: 'Ownable: caller is not the owner',
     insufficientBalance: 'ERC20: transfer amount exceeds balance',
     insufficientAllowance: 'ERC20: insufficient allowance',

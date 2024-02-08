@@ -23,7 +23,6 @@ const BN = (value: string | number): BigNumber => BigNumber.from(value);
 
 // FIXME: fix test accuracy running on github action
 describe.skip('RewardsDistributor Contract', () => {
-    const mockProvider = waffle.provider;
     let root, runner, consumer, delegator1, delegator2;
 
     let token: ERC20;
@@ -85,7 +84,7 @@ describe.skip('RewardsDistributor Contract', () => {
 
             //setup era period be 7 days
             await eraManager.connect(root).updateEraPeriod(time.duration.days(7).toString());
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
 
             await registerRunner(token, indexerRegistry, staking, root, runner, etherParse('1000'), 0);
             await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
@@ -101,19 +100,19 @@ describe.skip('RewardsDistributor Contract', () => {
             );
             await planManager.connect(runner).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
             // purchase plan
-            await startNewEra(mockProvider, eraManager);
-            await futureTimestamp(mockProvider, time.duration.days(2));
+            await startNewEra(eraManager);
+            await futureTimestamp(time.duration.days(2));
             await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
         });
 
         it('should be able to distribute reward correctly without delegators', async () => {
             // total rewards for the agreement = 10000
             // total staking = 1000
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             await checkRewardInfo(BN('0'), BN('0'), BN('0'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             // accSQTPerStake = 10*10e-12, eraReward = 10000, rewardDebt = 0
             await checkRewardInfo(BN('9999983465608'), BN('9999983465608465608465'), BN('0'));
@@ -121,7 +120,7 @@ describe.skip('RewardsDistributor Contract', () => {
             let indexerRewards = await rewardsDistributor.userRewards(runner.address, runner.address);
             expect(indexerRewards).to.be.equal(BN('9999983465608000000000'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             // FIXME: expect accSQTPerStake to be 10*10e-12, but it is 29*10e-12
             // expect eraReward = 10000, but is 20000
@@ -130,7 +129,7 @@ describe.skip('RewardsDistributor Contract', () => {
             // check after @neo fix
             await checkRewardInfo(BN('9999999999999'), BN('16534391534391535'), BN('0'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             await checkRewardInfo(BN('9999999999999'), BN('0'), BN('0'));
 
@@ -146,22 +145,22 @@ describe.skip('RewardsDistributor Contract', () => {
             // new agreement\
             await token.connect(root).transfer(consumer.address, etherParse('10000'));
             await token.connect(consumer).increaseAllowance(planManager.address, etherParse('10000'));
-            await futureTimestamp(mockProvider, time.duration.days(2));
+            await futureTimestamp(time.duration.days(2));
             await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             await checkRewardInfo(BN('9999999999999'), BN('0'), etherParse('9999.999999999'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             await checkRewardInfo(BN('19999917328041'), BN('9999917328042328042328'), etherParse('9999.999999999'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             await checkRewardInfo(BN('19999999999998'), BN('82671957671957672'), etherParse('9999.999999999'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             await checkRewardInfo(BN('19999999999998'), BN('0'), etherParse('9999.999999999'));
 
@@ -210,24 +209,24 @@ describe.skip('RewardsDistributor Contract', () => {
             );
             await planManager.connect(runner).createPlan(etherParse('10000'), 0, DEPLOYMENT_ID);
             // purchase plan
-            await startNewEra(mockProvider, eraManager);
-            await futureTimestamp(mockProvider, time.duration.days(4));
+            await startNewEra(eraManager);
+            await futureTimestamp(time.duration.days(4));
             await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
         });
 
         // FIXME: fix this test
         it.skip('should be able to distribute reward correctly without delegators', async () => {
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             // accSQTPerStake = 2*10e-12, eraReward = 2000, rewardDebt = 0
             await checkRewardInfo(BN('0'), BN('1999980158730158730158'), BN('0'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             // accSQTPerStake = 4*10e-12, eraReward = 2000, rewardDebt = 0
             await checkRewardInfo(BN('3999980158730'), BN('2000000000000000000000'), BN('0'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             // accSQTPerStake = 6*10e-12, eraReward = 2000, rewardDebt = 0
             await checkRewardInfo(BN('5999980158730'), BN('2000000000000000000000'), BN('0'));
@@ -240,7 +239,7 @@ describe.skip('RewardsDistributor Contract', () => {
             expect(indexerRewards).to.be.equal(BN('5999980158730000000000'));
             expect(indexerBalance).to.be.equal(BN('580981000295794551145535'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             // accSQTPerStake = 8*10e-12, eraReward = 2000, rewardDebt = 6000
             await checkRewardInfo(BN('7999980158730'), BN('2000000000000000000000'), BN('5999980158730000000000'));
@@ -250,7 +249,7 @@ describe.skip('RewardsDistributor Contract', () => {
             await token.connect(runner).increaseAllowance(staking.address, etherParse('1000'));
             await stakingManager.connect(runner).stake(runner.address, etherParse('1000'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             // accSQTPerStake = 10*10e-12, eraReward = 2000, rewardDebt = 6000
             const { accSQTPerStake, eraReward, rewardDebt } = await checkRewardInfo(
@@ -265,12 +264,12 @@ describe.skip('RewardsDistributor Contract', () => {
 
         // FIXME:  fix this test
         it.skip('should be able to distribute reward correctly with delegators', async () => {
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             // accSQTPerStake = 2*10e-12, eraReward = 2000, rewardDebt = 0
             await checkRewardInfo(BN('1999980158730'), BN('1999980158730158730158'), BN('0'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             // accSQTPerStake = 4*10e-12, eraReward = 2000, rewardDebt = 0
             await checkRewardInfo(BN('3999980158730'), BN('2000000000000000000000'), BN('0'));
@@ -289,7 +288,7 @@ describe.skip('RewardsDistributor Contract', () => {
             await token.connect(delegator1).increaseAllowance(staking.address, etherParse('1000'));
             await stakingManager.connect(delegator1).delegate(runner.address, etherParse('1000'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await rewardsHelper.indexerCatchup(runner.address);
             await collectRewards();
             // accSQTPerStake = 2*10e-12, eraReward = 2000, rewardDebt = 4000
@@ -312,7 +311,7 @@ describe.skip('RewardsDistributor Contract', () => {
             expect(indexerRewards).to.be.equal(BN('2000000000000000000000'));
             expect(delegatorRewards).to.be.equal(BN('0'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards();
             // accSQTPerStake = 7*10e-12, eraReward = 2000, rewardDebt = 0
             await checkRewardInfo(

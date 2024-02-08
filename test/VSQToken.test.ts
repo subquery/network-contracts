@@ -9,7 +9,6 @@ import { etherParse, registerRunner, startNewEra } from './helper';
 import { deployContracts } from './setup';
 
 describe('VSQToken Contract', () => {
-    const mockProvider = waffle.provider;
     let root, runner, runner2, delegator;
     let token: ERC20;
     let staking: Staking;
@@ -54,7 +53,7 @@ describe('VSQToken Contract', () => {
         expect(await vtoken.balanceOf(delegator.address)).to.equal(etherParse('15'));
 
         await stakingManager.connect(delegator).undelegate(runner.address, etherParse('2'));
-        await startNewEra(mockProvider, eraManager);
+        await startNewEra(eraManager);
         expect(await vtoken.balanceOf(delegator.address)).to.equal(etherParse('15'));
         await stakingManager.connect(delegator).widthdraw();
         expect(await token.balanceOf(delegator.address)).to.equal(etherParse('6.998'));

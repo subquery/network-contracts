@@ -19,7 +19,6 @@ import { etherParse, futureTimestamp, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
 
 describe('Maintenance Mode Test', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
     let token: ERC20;
     let staking: Staking;
@@ -66,12 +65,12 @@ describe('Maintenance Mode Test', () => {
             1,
             100,
             etherParse('1000'),
-            await futureTimestamp(mockProvider)
+            await futureTimestamp()
         );
 
         await stakingManager.connect(wallet_1).delegate(wallet_0.address, etherParse('10'));
         await stakingManager.connect(wallet_1).undelegate(wallet_0.address, etherParse('1'));
-        await startNewEra(mockProvider, eraManager);
+        await startNewEra(eraManager);
 
         await eraManager.connect(wallet_0).enableMaintenance();
     });
@@ -143,7 +142,7 @@ describe('Maintenance Mode Test', () => {
                     1,
                     100,
                     etherParse('1000'),
-                    await futureTimestamp(mockProvider)
+                    await futureTimestamp()
                 )
             ).to.be.revertedWith('G019');
         });

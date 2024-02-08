@@ -2,15 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect } from 'chai';
-import { ethers, waffle } from 'hardhat';
+import { ethers } from 'hardhat';
 import { Airdropper, SQToken } from '../src';
 import { ZERO_ADDRESS } from './constants';
-import { etherParse, futureTimestamp, lastestTime, timeTravel } from './helper';
+import { etherParse, futureTimestamp, lastestBlockTime, timeTravel } from './helper';
 import { deployRootContracts } from './setup';
 
 // `Airdropper` only available on Kepler Network
 describe.skip('Airdropper Contract', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2, wallet_3;
     let airdropper: Airdropper;
     let token: SQToken;
@@ -59,8 +58,8 @@ describe.skip('Airdropper Contract', () => {
         let endTime: number;
 
         beforeEach(async () => {
-            startTime = (await lastestTime(mockProvider)) + 3600;
-            endTime = await futureTimestamp(mockProvider, 60 * 60 * 24 * 3);
+            startTime = (await lastestBlockTime()) + 3600;
+            endTime = await futureTimestamp(60 * 60 * 24 * 3);
         });
 
         it('create round should work', async () => {
@@ -82,8 +81,8 @@ describe.skip('Airdropper Contract', () => {
             await expect(
                 airdropper.createRound(
                     sqtAddress,
-                    (await lastestTime(mockProvider)) + 60 * 60 * 2,
-                    (await lastestTime(mockProvider)) + 60 * 60
+                    (await lastestBlockTime()) + 60 * 60 * 2,
+                    (await lastestBlockTime()) + 60 * 60
                 )
             ).to.be.revertedWith('A001');
         });
@@ -114,7 +113,7 @@ describe.skip('Airdropper Contract', () => {
             await expect(airdropper.updateRound(0, startTime - 1000, endTime)).to.be.revertedWith('A001');
             // invalid end time
             await expect(airdropper.updateRound(0, startTime + 1000, startTime)).to.be.revertedWith('A001');
-            await timeTravel(mockProvider, 60 * 60 * 24 * 3);
+            await timeTravel(60 * 60 * 24 * 3);
             // round expired
             await expect(airdropper.updateRound(0, startTime + 1000, endTime + 1000)).to.be.revertedWith('A011');
         });
@@ -125,14 +124,14 @@ describe.skip('Airdropper Contract', () => {
             //roundId 0: expire
             await airdropper.createRound(
                 sqtAddress,
-                await futureTimestamp(mockProvider, 60 * 60 * 2),
-                await futureTimestamp(mockProvider, 60 * 60 * 24 * 2)
+                await futureTimestamp(60 * 60 * 2),
+                await futureTimestamp(60 * 60 * 24 * 2)
             );
             //roundId 1: ongoing
             await airdropper.createRound(
                 sqtAddress,
-                await futureTimestamp(mockProvider, 60 * 60 * 3),
-                await futureTimestamp(mockProvider, 60 * 60 * 24 * 5)
+                await futureTimestamp(60 * 60 * 3),
+                await futureTimestamp(60 * 60 * 24 * 5)
             );
 
             await token.increaseAllowance(airdropper.address, etherParse('100'));
@@ -167,7 +166,7 @@ describe.skip('Airdropper Contract', () => {
             );
         });
         it('airdrop invaild round should fail', async () => {
-            await timeTravel(mockProvider, 60 * 60 * 2);
+            await timeTravel(60 * 60 * 2);
             await expect(airdropper.batchAirdrop([wallet_1.address], [0], [etherParse('10')])).to.be.revertedWith(
                 'A002'
             );
@@ -183,7 +182,7 @@ describe.skip('Airdropper Contract', () => {
 
             await expect(airdropper.settleEndedRound(0)).to.be.revertedWith('A008');
 
-            await timeTravel(mockProvider, 60 * 60 * 24 * 3);
+            await timeTravel(60 * 60 * 24 * 3);
             await expect(airdropper.settleEndedRound(0))
                 .to.be.emit(airdropper, 'RoundSettled')
                 .withArgs(0, wallet_3.address, etherParse('10'));
@@ -199,13 +198,13 @@ describe.skip('Airdropper Contract', () => {
             await token.increaseAllowance(airdropper.address, etherParse('100'));
             await airdropper.createRound(
                 sqtAddress,
-                await futureTimestamp(mockProvider, 60 * 60 * 2),
-                await futureTimestamp(mockProvider, 60 * 60 * 24 * 2)
+                await futureTimestamp(60 * 60 * 2),
+                await futureTimestamp(60 * 60 * 24 * 2)
             );
             await airdropper.createRound(
                 sqtAddress,
-                await futureTimestamp(mockProvider, 60 * 60 * 2),
-                await futureTimestamp(mockProvider, 60 * 60 * 24 * 2)
+                await futureTimestamp(60 * 60 * 2),
+                await futureTimestamp(60 * 60 * 24 * 2)
             );
             await airdropper.batchAirdrop(
                 [wallet_1.address, wallet_1.address],
@@ -214,7 +213,7 @@ describe.skip('Airdropper Contract', () => {
             );
         });
         it('claim airdrop should work', async () => {
-            await timeTravel(mockProvider, 60 * 60 * 3);
+            await timeTravel(60 * 60 * 3);
 
             await expect(airdropper.connect(wallet_1).claimAirdrop(0))
                 .to.be.emit(airdropper, 'AirdropClaimed')
@@ -226,7 +225,7 @@ describe.skip('Airdropper Contract', () => {
             expect(await token.balanceOf(wallet_1.address)).to.be.eq(etherParse('10'));
         });
         it('batch claim airdrop should work', async () => {
-            await timeTravel(mockProvider, 60 * 60 * 3);
+            await timeTravel(60 * 60 * 3);
 
             await expect(airdropper.connect(wallet_1).batchClaimAirdrop([0, 1]))
                 .to.be.emit(airdropper, 'AirdropClaimed')
@@ -238,13 +237,13 @@ describe.skip('Airdropper Contract', () => {
             expect(await token.balanceOf(wallet_1.address)).to.be.eq(etherParse('30'));
         });
         it('claim 0 airdrop should fail', async () => {
-            await timeTravel(mockProvider, 60 * 60 * 3);
+            await timeTravel(60 * 60 * 3);
             await airdropper.connect(wallet_1).claimAirdrop(0);
             await expect(airdropper.connect(wallet_1).claimAirdrop(0)).to.be.revertedWith('A006');
         });
         it('claim invaild round should fail', async () => {
             await expect(airdropper.connect(wallet_1).claimAirdrop(0)).to.be.revertedWith('A005');
-            await timeTravel(mockProvider, 60 * 60 * 24 * 3);
+            await timeTravel(60 * 60 * 24 * 3);
             await expect(airdropper.connect(wallet_1).claimAirdrop(0)).to.be.revertedWith('A005');
         });
     });
