@@ -330,14 +330,14 @@ describe('RewardsBooster Contract', () => {
 
             it('can add/remove booster - 1 booster account', async () => {
                 // setup
-                await wrapTxs(mockProvider, async () => {
+                await wrapTxs(async () => {
                     await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('10000'));
                 });
                 await blockTravel(1000);
                 const queryReward1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
                 // const queryState1 = await rewardsBooster.getBoosterQueryRewards(deploymentId3, consumer0.address);
                 // add booster
-                await wrapTxs(mockProvider, async () => {
+                await wrapTxs(async () => {
                     await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('10000'));
                 });
                 await blockTravel(999);
@@ -349,7 +349,7 @@ describe('RewardsBooster Contract', () => {
             it('can add booster - 2 booster accounts', async () => {
                 // setup
                 const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.RPC);
-                await wrapTxs(mockProvider, async () => {
+                await wrapTxs(async () => {
                     await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('10000'));
                     await boosterDeployment(token, rewardsBooster, consumer1, deploymentId3, etherParse('10000'));
                 });
@@ -362,7 +362,7 @@ describe('RewardsBooster Contract', () => {
                 expect(queryReward1C0.add(queryReward1C1)).to.eq(getQueryReward(reward0, queryRewardRatePerMill));
                 expect(queryReward1C0).to.eq(queryReward1C1);
                 // increase consumer0's booster
-                await wrapTxs(mockProvider, async () => {
+                await wrapTxs(async () => {
                     await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('20000'));
                 });
                 // const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
@@ -385,7 +385,7 @@ describe('RewardsBooster Contract', () => {
             it('can remove booster', async () => {
                 // setup
                 const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.RPC);
-                await wrapTxs(mockProvider, async () => {
+                await wrapTxs(async () => {
                     await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('10000'));
                     await boosterDeployment(token, rewardsBooster, consumer1, deploymentId3, etherParse('10000'));
                 });
@@ -611,7 +611,7 @@ describe('RewardsBooster Contract', () => {
 
         it('claim allocation reward, multiple indexer', async () => {
             // const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
-            await wrapTxs(mockProvider, async () => {
+            await wrapTxs(async () => {
                 await stakingAllocation
                     .connect(runner0)
                     .addAllocation(deploymentId0, runner0.address, etherParse('1000'));
@@ -810,7 +810,7 @@ describe('RewardsBooster Contract', () => {
             //                                                                             | C0 add booster
             // set up allocation
             // const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.RPC);
-            await wrapTxs(mockProvider, async () => {
+            await wrapTxs(async () => {
                 await stakingAllocation
                     .connect(runner0)
                     .addAllocation(deploymentId3, runner0.address, etherParse('1000'));
@@ -819,7 +819,7 @@ describe('RewardsBooster Contract', () => {
                     .addAllocation(deploymentId3, runner1.address, etherParse('1000'));
             });
             // add booster
-            await wrapTxs(mockProvider, async () => {
+            await wrapTxs(async () => {
                 await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('10000'));
                 await boosterDeployment(token, rewardsBooster, consumer1, deploymentId3, etherParse('10000'));
             });
@@ -840,7 +840,7 @@ describe('RewardsBooster Contract', () => {
                 .addAllocation(deploymentId3, runner0.address, etherParse('2000'));
             const { value: collectedRewardsI0 } = await eventFrom(tx, token, 'Transfer(address,address,uint256)');
             await blockTravel(199);
-            await wrapTxs(mockProvider, async () => {
+            await wrapTxs(async () => {
                 await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('20000'));
             });
             await blockTravel(600);
