@@ -69,7 +69,7 @@ describe('Era Manager Contract', () => {
 
             // Safe update era after era preriod changed should work
             await eraManager.updateEraPeriod(time.duration.days(1).toNumber());
-            await timeTravel(mockProvider, time.duration.days(2).toNumber());
+            await timeTravel(time.duration.days(2).toNumber());
             await eraManager.safeUpdateAndGetEra();
             expect(await eraManager.eraNumber()).to.equal(3);
         });
@@ -81,27 +81,27 @@ describe('Era Manager Contract', () => {
             await eraManager.connect(wallet_0).updateEraPeriod(time.duration.days(3).toString());
         });
         it('timestampToEraNumber should work', async () => {
-            await timeTravel(mockProvider, time.duration.days(3).toNumber());
+            await timeTravel(time.duration.days(3).toNumber());
             await eraManager.safeUpdateAndGetEra();
             expect(await eraManager.eraNumber()).to.equal(2);
             let timestamp = await lastestTime(mockProvider);
             expect(await eraManager.timestampToEraNumber(timestamp)).to.equal(2);
             timestamp += time.duration.days(13).toNumber();
             expect(await eraManager.timestampToEraNumber(timestamp)).to.equal(6);
-            await timeTravel(mockProvider, time.duration.days(3).toNumber());
+            await timeTravel(time.duration.days(3).toNumber());
             await eraManager.safeUpdateAndGetEra();
-            await timeTravel(mockProvider, time.duration.days(3).toNumber());
+            await timeTravel(time.duration.days(3).toNumber());
             await eraManager.safeUpdateAndGetEra();
-            await timeTravel(mockProvider, time.duration.days(3).toNumber());
+            await timeTravel(time.duration.days(3).toNumber());
             await eraManager.safeUpdateAndGetEra();
-            await timeTravel(mockProvider, time.duration.days(4).toNumber());
+            await timeTravel(time.duration.days(4).toNumber());
             await eraManager.safeUpdateAndGetEra();
             expect(await eraManager.eraNumber()).to.equal(6);
             await eraManager.safeUpdateAndGetEra();
             expect(await eraManager.eraNumber()).to.equal(6);
         });
         it('passed timestamp 2 EraNumber should fail', async () => {
-            await timeTravel(mockProvider, time.duration.days(3).toNumber());
+            await timeTravel(time.duration.days(3).toNumber());
             await eraManager.safeUpdateAndGetEra();
             let timestamp = (await eraManager.eraStartTime()).toNumber();
             expect(await eraManager.timestampToEraNumber(timestamp)).to.equal(2);

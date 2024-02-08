@@ -441,7 +441,7 @@ describe('Staking Contract', () => {
             expect((await staking.unbondingAmount(runner.address, 4)).amount).to.equal(etherParse('0.2'));
             expect((await staking.unbondingAmount(runner.address, 5)).amount).to.equal(etherParse('0.1'));
 
-            await timeTravel(mockProvider, 1000);
+            await timeTravel(1000);
             await stakingManager.connect(runner).widthdraw();
             expect(await staking.unbondingLength(runner.address)).to.equal(6);
             expect(await staking.withdrawnLength(runner.address)).to.equal(6);
@@ -465,7 +465,7 @@ describe('Staking Contract', () => {
 
         it('cancel withdrawed unbonding should fail', async () => {
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('1'));
-            await timeTravel(mockProvider, 60 * 60 * 24 * 10);
+            await timeTravel(60 * 60 * 24 * 10);
             await stakingManager.connect(delegator).widthdraw();
             await expect(stakingManager.connect(delegator).cancelUnbonding(0)).to.be.revertedWith('S007');
         });
@@ -500,7 +500,7 @@ describe('Staking Contract', () => {
 
             // request undelegate
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('1'));
-            await timeTravel(mockProvider, 1000);
+            await timeTravel(1000);
             // request another undelegate
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('1'));
             expect(await staking.unbondingLength(delegator.address)).to.equal(2);
@@ -527,7 +527,7 @@ describe('Staking Contract', () => {
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('0.1'));
             await stakingManager.connect(delegator).undelegate(runner2.address, etherParse('0.1'));
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('0.1'));
-            await timeTravel(mockProvider, 1000);
+            await timeTravel(1000);
             await stakingManager.connect(delegator).undelegate(runner2.address, etherParse('0.1'));
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('0.1'));
 
@@ -541,7 +541,7 @@ describe('Staking Contract', () => {
             await checkUnbondingChanges(delegatorBalance, 5, 3);
 
             // widthdraw the other 2 requests
-            await timeTravel(mockProvider, 1000);
+            await timeTravel(1000);
             await stakingManager.connect(delegator).widthdraw();
             delegatorBalance = delegatorBalance.add(availableAmount.mul(2));
             await checkUnbondingChanges(delegatorBalance, 5, 5);
@@ -556,7 +556,7 @@ describe('Staking Contract', () => {
             await checkUnbondingChanges(delegatorBalance, 12, 0);
 
             // make the 12 undelegate requests ready to withdraw
-            await timeTravel(mockProvider, 1000);
+            await timeTravel(1000);
             // request extra 3 undelegate requests
             for (let i = 0; i < 3; i++) {
                 await stakingManager.connect(delegator).undelegate(runner.address, etherParse('0.1'));
@@ -571,7 +571,7 @@ describe('Staking Contract', () => {
             await checkUnbondingChanges(delegatorBalance, 15, 12);
 
             // make the next 3 undelegate requests ready to withdraw
-            await timeTravel(mockProvider, 1000);
+            await timeTravel(1000);
             await stakingManager.connect(delegator).widthdraw();
             delegatorBalance = delegatorBalance.add(availableAmount.mul(3));
             await checkUnbondingChanges(delegatorBalance, 15, 15);

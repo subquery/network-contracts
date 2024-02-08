@@ -39,23 +39,25 @@ export function createProvider(url: string, chain: number): StaticJsonRpcProvide
     return new ethers.providers.StaticJsonRpcProvider(url, chain);
 }
 
-export async function timeTravel(provider: MockProvider, seconds: number) {
+export async function timeTravel(seconds: number) {
+    const provider = waffle.provider;
     await provider.send('evm_increaseTime', [seconds]);
     await provider.send('evm_mine', []);
 }
 
-export async function blockTravel(provider: MockProvider, blocks: number, interval = 6) {
+export async function blockTravel(blocks: number, interval = 6) {
+    const provider = waffle.provider;
     for (let i = 0; i < blocks; i++) {
         await provider.send('evm_increaseTime', [interval]);
         await provider.send('evm_mine', []);
     }
 }
 
-export async function stopAutoMine(provider: MockProvider) {
+async function stopAutoMine(provider: MockProvider) {
     await provider.send('evm_setAutomine', [false]);
 }
 
-export async function resumeAutoMine(provider: MockProvider, increaseTime = 0) {
+async function resumeAutoMine(provider: MockProvider, increaseTime = 0) {
     if (increaseTime) {
         await provider.send('evm_increaseTime', [increaseTime]);
     }
@@ -63,7 +65,8 @@ export async function resumeAutoMine(provider: MockProvider, increaseTime = 0) {
     await provider.send('evm_mine', []);
 }
 
-export async function wrapTxs(provider: MockProvider, callFn: () => Promise<void>) {
+export async function wrapTxs(callFn: () => Promise<void>) {
+    const provider = waffle.provider;
     await stopAutoMine(provider);
     await callFn().finally(() => resumeAutoMine(provider));
 }
@@ -208,7 +211,7 @@ export async function openChannel(
 
 export async function startNewEra(mockProvider: MockProvider, eraManager: EraManager): Promise<BigNumber> {
     const eraPeroid = await eraManager.eraPeriod();
-    await timeTravel(mockProvider, eraPeroid.toNumber() + 10);
+    await timeTravel(eraPeroid.toNumber() + 10);
     await eraManager.startNewEra();
     return eraManager.eraNumber();
 }

@@ -76,7 +76,7 @@ describe('RewardsPool Contract', () => {
             expect(rewards1[0]).to.be.eq(etherParse('1')); // labor
             expect(rewards1[1]).to.be.eq(etherParse('6')); // reward
 
-            await timeTravel(mockProvider, time.duration.days(1).toNumber());
+            await timeTravel(time.duration.days(1).toNumber());
 
             // Start collect.
             await rewardsPool.collect(deploymentId0, runner0.address);
@@ -119,7 +119,7 @@ describe('RewardsPool Contract', () => {
             expect(rewards1[0]).to.be.eq(etherParse('1')); // labor
             expect(rewards1[1]).to.be.eq(etherParse('3')); // reward
 
-            await timeTravel(mockProvider, time.duration.days(1).toNumber());
+            await timeTravel(time.duration.days(1).toNumber());
 
             // Auto collect
             await rewardsDistributor.collectAndDistributeRewards(runner0.address);
@@ -146,7 +146,7 @@ describe('RewardsPool Contract', () => {
             const indexerAmount0 = etherParse('1');
             await rewardsPool.connect(root).labor(deploymentId0, runner0.address, indexerAmount0);
             await rewardsPool.connect(root).labor(deploymentId1, runner0.address, indexerAmount0);
-            await timeTravel(mockProvider, time.duration.days(1).toNumber());
+            await timeTravel(time.duration.days(1).toNumber());
             await rewardsHelper.batchCollectWithPool(runner0.address, [deploymentId0, deploymentId1]);
         });
     });

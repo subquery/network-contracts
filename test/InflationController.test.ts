@@ -29,7 +29,7 @@ describe('Inflation Controller Contract', () => {
 
     // async function startNewEra() {
     //     for (let i=0;i<24*7;i++) {
-    //         await timeTravel(mockProvider, time.duration.hours(1).toNumber());
+    //         await timeTravel(time.duration.hours(1).toNumber());
     //     }
     // }
 
@@ -39,7 +39,7 @@ describe('Inflation Controller Contract', () => {
         // const eraPeriod = await eraManager.eraPeriod();
         // const lastInflationTimestamp = await inflationController.lastInflationTimestamp();
         // const oldBalance = await token.balanceOf(inflationDestination1);
-        await timeTravel(mockProvider, duration);
+        await timeTravel(duration);
         const tx = await inflationController.mintInflatedTokens();
         await tx.wait();
         const block = await mockProvider.getBlock('latest');
@@ -171,7 +171,7 @@ describe('Inflation Controller Contract', () => {
         it("mint inflation to smart contract doesn't not implements IInflationDestination should work", async () => {
             const dest = await new MockInflationDestination2__factory(wallet_0).deploy();
             let tx = await inflationController.setInflationDestination(dest.address);
-            await timeTravel(mockProvider, time.duration.days(7).toNumber());
+            await timeTravel(time.duration.days(7).toNumber());
             tx = await inflationController.mintInflatedTokens();
             await tx.wait();
             const balance = await token.balanceOf(dest.address);
@@ -181,7 +181,7 @@ describe('Inflation Controller Contract', () => {
         it('mint inflation to smart contract implements IInflationDestination should work', async () => {
             const dest = await new MockInflationDestination__factory(wallet_0).deploy();
             let tx = await inflationController.setInflationDestination(dest.address);
-            await timeTravel(mockProvider, time.duration.days(7).toNumber());
+            await timeTravel(time.duration.days(7).toNumber());
             tx = await inflationController.mintInflatedTokens();
             const evt = await eventFrom(tx, dest, 'HookCalled()');
             expect(evt).to.exist;

@@ -262,7 +262,7 @@ describe.skip('PermissionedExchange Contract', () => {
                 etherParse('10')
             );
             await expect(permissionedExchange.connect(wallet_2).settleExpiredOrder(1)).to.be.revertedWith('PE010');
-            await timeTravel(mockProvider, 2 * 60 * 60 * 24);
+            await timeTravel(2 * 60 * 60 * 24);
             await permissionedExchange.connect(wallet_2).settleExpiredOrder(1);
             expect(await usdToken.balanceOf(permissionedExchange.address)).to.be.eq(etherParse('0'));
             expect(await (await permissionedExchange.orders(1)).sender).to.be.eq(ZERO_ADDRESS);
@@ -359,7 +359,7 @@ describe.skip('PermissionedExchange Contract', () => {
         });
         it('trade on invalid order should fail', async () => {
             await expect(permissionedExchange.connect(wallet_2).trade(10, etherParse('2'))).to.be.revertedWith('PE006');
-            await timeTravel(mockProvider, 2 * 60 * 60 * 24);
+            await timeTravel(2 * 60 * 60 * 24);
             await expect(permissionedExchange.connect(wallet_2).trade(1, etherParse('2'))).to.be.revertedWith('PE006');
         });
     });

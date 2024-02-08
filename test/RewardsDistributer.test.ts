@@ -518,7 +518,7 @@ describe('RewardsDistributor Contract', () => {
             await rewardsStaking.applyStakeChange(runner.address, delegator.address);
             //generate agreement and agreement complete
             await acceptPlan(runner, consumer, 5, etherParse('3'), DEPLOYMENT_ID, token, planManager);
-            await timeTravel(mockProvider, 6);
+            await timeTravel(6);
             await startNewEra(mockProvider, eraManager);
             // await serviceAgreementExtra.clearAllEndedAgreements(runner.address);
             await projectRegistry.connect(runner).stopService(DEPLOYMENT_ID);

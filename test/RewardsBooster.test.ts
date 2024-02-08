@@ -876,7 +876,7 @@ describe('RewardsBooster Contract', () => {
             const status1 = await stakingAllocation.runnerAllocation(runner0.address);
             expect(status1.overflowAt).not.to.eq(0);
             expect(status1.overflowTime).to.eq(0);
-            await timeTravel(mockProvider, 10);
+            await timeTravel(10);
             const overtime1 = await stakingAllocation.overAllocationTime(runner0.address);
 
             // collect when overflow
@@ -888,7 +888,7 @@ describe('RewardsBooster Contract', () => {
             const rewards22 = await rewardsBooster.getRunnerDeploymentRewards(deploymentIds[1], runner0.address);
             expect(rewards22.overflowTimeSnapshot).to.eq(0);
 
-            await timeTravel(mockProvider, 10);
+            await timeTravel(10);
             await stakingManager.connect(runner0).stake(runner0.address, etherParse('5000'));
             await applyStaking(runner0, runner0);
             const overtime3 = await stakingAllocation.overAllocationTime(runner0.address);
@@ -898,7 +898,7 @@ describe('RewardsBooster Contract', () => {
             expect(status3.overflowTime).to.eq(overtime3);
 
             // collect when not overflow
-            await timeTravel(mockProvider, 10);
+            await timeTravel(10);
             await rewardsBooster.connect(runner0).collectAllocationReward(deploymentIds[0], runner0.address);
             const rewards3 = await rewardsBooster.getRunnerDeploymentRewards(deploymentIds[0], runner0.address);
             expect(rewards3.overflowTimeSnapshot).to.eq(overtime3);
@@ -907,7 +907,7 @@ describe('RewardsBooster Contract', () => {
 
             await stakingManager.connect(runner0).unstake(runner0.address, etherParse('5000'));
             await applyStaking(runner0, runner0);
-            await timeTravel(mockProvider, 10);
+            await timeTravel(10);
             await stakingManager.connect(runner0).stake(runner0.address, etherParse('5000'));
             await applyStaking(runner0, runner0);
             const overtime4 = await stakingAllocation.overAllocationTime(runner0.address);

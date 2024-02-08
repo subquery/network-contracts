@@ -157,7 +157,7 @@ describe('StakingAllocation Contract', () => {
 
             await checkAllocation(runner0, etherParse('10000'), etherParse('20000'), true, false);
 
-            await timeTravel(mockProvider, 10);
+            await timeTravel(10);
             const overtime = await stakingAllocation.overAllocationTime(runner0.address);
             if (overtime.lt(10)) {
                 expect('overtime').to.eq('shuould more than it');
@@ -171,7 +171,7 @@ describe('StakingAllocation Contract', () => {
             if (overtime1.lt(10)) {
                 expect('overtime').to.eq('shuould more than it');
             }
-            await timeTravel(mockProvider, 10);
+            await timeTravel(10);
             const overtime2 = await stakingAllocation.overAllocationTime(runner0.address);
             expect(overtime1).to.eq(overtime2);
 
@@ -179,7 +179,7 @@ describe('StakingAllocation Contract', () => {
             await applyStaking(runner0, runner1);
 
             await checkAllocation(runner0, etherParse('19999'), etherParse('20000'), true, true);
-            await timeTravel(mockProvider, 10);
+            await timeTravel(10);
             const overtime3 = await stakingAllocation.overAllocationTime(runner0.address);
             if (overtime3.lt(overtime2.add(10))) {
                 expect('overtime').to.eq('shuould more than it');
@@ -190,7 +190,7 @@ describe('StakingAllocation Contract', () => {
             await checkAllocation(runner0, etherParse('20100'), etherParse('20000'), false, true);
             const overtime4 = await stakingAllocation.overAllocationTime(runner0.address);
 
-            await timeTravel(mockProvider, 10);
+            await timeTravel(10);
             const overtime5 = await stakingAllocation.overAllocationTime(runner0.address);
             expect(overtime4).to.eq(overtime5);
         });
@@ -244,7 +244,7 @@ describe('StakingAllocation Contract', () => {
             await stakingManager.connect(runner1).unstake(runner1.address, etherParse('1000'));
             await applyStaking(runner1, runner1);
             await checkAllocation(runner1, etherParse('9000'), etherParse('10000'), true, false);
-            await timeTravel(mockProvider, 10);
+            await timeTravel(10);
             await stakingAllocation
                 .connect(runner1)
                 .removeAllocation(deploymentIds[0], runner1.address, etherParse('500'));

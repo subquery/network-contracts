@@ -124,7 +124,7 @@ describe('Purchase Offer Market Contract', () => {
 
         describe('Cancel Purchase Offer', () => {
             it('cancel exipred offer should work', async () => {
-                await timeTravel(mockProvider, time.duration.days(20).toNumber());
+                await timeTravel(time.duration.days(20).toNumber());
                 const consumerBalance = await token.balanceOf(wallet_0.address);
                 const offerMarketBalance = await token.balanceOf(purchaseOfferMarket.address);
 
