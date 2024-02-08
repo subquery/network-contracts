@@ -19,7 +19,6 @@ import { etherParse, futureTimestamp, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
 
 describe('Maintenance Mode Test', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
     let token: ERC20;
     let staking: Staking;

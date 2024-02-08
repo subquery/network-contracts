@@ -9,7 +9,6 @@ import { etherParse, registerRunner, startNewEra } from './helper';
 import { deployContracts } from './setup';
 
 describe('VSQToken Contract', () => {
-    const mockProvider = waffle.provider;
     let root, runner, runner2, delegator;
     let token: ERC20;
     let staking: Staking;

@@ -19,7 +19,6 @@ import { etherParse, lastestBlockTime, registerRunner, revertrMsg, startNewEra, 
 import { deployContracts } from './setup';
 
 describe('Staking Contract', () => {
-    const mockProvider = waffle.provider;
     let runner, runner2, delegator;
     let token: ERC20;
     let staking: Staking;
@@ -94,15 +93,9 @@ describe('Staking Contract', () => {
         });
 
         it('update configs without owner should fail', async () => {
-            await expect(staking.connect(runner2).setLockPeriod(100)).to.be.revertedWith(
-                revertrMsg.notOwner
-            );
-            await expect(staking.connect(runner2).setIndexerLeverageLimit(100)).to.be.revertedWith(
-                revertrMsg.notOwner
-            );
-            await expect(staking.connect(runner2).setUnbondFeeRateBP(100)).to.be.revertedWith(
-                revertrMsg.notOwner
-            );
+            await expect(staking.connect(runner2).setLockPeriod(100)).to.be.revertedWith(revertrMsg.notOwner);
+            await expect(staking.connect(runner2).setIndexerLeverageLimit(100)).to.be.revertedWith(revertrMsg.notOwner);
+            await expect(staking.connect(runner2).setUnbondFeeRateBP(100)).to.be.revertedWith(revertrMsg.notOwner);
         });
     });
 

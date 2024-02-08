@@ -26,7 +26,6 @@ describe('StakingAllocation Contract', () => {
     const deploymentId0 = deploymentIds[0];
     const deploymentId1 = deploymentIds[1];
 
-    const mockProvider = waffle.provider;
     let root: SignerWithAddress,
         runner0: SignerWithAddress,
         runner1: SignerWithAddress,

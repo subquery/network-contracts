@@ -6,13 +6,13 @@ import { EraManager, IndexerRegistry, RewardsDistributor, RewardsHelper, Rewards
 import { deploymentIds } from './constants';
 import { etherParse, registerRunner, startNewEra, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
+import { ethers, waffle } from 'hardhat';
 
 describe('RewardsPool Contract', () => {
     const deploymentId0 = deploymentIds[0];
     const deploymentId1 = deploymentIds[1];
     const deploymentId2 = deploymentIds[2];
 
-    const mockProvider = waffle.provider;
     let root, runner0, runner1, runner2, delegator0, delegator1;
 
     let token: ERC20;

@@ -22,7 +22,6 @@ import { Wallet, createPurchaseOffer, etherParse, futureTimestamp, registerRunne
 import { deployContracts } from './setup';
 
 describe('Project Registry Contract', () => {
-    const mockProvider = waffle.provider;
     let wallet_0: Wallet;
     let wallet_1: Wallet;
 

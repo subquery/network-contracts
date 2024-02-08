@@ -163,7 +163,7 @@ export async function createPurchaseOffer(
         minimumStakingAmount,
         expireDate
     );
-    const offerId = ((await purchaseOfferMarket.numOffers()).sub(1));
+    const offerId = (await purchaseOfferMarket.numOffers()).sub(1);
     return offerId;
 }
 
@@ -185,7 +185,7 @@ export async function boosterDeployment(
     rewardsBooster: RewardsBooster,
     signer: SignerWithAddress,
     deployment: string,
-    amount: BigNumber,
+    amount: BigNumber
 ) {
     await token.connect(signer).increaseAllowance(rewardsBooster.address, amount);
     await rewardsBooster.connect(signer).boostDeployment(deployment, amount);

@@ -23,7 +23,6 @@ const BN = (value: string | number): BigNumber => BigNumber.from(value);
 
 // FIXME: fix test accuracy running on github action
 describe.skip('RewardsDistributor Contract', () => {
-    const mockProvider = waffle.provider;
     let root, runner, consumer, delegator1, delegator2;
 
     let token: ERC20;

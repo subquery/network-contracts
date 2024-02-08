@@ -8,7 +8,6 @@ import { blockTravel } from './helper';
 import { deployContracts } from './setup';
 
 describe('PriceOracle Contract', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
     let priceOracle: PriceOracle;
     const assetFrom = '0x0000000000000000000000000000000000000000';

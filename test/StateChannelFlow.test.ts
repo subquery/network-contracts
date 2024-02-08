@@ -16,7 +16,6 @@ import { registerRunner, startNewEra, time, etherParse } from './helper';
 import { Wallet, BigNumber } from 'ethers';
 
 describe('StateChannel Workflow Tests', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, runner, runner2, consumer, consumer2;
     let channelId, channelId2, channelId3, channelId4;
 

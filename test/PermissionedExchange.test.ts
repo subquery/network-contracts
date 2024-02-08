@@ -25,7 +25,6 @@ import { deployContracts } from './setup';
 
 // PermissionedExchange only available on Kepler Network
 describe.skip('PermissionedExchange Contract', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2, runner, consumer;
     let permissionedExchange: PermissionedExchange;
     let settings: Settings;

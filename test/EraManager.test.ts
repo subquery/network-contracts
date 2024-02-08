@@ -9,7 +9,6 @@ import { deployContracts } from './setup';
 const { time } = require('@openzeppelin/test-helpers');
 
 describe('Era Manager Contract', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1;
     let eraManager: EraManager;
 

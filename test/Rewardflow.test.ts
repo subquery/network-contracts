@@ -19,7 +19,6 @@ import { etherParse, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
 
 describe.skip('Rewardflow tests', () => {
-    const mockProvider = waffle.provider;
     let root, runner, consumer, delegator1, delegator2;
 
     let token: ERC20;

@@ -18,7 +18,6 @@ import { etherParse, registerRunner, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
 
 describe('Dispute Manager Contract', () => {
-    const mockProvider = waffle.provider;
     let root, runner, fisherman;
     let disputeManager: DisputeManager;
     let token: ERC20;

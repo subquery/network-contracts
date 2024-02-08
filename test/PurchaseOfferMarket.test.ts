@@ -14,11 +14,18 @@ import {
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, poi } from './constants';
-import { createPurchaseOffer, etherParse, futureTimestamp, registerRunner, revertrMsg, time, timeTravel } from './helper';
+import {
+    createPurchaseOffer,
+    etherParse,
+    futureTimestamp,
+    registerRunner,
+    revertrMsg,
+    time,
+    timeTravel,
+} from './helper';
 import { deployContracts } from './setup';
 
 describe('Purchase Offer Market Contract', () => {
-    const mockProvider = waffle.provider;
     let wallet_0, wallet_1, wallet_2;
     let purchaseOfferMarket: PurchaseOfferMarket;
     let indexerRegistry: IndexerRegistry;

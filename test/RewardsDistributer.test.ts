@@ -21,7 +21,6 @@ import { acceptPlan, etherParse, startNewEra, time, timeTravel } from './helper'
 import { deployContracts } from './setup';
 
 describe('RewardsDistributor Contract', () => {
-    const mockProvider = waffle.provider;
     let root, runner, consumer, delegator, delegator2;
 
     let token: ERC20;
