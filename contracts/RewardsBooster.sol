@@ -485,7 +485,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             _deploymentIds.length == _runners.length &&
                 _deploymentIds.length == _disableds.length &&
                 _deploymentIds.length == _missedLaborChanges.length,
-            'G020'
+            'RB012'
         );
 
         for (uint256 i = 0; i < _runners.length; i++) {
