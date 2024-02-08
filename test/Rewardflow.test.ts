@@ -110,7 +110,7 @@ describe.skip('Rewardflow tests', () => {
 
             //setup era period be 7 days
             await eraManager.connect(root).updateEraPeriod(time.duration.days(7).toString());
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
 
             await registerIndexer(root, runner, etherParse('1000'), 0);
         });
@@ -119,10 +119,10 @@ describe.skip('Rewardflow tests', () => {
             // purchase plan split in 1 era
             await planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
             //claim rewards
@@ -136,13 +136,13 @@ describe.skip('Rewardflow tests', () => {
             // purchase plan split in 2 eras
             await planManager.connect(consumer).acceptPlan(2, DEPLOYMENT_ID);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
             //claim rewards
@@ -156,16 +156,16 @@ describe.skip('Rewardflow tests', () => {
             // purchase plan split in 3 eras
             await planManager.connect(consumer).acceptPlan(3, DEPLOYMENT_ID);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
             //claim rewards
@@ -179,18 +179,18 @@ describe.skip('Rewardflow tests', () => {
             // purchase plan split in 3 eras
             await planManager.connect(consumer).acceptPlan(3, DEPLOYMENT_ID);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
             await delegate(delegator1, etherParse('100'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
             //claim rewards
@@ -209,18 +209,18 @@ describe.skip('Rewardflow tests', () => {
             // purchase plan split in 3 eras
             await planManager.connect(consumer).acceptPlan(3, DEPLOYMENT_ID);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
             await delegate(delegator1, etherParse('100'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
             //claim rewards
@@ -242,19 +242,19 @@ describe.skip('Rewardflow tests', () => {
             // purchase plan split in 3 eras
             await planManager.connect(consumer).acceptPlan(3, DEPLOYMENT_ID);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
             await delegate(delegator1, etherParse('100'));
             await undelegate(delegator1, etherParse('100'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
             //claim rewards
@@ -276,12 +276,12 @@ describe.skip('Rewardflow tests', () => {
             // purchase plan split in 3 eras
             await planManager.connect(consumer).acceptPlan(3, DEPLOYMENT_ID);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
             await stake(etherParse('500'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
             await unstake(etherParse('100'));
@@ -289,10 +289,10 @@ describe.skip('Rewardflow tests', () => {
             await delegate(delegator1, etherParse('100'));
             await undelegate(delegator1, etherParse('100'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await collectRewards(runner);
 
             //claim rewards

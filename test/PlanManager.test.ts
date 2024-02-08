@@ -322,7 +322,7 @@ describe('PlanManger Contract', () => {
         //     await stakingManager.connect(runner).stake(runner.address, newStake);
         //
         //     await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).to.revertedWith('SA006');
-        //     const era = await startNewEra(mockProvider, eraManager);
+        //     const era = await startNewEra(eraManager);
         //     await expect(planManager.connect(consumer).acceptPlan(1, DEPLOYMENT_ID)).not.to.reverted;
         // });
         //
@@ -374,7 +374,7 @@ describe('PlanManger Contract', () => {
             await checkAcceptPlan(1, DEPLOYMENT_ID);
 
             expect((await rewardsDistributor.getRewardInfo(runner.address)).accSQTPerStake).eq(0);
-            const era = await startNewEra(mockProvider, eraManager);
+            const era = await startNewEra(eraManager);
             await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
 
             const rewardsAddTable = await rewardsHelper.getRewardsAddTable(runner.address, era.sub(1), 5);
@@ -397,7 +397,7 @@ describe('PlanManger Contract', () => {
 
         it('reward claim should work', async () => {
             await checkAcceptPlan(1, DEPLOYMENT_ID);
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
             const balance = await token.balanceOf(runner.address);
             const reward = await rewardsDistributor.userRewards(runner.address, runner.address);

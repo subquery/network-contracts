@@ -74,7 +74,7 @@ describe('StakingAllocation Contract', () => {
     };
 
     const applyStaking = async (runner, delegator) => {
-        await startNewEra(mockProvider, eraManager);
+        await startNewEra(eraManager);
         await rewardsDistributor.collectAndDistributeRewards(runner.address);
         if (runner.address != delegator.address) {
             await rewardsDistributor.collectAndDistributeRewards(delegator.address);

@@ -139,7 +139,7 @@ describe.skip('PermissionedExchange Contract', () => {
 
         it('claimed reward should add to quota', async () => {
             const balance_before = await sqToken.balanceOf(runner.address);
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await expect(rewardsDistributor.collectAndDistributeRewards(runner.address));
             let balance = await sqToken.balanceOf(runner.address);
             let quota = await permissionedExchange.tradeQuota(sqToken.address, runner.address);

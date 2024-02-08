@@ -71,7 +71,7 @@ describe('Maintenance Mode Test', () => {
 
         await stakingManager.connect(wallet_1).delegate(wallet_0.address, etherParse('10'));
         await stakingManager.connect(wallet_1).undelegate(wallet_0.address, etherParse('1'));
-        await startNewEra(mockProvider, eraManager);
+        await startNewEra(eraManager);
 
         await eraManager.connect(wallet_0).enableMaintenance();
     });

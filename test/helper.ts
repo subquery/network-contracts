@@ -198,7 +198,7 @@ export async function openChannel(
         );
 }
 
-export async function startNewEra(mockProvider: MockProvider, eraManager: EraManager): Promise<BigNumber> {
+export async function startNewEra(eraManager: EraManager): Promise<BigNumber> {
     const eraPeroid = await eraManager.eraPeriod();
     await timeTravel(eraPeroid.toNumber() + 10);
     await eraManager.startNewEra();

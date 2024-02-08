@@ -207,7 +207,7 @@ describe('Staking Contract', () => {
             const contractBalance = await token.balanceOf(staking.address);
             await stakingManager.connect(delegator).delegate(runner.address, etherParse('1'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             expect(await staking.stakingIndexerLengths(delegator.address)).to.equal(1);
             await checkDelegation(delegator.address, runner.address, etherParse('1'), 3);
             await checkStakingAmount(runner.address, amount.add(etherParse('1')), 3);
@@ -221,7 +221,7 @@ describe('Staking Contract', () => {
             await stakingManager.connect(delegator).delegate(from_indexer, etherParse('1'));
             await stakingManager.connect(delegator).redelegate(from_indexer, to_indexer, etherParse('1'));
 
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             expect(await staking.stakingIndexerLengths(delegator.address)).to.equal(2);
             await checkDelegation(delegator.address, from_indexer, etherParse('0'), 3);
             await checkStakingAmount(from_indexer, amount, 3);
@@ -269,7 +269,7 @@ describe('Staking Contract', () => {
             const startTime = await lastestBlockTime();
 
             // check changes of staking storage
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await checkDelegation(runner.address, runner.address, amount.sub(etherParse('0.5')), 3);
             await checkStakingAmount(runner.address, amount.add(etherParse('1.5')), 3);
             await checkUnbondingAmount(runner.address, 0, startTime, etherParse('0.5'));
@@ -284,7 +284,7 @@ describe('Staking Contract', () => {
             await indexerRegistry.unregisterIndexer({ gasLimit: '1000000' });
 
             // check changes of indexer storage
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             expect(await staking.indexerLength()).to.equal(1);
             expect(await staking.indexerNo(runner.address)).to.equal(0);
             expect(await staking.indexerNo(runner2.address)).to.equal(0);
@@ -299,7 +299,7 @@ describe('Staking Contract', () => {
             const startTime = await lastestBlockTime();
 
             // check changes of staking storage
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await checkDelegation(delegator.address, runner.address, etherParse('1'), 3);
             await checkStakingAmount(runner.address, amount.add(etherParse('1')), 3);
             await checkUnbondingAmount(delegator.address, 0, startTime, etherParse('1'));
@@ -315,7 +315,7 @@ describe('Staking Contract', () => {
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('0.5'));
 
             // check changes of staking storage
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await checkDelegation(delegator.address, runner.address, etherParse('0.5'), 3);
             await checkStakingAmount(runner.address, amount.add(etherParse('0.5')), 3);
 
@@ -454,12 +454,12 @@ describe('Staking Contract', () => {
 
         it('cancel unbonding of unregistered indexer should fail', async () => {
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('1'));
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await rewardsDistributor.collectAndDistributeRewards(runner.address);
             await rewardsStaking.applyStakeChange(runner.address, delegator.address);
             await rewardsStaking.applyStakeChange(runner.address, runner.address);
             await indexerRegistry.connect(runner).unregisterIndexer();
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await expect(stakingManager.connect(delegator).cancelUnbonding(0)).to.be.revertedWith('S007');
         });
 
@@ -588,9 +588,9 @@ describe('Staking Contract', () => {
             expect(await indexerRegistry.getCommissionRate(runner.address)).to.equal('0');
             await indexerRegistry.connect(runner).setCommissionRate(100);
             expect(await indexerRegistry.getCommissionRate(runner.address)).to.equal('0');
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             expect(await indexerRegistry.getCommissionRate(runner.address)).to.equal('0');
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             expect(await indexerRegistry.getCommissionRate(runner.address)).to.equal('100');
         });
 

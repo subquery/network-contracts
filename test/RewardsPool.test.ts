@@ -104,7 +104,7 @@ describe('RewardsPool Contract', () => {
         });
 
         it('Batch collect from RewardsDistributor', async () => {
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await rewardsDistributor.collectAndDistributeRewards(runner0.address);
             const era = await eraManager.eraNumber();
 

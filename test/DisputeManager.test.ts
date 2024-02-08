@@ -107,7 +107,7 @@ describe('Dispute Manager Contract', () => {
             await token.connect(root).transfer(fisherman.address, etherParse('1000'));
             await token.connect(fisherman).increaseAllowance(disputeManager.address, etherParse('1000'));
             await disputeManager.connect(fisherman).createDispute(runner.address, DEPLOYMENT_ID, etherParse('1000'), 0);
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await rewardsDistributor.collectAndDistributeRewards(runner.address);
         });
 
@@ -122,7 +122,7 @@ describe('Dispute Manager Contract', () => {
         it('accept dispute with indexer has unbonding amount > slash amount should work', async () => {
             await stakingManager.connect(runner).unstake(runner.address, etherParse('2'));
             await stakingManager.connect(runner).unstake(runner.address, etherParse('10'));
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await rewardsDistributor.collectAndDistributeRewards(runner.address);
             await rewardsStaking.applyStakeChange(runner.address, runner.address);
 
@@ -141,7 +141,7 @@ describe('Dispute Manager Contract', () => {
         it('accept dispute with indexer has unbonding amount = slash amount should work', async () => {
             await stakingManager.connect(runner).unstake(runner.address, etherParse('2'));
             await stakingManager.connect(runner).unstake(runner.address, etherParse('10'));
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await rewardsDistributor.collectAndDistributeRewards(runner.address);
             await rewardsStaking.applyStakeChange(runner.address, runner.address);
 
@@ -160,7 +160,7 @@ describe('Dispute Manager Contract', () => {
         it('accept dispute with indexer has unbonding amount < slash amount should work', async () => {
             await stakingManager.connect(runner).unstake(runner.address, etherParse('2'));
             await stakingManager.connect(runner).unstake(runner.address, etherParse('10'));
-            await startNewEra(mockProvider, eraManager);
+            await startNewEra(eraManager);
             await rewardsDistributor.collectAndDistributeRewards(runner.address);
             await rewardsStaking.applyStakeChange(runner.address, runner.address);
 
