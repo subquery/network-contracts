@@ -14,7 +14,7 @@ import {
     utils,
     BigNumberish,
 } from 'ethers';
-import { ethers } from 'hardhat';
+import { ethers, waffle } from 'hardhat';
 import {
     EraManager,
     IndexerRegistry,
@@ -76,6 +76,12 @@ export async function lastestBlock(provider: MockProvider | StaticJsonRpcProvide
 export async function lastestTime(provider: MockProvider | StaticJsonRpcProvider) {
     const block = await lastestBlock(provider);
     return BigNumber.from(block.timestamp).toNumber();
+}
+
+export async function lastestBlockTime(): Promise<number> {
+    const provider = waffle.provider;
+    const blockTime = (await provider.getBlock('latest')).timestamp;
+    return blockTime;
 }
 
 export function getCurrentTime() {

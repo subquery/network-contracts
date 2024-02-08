@@ -555,6 +555,30 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_runner",
+                "type": "address"
+            }
+        ],
+        "name": "getMissedLabor",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "getNewRewardsPerBooster",
         "outputs": [
@@ -651,6 +675,16 @@
                         "internalType": "uint256",
                         "name": "overflowTimeSnapshot",
                         "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "lastMissedLaborReportAt",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "disabled",
+                        "type": "bool"
                     }
                 ],
                 "internalType": "struct IRewardsBooster.RunnerDeploymentReward",
@@ -882,9 +916,19 @@
                 "type": "address[]"
             },
             {
+                "internalType": "bool[]",
+                "name": "_disableds",
+                "type": "bool[]"
+            },
+            {
                 "internalType": "uint256[]",
-                "name": "_missedLabors",
+                "name": "_missedLaborChanges",
                 "type": "uint256[]"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_reportAt",
+                "type": "uint256"
             }
         ],
         "name": "setMissedLabor",
