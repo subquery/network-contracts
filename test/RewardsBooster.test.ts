@@ -715,7 +715,7 @@ describe('RewardsBooster Contract', () => {
                 [runner0.address],
                 [true],
                 [overrideMissedLabor],
-                blockTime,
+                blockTime
             );
 
             // use overrideMissedLabor as the missedLaborTime
@@ -741,7 +741,7 @@ describe('RewardsBooster Contract', () => {
                 [runner0.address],
                 [false],
                 [overrideMissedLabor],
-                blockTime,
+                blockTime
             );
 
             const missedLabor = await rewardsBooster.getMissedLabor(deploymentId0, runner0.address);
@@ -757,7 +757,9 @@ describe('RewardsBooster Contract', () => {
             const blockTime = await lastestBlockTime();
             // #1 caller is not a reporter
             await expect(
-                rewardsBooster.connect(runner1).setMissedLabor([deploymentId0], [runner0.address], [false], [0], blockTime)
+                rewardsBooster
+                    .connect(runner1)
+                    .setMissedLabor([deploymentId0], [runner0.address], [false], [0], blockTime)
             ).to.revertedWith('RB004');
 
             // #2 inconsistent length of parameters
@@ -766,7 +768,7 @@ describe('RewardsBooster Contract', () => {
             ).to.revertedWith('RB012');
 
             // #3 set missed labor overrides larger than report period
-            const missedLaborTime = blockTime - lastMissedLaborReportAt; 
+            const missedLaborTime = blockTime - lastMissedLaborReportAt;
             await expect(
                 rewardsBooster.setMissedLabor(
                     [deploymentId0],
@@ -778,32 +780,22 @@ describe('RewardsBooster Contract', () => {
             ).to.revertedWith('RB011');
 
             // successful set missed labor
-            await rewardsBooster.setMissedLabor([deploymentId0],
+            await rewardsBooster.setMissedLabor(
+                [deploymentId0],
                 [runner0.address],
                 [false],
                 [missedLaborTime],
-                blockTime);
+                blockTime
+            );
 
             // #4 set missed labor double report (use existing reportAt)
             await expect(
-                rewardsBooster.setMissedLabor(
-                    [deploymentId0],
-                    [runner0.address],
-                    [false],
-                    [0],
-                    blockTime
-                )
+                rewardsBooster.setMissedLabor([deploymentId0], [runner0.address], [false], [0], blockTime)
             ).to.revertedWith('RB010');
 
             // #5 report at larger than latest block time
             await expect(
-                rewardsBooster.setMissedLabor(
-                    [deploymentId0],
-                    [runner0.address],
-                    [false],
-                    [0],
-                    blockTime + 10
-                )
+                rewardsBooster.setMissedLabor([deploymentId0], [runner0.address], [false], [0], blockTime + 10)
             ).to.revertedWith('RB010');
         });
     });
