@@ -470,7 +470,7 @@ describe('StateChannel Contract', () => {
             const balance2 = await token.balanceOf(consumer.address);
             expect(balance2).to.equal(etherParse('4.9'));
 
-            await startNewEra(waffle.provider, eraManager);
+            await startNewEra(eraManager);
             await rewardsHelper.connect(runner).indexerCatchup(runner.address);
             const indexerReward = await rewardsDistributor.userRewards(runner.address, runner.address);
 
@@ -587,7 +587,7 @@ describe('StateChannel Contract', () => {
             const query1 = await buildQueryState(channelId, runner, consumer, etherParse('0.4'), false);
 
             await indexerRegistry.connect(runner).unregisterIndexer();
-            await startNewEra(waffle.provider, eraManager);
+            await startNewEra(eraManager);
             // unregister take effect, indexer's stake becomes 0
             // terminate should work, reward goes to pool, but indexer's labor is marked 0
             await stateChannel.connect(runner).terminate(query1);
@@ -597,7 +597,7 @@ describe('StateChannel Contract', () => {
             expect(balanceBefore.sub(balanceAfter)).to.eq(etherParse('0.4'));
 
             // start new era so we can try collect the channel reward
-            const era = await startNewEra(waffle.provider, eraManager);
+            const era = await startNewEra(eraManager);
             const unclaimed = await rewardsPool.getUnclaimDeployments(era.toNumber() - 1, runner.address);
             expect(unclaimed).to.be.empty;
             const reward = await rewardsPool.getReward(deploymentId, era.toNumber() - 1, runner.address);
@@ -644,7 +644,7 @@ describe('StateChannel Contract', () => {
             const query2 = await buildQueryState(channelId2, runner2, consumer, etherParse('0.3'), false);
 
             await indexerRegistry.connect(runner).unregisterIndexer();
-            await startNewEra(waffle.provider, eraManager);
+            await startNewEra(eraManager);
             // unregister take effect, indexer's stake becomes 0
             // terminate should work, reward goes to pool, but indexer's labor is marked 0
             await stateChannel.connect(runner).terminate(query1);
@@ -655,7 +655,7 @@ describe('StateChannel Contract', () => {
             balanceAfter = await token.balanceOf(consumer.address);
             expect(balanceBefore.sub(balanceAfter)).to.eq(etherParse('0.7'));
             // start new era so we can try collect the channel reward
-            const era = await startNewEra(waffle.provider, eraManager);
+            const era = await startNewEra(eraManager);
             await rewardsHelper.connect(runner).indexerCatchup(runner.address);
             const tx = await rewardsHelper.connect(runner2).indexerCatchup(runner2.address);
             const evts = await eventsFrom(tx, token, 'Transfer(address,address,uint256)');
@@ -717,7 +717,7 @@ describe('StateChannel Contract', () => {
             const query3 = await buildQueryState(channelId3, runner3, consumer, etherParse('0.3'), false);
 
             await indexerRegistry.connect(runner).unregisterIndexer();
-            await startNewEra(waffle.provider, eraManager);
+            await startNewEra(eraManager);
             // unregister take effect, indexer's stake becomes 0
             // terminate should work, reward goes to pool, but indexer's labor is marked 0
             await stateChannel.connect(runner).terminate(query1);
@@ -730,7 +730,7 @@ describe('StateChannel Contract', () => {
             balanceAfter = await token.balanceOf(consumer.address);
             expect(balanceBefore.sub(balanceAfter)).to.eq(etherParse('1'));
             // start new era so we can try collect the channel reward
-            const era = await startNewEra(waffle.provider, eraManager);
+            const era = await startNewEra(eraManager);
             await rewardsHelper.connect(runner2).indexerCatchup(runner2.address);
             const tx2 = await rewardsHelper.connect(runner3).indexerCatchup(runner3.address);
             await rewardsHelper.connect(runner).indexerCatchup(runner.address);
