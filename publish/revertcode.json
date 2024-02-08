@@ -210,5 +210,6 @@
     "RB009": "MissedLaborTime exceed total reward period",
     "RB010": "Invalid report time when setMissedLabor",
     "RB011": "MissedLaborTime exceed current report period",
+    "RB012": "MissedLaborChanges and disabled status are not match",
     "OPD01": "l2token address is empty"
 }

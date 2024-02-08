@@ -483,11 +483,13 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         uint256 _reportAt
     ) external {
         require(reporters[msg.sender], 'RB004');
+
+        uint256 len = _deploymentIds.length;
         require(
-            _deploymentIds.length == _runners.length &&
-                _deploymentIds.length == _disableds.length &&
-                _deploymentIds.length == _lastReportTimes.length &&
-                _deploymentIds.length == _missedLaborChanges.length,
+            len == _runners.length &&
+                len == _disableds.length &&
+                len == _lastReportTimes.length &&
+                len == _missedLaborChanges.length,
             'G020'
         );
 
@@ -500,28 +502,26 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
                     _reportAt <= block.timestamp,
                 'RB010'
             );
+
             // scenario#1: if `disabled` changes from any -> false, by default we consider between lastReportMissedLabor and block.timestamp no misslabor
             // unless specified in _missedLaborChanges
             // scenario#2: if `disabled` changes from any -> true, by default we consider between lastReportMissedLabor and block.timestamp is all misslabored
             // unless specified in _missedLaborChanges
-            uint256 missedLaborAdd;
-            if (_disableds[i]) {
-                missedLaborAdd = _reportAt - runnerDeplReward.lastReportMissedLaborTime;
-            }
+            uint256 maxMissedLabor = _reportAt - runnerDeplReward.lastReportMissedLaborTime;
             if (_missedLaborChanges[i] > 0) {
-                require(
-                    _missedLaborChanges[i] <=
-                        _reportAt - runnerDeplReward.lastReportMissedLaborTime,
-                    'RB011'
-                );
-                missedLaborAdd = _missedLaborChanges[i];
+                require(_missedLaborChanges[i] <= maxMissedLabor, 'RB011');
+            } else {
+                require(!_disableds[i], 'RB012');
             }
+
+            uint256 missedLaborAdd = _disableds[i] ? maxMissedLabor :_missedLaborChanges[i];
             runnerDeplReward.missedLaborTime += missedLaborAdd;
             runnerDeplReward.disabled = _disableds[i];
             runnerDeplReward.lastReportMissedLaborTime = _reportAt;
 
             uint256 rewardPeriod = _reportAt - runnerDeplReward.lastClaimedAt;
             require(runnerDeplReward.missedLaborTime <= rewardPeriod, 'RB009');
+
             if (missedLaborAdd > 0) {
                 emit MissedLabor(_deploymentIds[i], _runners[i], missedLaborAdd);
             }
