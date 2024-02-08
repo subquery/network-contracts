@@ -301,7 +301,6 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         if (_isContract(consumer)) {
             IConsumer cConsumer = IConsumer(consumer);
             require(cConsumer.checkSign(channelId, payload, sign), 'C006');
-            cConsumer.paid(channelId, msg.sender, amount, callback);
             realConsumer = cConsumer.channelConsumer(channelId);
         } else {
             _checkSign(payload, sign, consumer, false);
@@ -326,11 +325,15 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         if (rewardsAmount < amount) {
             // transfer the balance to contract
             uint256 realAmount = amount - rewardsAmount;
+            if (_isContract(consumer)) {
+                IConsumer(consumer).paid(channelId, msg.sender, realAmount, callback);
+            }
             IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
                 consumer,
                 address(this),
                 realAmount
             );
+
             channels[channelId].realTotal += realAmount;
         }
 
