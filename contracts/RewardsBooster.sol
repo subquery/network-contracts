@@ -471,14 +471,12 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      * @param _deploymentIds deployment id
      * @param _runners all runner addresses
      * @param _disableds whether runner is disabled for reward
-     * @param _lastReportTimes last report time based on which missedLaborChanges were calculated
      * @param _missedLaborChanges all missed labor within the current report period
      */
     function setMissedLabor(
         bytes32[] calldata _deploymentIds,
         address[] calldata _runners,
         bool[] calldata _disableds,
-        uint256[] calldata _lastReportTimes,
         uint256[] calldata _missedLaborChanges,
         uint256 _reportAt
     ) external {
@@ -486,7 +484,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         require(
             _deploymentIds.length == _runners.length &&
                 _deploymentIds.length == _disableds.length &&
-                _deploymentIds.length == _lastReportTimes.length &&
                 _deploymentIds.length == _missedLaborChanges.length,
             'G020'
         );
@@ -494,9 +491,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         for (uint256 i = 0; i < _runners.length; i++) {
             RunnerDeploymentReward storage runnerDeplReward = deploymentPools[_deploymentIds[i]]
                 .runnerAllocationRewards[_runners[i]];
-            require(_lastReportTimes[i] == runnerDeplReward.lastMissedLaborReportAt, 'RB008');
             require(
-                _reportAt >= runnerDeplReward.lastMissedLaborReportAt &&
+                _reportAt > runnerDeplReward.lastMissedLaborReportAt &&
                     _reportAt <= block.timestamp,
                 'RB010'
             );

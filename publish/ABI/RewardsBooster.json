@@ -922,11 +922,6 @@
             },
             {
                 "internalType": "uint256[]",
-                "name": "_lastReportTimes",
-                "type": "uint256[]"
-            },
-            {
-                "internalType": "uint256[]",
                 "name": "_missedLaborChanges",
                 "type": "uint256[]"
             },
