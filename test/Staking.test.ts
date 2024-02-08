@@ -15,7 +15,7 @@ import {
     Staking,
     StakingManager,
 } from '../src';
-import { etherParse, lastestBlockTime, registerRunner, startNewEra, timeTravel } from './helper';
+import { etherParse, lastestBlockTime, registerRunner, revertrMsg, startNewEra, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
 describe('Staking Contract', () => {
@@ -95,13 +95,13 @@ describe('Staking Contract', () => {
 
         it('update configs without owner should fail', async () => {
             await expect(staking.connect(runner2).setLockPeriod(100)).to.be.revertedWith(
-                'Ownable: caller is not the owner'
+                revertrMsg.notOwner
             );
             await expect(staking.connect(runner2).setIndexerLeverageLimit(100)).to.be.revertedWith(
-                'Ownable: caller is not the owner'
+                revertrMsg.notOwner
             );
             await expect(staking.connect(runner2).setUnbondFeeRateBP(100)).to.be.revertedWith(
-                'Ownable: caller is not the owner'
+                revertrMsg.notOwner
             );
         });
     });

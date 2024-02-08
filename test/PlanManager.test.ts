@@ -17,7 +17,7 @@ import {
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, deploymentIds, metadatas } from './constants';
-import { Wallet, constants, deploySUSD, etherParse, eventFrom, registerRunner, startNewEra, time } from './helper';
+import { Wallet, constants, deploySUSD, etherParse, eventFrom, registerRunner, revertrMsg, startNewEra, time } from './helper';
 import { deployContracts } from './setup';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -80,7 +80,7 @@ describe('PlanManger Contract', () => {
 
         it('set indexer plan limit without owner should fail', async () => {
             await expect(planManager.connect(consumer).setPlanLimit(10)).to.be.revertedWith(
-                'Ownable: caller is not the owner'
+                revertrMsg.notOwner
             );
         });
     });
@@ -135,13 +135,13 @@ describe('PlanManger Contract', () => {
             // not owner
             await expect(
                 planManager.connect(consumer).createPlanTemplate(1000, 1000, 100, token.address, METADATA_HASH)
-            ).to.be.revertedWith('Ownable: caller is not the owner');
+            ).to.be.revertedWith(revertrMsg.notOwner);
             // not owner
             await expect(planManager.connect(consumer).updatePlanTemplateStatus(0, false)).to.be.revertedWith(
-                'Ownable: caller is not the owner'
+                revertrMsg.notOwner
             );
             await expect(planManager.connect(consumer).updatePlanTemplateMetadata(0, metadatas[1])).to.be.revertedWith(
-                'Ownable: caller is not the owner'
+                revertrMsg.notOwner
             );
             // invalid `planTemplateId`
             await expect(planManager.updatePlanTemplateStatus(1, false)).to.be.revertedWith('PM004');

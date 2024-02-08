@@ -88,6 +88,41 @@ export async function futureTimestamp(time: number = days_5) {
     return (await lastestBlockTime()) + time;
 }
 
+export async function delay(sec: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, sec * 1000));
+}
+
+export function cidToBytes32(cid: string): string {
+    return '0x' + Buffer.from(utils.base58.decode(cid)).slice(2).toString('hex');
+}
+
+export function etherParse(etherNum: string | number) {
+    const ether = typeof etherNum === 'string' ? etherNum : etherNum.toString();
+    return utils.parseEther(ether);
+}
+
+export type Event = utils.Result;
+export async function eventFrom(
+    tx: ContractTransaction,
+    contract: BaseContract,
+    event: string
+): Promise<Event | undefined> {
+    const receipt = await tx.wait();
+    const evt = receipt.events.find((log) => log.topics[0] === utils.id(event));
+    if (!evt) return;
+    const eventName = event.split('(')[0];
+    return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics);
+}
+
+export async function eventsFrom(tx: ContractTransaction, contract: BaseContract, event: string): Promise<Event[]> {
+    const receipt = await tx.wait();
+    const evts = receipt.events.filter((log) => log.topics[0] === utils.id(event));
+    const eventName = event.split('(')[0];
+    return evts.map((evt) =>
+        contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics)
+    );
+}
+
 /// helper functions for contract interaction
 // contract call helpers
 export async function registerRunner(
@@ -150,7 +185,7 @@ export async function boosterDeployment(
     rewardsBooster: RewardsBooster,
     signer: SignerWithAddress,
     deployment: string,
-    amount
+    amount: BigNumber,
 ) {
     await token.connect(signer).increaseAllowance(rewardsBooster.address, amount);
     await rewardsBooster.connect(signer).boostDeployment(deployment, amount);
@@ -205,22 +240,14 @@ export async function startNewEra(eraManager: EraManager): Promise<BigNumber> {
     return eraManager.eraNumber();
 }
 
-export async function delay(sec: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, sec * 1000));
-}
-
-export function cidToBytes32(cid: string): string {
-    return '0x' + Buffer.from(utils.base58.decode(cid)).slice(2).toString('hex');
-}
-
 //generate CSAgreement with indexer, consumer, agreement period and agreement value
 //instead of checkAcceptPlan in PlanManager
 export async function acceptPlan(
-    indexer,
-    consumer,
+    indexer: string,
+    consumer: string,
     period: number,
     value: BigNumber,
-    DEPLOYMENT_ID,
+    DEPLOYMENT_ID: string,
     sqtToken: ERC20,
     planManager: PlanManager
 ) {
@@ -233,32 +260,6 @@ export async function acceptPlan(
     );
     await planManager.connect(indexer).createPlan(value, 0, DEPLOYMENT_ID);
     await planManager.connect(consumer).acceptPlan((await planManager.nextPlanId()).toNumber() - 1, DEPLOYMENT_ID);
-}
-
-export function etherParse(etherNum: string | number) {
-    const ether = typeof etherNum === 'string' ? etherNum : etherNum.toString();
-    return utils.parseEther(ether);
-}
-
-export type Event = utils.Result;
-export async function eventFrom(
-    tx: ContractTransaction,
-    contract: BaseContract,
-    event: string
-): Promise<Event | undefined> {
-    const receipt = await tx.wait();
-    const evt = receipt.events.find((log) => log.topics[0] === utils.id(event));
-    if (!evt) return;
-    const eventName = event.split('(')[0];
-    return contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics);
-}
-export async function eventsFrom(tx: ContractTransaction, contract: BaseContract, event: string): Promise<Event[]> {
-    const receipt = await tx.wait();
-    const evts = receipt.events.filter((log) => log.topics[0] === utils.id(event));
-    const eventName = event.split('(')[0];
-    return evts.map((evt) =>
-        contract.interface.decodeEventLog(contract.interface.getEvent(eventName), evt.data, evt.topics)
-    );
 }
 
 export async function deploySUSD(siger: SignerWithAddress) {

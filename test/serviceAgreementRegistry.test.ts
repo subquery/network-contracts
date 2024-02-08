@@ -18,7 +18,7 @@ import {
     ProjectType,
 } from '../src';
 import { METADATA_HASH, VERSION, deploymentIds, poi } from './constants';
-import { createPurchaseOffer, etherParse, eventFrom, futureTimestamp, time, timeTravel } from './helper';
+import { createPurchaseOffer, etherParse, eventFrom, futureTimestamp, revertrMsg, time, timeTravel } from './helper';
 
 describe('Service Agreement Registry Contract', () => {
     const mockProvider = waffle.provider;
@@ -78,7 +78,7 @@ describe('Service Agreement Registry Contract', () => {
         it('add establisher without owner should fail', async () => {
             await expect(
                 serviceAgreementRegistry.connect(wallet1).addEstablisher(planManager.address)
-            ).to.be.revertedWith('Ownable: caller is not the owner');
+            ).to.be.revertedWith(revertrMsg.notOwner);
         });
     });
 

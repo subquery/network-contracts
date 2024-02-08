@@ -14,7 +14,7 @@ import {
     Staking,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION, poi } from './constants';
-import { createPurchaseOffer, etherParse, futureTimestamp, registerRunner, time, timeTravel } from './helper';
+import { createPurchaseOffer, etherParse, futureTimestamp, registerRunner, revertrMsg, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
 describe('Purchase Offer Market Contract', () => {
@@ -162,7 +162,7 @@ describe('Purchase Offer Market Contract', () => {
 
             it('setPenaltyRate should work', async () => {
                 await expect(purchaseOfferMarket.connect(wallet_1).setPenaltyRate(200)).to.be.revertedWith(
-                    'Ownable: caller is not the owner'
+                    revertrMsg.notOwner
                 );
                 await expect(purchaseOfferMarket.connect(wallet_0).setPenaltyRate(1000001)).to.be.revertedWith('PO001');
                 await purchaseOfferMarket.connect(wallet_0).setPenaltyRate(200);
@@ -172,7 +172,7 @@ describe('Purchase Offer Market Contract', () => {
             it('setPenaltyDestination should work', async () => {
                 await expect(
                     purchaseOfferMarket.connect(wallet_1).setPenaltyDestination(wallet_0.address)
-                ).to.be.revertedWith('Ownable: caller is not the owner');
+                ).to.be.revertedWith(revertrMsg.notOwner);
                 await purchaseOfferMarket.connect(wallet_0).setPenaltyDestination(wallet_0.address);
                 expect(await purchaseOfferMarket.penaltyDestination()).to.equal(wallet_0.address);
             });

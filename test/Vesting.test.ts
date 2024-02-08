@@ -6,7 +6,7 @@ import { expect } from 'chai';
 import { BigNumber } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 import { SQToken, Vesting } from '../src';
-import { etherParse, eventFrom } from './helper';
+import { etherParse, eventFrom, revertrMsg } from './helper';
 import { deployRootContracts } from './setup';
 import { VTSQToken } from 'build';
 
@@ -37,7 +37,7 @@ describe('Vesting Contract', () => {
 
     const parseEther = (value: number) => ethers.utils.parseEther(value.toString());
 
-    const ownableRevert = 'Ownable: caller is not the owner';
+    const ownableRevert = revertrMsg.notOwner;
 
     async function createPlan(lockPeriod: number, vestingPeriod: number): Promise<number> {
         const tx = await vestingContract.addVestingPlan(lockPeriod, vestingPeriod, initialUnlockPercent);
@@ -104,12 +104,12 @@ describe('Vesting Contract', () => {
 
         it('non admin should fail', async () => {
             await expect(vestingContract.connect(wallet1).addVestingPlan(lockPeriod, vestingPeriod, 0)).to.revertedWith(
-                'Ownable: caller is not the owner'
+                revertrMsg.notOwner
             );
             await vestingContract.renounceOwnership();
 
             await expect(vestingContract.addVestingPlan(lockPeriod, vestingPeriod, 0)).to.revertedWith(
-                'Ownable: caller is not the owner'
+                revertrMsg.notOwner
             );
         });
     });
