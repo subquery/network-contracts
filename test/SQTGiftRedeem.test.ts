@@ -3,7 +3,7 @@
 
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
-import { etherParse, eventsFrom, revertrMsg } from './helper';
+import { etherParse, eventsFrom, revertMsg } from './helper';
 import { deployContracts } from './setup';
 import { SQTGift, SQTRedeem } from 'build';
 import { ERC20 } from '../src';
@@ -53,11 +53,11 @@ describe('Redeem Contract', () => {
         });
 
         it('only owner can call configuration function', async () => {
-            await expect(sqtRedeem.connect(wallet_1).setRedeemable(true)).to.be.revertedWith(revertrMsg.notOwner);
-            await expect(sqtRedeem.connect(wallet_1).deposit(amount)).to.be.revertedWith(revertrMsg.notOwner);
-            await expect(sqtRedeem.connect(wallet_1).withdraw(amount)).to.be.revertedWith(revertrMsg.notOwner);
+            await expect(sqtRedeem.connect(wallet_1).setRedeemable(true)).to.be.revertedWith(revertMsg.notOwner);
+            await expect(sqtRedeem.connect(wallet_1).deposit(amount)).to.be.revertedWith(revertMsg.notOwner);
+            await expect(sqtRedeem.connect(wallet_1).withdraw(amount)).to.be.revertedWith(revertMsg.notOwner);
             await expect(sqtRedeem.connect(wallet_1).setRedeemableAmount(nft.address, 0, amount)).to.be.revertedWith(
-                revertrMsg.notOwner
+                revertMsg.notOwner
             );
         });
     });
@@ -95,7 +95,7 @@ describe('Redeem Contract', () => {
             await expect(sqtRedeem.redeem(nft.address, 1)).to.be.revertedWith('SQR004');
             // 4. can not redeem if sqt token is not enough
             await sqtRedeem.setRedeemableAmount(nft.address, 0, amount);
-            await expect(sqtRedeem.redeem(nft.address, 1)).to.be.revertedWith(revertrMsg.insufficientBalance);
+            await expect(sqtRedeem.redeem(nft.address, 1)).to.be.revertedWith(revertMsg.insufficientBalance);
         });
 
         it('should be able to batch redeem with valid NFT token', async () => {

@@ -154,7 +154,7 @@ export async function createPurchaseOffer(
     minimumStakingAmount = etherParse('1000')
 ): Promise<BigNumber> {
     await token.increaseAllowance(purchaseOfferMarket.address, deposit);
-    await purchaseOfferMarket.createPurchaseOffer(
+    const tx = await purchaseOfferMarket.createPurchaseOffer(
         deploymentId,
         planTemplateId,
         deposit,
@@ -163,8 +163,12 @@ export async function createPurchaseOffer(
         minimumStakingAmount,
         expireDate
     );
-    const offerId = (await purchaseOfferMarket.numOffers()).sub(1);
-    return offerId;
+    const evt = await eventFrom(
+        tx,
+        purchaseOfferMarket,
+        'PurchaseOfferCreated(address,uint256,bytes32,uint256,uint256,uint16,uint256,uint256,uint256)'
+    );
+    return evt.offerId;
 }
 
 export function createProject(
@@ -269,7 +273,7 @@ export async function deploySUSD(siger: SignerWithAddress) {
     return USDC;
 }
 
-export const revertrMsg = {
+export const revertMsg = {
     notOwner: 'Ownable: caller is not the owner',
     insufficientBalance: 'ERC20: transfer amount exceeds balance',
     insufficientAllowance: 'ERC20: insufficient allowance',

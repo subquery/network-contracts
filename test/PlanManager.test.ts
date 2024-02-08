@@ -24,7 +24,7 @@ import {
     etherParse,
     eventFrom,
     registerRunner,
-    revertrMsg,
+    revertMsg,
     startNewEra,
     time,
 } from './helper';
@@ -88,7 +88,7 @@ describe('PlanManger Contract', () => {
         });
 
         it('set indexer plan limit without owner should fail', async () => {
-            await expect(planManager.connect(consumer).setPlanLimit(10)).to.be.revertedWith(revertrMsg.notOwner);
+            await expect(planManager.connect(consumer).setPlanLimit(10)).to.be.revertedWith(revertMsg.notOwner);
         });
     });
 
@@ -142,13 +142,13 @@ describe('PlanManger Contract', () => {
             // not owner
             await expect(
                 planManager.connect(consumer).createPlanTemplate(1000, 1000, 100, token.address, METADATA_HASH)
-            ).to.be.revertedWith(revertrMsg.notOwner);
+            ).to.be.revertedWith(revertMsg.notOwner);
             // not owner
             await expect(planManager.connect(consumer).updatePlanTemplateStatus(0, false)).to.be.revertedWith(
-                revertrMsg.notOwner
+                revertMsg.notOwner
             );
             await expect(planManager.connect(consumer).updatePlanTemplateMetadata(0, metadatas[1])).to.be.revertedWith(
-                revertrMsg.notOwner
+                revertMsg.notOwner
             );
             // invalid `planTemplateId`
             await expect(planManager.updatePlanTemplateStatus(1, false)).to.be.revertedWith('PM004');

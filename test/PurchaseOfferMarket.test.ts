@@ -19,7 +19,7 @@ import {
     etherParse,
     futureTimestamp,
     registerRunner,
-    revertrMsg,
+    revertMsg,
     time,
     timeTravel,
 } from './helper';
@@ -169,7 +169,7 @@ describe('Purchase Offer Market Contract', () => {
 
             it('setPenaltyRate should work', async () => {
                 await expect(purchaseOfferMarket.connect(wallet_1).setPenaltyRate(200)).to.be.revertedWith(
-                    revertrMsg.notOwner
+                    revertMsg.notOwner
                 );
                 await expect(purchaseOfferMarket.connect(wallet_0).setPenaltyRate(1000001)).to.be.revertedWith('PO001');
                 await purchaseOfferMarket.connect(wallet_0).setPenaltyRate(200);
@@ -179,7 +179,7 @@ describe('Purchase Offer Market Contract', () => {
             it('setPenaltyDestination should work', async () => {
                 await expect(
                     purchaseOfferMarket.connect(wallet_1).setPenaltyDestination(wallet_0.address)
-                ).to.be.revertedWith(revertrMsg.notOwner);
+                ).to.be.revertedWith(revertMsg.notOwner);
                 await purchaseOfferMarket.connect(wallet_0).setPenaltyDestination(wallet_0.address);
                 expect(await purchaseOfferMarket.penaltyDestination()).to.equal(wallet_0.address);
             });

@@ -31,7 +31,7 @@ import {
     wrapTxs,
     startNewEra,
     timeTravel,
-    revertrMsg,
+    revertMsg,
     lastestBlockTime,
 } from './helper';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -222,12 +222,12 @@ describe('RewardsBooster Contract', () => {
         it('none owner can not call owner operation', async () => {
             await expect(
                 rewardsBooster.connect(runner0).setBoosterQueryRewardRate(ProjectType.SUBQUERY, 5e5)
-            ).to.be.revertedWith(revertrMsg.notOwner);
+            ).to.be.revertedWith(revertMsg.notOwner);
             await expect(rewardsBooster.connect(runner0).setIssuancePerBlock(etherParse('1000'))).to.be.revertedWith(
-                revertrMsg.notOwner
+                revertMsg.notOwner
             );
             await expect(rewardsBooster.connect(runner0).setReporter(runner0.address, true)).to.be.revertedWith(
-                revertrMsg.notOwner
+                revertMsg.notOwner
             );
         });
     });

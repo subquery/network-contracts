@@ -30,7 +30,7 @@ import {
     startNewEra,
     time,
     openChannel,
-    revertrMsg,
+    revertMsg,
 } from './helper';
 
 describe('StateChannel Contract', () => {
@@ -145,7 +145,7 @@ describe('StateChannel Contract', () => {
 
         it('set State Channel terminateExpiration without owner should fail', async () => {
             await expect(stateChannel.connect(consumer).setTerminateExpiration(10)).to.be.revertedWith(
-                revertrMsg.notOwner
+                revertMsg.notOwner
             );
         });
     });
