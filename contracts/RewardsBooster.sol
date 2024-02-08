@@ -483,13 +483,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         uint256 _reportAt
     ) external {
         require(reporters[msg.sender], 'RB004');
-
-        uint256 len = _deploymentIds.length;
         require(
-            len == _runners.length &&
-                len == _disableds.length &&
-                len == _lastReportTimes.length &&
-                len == _missedLaborChanges.length,
+            _deploymentIds.length == _runners.length &&
+                _deploymentIds.length == _disableds.length &&
+                _deploymentIds.length == _lastReportTimes.length &&
+                _deploymentIds.length == _missedLaborChanges.length,
             'G020'
         );
 
@@ -507,12 +505,17 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             // unless specified in _missedLaborChanges
             // scenario#2: if `disabled` changes from any -> true, by default we consider between lastReportMissedLabor and block.timestamp is all misslabored
             // unless specified in _missedLaborChanges
-            uint256 maxMissedLabor = _reportAt - runnerDeplReward.lastMissedLaborReportAt;
-            if (_missedLaborChanges[i] > 0) {
-                require(_missedLaborChanges[i] <= maxMissedLabor, 'RB011');
+            uint256 missedLaborAdd;
+            if (_disableds[i]) {
+                missedLaborAdd = _reportAt - runnerDeplReward.lastMissedLaborReportAt;
             }
-
-            uint256 missedLaborAdd = _disableds[i] ? maxMissedLabor : _missedLaborChanges[i];
+            if (_missedLaborChanges[i] > 0) {
+                require(
+                    _missedLaborChanges[i] <= _reportAt - runnerDeplReward.lastMissedLaborReportAt,
+                    'RB011'
+                );
+                missedLaborAdd = _missedLaborChanges[i];
+            }
             runnerDeplReward.missedLaborTime += missedLaborAdd;
             runnerDeplReward.disabled = _disableds[i];
             runnerDeplReward.lastMissedLaborReportAt = _reportAt;
