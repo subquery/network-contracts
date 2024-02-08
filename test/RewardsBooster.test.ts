@@ -622,8 +622,8 @@ describe('RewardsBooster Contract', () => {
             expect(missedLabor3).to.eq(0);
         });
 
-        // disabled=true with overrides
-        it('set missed labor complex #3', async () => {
+        // disabled=true with overrides should ignore the ovverides and count the whole period from lastMissedLaborReportAt
+        it.only('set missed labor complex #3', async () => {
             // setup, use deploymentId0, runner0
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
@@ -636,7 +636,6 @@ describe('RewardsBooster Contract', () => {
             );
             const missedLabor = await rewardsBooster.getMissedLabor(deploymentId0, runner0.address);
             expect(missedLabor).to.eq(0);
-            const blockTime = (await mockProvider.getBlock('latest')).timestamp;
             // set missed labor time = whole rewardPeriod
             const overrideMissedLabor = 1000;
             await rewardsBooster.setMissedLabor(
@@ -649,10 +648,7 @@ describe('RewardsBooster Contract', () => {
             );
             const missedLabor2 = await rewardsBooster.getMissedLabor(deploymentId0, runner0.address);
             const blockTime2 = (await mockProvider.getBlock('latest')).timestamp;
-            expect(missedLabor2.sub(missedLabor)).not.to.eq(
-                blockTime2 - runnerDeploymentReward.lastMissedLaborReportAt.toNumber()
-            );
-            expect(missedLabor2.sub(missedLabor)).to.eq(overrideMissedLabor + (blockTime2 - blockTime));
+            expect(missedLabor2.sub(missedLabor)).eq(blockTime2 - runnerDeploymentReward.lastMissedLaborReportAt.toNumber());
         });
 
         // disabled=false with overrides

@@ -510,8 +510,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             uint256 maxMissedLabor = _reportAt - runnerDeplReward.lastMissedLaborReportAt;
             if (_missedLaborChanges[i] > 0) {
                 require(_missedLaborChanges[i] <= maxMissedLabor, 'RB011');
-            } else {
-                require(!_disableds[i], 'RB012');
             }
 
             uint256 missedLaborAdd = _disableds[i] ? maxMissedLabor : _missedLaborChanges[i];
