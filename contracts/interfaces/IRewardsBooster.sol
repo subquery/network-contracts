@@ -41,7 +41,7 @@ interface IRewardsBooster {
         uint256 lastClaimedAt;
         uint256 overflowTimeSnapshot;
         // missedLabor
-        uint256 lastReportMissedLaborTime;
+        uint256 lastMissedLaborReportAt;
         bool disabled;
     }
 

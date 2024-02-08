@@ -494,7 +494,7 @@ describe('RewardsBooster Contract', () => {
                 [deploymentId0],
                 [runner0.address],
                 [true],
-                [runnerDeploymentReward.lastReportMissedLaborTime],
+                [runnerDeploymentReward.lastMissedLaborReportAt],
                 [rewardPeriod],
                 block.timestamp
             );
@@ -506,7 +506,7 @@ describe('RewardsBooster Contract', () => {
             );
             expect(allocationReward2).to.eq(0);
             expect(missedLabor1).to.gt(rewardPeriod);
-            expect(runnerDeploymentReward.lastReportMissedLaborTime).to.eq(block.timestamp);
+            expect(runnerDeploymentReward.lastMissedLaborReportAt).to.eq(block.timestamp);
             // burnt reward = allocationReward + reward for last block
             expect(allocationRewardBurnt2).to.eq(allocationReward.add(perBlockAllocationReward));
 
@@ -517,7 +517,7 @@ describe('RewardsBooster Contract', () => {
                 [deploymentId0],
                 [runner0.address],
                 [false],
-                [runnerDeploymentReward.lastReportMissedLaborTime],
+                [runnerDeploymentReward.lastMissedLaborReportAt],
                 [0],
                 block.timestamp
             );
@@ -573,14 +573,14 @@ describe('RewardsBooster Contract', () => {
                 [deploymentId0],
                 [runner0.address],
                 [true],
-                [runnerDeploymentReward.lastReportMissedLaborTime],
+                [runnerDeploymentReward.lastMissedLaborReportAt],
                 [0],
                 block.timestamp
             );
             const missedLabor2 = await rewardsBooster.getMissedLabor(deploymentId0, runner0.address);
             const blockTime2 = (await mockProvider.getBlock('latest')).timestamp;
             expect(missedLabor2.sub(missedLabor)).to.eq(
-                blockTime2 - runnerDeploymentReward.lastReportMissedLaborTime.toNumber()
+                blockTime2 - runnerDeploymentReward.lastMissedLaborReportAt.toNumber()
             );
             await blockTravel(mockProvider, 500);
             const missedLabor3 = await rewardsBooster.getMissedLabor(deploymentId0, runner0.address);
@@ -611,7 +611,7 @@ describe('RewardsBooster Contract', () => {
                 [deploymentId0],
                 [runner0.address],
                 [false],
-                [runnerDeploymentReward.lastReportMissedLaborTime],
+                [runnerDeploymentReward.lastMissedLaborReportAt],
                 [0],
                 block.timestamp
             );
@@ -643,14 +643,14 @@ describe('RewardsBooster Contract', () => {
                 [deploymentId0],
                 [runner0.address],
                 [true],
-                [runnerDeploymentReward.lastReportMissedLaborTime],
+                [runnerDeploymentReward.lastMissedLaborReportAt],
                 [overrideMissedLabor],
                 block.timestamp
             );
             const missedLabor2 = await rewardsBooster.getMissedLabor(deploymentId0, runner0.address);
             const blockTime2 = (await mockProvider.getBlock('latest')).timestamp;
             expect(missedLabor2.sub(missedLabor)).not.to.eq(
-                blockTime2 - runnerDeploymentReward.lastReportMissedLaborTime.toNumber()
+                blockTime2 - runnerDeploymentReward.lastMissedLaborReportAt.toNumber()
             );
             expect(missedLabor2.sub(missedLabor)).to.eq(overrideMissedLabor + (blockTime2 - blockTime));
         });
@@ -679,7 +679,7 @@ describe('RewardsBooster Contract', () => {
                 [deploymentId0],
                 [runner0.address],
                 [false],
-                [runnerDeploymentReward.lastReportMissedLaborTime],
+                [runnerDeploymentReward.lastMissedLaborReportAt],
                 [overrideMissedLabor],
                 block.timestamp
             );
@@ -702,13 +702,13 @@ describe('RewardsBooster Contract', () => {
             expect(missedLabor).to.eq(0);
             const blockTime = (await mockProvider.getBlock('latest')).timestamp;
             // set missed labor time = whole rewardPeriod
-            const reportPeriod = blockTime - runnerDeploymentReward.lastReportMissedLaborTime.toNumber();
+            const reportPeriod = blockTime - runnerDeploymentReward.lastMissedLaborReportAt.toNumber();
             await expect(
                 rewardsBooster.setMissedLabor(
                     [deploymentId0],
                     [runner0.address],
                     [false],
-                    [runnerDeploymentReward.lastReportMissedLaborTime],
+                    [runnerDeploymentReward.lastMissedLaborReportAt],
                     [reportPeriod + 1],
                     blockTime
                 )
@@ -718,7 +718,7 @@ describe('RewardsBooster Contract', () => {
                     [deploymentId0],
                     [runner0.address],
                     [false],
-                    [runnerDeploymentReward.lastReportMissedLaborTime],
+                    [runnerDeploymentReward.lastMissedLaborReportAt],
                     [reportPeriod],
                     blockTime
                 )

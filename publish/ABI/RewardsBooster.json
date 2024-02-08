@@ -678,7 +678,7 @@
                     },
                     {
                         "internalType": "uint256",
-                        "name": "lastReportMissedLaborTime",
+                        "name": "lastMissedLaborReportAt",
                         "type": "uint256"
                     },
                     {
