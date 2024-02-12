@@ -65,7 +65,9 @@ contract Vesting is Ownable {
 
         userPlanId[addr] = planId;
         allocations[addr] = allocation;
-        totalAllocation += allocation;
+        unchecked {
+            totalAllocation += allocation;
+        }
 
         ISQToken(vtToken).mint(addr, allocation);
 
@@ -73,15 +75,16 @@ contract Vesting is Ownable {
     }
 
     function batchAllocateVesting(
-        uint256 planId,
-        address[] memory addrs,
-        uint256[] memory _allocations
+        uint256[] calldata _planIds,
+        address[] calldata _addrs,
+        uint256[] calldata _allocations
     ) external onlyOwner {
-        require(addrs.length > 0, 'V005');
-        require(addrs.length == _allocations.length, 'V006');
+        require(_addrs.length > 0, 'V005');
+        require(_addrs.length == _allocations.length, 'V006');
+        require(_addrs.length == _planIds.length, 'V006');
 
-        for (uint256 i = 0; i < addrs.length; i++) {
-            allocateVesting(addrs[i], planId, _allocations[i]);
+        for (uint256 i = 0; i < _addrs.length; i++) {
+            allocateVesting(_addrs[i], _planIds[i], _allocations[i]);
         }
     }
 
@@ -156,5 +159,9 @@ contract Vesting is Ownable {
         uint256 initialAmount = (allocations[user] * plan.initialUnlockPercent) / 100;
         uint256 vestingTokens = allocations[user] - initialAmount;
         return initialAmount + (vestingTokens * vestedPeriod) / plan.vestingPeriod - claimed[user];
+    }
+
+    function plansLength() external view returns (uint256) {
+        return plans.length;
     }
 }

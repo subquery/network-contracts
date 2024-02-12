@@ -177,13 +177,13 @@
     {
         "inputs": [
             {
-                "internalType": "uint256",
-                "name": "planId",
-                "type": "uint256"
+                "internalType": "uint256[]",
+                "name": "_planIds",
+                "type": "uint256[]"
             },
             {
                 "internalType": "address[]",
-                "name": "addrs",
+                "name": "_addrs",
                 "type": "address[]"
             },
             {
@@ -256,19 +256,6 @@
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
-            }
-        ],
-        "name": "depositByAdmin",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [],
         "name": "owner",
         "outputs": [
@@ -304,6 +291,19 @@
             {
                 "internalType": "uint256",
                 "name": "initialUnlockPercent",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "plansLength",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
                 "type": "uint256"
             }
         ],
