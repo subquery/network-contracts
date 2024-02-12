@@ -28,6 +28,7 @@ import {
 } from '../src';
 import { METADATA_HASH } from './constants';
 import { expect } from 'chai';
+import assert from 'assert';
 
 export { constants, time };
 
@@ -44,6 +45,22 @@ export async function timeTravel(seconds: number) {
     const provider = waffle.provider;
     await provider.send('evm_increaseTime', [seconds]);
     await provider.send('evm_mine', []);
+}
+
+export async function timeTravelTo(date: number, blocktime = 2) {
+    const provider = waffle.provider;
+    // await provider.send('evm_setNextBlockTimestamp', [date]);
+    // await provider.send('evm_mine', []);
+    const now = await lastestBlockTime();
+    let seconds = date - now;
+    assert(seconds > 0, `invalid date: can not travel to past`);
+    const blocks = seconds / blocktime;
+    for (let i = 0; i < Math.ceil(blocks); i++) {
+        const timePass = seconds < blocktime ? seconds : blocktime;
+        await provider.send('evm_increaseTime', [timePass]);
+        await provider.send('evm_mine', []);
+        seconds -= timePass;
+    }
 }
 
 export async function blockTravel(blocks: number, interval = 6) {

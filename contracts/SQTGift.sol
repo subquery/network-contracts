@@ -153,10 +153,10 @@ contract SQTGift is
         return 'ipfs://';
     }
 
-    function mint(uint256 _seriesId) public {
+    function _mintGift(uint256 _seriesId, address _account) internal {
         GiftSeries memory giftSerie = series[_seriesId];
         require(giftSerie.active, 'SQG004');
-        require(allowlist[msg.sender][_seriesId] > 0, 'SQG002');
+        require(allowlist[_account][_seriesId] > 0, 'SQG002');
 
         require(giftSerie.totalSupply < giftSerie.maxSupply, 'SQG005');
         series[_seriesId].totalSupply += 1;
@@ -164,12 +164,20 @@ contract SQTGift is
         uint256 tokenId = totalSupply() + 1;
         gifts[tokenId].seriesId = _seriesId;
 
-        _safeMint(msg.sender, tokenId);
+        _safeMint(_account, tokenId);
         _setTokenURI(tokenId, giftSerie.tokenURI);
 
-        allowlist[msg.sender][_seriesId]--;
+        allowlist[_account][_seriesId]--;
 
-        emit GiftMinted(msg.sender, _seriesId, tokenId, giftSerie.tokenURI);
+        emit GiftMinted(_account, _seriesId, tokenId, giftSerie.tokenURI);
+    }
+
+    function mint(uint256 _seriesId) external {
+        _mintGift(_seriesId, msg.sender);
+    }
+
+    function mintFor(uint256 _seriesId, address _account) external {
+        _mintGift(_seriesId, _account);
     }
 
     function batchMint(uint256 _seriesId) external {
@@ -178,7 +186,7 @@ contract SQTGift is
         uint8 allowAmount = allowlist[msg.sender][_seriesId];
         require(allowAmount > 0, 'SQG002');
         for (uint256 i = 0; i < allowAmount; i++) {
-            mint(_seriesId);
+            _mintGift(_seriesId, msg.sender);
         }
     }
 

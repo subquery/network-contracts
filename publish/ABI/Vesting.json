@@ -208,6 +208,19 @@
         "inputs": [
             {
                 "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "claimFor",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
                 "name": "user",
                 "type": "address"
             }
