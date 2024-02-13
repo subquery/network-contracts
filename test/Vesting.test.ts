@@ -119,7 +119,7 @@ describe('Vesting Contract', () => {
 
         it('batch allocate vesting should work', async () => {
             await vestingContract.batchAllocateVesting(
-                0,
+                [0, 0],
                 [wallet1.address, wallet2.address],
                 [parseEther(1000), parseEther(3000)]
             );
@@ -152,10 +152,10 @@ describe('Vesting Contract', () => {
 
         it('batch allocate vesting with incorrect config should fail', async () => {
             // empty addresses
-            await expect(vestingContract.batchAllocateVesting(1, [], [parseEther(1000)])).to.be.revertedWith('V005');
+            await expect(vestingContract.batchAllocateVesting([1], [], [parseEther(1000)])).to.be.revertedWith('V005');
             // addresses are not match with allocations
             await expect(
-                vestingContract.batchAllocateVesting(1, [wallet3.address, wallet4.address], [parseEther(1000)])
+                vestingContract.batchAllocateVesting([1], [wallet3.address, wallet4.address], [parseEther(1000)])
             ).to.be.revertedWith('V006');
         });
     });
@@ -195,7 +195,7 @@ describe('Vesting Contract', () => {
         beforeEach(async () => {
             const planId = await createPlan(lockPeriod, vestingPeriod);
             await vestingContract.batchAllocateVesting(
-                planId,
+                [planId, planId],
                 [wallet1.address, wallet2.address],
                 [parseEther(1000), parseEther(3000)]
             );
@@ -231,7 +231,7 @@ describe('Vesting Contract', () => {
             await expect(vestingContract.withdrawAllByAdmin()).to.be.revertedWith(ownableRevert);
             await expect(vestingContract.addVestingPlan(0, 0, 10)).to.be.revertedWith(ownableRevert);
             await expect(vestingContract.allocateVesting(wallet1.address, 0, 0)).to.be.revertedWith(ownableRevert);
-            await expect(vestingContract.batchAllocateVesting(1, [wallet1.address], [0])).to.be.revertedWith(
+            await expect(vestingContract.batchAllocateVesting([1], [wallet1.address], [0])).to.be.revertedWith(
                 ownableRevert
             );
         });
@@ -245,7 +245,7 @@ describe('Vesting Contract', () => {
             await sqToken.transfer(vestingContract.address, utils.parseEther('4000'));
             const planId = await createPlan(lockPeriod, vestingPeriod);
             await vestingContract.batchAllocateVesting(
-                planId,
+                [planId, planId],
                 [wallet1.address, wallet2.address],
                 [wallet1Allocation, wallet2Allocation]
             );
@@ -432,7 +432,7 @@ describe('Vesting Contract', () => {
             const wallets = [b0, b1, b2, b3, b4, b5];
             for (const [planId, { total }] of EXPECTATION.entries()) {
                 await vestingContract.batchAllocateVesting(
-                    planId,
+                    [planId],
                     [wallets[planId].address],
                     [utils.parseEther(total.toString())]
                 );
@@ -470,7 +470,7 @@ describe('Vesting Contract', () => {
                         if (EXPECTATION[planId].monthly[month + 1] === undefined) {
                             const balance = await sqToken.balanceOf(wallet.address);
                             expect(balance).to.eq(utils.parseEther(EXPECTATION[planId].total.toString()));
-                            console.log(`planId: ${planId} matches`);
+                            console.log(`planId: ${planId}, matches`);
                         }
                     }
                 }
