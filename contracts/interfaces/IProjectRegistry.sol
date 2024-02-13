@@ -10,7 +10,9 @@ enum ServiceStatus {
 
 enum ProjectType {
     SUBQUERY,
-    RPC
+    RPC,
+    SQ_DICT,
+    SUBGRAPH
 }
 
 struct ProjectInfo {
