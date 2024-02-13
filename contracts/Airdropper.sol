@@ -81,7 +81,7 @@ contract Airdropper is Ownable {
     ) external onlyController {
         Round memory round = roundRecord[_roundId];
         require(round.roundStartTime > 0 && round.roundDeadline > block.timestamp, 'A011');
-        require(_roundStartTime > round.roundStartTime && _roundDeadline > _roundStartTime, 'A001');
+        require(_roundStartTime > block.timestamp && _roundDeadline > _roundStartTime, 'A001');
 
         roundRecord[_roundId].roundStartTime = _roundStartTime;
         roundRecord[_roundId].roundDeadline = _roundDeadline;
@@ -149,7 +149,7 @@ contract Airdropper is Ownable {
         }
     }
 
-    function settleEndedRound(uint256 _roundId) public {
+    function settleEndedRound(uint256 _roundId) external {
         require(roundRecord[_roundId].roundDeadline < block.timestamp, 'A008');
         uint256 unclaimAmount = roundRecord[_roundId].unclaimedAmount;
         require(unclaimAmount != 0, 'A009');
