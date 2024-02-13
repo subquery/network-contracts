@@ -81,7 +81,7 @@ contract Airdropper is Ownable {
     ) external onlyController {
         Round memory round = roundRecord[_roundId];
         require(round.roundStartTime > 0 && round.roundDeadline > block.timestamp, 'A011');
-        require(_roundStartTime > round.roundStartTime && _roundDeadline > _roundStartTime, 'A001');
+        require(_roundStartTime > block.timestamp && _roundDeadline > _roundStartTime, 'A001');
 
         roundRecord[_roundId].roundStartTime = _roundStartTime;
         roundRecord[_roundId].roundDeadline = _roundDeadline;
@@ -115,33 +115,41 @@ contract Airdropper is Ownable {
         }
     }
 
-    function claimAirdrop(uint256 _roundId) public {
+    function claimAirdropFor(uint256 _roundId, address account) external {
+        _claimAirdrop(_roundId, account);
+    }
+
+    function claimAirdrop(uint256 _roundId) external {
+        _claimAirdrop(_roundId, msg.sender);
+    }
+
+    function _claimAirdrop(uint256 _roundId, address account) internal {
         require(
             roundRecord[_roundId].roundDeadline > block.timestamp &&
                 roundRecord[_roundId].roundStartTime < block.timestamp,
             'A005'
         );
-        uint256 amount = airdropRecord[msg.sender][_roundId];
+        uint256 amount = airdropRecord[account][_roundId];
         require(amount != 0, 'A006');
 
         require(
             IERC20(roundRecord[_roundId].tokenAddress).balanceOf(address(this)) >= amount,
             'A007'
         );
-        IERC20(roundRecord[_roundId].tokenAddress).safeTransfer(msg.sender, amount);
-        airdropRecord[msg.sender][_roundId] = 0;
+        IERC20(roundRecord[_roundId].tokenAddress).safeTransfer(account, amount);
+        airdropRecord[account][_roundId] = 0;
 
         roundRecord[_roundId].unclaimedAmount -= amount;
-        emit AirdropClaimed(msg.sender, _roundId, amount);
+        emit AirdropClaimed(account, _roundId, amount);
     }
 
-    function batchClaimAirdrop(uint256[] calldata _roundIds) public {
+    function batchClaimAirdrop(uint256[] calldata _roundIds) external {
         for (uint256 i = 0; i < _roundIds.length; i++) {
-            claimAirdrop(_roundIds[i]);
+            _claimAirdrop(_roundIds[i], msg.sender);
         }
     }
 
-    function settleEndedRound(uint256 _roundId) public {
+    function settleEndedRound(uint256 _roundId) external {
         require(roundRecord[_roundId].roundDeadline < block.timestamp, 'A008');
         uint256 unclaimAmount = roundRecord[_roundId].unclaimedAmount;
         require(unclaimAmount != 0, 'A009');

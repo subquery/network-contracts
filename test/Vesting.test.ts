@@ -3,37 +3,33 @@
 
 import { Wallet } from '@ethersproject/wallet';
 import { expect } from 'chai';
-import { BigNumber } from 'ethers';
+import { BigNumber, utils } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 import { SQToken, Vesting } from '../src';
-import { etherParse, eventFrom, revertMsg } from './helper';
+import { etherParse, eventFrom, lastestBlockTime, revertMsg, timeTravel, timeTravelTo } from './helper';
 import { deployRootContracts } from './setup';
 import { VTSQToken } from 'build';
+import { EXPECTATION, PLANS } from './Vesting.test-data';
+import * as console from 'console';
 
 type ClaimVestingEvent = { user: string; amount: BigNumber };
 
 describe('Vesting Contract', () => {
     const mockProvider = waffle.provider;
-    const [wallet, wallet1, wallet2, wallet3, wallet4] = mockProvider.getWallets();
+    const [wallet, wallet1, wallet2, wallet3, wallet4, b0, b1, b2, b3, b4, b5] = mockProvider.getWallets();
 
     let sqToken: SQToken;
     let vtSQToken: VTSQToken;
     let vestingContract: Vesting;
-    let lockPeriod: number;
-    let vestingPeriod: number;
+    const lockPeriod = 86400 * 30; // 2 month
+    const vestingPeriod = 86400 * 365; // 1 year
     const initialUnlockPercent = 10;
 
     async function claimVesting(wallet: Wallet): Promise<ClaimVestingEvent> {
-        await vtSQToken.connect(wallet).increaseAllowance(vestingContract.address, parseEther(10000));
         const tx = await vestingContract.connect(wallet).claim();
         const evt = await eventFrom(tx, vestingContract, 'VestingClaimed(address,uint256)');
         return evt as unknown as ClaimVestingEvent;
     }
-
-    const timeTravel = async (seconds: number) => {
-        await mockProvider.send('evm_increaseTime', [seconds]);
-        await mockProvider.send('evm_mine', []);
-    };
 
     const parseEther = (value: number) => ethers.utils.parseEther(value.toString());
 
@@ -72,10 +68,6 @@ describe('Vesting Contract', () => {
         sqToken = deployment.rootToken;
         vestingContract = deployment.vesting;
         vtSQToken = deployment.vtSQToken;
-        lockPeriod = 86400 * 30; // 2 month
-        vestingPeriod = 86400 * 365; // 1 year
-
-        await sqToken.approve(vestingContract.address, parseEther(4000));
     });
 
     describe('Vesting Plan', () => {
@@ -127,7 +119,7 @@ describe('Vesting Contract', () => {
 
         it('batch allocate vesting should work', async () => {
             await vestingContract.batchAllocateVesting(
-                0,
+                [0, 0],
                 [wallet1.address, wallet2.address],
                 [parseEther(1000), parseEther(3000)]
             );
@@ -160,33 +152,42 @@ describe('Vesting Contract', () => {
 
         it('batch allocate vesting with incorrect config should fail', async () => {
             // empty addresses
-            await expect(vestingContract.batchAllocateVesting(1, [], [parseEther(1000)])).to.be.revertedWith('V005');
+            await expect(vestingContract.batchAllocateVesting([1], [], [parseEther(1000)])).to.be.revertedWith('V005');
             // addresses are not match with allocations
             await expect(
-                vestingContract.batchAllocateVesting(1, [wallet3.address, wallet4.address], [parseEther(1000)])
+                vestingContract.batchAllocateVesting([1], [wallet3.address, wallet4.address], [parseEther(1000)])
             ).to.be.revertedWith('V006');
         });
     });
 
-    describe('Token Manangement By Admin', () => {
-        it('deposit and widthdraw all by admin should work', async () => {
-            await vestingContract.depositByAdmin(1000);
-            expect(await sqToken.balanceOf(vestingContract.address)).to.eq(1000);
-            expect(await vtSQToken.totalSupply()).to.eq(0);
+    describe('Vesting Token vtSQT', () => {
+        beforeEach(async () => {
+            await vestingContract.addVestingPlan(lockPeriod, vestingPeriod, 10);
+        });
 
+        it('vtSQT can not burn without approval unless it is from minter', async () => {
+            const balance0 = await vtSQToken.balanceOf(wallet1.address);
+            expect(balance0).to.eq(0);
+            await vestingContract.allocateVesting(wallet1.address, 0, parseEther(1000));
+            const balance1 = await vtSQToken.balanceOf(wallet1.address);
+            expect(balance1).to.eq(parseEther(1000));
+            expect(vtSQToken.connect(wallet2).burnFrom(wallet1.address, balance1)).to.reverted;
+            await vtSQToken.setMinter(wallet2.address);
+            expect(vtSQToken.connect(wallet2).burnFrom(wallet1.address, balance1)).not.to.reverted;
+            const balance2 = await vtSQToken.balanceOf(wallet1.address);
+            expect(balance2).to.eq(0);
+        });
+    });
+
+    describe('Token Manangement By Admin', () => {
+        it('withdraw all by admin should work', async () => {
             await vestingContract.withdrawAllByAdmin();
             expect(await sqToken.balanceOf(vestingContract.address)).to.eq(parseEther(0));
             expect(await vtSQToken.totalSupply()).to.eq(0);
         });
 
-        it('deposit and widthdraw without owner should fail', async () => {
-            await expect(vestingContract.connect(wallet2).depositByAdmin(1000)).to.be.revertedWith(ownableRevert);
-
+        it('withdraw without owner should fail', async () => {
             await expect(vestingContract.connect(wallet2).withdrawAllByAdmin()).to.be.revertedWith(ownableRevert);
-        });
-
-        it('deposit with zero amount should fail', async () => {
-            await expect(vestingContract.depositByAdmin(0)).to.be.revertedWith('V007');
         });
     });
 
@@ -194,7 +195,7 @@ describe('Vesting Contract', () => {
         beforeEach(async () => {
             const planId = await createPlan(lockPeriod, vestingPeriod);
             await vestingContract.batchAllocateVesting(
-                planId,
+                [planId, planId],
                 [wallet1.address, wallet2.address],
                 [parseEther(1000), parseEther(3000)]
             );
@@ -219,7 +220,8 @@ describe('Vesting Contract', () => {
 
         it('start vesting should work', async () => {
             const latestBlock = await mockProvider.getBlock('latest');
-            await vestingContract.depositByAdmin(parseEther(4000));
+            // await vestingContract.depositByAdmin(parseEther(4000));
+            await sqToken.transfer(vestingContract.address, utils.parseEther('4000'));
 
             const startDate = latestBlock.timestamp + 1000;
             await vestingContract.startVesting(startDate);
@@ -227,10 +229,9 @@ describe('Vesting Contract', () => {
             expect(await vestingContract.owner()).to.equal(vestingContract.address);
 
             await expect(vestingContract.withdrawAllByAdmin()).to.be.revertedWith(ownableRevert);
-            await expect(vestingContract.depositByAdmin(1000)).to.be.revertedWith(ownableRevert);
             await expect(vestingContract.addVestingPlan(0, 0, 10)).to.be.revertedWith(ownableRevert);
             await expect(vestingContract.allocateVesting(wallet1.address, 0, 0)).to.be.revertedWith(ownableRevert);
-            await expect(vestingContract.batchAllocateVesting(1, [wallet1.address], [0])).to.be.revertedWith(
+            await expect(vestingContract.batchAllocateVesting([1], [wallet1.address], [0])).to.be.revertedWith(
                 ownableRevert
             );
         });
@@ -241,16 +242,13 @@ describe('Vesting Contract', () => {
         const wallet2Allocation = parseEther(3000);
 
         beforeEach(async () => {
-            await vestingContract.depositByAdmin(parseEther(4000));
+            await sqToken.transfer(vestingContract.address, utils.parseEther('4000'));
             const planId = await createPlan(lockPeriod, vestingPeriod);
             await vestingContract.batchAllocateVesting(
-                planId,
+                [planId, planId],
                 [wallet1.address, wallet2.address],
                 [wallet1Allocation, wallet2Allocation]
             );
-
-            await vtSQToken.connect(wallet1).increaseAllowance(vestingContract.address, parseEther(1000));
-            await vtSQToken.connect(wallet2).increaseAllowance(vestingContract.address, parseEther(3000));
         });
 
         it('no claimable amount for invalid condition', async () => {
@@ -309,6 +307,21 @@ describe('Vesting Contract', () => {
             expect(claimable).to.eq(wallet1Allocation);
             const evt = await claimVesting(wallet1);
             expect(evt.amount).to.eq(claimable);
+            claimable = await vestingContract.claimableAmount(wallet1.address);
+            expect(claimable).to.eq(0);
+        });
+
+        it('claim for should work', async () => {
+            // start vesting
+            await startVesting();
+            await timeTravel(lockPeriod + vestingPeriod + 1001);
+            const balance1 = await sqToken.balanceOf(wallet1.address);
+            expect(balance1).to.eq(0);
+            let claimable = await vestingContract.claimableAmount(wallet1.address);
+            expect(claimable).to.eq(wallet1Allocation);
+            await vestingContract.connect(wallet2).claimFor(wallet1.address);
+            const balance2 = await sqToken.balanceOf(wallet1.address);
+            expect(balance2).to.eq(wallet1Allocation);
             claimable = await vestingContract.claimableAmount(wallet1.address);
             expect(claimable).to.eq(0);
         });
@@ -387,6 +400,84 @@ describe('Vesting Contract', () => {
             await timeTravel(lockPeriod + 1001);
             await vtSQToken.connect(wallet1).transfer(wallet2.address, etherParse('1000'));
             await expect(vestingContract.connect(wallet1).claim()).to.be.revertedWith('V012');
+        });
+    });
+
+    describe('Real Vesting Scenario Test', () => {
+        const startDate = new Date('2024-02-23T08:00:00Z').getTime() / 1000;
+        const secPerMonth = 2628000; // 3600*24*365/12
+        beforeEach(async () => {
+            // set up vesting
+            // create plans
+            for (const plan of PLANS) {
+                const tx = await vestingContract.addVestingPlan(
+                    plan.lockPeriod,
+                    plan.vestingPeriod,
+                    plan.initialUnlockPercent
+                );
+                const { planId, lockPeriod, vestingPeriod, initialUnlockPercent } = await eventFrom(
+                    tx,
+                    vestingContract,
+                    'VestingPlanAdded(uint256,uint256,uint256,uint256)'
+                );
+                expect(planId).to.eq(plan.planId);
+                expect(lockPeriod).to.eq(plan.lockPeriod);
+                expect(planId).to.eq(plan.planId);
+                expect(planId).to.eq(plan.planId);
+            }
+        });
+
+        // each plan has one wallet
+        it('should unlock token according to the plan', async () => {
+            const wallets = [b0, b1, b2, b3, b4, b5];
+            for (const [planId, { total }] of EXPECTATION.entries()) {
+                await vestingContract.batchAllocateVesting(
+                    [planId],
+                    [wallets[planId].address],
+                    [utils.parseEther(total.toString())]
+                );
+            }
+            // start vesting (set the date, transfer token)
+            const total = EXPECTATION.reduce((acc, { total }) => acc.add(total), BigNumber.from(0));
+            await sqToken.transfer(vestingContract.address, utils.parseEther(total.toString()));
+            await vestingContract.startVesting(startDate);
+            for (const wallet of wallets) {
+                const allocation = await vestingContract.allocations(wallet.address);
+                await vtSQToken.connect(wallet).approve(vestingContract.address, allocation);
+            }
+
+            await timeTravelTo(startDate, 3600);
+            let currentDate = startDate;
+            for (let month = 1; month <= 60; month++) {
+                currentDate = currentDate + secPerMonth;
+                await timeTravelTo(currentDate, 3600);
+                const time = await lastestBlockTime();
+                for (let planId = 0; planId < 6; planId++) {
+                    const wallet = wallets[planId];
+                    const monthlyExpect = EXPECTATION[planId].monthly[month];
+                    if (monthlyExpect !== undefined) {
+                        const target = utils.parseEther(monthlyExpect.toString());
+                        const claimable = await vestingContract.claimableAmount(wallet.address);
+                        if (monthlyExpect === 0 && EXPECTATION[planId].monthly[month + 1] === 0) {
+                            expect(claimable).to.eq(0);
+                        }
+                        if (claimable.gt(0) && monthlyExpect > 0) {
+                            await vestingContract.connect(wallet).claim();
+                            const balance = await sqToken.balanceOf(wallet.address);
+                            // difference should < 0.01%
+                            expect(balance.sub(target).abs().mul(10000).div(target)).to.eq(0);
+                        }
+                        if (EXPECTATION[planId].monthly[month + 1] === undefined) {
+                            const balance = await sqToken.balanceOf(wallet.address);
+                            expect(balance).to.eq(utils.parseEther(EXPECTATION[planId].total.toString()));
+                            console.log(`planId: ${planId}, matches`);
+                        }
+                    }
+                }
+            }
+
+            const balance = await sqToken.balanceOf(vestingContract.address);
+            expect(balance).to.eq(0);
         });
     });
 });

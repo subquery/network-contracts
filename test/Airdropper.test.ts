@@ -3,23 +3,22 @@
 
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { Airdropper, SQToken } from '../src';
+import { Airdropper, ERC20 } from '../src';
 import { ZERO_ADDRESS } from './constants';
 import { etherParse, futureTimestamp, lastestBlockTime, timeTravel } from './helper';
-import { deployRootContracts } from './setup';
+import { deployContracts } from './setup';
 
-// `Airdropper` only available on Kepler Network
-describe.skip('Airdropper Contract', () => {
+describe('Airdropper Contract', () => {
     let wallet_0, wallet_1, wallet_2, wallet_3;
     let airdropper: Airdropper;
-    let token: SQToken;
+    let token: ERC20;
     let sqtAddress;
 
     beforeEach(async () => {
         [wallet_0, wallet_1, wallet_2, wallet_3] = await ethers.getSigners();
-        const deployment = await deployRootContracts(wallet_0, wallet_1);
+        const deployment = await deployContracts(wallet_0, wallet_1);
         airdropper = deployment.airdropper;
-        token = deployment.rootToken;
+        token = deployment.token;
         sqtAddress = token.address;
     });
 
@@ -105,12 +104,13 @@ describe.skip('Airdropper Contract', () => {
         it('update round with invaild caller should fail', async () => {
             await expect(airdropper.connect(wallet_1).updateRound(0, startTime, endTime)).to.be.revertedWith('A010');
         });
-        it('update round with invalid param should fail', async () => {
+        it.only('update round with invalid param should fail', async () => {
             await airdropper.createRound(sqtAddress, startTime, endTime);
+            const blockTime = await lastestBlockTime();
             // invalid round id;
             await expect(airdropper.updateRound(1, startTime, endTime)).to.be.revertedWith('A011');
             // invalid start time
-            await expect(airdropper.updateRound(0, startTime - 1000, endTime)).to.be.revertedWith('A001');
+            await expect(airdropper.updateRound(0, blockTime - 1, endTime)).to.be.revertedWith('A001');
             // invalid end time
             await expect(airdropper.updateRound(0, startTime + 1000, startTime)).to.be.revertedWith('A001');
             await timeTravel(60 * 60 * 24 * 3);

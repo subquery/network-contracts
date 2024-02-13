@@ -34,4 +34,12 @@ contract VTSQToken is ERC20, Ownable, ERC20Burnable {
     function getMinter() external view returns (address) {
         return minter;
     }
+
+    // @notice skip spender check when it is requested by minter (vesting contract)
+    function burnFrom(address account, uint256 amount) public override {
+        if (_msgSender() != minter) {
+            _spendAllowance(account, _msgSender(), amount);
+        }
+        _burn(account, amount);
+    }
 }

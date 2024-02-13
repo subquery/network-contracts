@@ -1,6 +1,7 @@
 // Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.15;
+
+pragma solidity 0.8.15;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
@@ -64,7 +65,9 @@ contract Vesting is Ownable {
 
         userPlanId[addr] = planId;
         allocations[addr] = allocation;
-        totalAllocation += allocation;
+        unchecked {
+            totalAllocation += allocation;
+        }
 
         ISQToken(vtToken).mint(addr, allocation);
 
@@ -72,21 +75,17 @@ contract Vesting is Ownable {
     }
 
     function batchAllocateVesting(
-        uint256 planId,
-        address[] memory addrs,
-        uint256[] memory _allocations
+        uint256[] calldata _planIds,
+        address[] calldata _addrs,
+        uint256[] calldata _allocations
     ) external onlyOwner {
-        require(addrs.length > 0, 'V005');
-        require(addrs.length == _allocations.length, 'V006');
+        require(_addrs.length > 0, 'V005');
+        require(_addrs.length == _allocations.length, 'V006');
+        require(_addrs.length == _planIds.length, 'V006');
 
-        for (uint256 i = 0; i < addrs.length; i++) {
-            allocateVesting(addrs[i], planId, _allocations[i]);
+        for (uint256 i = 0; i < _addrs.length; i++) {
+            allocateVesting(_addrs[i], _planIds[i], _allocations[i]);
         }
-    }
-
-    function depositByAdmin(uint256 amount) external onlyOwner {
-        require(amount > 0, 'V007');
-        require(IERC20(token).transferFrom(msg.sender, address(this), amount), 'V008');
     }
 
     function withdrawAllByAdmin() external onlyOwner {
@@ -106,17 +105,27 @@ contract Vesting is Ownable {
     }
 
     function claim() external {
-        require(allocations[msg.sender] != 0, 'V011');
+        _claim(msg.sender);
+    }
 
-        uint256 amount = claimableAmount(msg.sender);
+    function claimFor(address account) external {
+        _claim(account);
+    }
+
+    function _claim(address account) internal {
+        require(allocations[account] != 0, 'V011');
+
+        uint256 amount = claimableAmount(account);
         require(amount > 0, 'V012');
 
-        ISQToken(vtToken).burnFrom(msg.sender, amount);
-        claimed[msg.sender] += amount;
+        ISQToken(vtToken).burnFrom(account, amount);
+        claimed[account] += amount;
         totalClaimed += amount;
 
-        require(IERC20(token).transfer(msg.sender, amount), 'V008');
-        emit VestingClaimed(msg.sender, amount);
+        require(claimed[account] <= allocations[account], 'V012');
+
+        require(IERC20(token).transfer(account, amount), 'V008');
+        emit VestingClaimed(account, amount);
     }
 
     function claimableAmount(address user) public view returns (uint256) {
@@ -150,5 +159,9 @@ contract Vesting is Ownable {
         uint256 initialAmount = (allocations[user] * plan.initialUnlockPercent) / 100;
         uint256 vestingTokens = allocations[user] - initialAmount;
         return initialAmount + (vestingTokens * vestedPeriod) / plan.vestingPeriod - claimed[user];
+    }
+
+    function plansLength() external view returns (uint256) {
+        return plans.length;
     }
 }
