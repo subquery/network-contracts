@@ -40,9 +40,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     /// @notice The id for next plan, start from 1, PurchaseOfferMarket will use 0.
     uint256 public nextPlanId;
 
-    /// @notice TemplateId => Template
-    mapping(uint256 => PlanTemplate) private templates;
-
     /// @notice PlanId => Plan
     mapping(uint256 => Plan) private plans;
 
@@ -50,7 +47,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     mapping(address => mapping(bytes32 => uint256)) private limits;
 
     /// @notice TemplateId => Template
-    mapping(uint256 => PlanTemplateV2) private v2templates;
+    mapping(uint256 => PlanTemplate) private templates;
 
     /// @dev ### EVENTS
     /// @notice Emitted when owner create a PlanTemplate.
@@ -120,7 +117,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         require(dailyReqCap > 0, 'PM002');
         require(rateLimit > 0, 'PM003');
 
-        v2templates[nextTemplateId] = PlanTemplateV2(
+        templates[nextTemplateId] = PlanTemplate(
             period,
             dailyReqCap,
             rateLimit,
@@ -139,8 +136,8 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param metadata metadata to update
      */
     function updatePlanTemplateMetadata(uint256 templateId, bytes32 metadata) external onlyOwner {
-        if (v2templates[templateId].period > 0) {
-            v2templates[templateId].metadata = metadata;
+        if (templates[templateId].period > 0) {
+            templates[templateId].metadata = metadata;
         } else if (templates[templateId].period > 0) {
             templates[templateId].metadata = metadata;
         } else {
@@ -156,8 +153,8 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param active plan template active or not
      */
     function updatePlanTemplateStatus(uint256 templateId, bool active) external onlyOwner {
-        if (v2templates[templateId].period > 0) {
-            v2templates[templateId].active = active;
+        if (templates[templateId].period > 0) {
+            templates[templateId].active = active;
         } else if (templates[templateId].period > 0) {
             templates[templateId].active = active;
         } else {
@@ -227,7 +224,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         }
 
         //stable price mode
-        PlanTemplateV2 memory template = getPlanTemplate(plan.templateId);
+        PlanTemplate memory template = getPlanTemplate(plan.templateId);
         require(template.active, 'PM006');
         uint256 sqtPrice = IPriceOracle(settings.getContractAddress(SQContracts.PriceOracle))
             .convertPrice(
@@ -270,6 +267,11 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         return plans[planId];
     }
 
+    /**
+     * @notice Get the limit of the plan that runner can create
+     * @param runner runner address
+     * @param deploymentId project deployment Id
+     */
     function getLimits(address runner, bytes32 deploymentId) external view returns (uint256) {
         return limits[runner][deploymentId];
     }
@@ -278,20 +280,8 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @notice Get a specific plan templates
      * @param templateId plan template id
      */
-    function getPlanTemplate(uint256 templateId) public view returns (PlanTemplateV2 memory) {
-        if (v2templates[templateId].period > 0) {
-            return v2templates[templateId];
-        } else {
-            PlanTemplate memory v1template = templates[templateId];
-            return
-                PlanTemplateV2(
-                    v1template.period,
-                    v1template.dailyReqCap,
-                    v1template.rateLimit,
-                    settings.getContractAddress(SQContracts.SQToken),
-                    v1template.metadata,
-                    v1template.active
-                );
-        }
+    function getPlanTemplate(uint256 templateId) public view returns (PlanTemplate memory) {
+        return templates[templateId];
     }
+
 }

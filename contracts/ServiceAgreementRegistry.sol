@@ -192,7 +192,7 @@ contract ServiceAgreementRegistry is
         );
         Plan memory plan = planManager.getPlan(agreement.planId);
         require(plan.active, 'PM009');
-        PlanTemplateV2 memory template = planManager.getPlanTemplate(plan.templateId);
+        PlanTemplate memory template = planManager.getPlanTemplate(plan.templateId);
         require(template.active, 'PM006');
 
         // create closed service agreement

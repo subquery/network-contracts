@@ -319,7 +319,7 @@
                         "type": "bool"
                     }
                 ],
-                "internalType": "struct PlanTemplateV2",
+                "internalType": "struct PlanTemplate",
                 "name": "",
                 "type": "tuple"
             }

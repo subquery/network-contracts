@@ -196,7 +196,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         IPlanManager planManager = IPlanManager(
             settings.getContractAddress(SQContracts.PlanManager)
         );
-        PlanTemplateV2 memory template = planManager.getPlanTemplate(_planTemplateId);
+        PlanTemplate memory template = planManager.getPlanTemplate(_planTemplateId);
         require(template.active, 'PO005');
         require(template.priceToken == settings.getContractAddress(SQContracts.SQToken));
 
@@ -318,7 +318,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         IPlanManager planManager = IPlanManager(
             settings.getContractAddress(SQContracts.PlanManager)
         );
-        PlanTemplateV2 memory template = planManager.getPlanTemplate(offer.planTemplateId);
+        PlanTemplate memory template = planManager.getPlanTemplate(offer.planTemplateId);
         require(template.active, 'PO005');
 
         // increate number of accepted contracts
