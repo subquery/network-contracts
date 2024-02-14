@@ -136,14 +136,9 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param metadata metadata to update
      */
     function updatePlanTemplateMetadata(uint256 templateId, bytes32 metadata) external onlyOwner {
-        if (templates[templateId].period > 0) {
-            templates[templateId].metadata = metadata;
-        } else if (templates[templateId].period > 0) {
-            templates[templateId].metadata = metadata;
-        } else {
-            revert('PM004');
-        }
+        require(templates[templateId].period > 0, 'PM004');
 
+        templates[templateId].metadata = metadata;
         emit PlanTemplateMetadataChanged(templateId, metadata);
     }
 
@@ -153,13 +148,9 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param active plan template active or not
      */
     function updatePlanTemplateStatus(uint256 templateId, bool active) external onlyOwner {
-        if (templates[templateId].period > 0) {
-            templates[templateId].active = active;
-        } else if (templates[templateId].period > 0) {
-            templates[templateId].active = active;
-        } else {
-            revert('PM004');
-        }
+        require(templates[templateId].period > 0, 'PM004');
+
+        templates[templateId].active = active;
         emit PlanTemplateStatusChanged(templateId, active);
     }
 
