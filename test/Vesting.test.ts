@@ -14,7 +14,7 @@ import * as console from 'console';
 
 type ClaimVestingEvent = { user: string; amount: BigNumber };
 
-const SCALE_FACTOR = 1e12;
+const SCALE_FACTOR = 1;
 function formatAllocation(ethAmount: number | string): BigNumber {
     return utils.parseEther(String(ethAmount)).div(SCALE_FACTOR);
 }
@@ -62,8 +62,8 @@ describe('Vesting Contract', () => {
     };
 
     const checkAllocation = async (planId: number, user: string, allocation: number) => {
-        expect((await vestingContract.userAllocation(user)).planId).to.equal(planId);
-        expect((await vestingContract.userAllocation(user)).allocation).to.equal(parseEther(allocation));
+        expect(await vestingContract.userPlanId(user)).to.equal(planId);
+        expect(await vestingContract.allocations(user)).to.equal(parseEther(allocation));
         expect(await vtSQToken.balanceOf(user)).to.equal(parseEther(allocation));
     };
 
@@ -464,7 +464,7 @@ describe('Vesting Contract', () => {
             await sqToken.transfer(vestingContract.address, utils.parseEther(total.toString()));
             await vestingContract.startVesting(startDate);
             for (const wallet of wallets) {
-                const allocation = (await vestingContract.userAllocation(wallet.address)).allocation;
+                const allocation = await vestingContract.allocations(wallet.address);
                 await vtSQToken.connect(wallet).approve(vestingContract.address, allocation);
             }
 

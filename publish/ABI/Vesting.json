@@ -135,19 +135,38 @@
     {
         "inputs": [
             {
-                "internalType": "uint64[]",
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "allocations",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256[]",
                 "name": "_planIds",
-                "type": "uint64[]"
+                "type": "uint256[]"
             },
             {
                 "internalType": "address[]",
-                "name": "_users",
+                "name": "_addrs",
                 "type": "address[]"
             },
             {
-                "internalType": "uint64[]",
+                "internalType": "uint256[]",
                 "name": "_allocations",
-                "type": "uint64[]"
+                "type": "uint256[]"
             }
         ],
         "name": "batchAllocateVesting",
@@ -166,7 +185,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "user",
+                "name": "account",
                 "type": "address"
             }
         ],
@@ -184,6 +203,25 @@
             }
         ],
         "name": "claimableAmount",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "claimed",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -344,33 +382,16 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "user",
+                "name": "",
                 "type": "address"
             }
         ],
-        "name": "userAllocation",
+        "name": "userPlanId",
         "outputs": [
             {
-                "components": [
-                    {
-                        "internalType": "uint64",
-                        "name": "planId",
-                        "type": "uint64"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "allocation",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "claimed",
-                        "type": "uint256"
-                    }
-                ],
-                "internalType": "struct Vesting.UserAllocation",
+                "internalType": "uint256",
                 "name": "",
-                "type": "tuple"
+                "type": "uint256"
             }
         ],
         "stateMutability": "view",
