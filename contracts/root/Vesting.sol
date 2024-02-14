@@ -30,6 +30,8 @@ contract Vesting is Ownable {
         uint128 claimed;
     }
 
+    uint256 constant SCALE_FACTOR = 1e12;
+
     address public token;
     address public vtToken;
     uint256 public vestingStartDate;
@@ -71,15 +73,15 @@ contract Vesting is Ownable {
         emit VestingPlanAdded(plans.length - 1, _lockPeriod, _vestingPeriod, _initialUnlockPercent);
     }
 
-    function allocateVesting(address user, uint64 planId, uint256 allocation) public onlyOwner {
-        _saveUserAllocation(user, planId, allocation);
-        totalAllocation += allocation;
-    }
+    //    function allocateVesting(address user, uint64 planId, uint64 allocation) public onlyOwner {
+    //        _saveUserAllocation(user, planId, allocation);
+    //        totalAllocation += allocation;
+    //    }
 
     function batchAllocateVesting(
         uint64[] calldata _planIds,
         address[] calldata _users,
-        uint256[] calldata _allocations
+        uint64[] calldata _allocations
     ) external onlyOwner {
         require(_users.length > 0, 'V005');
         require(_users.length == _allocations.length, 'V006');
@@ -87,8 +89,7 @@ contract Vesting is Ownable {
 
         uint256 _total;
         for (uint256 i = 0; i < _users.length; i++) {
-            _saveUserAllocation(_users[i], _planIds[i], _allocations[i]);
-            _total += _allocations[i];
+            _total += _saveUserAllocation(_users[i], _planIds[i], _allocations[i]);
         }
         totalAllocation += _total;
     }
@@ -121,24 +122,29 @@ contract Vesting is Ownable {
         UserAllocation memory ua = userAllocation(user);
         require(ua.allocation != 0, 'V011');
 
-        uint256 amount = claimableAmount(user);
-        require(amount > 0, 'V012');
+        uint128 scaledAmount = _claimableAmount(user);
+        require(scaledAmount > 0, 'V012');
+        uint256 fullAmount = uint256(scaledAmount) * SCALE_FACTOR;
+        require(ua.claimed + fullAmount <= ua.allocation, 'V012');
 
-        _updateUserAllocation(user, amount);
-        ISQToken(vtToken).burnFrom(user, amount);
+        _updateUserAllocation(user, scaledAmount);
+        ISQToken(vtToken).burnFrom(user, fullAmount);
 
-        totalClaimed += amount;
+        totalClaimed += fullAmount;
 
-        require(ua.claimed + amount <= ua.allocation, 'V012');
-
-        require(IERC20(token).transfer(user, amount), 'V008');
-        emit VestingClaimed(user, amount);
+        require(IERC20(token).transfer(user, fullAmount), 'V008');
+        emit VestingClaimed(user, fullAmount);
     }
 
     function claimableAmount(address user) public view returns (uint256) {
+        return uint256(_claimableAmount(user)) * SCALE_FACTOR;
+    }
+
+    function _claimableAmount(address user) internal view returns (uint128) {
         uint256 amount = unlockedAmount(user);
         uint256 vtSQTAmount = IERC20(vtToken).balanceOf(user);
-        return vtSQTAmount >= amount ? amount : vtSQTAmount;
+        uint256 claimable = vtSQTAmount >= amount ? amount : vtSQTAmount;
+        return uint128(claimable / SCALE_FACTOR);
     }
 
     function unlockedAmount(address user) public view returns (uint256) {
@@ -176,30 +182,37 @@ contract Vesting is Ownable {
     function userAllocation(address user) public view returns (UserAllocation memory) {
         StorageUserAllocation memory ua = allocations[user];
 
-        uint256 allocation = uint256(ua.allocation) * 1e18;
-        uint256 claimed = uint256(ua.claimed);
+        uint256 allocation = uint256(ua.allocation) * SCALE_FACTOR;
+        uint256 claimed = uint256(ua.claimed) * SCALE_FACTOR;
 
         return UserAllocation(ua.planId, allocation, claimed);
     }
 
-    function _saveUserAllocation(address user, uint64 planId, uint256 allocation) private {
+    function _saveUserAllocation(
+        address user,
+        uint64 planId,
+        uint64 allocation
+    ) private returns (uint256) {
         StorageUserAllocation storage ua = allocations[user];
 
         require(user != address(0x0), 'V002');
         require(ua.allocation == 0, 'V003');
         require(planId < plans.length, 'PM012');
         require(allocation > 0, 'V004');
-        require(allocation / 1e18 < 18446744073709551616, 'V005'); // 2 ** 64
+        //        require(allocation / 1e18 < 18446744073709551616, 'V005'); // 2 ** 64
 
         ua.planId = planId;
-        ua.allocation = uint64(allocation / 1e18);
+        ua.allocation = allocation;
 
-        ISQToken(vtToken).mint(user, allocation);
-        emit VestingAllocated(user, planId, allocation);
+        uint256 fullLengthAllocation = uint256(allocation) * SCALE_FACTOR;
+
+        ISQToken(vtToken).mint(user, fullLengthAllocation);
+        emit VestingAllocated(user, planId, fullLengthAllocation);
+        return fullLengthAllocation;
     }
 
-    function _updateUserAllocation(address user, uint256 amount) private {
+    function _updateUserAllocation(address user, uint128 amount) private {
         StorageUserAllocation storage ua = allocations[user];
-        ua.claimed += uint128(amount);
+        ua.claimed += amount;
     }
 }
