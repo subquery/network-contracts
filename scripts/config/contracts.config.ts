@@ -2,19 +2,19 @@ import { utils } from 'ethers';
 
 export default {
     mainnet: {
-        InflationController: [10000, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // inflationRate, inflationDestination
+        InflationController: [10000, '0x0000000000000000000000000000000000000000'], // inflationRate, inflationDestination
         SQToken: [utils.parseEther('10000000000')], // initial supply 10 billion
         VTSQToken: [], // initial supply 0
-        Staking: [1209600, 1e3], // lockPeriod, unbondFeeRate
-        Airdropper: ['0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // settle destination
+        Staking: [1209600, 1e3], // lockPeriod: 14 days, unbondFeeRate: 10e3/10e6=0.001=0.1%
+        Airdropper: ['0xC3b9127ceBfFe170616502FaEE3c0bC7822F15BD'], // settle destination
         EraManager: [604800], // 7 day
-        ServiceAgreementExtra: [1e6], //threshold
-        PurchaseOfferMarket: [1e5, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'],
-        IndexerRegistry: [utils.parseEther('16000')],
-        ConsumerHost: [10000], // Fee Percentage, default is 1%
-        DisputeManager: [utils.parseEther('10000')], // minimumDeposit
-        RewardsBooster: [utils.parseEther('6.34'), utils.parseEther('10000')], // _issuancePerBlock, _minimumDeploymentBooster
-        L2SQToken: ['', ''], // l2bridge, l1token
+        PurchaseOfferMarket: [1e5, '0x31E99bdA5939bA2e7528707507b017f43b67F89B'], // _penaltyRate: 1e5/1e6=0.1=10%, _penaltyDestination: treasury
+        IndexerRegistry: [utils.parseEther('200000')], // _minimumStakingAmount: 200,000 SQT
+        ConsumerHost: [10000], // Fee Percentage, 1e4/1e6=0.01=1%
+        DisputeManager: [utils.parseEther('10000')], // minimumDeposit: 10,000 SQT
+        // base: 2s a block, 31536000/2 = 15768000 blocks a year, 1% rewards = 100000000 / 15768000 = about 6.3419584 SQT per block
+        RewardsBooster: [utils.parseEther('6.3419584'), utils.parseEther('10000')], // _issuancePerBlock, _minimumDeploymentBooster
+        L2SQToken: ['0x4200000000000000000000000000000000000010', '0x09395a2A58DB45db0da254c7EAa5AC469D8bDc85'], // l2bridge, l1token
     },
     kepler: {
         InflationController: [0, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // inflationRate, inflationDestination

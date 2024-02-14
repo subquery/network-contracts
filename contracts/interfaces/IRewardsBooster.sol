@@ -36,11 +36,11 @@ interface IRewardsBooster {
     }
 
     struct RunnerDeploymentReward {
-        uint256 missedLaborTime;
         uint256 accRewardsPerToken;
         uint256 lastClaimedAt;
         uint256 overflowTimeSnapshot;
         // missedLabor
+        uint256 missedLaborTime;
         uint256 lastMissedLaborReportAt;
         bool disabled;
     }
