@@ -18,6 +18,18 @@ contract Vesting is Ownable {
         uint256 initialUnlockPercent;
     }
 
+    struct UserAllocation {
+        uint64 planId;
+        uint256 allocation;
+        uint256 claimed;
+    }
+
+    struct StorageUserAllocation {
+        uint64 planId;
+        uint64 allocation;
+        uint128 claimed;
+    }
+
     address public token;
     address public vtToken;
     uint256 public vestingStartDate;
@@ -29,7 +41,7 @@ contract Vesting is Ownable {
     // 16 bit for planId   = 16  bit 2 bytes
     // number: 58 + 58     = 116 bit (14.5 bytes) ~= 288230,376,151,711,744
     // number + decimal    = 120 bit (15 bytes) unused 256 - 120 = 136
-    mapping(address => bytes32) public allocations;
+    mapping(address => StorageUserAllocation) private allocations;
 
     event VestingPlanAdded(
         uint256 planId,
@@ -59,13 +71,13 @@ contract Vesting is Ownable {
         emit VestingPlanAdded(plans.length - 1, _lockPeriod, _vestingPeriod, _initialUnlockPercent);
     }
 
-    function allocateVesting(address user, uint256 planId, uint256 allocation) public onlyOwner {
+    function allocateVesting(address user, uint64 planId, uint256 allocation) public onlyOwner {
         _saveUserAllocation(user, planId, allocation);
         totalAllocation += allocation;
     }
 
     function batchAllocateVesting(
-        uint256[] calldata _planIds,
+        uint64[] calldata _planIds,
         address[] calldata _users,
         uint256[] calldata _allocations
     ) external onlyOwner {
@@ -106,19 +118,19 @@ contract Vesting is Ownable {
     }
 
     function _claim(address user) internal {
-        (uint256 planId, uint256 allocation, uint256 claimed) = userAllocation(user);
-        require(allocation != 0, 'V011');
+        UserAllocation memory ua = userAllocation(user);
+        require(ua.allocation != 0, 'V011');
 
         uint256 amount = claimableAmount(user);
         require(amount > 0, 'V012');
 
         ISQToken(vtToken).burnFrom(user, amount);
 
-        uint256 newClaimed = claimed + amount;
+        uint256 newClaimed = ua.claimed + amount;
         _updateUserAllocation(user, newClaimed);
         totalClaimed += amount;
 
-        require(newClaimed <= allocation, 'V012');
+        require(newClaimed <= ua.allocation, 'V012');
 
         require(IERC20(token).transfer(user, amount), 'V008');
         emit VestingClaimed(user, amount);
@@ -131,14 +143,14 @@ contract Vesting is Ownable {
     }
 
     function unlockedAmount(address user) public view returns (uint256) {
-        (uint256 planId, uint256 allocation, uint256 claimed) = userAllocation(user);
+        UserAllocation memory ua = userAllocation(user);
 
         // vesting start date is not set or allocation is empty
-        if (vestingStartDate == 0 || allocation == 0) {
+        if (vestingStartDate == 0 || ua.allocation == 0) {
             return 0;
         }
 
-        VestingPlan memory plan = plans[planId];
+        VestingPlan memory plan = plans[ua.planId];
         uint256 planStartDate = vestingStartDate + plan.lockPeriod;
 
         if (block.timestamp <= planStartDate) {
@@ -148,63 +160,46 @@ contract Vesting is Ownable {
         // no versting period or vesting period passed
         uint256 planCompleteDate = planStartDate + plan.vestingPeriod;
         if (plan.vestingPeriod == 0 || block.timestamp > planCompleteDate) {
-            return allocation - claimed;
+            return ua.allocation - ua.claimed;
         }
 
         // druring plan period
         uint256 vestedPeriod = block.timestamp - planStartDate;
-        uint256 initialAmount = (allocation * plan.initialUnlockPercent) / 100;
-        uint256 vestingTokens = allocation - initialAmount;
-        return initialAmount + (vestingTokens * vestedPeriod) / plan.vestingPeriod - claimed;
+        uint256 initialAmount = (ua.allocation * plan.initialUnlockPercent) / 100;
+        uint256 vestingTokens = ua.allocation - initialAmount;
+        return initialAmount + (vestingTokens * vestedPeriod) / plan.vestingPeriod - ua.claimed;
     }
 
     function plansLength() external view returns (uint256) {
         return plans.length;
     }
 
-    function userAllocation(address user) public view returns (uint256, uint256, uint256) {
-        bytes32 ua = allocations[user];
+    function userAllocation(address user) public view returns (UserAllocation memory) {
+        StorageUserAllocation memory ua = allocations[user];
 
-        bytes32 planId = ua >> 240;
-        bytes32 allocation = (ua << 16) >> 136; // 256 - 136 = 120
-        bytes32 claimed = (ua << 136) >> 136;
+        uint256 allocation = uint256(ua.allocation) * 10 ** 18;
+        uint256 claimed = uint256(ua.claimed) * 10 ** 9;
 
-        return (uint256(planId), uint256(allocation), uint256(claimed));
+        return UserAllocation(ua.planId, allocation, claimed);
     }
 
-    function _saveUserAllocation(address user, uint256 planId, uint256 allocation) private {
+    function _saveUserAllocation(address user, uint64 planId, uint256 allocation) private {
+        StorageUserAllocation storage ua = allocations[user];
+
         require(user != address(0x0), 'V002');
+        require(ua.allocation == 0, 'V003');
         require(planId < plans.length, 'PM012');
         require(allocation > 0, 'V004');
 
-        bytes32 newPlan = bytes32(planId);
-        bytes32 newAllocation = bytes32(allocation << 120); // 136 - 16
-
-        bytes memory data = new bytes(32);
-        data[0] = newPlan[30];
-        data[1] = newPlan[31];
-        // 2 + 15
-        for (uint i = 2; i < 17; i++) {
-            data[i] = newAllocation[i];
-        }
-        allocations[user] = bytes32(data);
+        ua.planId = planId;
+        ua.allocation = uint64(allocation / (10 ** 18));
 
         ISQToken(vtToken).mint(user, allocation);
         emit VestingAllocated(user, planId, allocation);
     }
 
     function _updateUserAllocation(address user, uint256 claimed) private {
-        bytes32 ua = allocations[user];
-        bytes32 newClaimed = bytes32(claimed);
-
-        bytes memory data = new bytes(32);
-        for (uint i = 0; i < 17; i++) {
-            data[i] = ua[i];
-        }
-        for (uint i = 17; i < 32; i++) {
-            data[i] = newClaimed[i];
-        }
-
-        allocations[user] = bytes32(data);
+        StorageUserAllocation storage ua = allocations[user];
+        ua.claimed = uint128(claimed / (10 ** 9));
     }
 }
