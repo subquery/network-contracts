@@ -83,7 +83,10 @@ contract Vesting is Ownable {
         uint256 _total;
         for (uint256 i = 0; i < _addrs.length; i++) {
             _allocateVesting(_addrs[i], _planIds[i], _allocations[i]);
-            _total += _allocations[i];
+
+            unchecked {
+                _total += _allocations[i];
+            }
         }
 
         unchecked {
