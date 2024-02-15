@@ -14,11 +14,6 @@ import * as console from 'console';
 
 type ClaimVestingEvent = { user: string; amount: BigNumber };
 
-const SCALE_FACTOR = 1;
-function formatAllocation(ethAmount: number | string): BigNumber {
-    return utils.parseEther(String(ethAmount)).div(SCALE_FACTOR);
-}
-
 describe('Vesting Contract', () => {
     const mockProvider = waffle.provider;
     const [wallet, wallet1, wallet2, wallet3, wallet4, b0, b1, b2, b3, b4, b5] = mockProvider.getWallets();
@@ -118,7 +113,7 @@ describe('Vesting Contract', () => {
         });
 
         it('allocate vesting should work', async () => {
-            await vestingContract.batchAllocateVesting([0], [wallet1.address], [formatAllocation(1000)]);
+            await vestingContract.batchAllocateVesting([0], [wallet1.address], [parseEther(1000)]);
             await checkAllocation(0, wallet1.address, 1000);
             expect(await vestingContract.totalAllocation()).to.equal(parseEther(1000));
         });
@@ -135,7 +130,7 @@ describe('Vesting Contract', () => {
             const res = await vestingContract.batchAllocateVesting(
                 [0, 0], //ids,
                 [wallet1.address, wallet2.address], // wallets,
-                [formatAllocation(1000), formatAllocation(3000)] // amounts
+                [parseEther(1000), parseEther(3000)] // amounts
             );
             const { gasUsed } = await res.wait();
             console.log('==== gasused:', gasUsed);
@@ -148,36 +143,34 @@ describe('Vesting Contract', () => {
         it('allocate with invaid config should fail', async () => {
             // not onwer
             await expect(
-                vestingContract.connect(wallet2).batchAllocateVesting([0], [wallet1.address], [formatAllocation(1000)])
+                vestingContract.connect(wallet2).batchAllocateVesting([0], [wallet1.address], [parseEther(1000)])
             ).to.be.revertedWith(ownableRevert);
             // empty address
             const emptyAddress = '0x0000000000000000000000000000000000000000';
             await expect(
-                vestingContract.batchAllocateVesting([0], [emptyAddress], [formatAllocation(1000)])
+                vestingContract.batchAllocateVesting([0], [emptyAddress], [parseEther(1000)])
             ).to.be.revertedWith('V002');
             // duplicate account
-            await vestingContract.batchAllocateVesting([0], [wallet1.address], [formatAllocation(1000)]);
+            await vestingContract.batchAllocateVesting([0], [wallet1.address], [parseEther(1000)]);
             await expect(
-                vestingContract.batchAllocateVesting([0], [wallet1.address], [formatAllocation(1000)])
+                vestingContract.batchAllocateVesting([0], [wallet1.address], [parseEther(1000)])
             ).to.be.revertedWith('V003');
             // zero amount
             await expect(
-                vestingContract.batchAllocateVesting([0], [wallet2.address], [formatAllocation(0)])
+                vestingContract.batchAllocateVesting([0], [wallet2.address], [parseEther(0)])
             ).to.be.revertedWith('V004');
             // invalid plan id
             await expect(
-                vestingContract.batchAllocateVesting([2], [wallet2.address], [formatAllocation(1000)])
+                vestingContract.batchAllocateVesting([2], [wallet2.address], [parseEther(1000)])
             ).to.be.revertedWith('PM012');
         });
 
         it('batch allocate vesting with incorrect config should fail', async () => {
             // empty addresses
-            await expect(vestingContract.batchAllocateVesting([1], [], [formatAllocation(1000)])).to.be.revertedWith(
-                'V005'
-            );
+            await expect(vestingContract.batchAllocateVesting([1], [], [parseEther(1000)])).to.be.revertedWith('V005');
             // addresses are not match with allocations
             await expect(
-                vestingContract.batchAllocateVesting([1], [wallet3.address, wallet4.address], [formatAllocation(1000)])
+                vestingContract.batchAllocateVesting([1], [wallet3.address, wallet4.address], [parseEther(1000)])
             ).to.be.revertedWith('V006');
         });
     });
@@ -190,7 +183,7 @@ describe('Vesting Contract', () => {
         it('vtSQT can not burn without approval unless it is from minter', async () => {
             const balance0 = await vtSQToken.balanceOf(wallet1.address);
             expect(balance0).to.eq(0);
-            await vestingContract.batchAllocateVesting([0], [wallet1.address], [formatAllocation(1000)]);
+            await vestingContract.batchAllocateVesting([0], [wallet1.address], [parseEther(1000)]);
             const balance1 = await vtSQToken.balanceOf(wallet1.address);
             expect(balance1).to.eq(parseEther(1000));
             expect(vtSQToken.connect(wallet2).burnFrom(wallet1.address, balance1)).to.reverted;
@@ -219,7 +212,7 @@ describe('Vesting Contract', () => {
             await vestingContract.batchAllocateVesting(
                 [planId, planId],
                 [wallet1.address, wallet2.address],
-                [formatAllocation(1000), formatAllocation(3000)]
+                [parseEther(1000), parseEther(3000)]
             );
         });
 
@@ -269,7 +262,7 @@ describe('Vesting Contract', () => {
             await vestingContract.batchAllocateVesting(
                 [planId, planId],
                 [wallet1.address, wallet2.address],
-                [wallet1Allocation.div(SCALE_FACTOR), wallet2Allocation.div(SCALE_FACTOR)]
+                [wallet1Allocation, wallet2Allocation]
             );
         });
 
@@ -453,11 +446,7 @@ describe('Vesting Contract', () => {
         it('should unlock token according to the plan', async () => {
             const wallets = [b0, b1, b2, b3, b4, b5];
             for (const [planId, { total }] of EXPECTATION.entries()) {
-                await vestingContract.batchAllocateVesting(
-                    [planId],
-                    [wallets[planId].address],
-                    [formatAllocation(total.toString())]
-                );
+                await vestingContract.batchAllocateVesting([planId], [wallets[planId].address], [parseEther(total)]);
             }
             // start vesting (set the date, transfer token)
             const total = EXPECTATION.reduce((acc, { total }) => acc.add(total), BigNumber.from(0));
