@@ -4,4 +4,14 @@
         ratio: 500000 # 50%, denominator: 1e9
       - projectType: 1 # subquery project
         ratio: 900000 # 50%, denominator: 1e9
-  issuancePerBlock: '6340000000000000000' # 6.34
+  issuancePerBlock: '6341958400000000000' # 6.34
+- kind: ProjectTypeCreatorRestricted
+  value:
+    - projectType: 0 # subquery project
+      restricted: true
+    - projectType: 1 # rpc
+      restricted: true
+    - projectType: 2 # dict
+      restricted: true
+    - projectType: 3 # subgraqh
+      restricted: true
