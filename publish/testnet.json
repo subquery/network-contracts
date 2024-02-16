@@ -38,9 +38,9 @@
         },
         "Vesting": {
             "innerAddress": "",
-            "address": "0xdb50e2Cd0484007000fBb64326777AE52A84Eb75",
-            "bytecodeHash": "a95aa683c52274b6cb4b2e4a1faad76b08aea91aa640f8da9410e1172d3feba9",
-            "lastUpdate": "Mon, 12 Feb 2024 17:30:57 GMT"
+            "address": "0x15b64D7036667695Ee68D6619CEb162aEaFAdbA6",
+            "bytecodeHash": "b77370232567972e2954e50b05f9f472398029b6d92c02ef8fa60436554fa901",
+            "lastUpdate": "Fri, 16 Feb 2024 02:38:27 GMT"
         }
     },
     "child": {
