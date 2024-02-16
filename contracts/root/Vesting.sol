@@ -12,31 +12,48 @@ import '../interfaces/ISQToken.sol';
 contract Vesting is Ownable {
     using SafeERC20 for IERC20;
 
+    /// @notice Vesting plan
     struct VestingPlan {
         uint256 lockPeriod;
         uint256 vestingPeriod;
         uint256 initialUnlockPercent;
     }
 
+    /// @notice token for vesting
     address public token;
+    /// @notice the minted token for vesting with 1:1 ratio
     address public vtToken;
+    /// @notice start date for this vesting contract
     uint256 public vestingStartDate;
+    /// @notice total allocation amount for all users and plans
     uint256 public totalAllocation;
+    /// @notice total claimed amount for all users and plans
     uint256 public totalClaimed;
+    /// @notice vesting plans
     VestingPlan[] public plans;
 
-    mapping(address => uint256) public userPlanId;
-    mapping(address => uint256) public allocations;
-    mapping(address => uint256) public claimed;
+    /// @notice allovation ammout for user by planId: planId => user => amount
+    mapping(uint256 => mapping(address => uint256)) public allocations;
+    /// @notice claimed amount for user by planId: planId => user => amount
+    mapping(uint256 => mapping(address => uint256)) public claimed;
 
+    /**
+     * @dev Emitted when a new vesting plan is added
+     */
     event VestingPlanAdded(
         uint256 planId,
         uint256 lockPeriod,
         uint256 vestingPeriod,
         uint256 initialUnlockPercent
     );
+    /**
+     * @dev Emitted when a new vesting allocation is added to a user by planId
+     */
     event VestingAllocated(address indexed user, uint256 planId, uint256 allocation);
-    event VestingClaimed(address indexed user, uint256 amount);
+    /**
+     * @dev Emitted when a user claims vested tokens
+     */
+    event VestingClaimed(address indexed user, uint256 planId, uint256 amount);
 
     constructor(address _token, address _vtToken) Ownable() {
         require(_token != address(0x0), 'G009');
@@ -57,17 +74,14 @@ contract Vesting is Ownable {
         emit VestingPlanAdded(plans.length - 1, _lockPeriod, _vestingPeriod, _initialUnlockPercent);
     }
 
-    function allocateVesting(address addr, uint256 planId, uint256 allocation) public onlyOwner {
+    function _allocateVesting(address addr, uint256 planId, uint256 allocation) internal {
         require(addr != address(0x0), 'V002');
-        require(allocations[addr] == 0, 'V003');
+        require(allocations[planId][addr] == 0, 'V003');
         require(allocation > 0, 'V004');
-        require(planId < plans.length, 'PM012');
+        require(planId < plans.length, 'V013');
 
-        userPlanId[addr] = planId;
-        allocations[addr] = allocation;
-        unchecked {
-            totalAllocation += allocation;
-        }
+        //        userPlanId[addr] = planId;
+        allocations[planId][addr] = allocation;
 
         ISQToken(vtToken).mint(addr, allocation);
 
@@ -83,8 +97,17 @@ contract Vesting is Ownable {
         require(_addrs.length == _allocations.length, 'V006');
         require(_addrs.length == _planIds.length, 'V006');
 
+        uint256 _total;
         for (uint256 i = 0; i < _addrs.length; i++) {
-            allocateVesting(_addrs[i], _planIds[i], _allocations[i]);
+            _allocateVesting(_addrs[i], _planIds[i], _allocations[i]);
+
+            unchecked {
+                _total += _allocations[i];
+            }
+        }
+
+        unchecked {
+            totalAllocation += _total;
         }
     }
 
@@ -104,43 +127,43 @@ contract Vesting is Ownable {
         transferOwnership(address(this));
     }
 
-    function claim() external {
-        _claim(msg.sender);
+    function claim(uint256 planId) external {
+        _claim(planId, msg.sender);
     }
 
-    function claimFor(address account) external {
-        _claim(account);
+    function claimFor(uint256 planId, address account) external {
+        _claim(planId, account);
     }
 
-    function _claim(address account) internal {
-        require(allocations[account] != 0, 'V011');
+    function _claim(uint256 planId, address account) internal {
+        require(planId < plans.length, 'V013');
+        require(allocations[planId][account] != 0, 'V011');
 
-        uint256 amount = claimableAmount(account);
+        uint256 amount = claimableAmount(planId, account);
         require(amount > 0, 'V012');
 
         ISQToken(vtToken).burnFrom(account, amount);
-        claimed[account] += amount;
+        claimed[planId][account] += amount;
         totalClaimed += amount;
 
-        require(claimed[account] <= allocations[account], 'V012');
+        require(claimed[planId][account] <= allocations[planId][account], 'V012');
 
         require(IERC20(token).transfer(account, amount), 'V008');
-        emit VestingClaimed(account, amount);
+        emit VestingClaimed(account, planId, amount);
     }
 
-    function claimableAmount(address user) public view returns (uint256) {
-        uint256 amount = unlockedAmount(user);
+    function claimableAmount(uint256 planId, address user) public view returns (uint256) {
+        uint256 amount = unlockedAmount(planId, user);
         uint256 vtSQTAmount = IERC20(vtToken).balanceOf(user);
         return vtSQTAmount >= amount ? amount : vtSQTAmount;
     }
 
-    function unlockedAmount(address user) public view returns (uint256) {
+    function unlockedAmount(uint256 planId, address user) public view returns (uint256) {
         // vesting start date is not set or allocation is empty
-        if (vestingStartDate == 0 || allocations[user] == 0) {
+        if (vestingStartDate == 0 || allocations[planId][user] == 0) {
             return 0;
         }
 
-        uint256 planId = userPlanId[user];
         VestingPlan memory plan = plans[planId];
         uint256 planStartDate = vestingStartDate + plan.lockPeriod;
 
@@ -151,14 +174,18 @@ contract Vesting is Ownable {
         // no versting period or vesting period passed
         uint256 planCompleteDate = planStartDate + plan.vestingPeriod;
         if (plan.vestingPeriod == 0 || block.timestamp > planCompleteDate) {
-            return allocations[user] - claimed[user];
+            return allocations[planId][user] - claimed[planId][user];
         }
 
         // druring plan period
         uint256 vestedPeriod = block.timestamp - planStartDate;
-        uint256 initialAmount = (allocations[user] * plan.initialUnlockPercent) / 100;
-        uint256 vestingTokens = allocations[user] - initialAmount;
-        return initialAmount + (vestingTokens * vestedPeriod) / plan.vestingPeriod - claimed[user];
+        uint256 initialAmount = (allocations[planId][user] * plan.initialUnlockPercent) / 100;
+        uint256 vestingTokens = allocations[planId][user] - initialAmount;
+        return
+            initialAmount +
+            (vestingTokens * vestedPeriod) /
+            plan.vestingPeriod -
+            claimed[planId][user];
     }
 
     function plansLength() external view returns (uint256) {
