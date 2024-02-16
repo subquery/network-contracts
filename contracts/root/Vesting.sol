@@ -12,30 +12,48 @@ import '../interfaces/ISQToken.sol';
 contract Vesting is Ownable {
     using SafeERC20 for IERC20;
 
+    /// @notice Vesting plan
     struct VestingPlan {
         uint256 lockPeriod;
         uint256 vestingPeriod;
         uint256 initialUnlockPercent;
     }
 
+    /// @notice token for vesting
     address public token;
+    /// @notice the minted token for vesting with 1:1 ratio
     address public vtToken;
+    /// @notice start date for this vesting contract
     uint256 public vestingStartDate;
+    /// @notice total allocation amount for all users and plans
     uint256 public totalAllocation;
+    /// @notice total claimed amount for all users and plans
     uint256 public totalClaimed;
+    /// @notice vesting plans
     VestingPlan[] public plans;
 
+    /// @notice allovation ammout for user by planId: planId => user => amount
     mapping(uint256 => mapping(address => uint256)) public allocations;
+    /// @notice claimed amount for user by planId: planId => user => amount
     mapping(uint256 => mapping(address => uint256)) public claimed;
 
+    /**
+     * @dev Emitted when a new vesting plan is added
+     */
     event VestingPlanAdded(
         uint256 planId,
         uint256 lockPeriod,
         uint256 vestingPeriod,
         uint256 initialUnlockPercent
     );
+    /**
+     * @dev Emitted when a new vesting allocation is added to a user by planId
+     */
     event VestingAllocated(address indexed user, uint256 planId, uint256 allocation);
-    event VestingClaimed(address indexed user, uint256 amount);
+    /**
+     * @dev Emitted when a user claims vested tokens
+     */
+    event VestingClaimed(address indexed user, uint256 planId, uint256 amount);
 
     constructor(address _token, address _vtToken) Ownable() {
         require(_token != address(0x0), 'G009');
@@ -131,7 +149,7 @@ contract Vesting is Ownable {
         require(claimed[planId][account] <= allocations[planId][account], 'V012');
 
         require(IERC20(token).transfer(account, amount), 'V008');
-        emit VestingClaimed(account, amount);
+        emit VestingClaimed(account, planId, amount);
     }
 
     function claimableAmount(uint256 planId, address user) public view returns (uint256) {
