@@ -135,6 +135,11 @@
     {
         "inputs": [
             {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
                 "internalType": "address",
                 "name": "",
                 "type": "address"
@@ -175,7 +180,13 @@
         "type": "function"
     },
     {
-        "inputs": [],
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "planId",
+                "type": "uint256"
+            }
+        ],
         "name": "claim",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -183,6 +194,11 @@
     },
     {
         "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "planId",
+                "type": "uint256"
+            },
             {
                 "internalType": "address",
                 "name": "account",
@@ -196,6 +212,11 @@
     },
     {
         "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "planId",
+                "type": "uint256"
+            },
             {
                 "internalType": "address",
                 "name": "user",
@@ -215,6 +236,11 @@
     },
     {
         "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
             {
                 "internalType": "address",
                 "name": "",
@@ -362,31 +388,17 @@
     {
         "inputs": [
             {
+                "internalType": "uint256",
+                "name": "planId",
+                "type": "uint256"
+            },
+            {
                 "internalType": "address",
                 "name": "user",
                 "type": "address"
             }
         ],
         "name": "unlockedAmount",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "name": "userPlanId",
         "outputs": [
             {
                 "internalType": "uint256",
