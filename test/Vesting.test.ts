@@ -27,7 +27,7 @@ describe('Vesting Contract', () => {
 
     async function claimVesting(planId, wallet: Wallet): Promise<ClaimVestingEvent> {
         const tx = await vestingContract.connect(wallet).claim(planId);
-        const evt = await eventFrom(tx, vestingContract, 'VestingClaimed(address,uint256)');
+        const evt = await eventFrom(tx, vestingContract, 'VestingClaimed(address,uint256,uint256)');
         return evt as unknown as ClaimVestingEvent;
     }
 
