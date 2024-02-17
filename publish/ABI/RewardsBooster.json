@@ -658,11 +658,6 @@
                 "components": [
                     {
                         "internalType": "uint256",
-                        "name": "missedLaborTime",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
                         "name": "accRewardsPerToken",
                         "type": "uint256"
                     },
@@ -674,6 +669,11 @@
                     {
                         "internalType": "uint256",
                         "name": "overflowTimeSnapshot",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "missedLaborTime",
                         "type": "uint256"
                     },
                     {

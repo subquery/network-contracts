@@ -141,7 +141,7 @@ task('publishChild', 'verify and publish contracts on etherscan')
             await hre.run('verify:verify', {
                 address: deployment.L2SQToken.address,
                 constructorArguments: contractsConfig[taskArgs.networkpair].L2SQToken,
-                // contract: "contracts/l2/L2SQToken.sol:L2SQToken"
+                contract: 'contracts/l2/L2SQToken.sol:L2SQToken',
             });
 
             //VSQToken
@@ -405,6 +405,10 @@ const config: HardhatUserConfig = {
             url: 'https://mainnet.base.org',
             chainId: 8453,
         },
+        mainnet: {
+            url: 'https://rpc.ankr.com/eth',
+            chainId: 1,
+        },
     },
     gasReporter: {
         currency: 'USD',
@@ -418,6 +422,7 @@ const config: HardhatUserConfig = {
             base: process.env.BASESCAN_API_KEY,
             'base-sepolia': process.env.BASESCAN_API_KEY,
             polygon: process.env.POLYGONSCAN_API_KEY,
+            mainnet: process.env.ETHERSCAN_API_KEY,
         },
         customChains: [
             {

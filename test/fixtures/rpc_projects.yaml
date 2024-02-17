@@ -42,3 +42,107 @@
         version:
             version: 1.0.0
             description:
+- kind: Project
+  projectType: 1 # rpc
+  metadata:
+    name: Eth Mainnet Rpc - Full Node
+    description: ''
+    websiteUrl: https://ethereum.org/
+  deployments:
+    - deployment: |
+        kind: ChainRpc
+        specVersion: 1.0.0
+        name: eth-mainnet - full
+        chain:
+          chainId: 1
+        rpcFamily:
+          - evm
+        nodeType: full
+        rpcDenyList:
+          - admin
+          - debug
+          - txpool
+          - personal
+          - miner
+          - les
+      version:
+        version: 1.0.0
+        description: ''
+- kind: Project
+  projectType: 1 # rpc
+  metadata:
+    name: Eth Mainnet Rpc - Archive Node
+    description: ''
+    websiteUrl: https://ethereum.org/
+  deployments:
+    - deployment: |
+        kind: ChainRpc
+        specVersion: 1.0.0
+        name: eth-mainnet - archive
+        chain:
+          chainId: 1
+        rpcFamily:
+          - evm
+        nodeType: archive
+        rpcDenyList:
+          - admin
+          - debug
+          - txpool
+          - personal
+          - miner
+          - les
+      version:
+        version: 1.0.0
+        description: ''
+- kind: Project
+  projectType: 1 # rpc
+  metadata:
+    name: Base Rpc - Full Node
+    description: ''
+    websiteUrl: https://base.org/
+  deployments:
+    - deployment: |
+        kind: ChainRpc
+        specVersion: 1.0.0
+        name: base - full
+        chain:
+          chainId: 8453
+        rpcFamily:
+          - evm
+        nodeType: full
+        rpcDenyList:
+          - admin
+          - debug
+          - txpool
+          - personal
+          - miner
+          - les
+      version:
+        version: 1.0.0
+        description: ''
+- kind: Project
+  projectType: 1 # rpc
+  metadata:
+    name: Base Rpc - Archive Node
+    description: ''
+    websiteUrl: https://base.org/
+  deployments:
+    - deployment: |
+        kind: ChainRpc
+        specVersion: 1.0.0
+        name: base - archive
+        chain:
+          chainId: 8453
+        rpcFamily:
+          - evm
+        nodeType: archive
+        rpcDenyList:
+          - admin
+          - debug
+          - txpool
+          - personal
+          - miner
+          - les
+      version:
+        version: 1.0.0
+        description: ''

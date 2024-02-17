@@ -167,4 +167,6 @@ export enum ServiceStatus {
 export enum ProjectType {
     SUBQUERY,
     RPC,
+    SQ_DICT,
+    SUBGRAPH,
 }

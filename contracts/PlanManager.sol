@@ -40,9 +40,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     /// @notice The id for next plan, start from 1, PurchaseOfferMarket will use 0.
     uint256 public nextPlanId;
 
-    /// @notice TemplateId => Template
-    mapping(uint256 => PlanTemplate) private templates;
-
     /// @notice PlanId => Plan
     mapping(uint256 => Plan) private plans;
 
@@ -141,8 +138,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     function updatePlanTemplateMetadata(uint256 templateId, bytes32 metadata) external onlyOwner {
         if (v2templates[templateId].period > 0) {
             v2templates[templateId].metadata = metadata;
-        } else if (templates[templateId].period > 0) {
-            templates[templateId].metadata = metadata;
         } else {
             revert('PM004');
         }
@@ -158,8 +153,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
     function updatePlanTemplateStatus(uint256 templateId, bool active) external onlyOwner {
         if (v2templates[templateId].period > 0) {
             v2templates[templateId].active = active;
-        } else if (templates[templateId].period > 0) {
-            templates[templateId].active = active;
         } else {
             revert('PM004');
         }
@@ -279,19 +272,6 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      * @param templateId plan template id
      */
     function getPlanTemplate(uint256 templateId) public view returns (PlanTemplateV2 memory) {
-        if (v2templates[templateId].period > 0) {
-            return v2templates[templateId];
-        } else {
-            PlanTemplate memory v1template = templates[templateId];
-            return
-                PlanTemplateV2(
-                    v1template.period,
-                    v1template.dailyReqCap,
-                    v1template.rateLimit,
-                    settings.getContractAddress(SQContracts.SQToken),
-                    v1template.metadata,
-                    v1template.active
-                );
-        }
+        return v2templates[templateId];
     }
 }

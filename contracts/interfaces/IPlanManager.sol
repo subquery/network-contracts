@@ -20,14 +20,6 @@ struct Plan {
  * the owner provides a set of PlanTemplates for indexers to choose.
  * For Indexer and Consumer to create the Plan and Purchase Offer.
  */
-struct PlanTemplate {
-    uint256 period;
-    uint256 dailyReqCap;
-    uint256 rateLimit;
-    bytes32 metadata;
-    bool active;
-}
-
 struct PlanTemplateV2 {
     uint256 period;
     uint256 dailyReqCap;

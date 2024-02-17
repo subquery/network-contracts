@@ -89,6 +89,10 @@ export interface DeploymentBoosterInput {
     amount: number;
 }
 
+export interface ProjectTypeCreatorRestrictedInput {
+    value: { projectType: ProjectType; restricted: boolean }[];
+}
+
 export interface Context {
     sdk: ContractSDK;
     provider: Provider;
@@ -172,14 +176,14 @@ export const loaders = {
         const evt = receipt.events.find(
             (log) => log.topics[0] === utils.id('ProjectCreated(address,uint256,string,uint8,bytes32,bytes32)')
         );
-        const { queryId } = evt.args;
+        const { projectId } = evt.args;
         for (const { deploymentId, version } of restDeploy) {
             const { cid } = await ipfs.add(JSON.stringify(version), { pin: true });
             await sdk.projectRegistry
                 .connect(author)
-                .addOrUpdateDeployment(queryId, cidToBytes32(deploymentId), cidToBytes32(cid.toString()), true);
+                .addOrUpdateDeployment(projectId, cidToBytes32(deploymentId), cidToBytes32(cid.toString()), true);
         }
-        console.log(`Project Complete for ${metadata['name']} queryId: ${queryId.toString()}`);
+        console.log(`Project Complete for ${metadata['name']} queryId: ${projectId.toString()}`);
     },
     QueryAction: async function ({ account, action, deploymentId }: QueryActionInput, { sdk, accounts }: Context) {
         console.log(`QueryAction Start for ${action} ${deploymentId}`);
@@ -345,5 +349,22 @@ export const loaders = {
             await tx.wait();
         }
         console.log(`DeploymentBooster End`);
+    },
+    ProjectTypeCreatorRestricted: async function (
+        { value }: ProjectTypeCreatorRestrictedInput,
+        { sdk, rootAccount }: Context
+    ) {
+        console.log(`ProjectTypeCreatorRestricted Start`);
+        for (const { projectType, restricted } of value) {
+            const onchainVal = await sdk.projectRegistry.creatorRestricted(projectType);
+            if (onchainVal !== restricted) {
+                const tx = await sdk.projectRegistry.connect(rootAccount).setCreatorRestricted(projectType, restricted);
+                console.log(`type: ${projectType} change to ${restricted} tx: ${tx.hash}`);
+                await tx.wait();
+            } else {
+                console.log(`type: ${projectType} no change`);
+            }
+        }
+        console.log(`ProjectTypeCreatorRestricted End`);
     },
 };
