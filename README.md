@@ -1,8 +1,8 @@
 # SubQuery Contracts
 
-The SubQuery is a indexing tool for querying blockchains data. Anyone can build indexing service with SubQuery, and provide the api to making blockchain data easily accessible.
+The SubQuery is an indexing tool for querying blockchains data. Anyone can build indexing service with SubQuery, and provide the api to making blockchain data easily accessible.
 
-The SubQuery Network Smart Contracts are a set of Solidity contracts that power the decentralised SubQuery Network. The contracts enable a decentralized network that welcome indexers running query projects and provide queries to consumers. Consumers pay for queries with the SubQuery Token (SQT).
+The SubQuery Network Smart Contracts are a set of Solidity contracts that power the decentralised SubQuery Network. The contracts enable a decentralized network that welcomes indexers running query projects and provides queries to consumers. Consumers pay for queries with the SubQuery Token (SQT).
 
 This repository includes contracts, js-sdk and rust-sdk.
 
@@ -177,7 +177,7 @@ https://wiki.polygon.technology/docs/pos/design/bridge/ethereum-polygon/getting-
 ```
 
 Deposit usually takes more than 20 min
-Withdraw takes moer than 40 min
+Withdraw takes more than 40 min
 
 ### Withdraw token
 
