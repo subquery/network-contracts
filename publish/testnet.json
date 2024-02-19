@@ -189,10 +189,10 @@
             "lastUpdate": "Mon, 22 Jan 2024 09:44:40 GMT"
         },
         "RewardsBooster": {
-            "innerAddress": "0x4d8A488F1D0e676dABa3957634d2Ee220E3E8D28",
+            "innerAddress": "0x2150e0e743ac741f7C249564ec1bD05ddAFB3C1D",
             "address": "0x4f6A1045A56EeD1D2795b5f6F6713972B67C09C2",
-            "bytecodeHash": "f722392ca0731d349825bc36da5dd9c76e05bf37ada19bf22e730df4723b57fe",
-            "lastUpdate": "Thu, 08 Feb 2024 06:26:36 GMT"
+            "bytecodeHash": "0640a0042f1eaefc8143809fceef1ffa7ccbbe89ec258a02a70e7758dd4f3a8e",
+            "lastUpdate": "Mon, 19 Feb 2024 23:32:30 GMT"
         },
         "StakingAllocation": {
             "innerAddress": "0x6d987b33a149e44098A9096C57e74068882Ef6D6",
