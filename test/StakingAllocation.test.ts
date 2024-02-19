@@ -16,6 +16,7 @@ import {
     Staking,
     StakingManager,
     StakingAllocation,
+    RewardsHelper,
 } from '../src';
 import { deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
 import { etherParse, time, startNewEra, timeTravel, registerRunner } from './helper';
@@ -41,6 +42,7 @@ describe('StakingAllocation Contract', () => {
     let eraManager: EraManager;
     let rewardsBooster: RewardsBooster;
     let rewardsStaking: RewardsStaking;
+    let rewardsHelper: RewardsHelper;
     let rewardsDistributor: RewardsDistributor;
     let stakingAllocation: StakingAllocation;
     let projectRegistry: ProjectRegistry;
@@ -96,6 +98,7 @@ describe('StakingAllocation Contract', () => {
         rewardsBooster = deployment.rewardsBooster;
         rewardsStaking = deployment.rewardsStaking;
         rewardsDistributor = deployment.rewardsDistributor;
+        rewardsHelper = deployment.rewardsHelper;
         stakingAllocation = deployment.stakingAllocation;
         projectRegistry = deployment.projectRegistry;
 
@@ -252,6 +255,44 @@ describe('StakingAllocation Contract', () => {
                 .connect(runner1)
                 .removeAllocation(deploymentIds[0], runner1.address, etherParse('500'));
             await checkAllocation(runner1, etherParse('9000'), etherParse('9000'), false, false);
+        });
+
+        it('over-allocate and recover', async () => {
+            await stakingAllocation
+                .connect(runner0)
+                .addAllocation(deploymentIds[0], runner0.address, etherParse('10000'));
+            await stakingManager.connect(runner0).unstake(runner0.address, etherParse('1000'));
+            await startNewEra(eraManager);
+            await rewardsHelper.batchCollectAndDistributeRewards(runner0.address, 10);
+            await rewardsHelper.batchApplyStakeChange(runner0.address, [runner0.address]);
+            expect(await stakingAllocation.isOverAllocation(runner0.address)).to.be.true;
+            await stakingAllocation
+                .connect(runner0)
+                .removeAllocation(deploymentIds[0], runner0.address, etherParse('1000'));
+            expect(await stakingAllocation.isOverAllocation(runner0.address)).to.be.false;
+            expect(await stakingAllocation.allocatedTokens(runner0.address, deploymentIds[0])).to.eq(
+                etherParse('9000')
+            );
+            const overAllocationTime = await stakingAllocation.overAllocationTime(runner0.address);
+            const { overflowTimeSnapshot } = await rewardsBooster.getRunnerDeploymentRewards(
+                deploymentIds[0],
+                runner0.address
+            );
+            await stakingAllocation
+                .connect(runner0)
+                .removeAllocation(deploymentIds[0], runner0.address, etherParse('1000'));
+            expect(await stakingAllocation.allocatedTokens(runner0.address, deploymentIds[0])).to.eq(
+                etherParse('8000')
+            );
+            await stakingAllocation
+                .connect(runner0)
+                .addAllocation(deploymentIds[0], runner0.address, etherParse('1000'));
+            expect(await stakingAllocation.allocatedTokens(runner0.address, deploymentIds[0])).to.eq(
+                etherParse('9000')
+            );
+            await expect(
+                stakingAllocation.connect(runner0).addAllocation(deploymentIds[0], runner0.address, 1)
+            ).to.revertedWith('SAL03');
         });
     });
 });

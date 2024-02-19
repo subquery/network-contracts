@@ -253,7 +253,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     function _fixRewardsWithMissedLaborAndOverflow(
         uint256 _reward,
         RunnerDeploymentReward memory _runnerDepReward,
-        uint256 _totalAllocatedTime
+        uint256 _totalOverAllocatedTime
     ) internal view returns (uint256, uint256) {
         uint256 rewardPeriod = block.timestamp - _runnerDepReward.lastClaimedAt;
         if (_reward == 0) {
@@ -262,7 +262,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         if (rewardPeriod == 0) {
             return (0, 0);
         }
-        uint256 overAllocatedTime = _totalAllocatedTime - _runnerDepReward.overflowTimeSnapshot;
+        uint256 overAllocatedTime = _totalOverAllocatedTime - _runnerDepReward.overflowTimeSnapshot;
 
         uint256 fixedRewardByMissedLabor = MathUtil.mulDiv(
             _reward,
