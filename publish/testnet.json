@@ -165,10 +165,10 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:54:31 GMT"
         },
         "ConsumerRegistry": {
-            "innerAddress": "0xF20E8Cb7be69FbF8393413cb4DbC366C83616590",
+            "innerAddress": "0xA417333128E3800ce1c6Db9179622E06Fb1493f4",
             "address": "0x74C3c2273f47dDF4E435f20A01601a44a519a9c0",
-            "bytecodeHash": "e4ae21425ba06d64a2b36cef8a30da32b298d48dea2e4e401a49013c8081e7d5",
-            "lastUpdate": "Fri, 09 Feb 2024 05:54:47 GMT"
+            "bytecodeHash": "b5ca98fd3c5f211866a15935895bd2e0dcabd43a78a1907dcba703cb8cb3cf24",
+            "lastUpdate": "Mon, 19 Feb 2024 06:32:08 GMT"
         },
         "PriceOracle": {
             "innerAddress": "0xAc792A83b2cE9E532e47Fb6b4A310bb854E800c6",
