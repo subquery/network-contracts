@@ -127,8 +127,9 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         deploymentAllocations[_deployment] -= _amount;
         allocatedTokens[_runner][_deployment] -= _amount;
         if (ia.overflowAt != 0 && ia.total >= ia.used) {
-            // collectAllocationReward had beed overflowClear, so just set overflowAt
+            // recover from overflow
             emit OverAllocationEnded(_runner, block.timestamp, block.timestamp - ia.overflowAt);
+
             ia.overflowTime += block.timestamp - ia.overflowAt;
             ia.overflowAt = 0;
         }
