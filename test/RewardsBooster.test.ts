@@ -237,11 +237,11 @@ describe('RewardsBooster Contract', () => {
             const boosterAmount = etherParse('1000');
             const balanceBefore = await token.balanceOf(root.address);
             await token.increaseAllowance(rewardsBooster.address, boosterAmount);
-            await rewardsBooster.boostDeployment(deploymentId0, boosterAmount);
+            await rewardsBooster.boostDeployment(root.address, deploymentId0, boosterAmount);
             expect(await rewardsBooster.getRunnerDeploymentBooster(deploymentId0, root.address)).to.eq(boosterAmount);
             const balanceAfter = await token.balanceOf(root.address);
             expect(balanceBefore.sub(balanceAfter)).to.eq(boosterAmount);
-            await rewardsBooster.removeBoosterDeployment(deploymentId0, boosterAmount);
+            await rewardsBooster.removeBoosterDeployment(root.address, deploymentId0, boosterAmount);
             expect(await token.balanceOf(root.address)).to.eq(balanceBefore);
         });
 
@@ -249,7 +249,7 @@ describe('RewardsBooster Contract', () => {
             const perBlockReward = await rewardsBooster.issuancePerBlock();
             const boosterAmount = etherParse('10000');
             await token.increaseAllowance(rewardsBooster.address, boosterAmount);
-            await rewardsBooster.boostDeployment(deploymentId0, boosterAmount);
+            await rewardsBooster.boostDeployment(root.address, deploymentId0, boosterAmount);
             let reward = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             expect(reward).to.eq(0);
             await blockTravel(1000);
@@ -399,7 +399,9 @@ describe('RewardsBooster Contract', () => {
                 expect(queryReward1C0).to.eq(queryReward1C1);
                 // increase consumer0's booster
                 // await blockTravel(1);
-                await rewardsBooster.connect(consumer0).removeBoosterDeployment(deploymentId3, etherParse('10000'));
+                await rewardsBooster
+                    .connect(consumer0)
+                    .removeBoosterDeployment(consumer0.address, deploymentId3, etherParse('10000'));
                 const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
                 const queryReward2C0 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
                 const queryReward2C1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer1.address);

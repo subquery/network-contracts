@@ -209,7 +209,7 @@ export async function boosterDeployment(
     amount: BigNumber
 ) {
     await token.connect(signer).increaseAllowance(rewardsBooster.address, amount);
-    await rewardsBooster.connect(signer).boostDeployment(deployment, amount);
+    await rewardsBooster.connect(signer).boostDeployment(signer.address, deployment, amount);
 }
 
 export async function openChannel(

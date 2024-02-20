@@ -49,7 +49,7 @@ describe('StakingAllocation Contract', () => {
 
     const boosterDeployment = async (signer: SignerWithAddress, deployment: string, amount) => {
         await token.connect(signer).increaseAllowance(rewardsBooster.address, amount);
-        await rewardsBooster.connect(signer).boostDeployment(deployment, amount);
+        await rewardsBooster.connect(signer).boostDeployment(signer.address, deployment, amount);
     };
 
     const createProject = (wallet, projectMetadata, deploymentMetadata, deploymentId, projectType: ProjectType) => {

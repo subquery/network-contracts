@@ -337,6 +337,7 @@ export const loaders = {
             const tx = await sdk.rewardsBooster
                 .connect(wallet)
                 .removeBoosterDeployment(
+                    wallet.address,
                     cidToBytes32(deploymentId),
                     currentBooster.sub(utils.parseEther(amount.toString()))
                 );
@@ -345,7 +346,11 @@ export const loaders = {
             console.log(`add booster ${utils.formatEther(utils.parseEther(amount.toString()).sub(currentBooster))}`);
             const tx = await sdk.rewardsBooster
                 .connect(wallet)
-                .boostDeployment(cidToBytes32(deploymentId), utils.parseEther(amount.toString()).sub(currentBooster));
+                .boostDeployment(
+                    wallet.address,
+                    cidToBytes32(deploymentId),
+                    utils.parseEther(amount.toString()).sub(currentBooster)
+                );
             await tx.wait();
         }
         console.log(`DeploymentBooster End`);
