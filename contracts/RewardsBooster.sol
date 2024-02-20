@@ -20,6 +20,7 @@ import './interfaces/ISQToken.sol';
 import './interfaces/IRewardsDistributor.sol';
 import './interfaces/IRewardsBooster.sol';
 import './interfaces/IProjectRegistry.sol';
+import './interfaces/IConsumerRegistry.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
@@ -162,8 +163,19 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      * @param _deploymentId the deployment id
      * @param _amount the added amount
      */
-    function boostDeployment(bytes32 _deploymentId, uint256 _amount) external {
-        address boosterAccount = msg.sender;
+    function boostDeployment(
+        address boosterAccount,
+        bytes32 _deploymentId,
+        uint256 _amount
+    ) external {
+        IConsumerRegistry cr = IConsumerRegistry(
+            settings.getContractAddress(SQContracts.ConsumerRegistry)
+        );
+        require(
+            boosterAccount == msg.sender || cr.isController(boosterAccount, msg.sender),
+            'RB006'
+        );
+
         DeploymentPool storage deploymentPool = deploymentPools[_deploymentId];
         onDeploymentBoosterUpdate(_deploymentId, boosterAccount);
         deploymentPool.boosterPoint += _amount;
@@ -184,18 +196,33 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      * @param deployment deploymentId
      * @param amount the added amount
      */
-    function removeBoosterDeployment(bytes32 deployment, uint256 amount) external {
-        DeploymentPool storage deploymentPool = deploymentPools[deployment];
-        require(deploymentPool.accountBooster[msg.sender] >= amount, 'RB003');
+    function removeBoosterDeployment(
+        address boosterAccount,
+        bytes32 deployment,
+        uint256 amount
+    ) external {
+        IConsumerRegistry cr = IConsumerRegistry(
+            settings.getContractAddress(SQContracts.ConsumerRegistry)
+        );
+        require(
+            boosterAccount == msg.sender || cr.isController(boosterAccount, msg.sender),
+            'RB006'
+        );
 
-        onDeploymentBoosterUpdate(deployment, msg.sender);
+        DeploymentPool storage deploymentPool = deploymentPools[deployment];
+        require(deploymentPool.accountBooster[boosterAccount] >= amount, 'RB003');
+
+        onDeploymentBoosterUpdate(deployment, boosterAccount);
         deploymentPool.boosterPoint -= amount;
-        deploymentPool.accountBooster[msg.sender] -= amount;
+        deploymentPool.accountBooster[boosterAccount] -= amount;
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
         totalBoosterPoint -= amount;
 
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, amount);
-        emit DeploymentBoosterRemoved(deployment, msg.sender, amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
+            boosterAccount,
+            amount
+        );
+        emit DeploymentBoosterRemoved(deployment, boosterAccount, amount);
     }
 
     function getRunnerDeploymentBooster(
