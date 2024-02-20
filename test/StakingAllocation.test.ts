@@ -254,7 +254,7 @@ describe('StakingAllocation Contract', () => {
             await stakingAllocation
                 .connect(runner1)
                 .removeAllocation(deploymentIds[0], runner1.address, etherParse('500'));
-            await checkAllocation(runner1, etherParse('9000'), etherParse('9000'), false, false);
+            await checkAllocation(runner1, etherParse('9000'), etherParse('9000'), false, true);
         });
 
         it('over-allocate and recover', async () => {

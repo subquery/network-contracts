@@ -5,6 +5,7 @@ import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { deployContracts } from './setup';
 import {
+    ConsumerRegistry,
     EraManager,
     ERC20,
     IndexerRegistry,
@@ -65,6 +66,7 @@ describe('RewardsBooster Contract', () => {
     let stakingAllocation: StakingAllocation;
     let projectRegistry: ProjectRegistry;
     let stateChannel: StateChannel;
+    let consumerRegistry: ConsumerRegistry;
 
     const getAllocationReward = (deploymentReward: BigNumber, queryRewardRatePerMill: BigNumber): BigNumber => {
         return deploymentReward.mul(PER_MILL.sub(queryRewardRatePerMill)).div(PER_MILL);
@@ -136,6 +138,7 @@ describe('RewardsBooster Contract', () => {
         stakingAllocation = deployment.stakingAllocation;
         projectRegistry = deployment.projectRegistry;
         stateChannel = deployment.stateChannel;
+        consumerRegistry = deployment.consumerRegistry;
         await token.approve(rewardsBooster.address, constants.MaxInt256);
 
         // config rewards booster
@@ -242,6 +245,21 @@ describe('RewardsBooster Contract', () => {
             const balanceAfter = await token.balanceOf(root.address);
             expect(balanceBefore.sub(balanceAfter)).to.eq(boosterAmount);
             await rewardsBooster.removeBoosterDeployment(root.address, deploymentId0, boosterAmount);
+            expect(await token.balanceOf(root.address)).to.eq(balanceBefore);
+        });
+
+        it('can add and remove booster by controller', async () => {
+            await consumerRegistry.addController(root.address, consumer0.address);
+            const boosterAmount = etherParse('1000');
+            const balanceBefore = await token.balanceOf(root.address);
+            await token.increaseAllowance(rewardsBooster.address, boosterAmount);
+
+            await rewardsBooster.connect(consumer0).boostDeployment(root.address, deploymentId0, boosterAmount);
+            expect(await rewardsBooster.getRunnerDeploymentBooster(deploymentId0, root.address)).to.eq(boosterAmount);
+            const balanceAfter = await token.balanceOf(root.address);
+            expect(balanceBefore.sub(balanceAfter)).to.eq(boosterAmount);
+
+            await rewardsBooster.connect(consumer0).removeBoosterDeployment(root.address, deploymentId0, boosterAmount);
             expect(await token.balanceOf(root.address)).to.eq(balanceBefore);
         });
 
