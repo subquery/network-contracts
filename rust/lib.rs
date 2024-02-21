@@ -7,42 +7,42 @@ const KEPLER_ADDRESS: &str = include_str!("../publish/kepler.json");
 const TESTNET_ADDRESS: &str = include_str!("../publish/testnet.json");
 
 /// Default network that all services use now.
-pub const CURRENT_NETWORK: Network = Network::Kepler;
+pub const CURRENT_NETWORK: Network = Network::Mainnet;
 
-const CHAIN_ICON_URL: &str = "https://icons.llamao.fi/icons/chains/rsz_polygon.jpg";
-const CHAIN_TOKEN_NAME: &str = "Matic Token";
-const CHAIN_TOKEN_SYMBOL: &str = "MATIC";
+const CHAIN_ICON_URL: &str = "https://icons.llamao.fi/icons/chains/rsz_base.jpg";
+const CHAIN_TOKEN_NAME: &str = "Base ETH";
+const CHAIN_TOKEN_SYMBOL: &str = "ETH";
 const CHAIN_TOKEN_DECIMALS: i32 = 18;
 
-const BLOCK_EXPLORER_MAINNET: &str = "";
+const BLOCK_EXPLORER_MAINNET: &str = "https://basescan.org";
 const BLOCK_EXPLORER_KEPLER: &str = "https://polygonscan.com";
-const BLOCK_EXPLORER_TESTNET: &str = "https://mumbai.polygonscan.com";
+const BLOCK_EXPLORER_TESTNET: &str = "https://sepolia-explorer.base.org";
 
-const CHAIN_ID_MAINNET: i32 = 137;
+const CHAIN_ID_MAINNET: i32 = 8453;
 const CHAIN_ID_KEPLER: i32 = 137;
-const CHAIN_ID_TESTNET: i32 = 80001;
-const CHAIN_NAME_MAINNET: &str = "";
+const CHAIN_ID_TESTNET: i32 = 84532;
+const CHAIN_NAME_MAINNET: &str = "Base Mainnet";
 const CHAIN_NAME_KEPLER: &str = "Polygon";
-const CHAIN_NAME_TESTNET: &str = "Polygon Mumbai";
+const CHAIN_NAME_TESTNET: &str = "Base Sepolia";
 
-const RPC_MAINNET1: &str = "";
+const RPC_MAINNET1: &str = "https://mainnet.base.org";
 const RPC_MAINNET2: &str = "";
 const RPC_KEPLER1: &str = "https://polygon-rpc.com";
 const RPC_KEPLER2: &str = "https://polygon.api.onfinality.io/rpc";
-const RPC_TESTNET1: &str = "https://rpc.ankr.com/polygon_mumbai";
-const RPC_TESTNET2: &str = "https://polygon-mumbai.api.onfinality.io/rpc";
+const RPC_TESTNET1: &str = "https://sepolia.base.org";
+const RPC_TESTNET2: &str = "";
 
-const IPFS_MAINNET: &str = "";
+const IPFS_MAINNET: &str = "https://unauthipfs.subquery.network/ipfs/api/v0";
 const IPFS_KEPLER: &str = "https://unauthipfs.subquery.network/ipfs/api/v0";
 const IPFS_TESTNET: &str = "https://unauthipfs.subquery.network/ipfs/api/v0";
 
-const SUBQL_MAINNET: &str = "";
+const SUBQL_MAINNET: &str = "https://api.subquery.network/sq/subquery/mainnet-network";
 const SUBQL_KEPLER: &str = "https://api.subquery.network/sq/subquery/kepler-network";
 const SUBQL_TESTNET: &str = "https://api.subquery.network/sq/subquery/kepler-testnet";
 
-const EXPLORER_MAINNET: &str = "";
+const EXPLORER_MAINNET: &str = "https://app.subquery.network";
 const EXPLORER_KEPLER: &str = "https://kepler.subquery.network";
-const EXPLORER_TESTNET: &str = "https://kepler.thechaindata.com";
+const EXPLORER_TESTNET: &str = "https://dev.thechaindata.com";
 
 /// Network types
 #[derive(Hash, Eq, PartialEq, Copy, Clone, Debug)]
