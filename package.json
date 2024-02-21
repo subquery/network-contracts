@@ -1,6 +1,6 @@
 {
     "name": "@subql/contract-sdk",
-    "version": "0.117.1-2",
+    "version": "0.117.1-3",
     "main": "index.js",
     "license": "GPL3",
     "scripts": {
