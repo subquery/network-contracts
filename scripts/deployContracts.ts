@@ -3,7 +3,7 @@ moduleAlias.addAlias('./artifacts', '../artifacts');
 moduleAlias.addAlias('./publish', '../publish');
 
 import { Wallet } from '@ethersproject/wallet';
-import { BaseContract, Contract, Overrides, constants } from 'ethers';
+import { BaseContract, Contract, Overrides, constants, ContractTransaction } from 'ethers';
 import { readFileSync, writeFileSync } from 'fs';
 import Pino from 'pino';
 import sha256 from 'sha256';
@@ -237,9 +237,18 @@ export async function deployRootContracts(
         });
         logger?.info('🤞 InflationController');
         // setup minter
-        let tx = await sqtToken.setMinter(inflationController.address);
-        await tx.wait(confirms);
-        logger?.info('🤞 Set SQToken minter');
+        let tx: ContractTransaction;
+        const sqtMinter = await sqtToken.getMinter();
+        if (sqtMinter !== inflationController.address) {
+            if (network === 'mainnet') {
+                logger?.warn(`SQToken minter is ${sqtMinter}, not same as inflationController`);
+            } else {
+                logger?.info(`🤞 Set SQToken minter, change from ${sqtMinter} to ${inflationController.address}`);
+                tx = await sqtToken.setMinter(inflationController.address);
+                logger?.info(`tx: ${tx.hash}`);
+                await tx.wait(confirms);
+            }
+        }
 
         // deploy VTSQToken
         const vtSQToken = await deployContract<VTSQToken>('VTSQToken', 'root', {
@@ -254,11 +263,14 @@ export async function deployRootContracts(
         logger?.info('🤞 Vesting');
 
         // set vesting contract as the minter of vtSQToken
-        tx = await vtSQToken.setMinter(vesting.address);
-        await tx.wait(confirms);
-        logger?.info('🤞 Set VTSQToken minter');
+        const vtSQTMinter = await vtSQToken.minter();
+        if (vtSQTMinter !== vesting.address) {
+            logger?.info(`🤞 Set VTSQToken minter, change from ${vtSQTMinter} to ${vesting.address}`);
+            tx = await vtSQToken.setMinter(vesting.address);
+            await tx.wait(confirms);
+        }
 
-        let opDestination;
+        let opDestination: OpDestination;
         if (network !== 'testnet-mumbai') {
             //deploy OpDestination contract
             opDestination = await deployContract<OpDestination>('OpDestination', 'root', {
@@ -270,6 +282,23 @@ export async function deployRootContracts(
             });
 
             logger?.info('🤞 OpDestination');
+        }
+
+        const inflationDest = await inflationController.inflationDestination();
+        if (inflationDest !== opDestination.address) {
+            logger?.info(`🤞 Set inflationDestination, change from ${inflationDest} to ${opDestination.address}`);
+            tx = await inflationController.setInflationDestination(opDestination.address);
+            await tx.wait(confirms);
+        }
+
+        const baseRecipient = await opDestination.xcRecipient();
+        if (network === 'mainnet') {
+            const treasury = '0x31E99bdA5939bA2e7528707507b017f43b67F89B';
+            if (baseRecipient !== treasury) {
+                logger?.info(`🤞 Set OpDestination's xcRecipient, change from ${baseRecipient} to ${treasury}`);
+                tx = await opDestination.setXcRecipient(treasury);
+                await tx.wait(confirms);
+            }
         }
 
         logger?.info('🤞 Set addresses');
