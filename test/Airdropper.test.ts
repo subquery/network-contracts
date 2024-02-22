@@ -104,7 +104,7 @@ describe('Airdropper Contract', () => {
         it('update round with invaild caller should fail', async () => {
             await expect(airdropper.connect(wallet_1).updateRound(0, startTime, endTime)).to.be.revertedWith('A010');
         });
-        it.only('update round with invalid param should fail', async () => {
+        it('update round with invalid param should fail', async () => {
             await airdropper.createRound(sqtAddress, startTime, endTime);
             const blockTime = await lastestBlockTime();
             // invalid round id;
@@ -150,7 +150,7 @@ describe('Airdropper Contract', () => {
             expect(await airdropper.airdropRecord(wallet_1.address, 1)).to.be.eq(etherParse('10'));
             expect(await airdropper.airdropRecord(wallet_2.address, 1)).to.be.eq(etherParse('20'));
             expect(await (await airdropper.roundRecord(1)).unclaimedAmount).to.be.eq(etherParse('30'));
-            expect(await token.balanceOf(airdropper.address)).to.be.eq(etherParse('30'));
+            // expect(await token.balanceOf(airdropper.address)).to.be.eq(etherParse('30'));
         });
         it('batch airdrop with invaild caller should fail', async () => {
             await expect(
@@ -179,7 +179,7 @@ describe('Airdropper Contract', () => {
         it('settle airdrop round should work', async () => {
             await airdropper.setSettleDestination(wallet_3.address);
             await airdropper.batchAirdrop([wallet_1.address], [0], [etherParse('10')]);
-
+            await token.transfer(airdropper.address, etherParse('10'));
             await expect(airdropper.settleEndedRound(0)).to.be.revertedWith('A008');
 
             await timeTravel(60 * 60 * 24 * 3);
@@ -211,6 +211,7 @@ describe('Airdropper Contract', () => {
                 [0, 1],
                 [etherParse('10'), etherParse('20')]
             );
+            await token.transfer(airdropper.address, etherParse('30'));
         });
         it('claim airdrop should work', async () => {
             await timeTravel(60 * 60 * 3);

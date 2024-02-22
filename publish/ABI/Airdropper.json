@@ -1,16 +1,5 @@
 [
     {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "_settleDestination",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "nonpayable",
-        "type": "constructor"
-    },
-    {
         "anonymous": false,
         "inputs": [
             {
@@ -58,6 +47,19 @@
             }
         ],
         "name": "AirdropClaimed",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint8",
+                "name": "version",
+                "type": "uint8"
+            }
+        ],
+        "name": "Initialized",
         "type": "event"
     },
     {
@@ -236,6 +238,24 @@
     {
         "inputs": [
             {
+                "internalType": "uint256[]",
+                "name": "_roundIds",
+                "type": "uint256[]"
+            },
+            {
+                "internalType": "address[]",
+                "name": "_accounts",
+                "type": "address[]"
+            }
+        ],
+        "name": "batchClaimFor",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "_roundId",
                 "type": "uint256"
@@ -309,6 +329,19 @@
                 "type": "uint256"
             }
         ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_settleDestination",
+                "type": "address"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -463,6 +496,24 @@
             }
         ],
         "name": "updateRound",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_tokenAddr",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "withdrawByAdmin",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

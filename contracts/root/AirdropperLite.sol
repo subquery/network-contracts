@@ -8,7 +8,7 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-contract Airdropper is Initializable, OwnableUpgradeable {
+contract AirdropperLite is Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
     // -- Data --
 
@@ -16,13 +16,11 @@ contract Airdropper is Initializable, OwnableUpgradeable {
         address tokenAddress; //airdrop token address
         uint256 roundStartTime; //start time for this round
         uint256 roundDeadline; //deadline for this round
-        uint256 unclaimedAmount;
     }
 
     mapping(address => mapping(uint256 => uint256)) public airdropRecord; //airdrop token amount per address per round
     mapping(uint256 => Round) public roundRecord;
     uint256 public nextRoundId;
-    address public settleDestination;
     mapping(address => bool) public controllers;
 
     event RoundCreated(
@@ -36,23 +34,14 @@ contract Airdropper is Initializable, OwnableUpgradeable {
 
     event AddAirdrop(address indexed addr, uint256 roundId, uint256 amount);
 
-    event AirdropClaimed(address indexed addr, uint256 roundId, uint256 amount);
-
-    event RoundSettled(uint256 indexed roundId, address settleDestination, uint256 unclaimAmount);
-
     modifier onlyController() {
         require(controllers[msg.sender], 'A010');
         _;
     }
 
-    function initialize(address _settleDestination) external initializer {
+    function initialize() external initializer {
         __Ownable_init();
         controllers[msg.sender] = true;
-        settleDestination = _settleDestination;
-    }
-
-    function setSettleDestination(address _settleDestination) external onlyOwner {
-        settleDestination = _settleDestination;
     }
 
     function addController(address controller) external onlyOwner {
@@ -63,10 +52,6 @@ contract Airdropper is Initializable, OwnableUpgradeable {
         controllers[controller] = false;
     }
 
-    function withdrawByAdmin(address _tokenAddr, uint256 _amount) external onlyOwner {
-        IERC20(_tokenAddr).safeTransfer(msg.sender, _amount);
-    }
-
     function createRound(
         address _tokenAddr,
         uint256 _roundStartTime,
@@ -74,7 +59,7 @@ contract Airdropper is Initializable, OwnableUpgradeable {
     ) external onlyController returns (uint256) {
         require(_roundStartTime > block.timestamp && _roundDeadline > _roundStartTime, 'A001');
         require(_tokenAddr != address(0), 'G009');
-        roundRecord[nextRoundId] = Round(_tokenAddr, _roundStartTime, _roundDeadline, 0);
+        roundRecord[nextRoundId] = Round(_tokenAddr, _roundStartTime, _roundDeadline);
         nextRoundId += 1;
         emit RoundCreated(nextRoundId - 1, _tokenAddr, _roundStartTime, _roundDeadline);
         return nextRoundId - 1;
@@ -87,7 +72,7 @@ contract Airdropper is Initializable, OwnableUpgradeable {
     ) external onlyController {
         Round memory round = roundRecord[_roundId];
         require(round.roundStartTime > 0 && round.roundDeadline > block.timestamp, 'A011');
-        require(_roundStartTime > block.timestamp && _roundDeadline > _roundStartTime, 'A001');
+        require(_roundDeadline > _roundStartTime, 'A001');
 
         roundRecord[_roundId].roundStartTime = _roundStartTime;
         roundRecord[_roundId].roundDeadline = _roundDeadline;
@@ -95,29 +80,27 @@ contract Airdropper is Initializable, OwnableUpgradeable {
         emit RoundUpdated(_roundId, _roundStartTime, _roundDeadline);
     }
 
+    function withdrawByAdmin(address _tokenAddr, uint256 _amount) external onlyOwner {
+        IERC20(_tokenAddr).safeTransfer(msg.sender, _amount);
+    }
+
     function _airdrop(address _addr, uint256 _roundId, uint256 _amount) private {
-        require(roundRecord[_roundId].roundStartTime > block.timestamp, 'A002');
+        require(roundRecord[_roundId].roundDeadline > block.timestamp, 'A002');
         require(airdropRecord[_addr][_roundId] == 0, 'A003');
         require(_amount > 0, 'A004');
 
-        //        IERC20(roundRecord[_roundId].tokenAddress).safeTransferFrom(
-        //            msg.sender,
-        //            address(this),
-        //            _amount
-        //        );
         airdropRecord[_addr][_roundId] = _amount;
-        roundRecord[_roundId].unclaimedAmount += _amount;
         emit AddAirdrop(_addr, _roundId, _amount);
     }
 
     function batchAirdrop(
-        address[] calldata _addr,
-        uint256[] calldata _roundId,
-        uint256[] calldata _amount
+        address[] calldata _addrs,
+        uint256[] calldata _roundIds,
+        uint256[] calldata _amounts
     ) external onlyController {
-        require(_addr.length == _roundId.length && _addr.length == _amount.length, 'G010');
-        for (uint256 i = 0; i < _addr.length; i++) {
-            _airdrop(_addr[i], _roundId[i], _amount[i]);
+        require(_addrs.length == _roundIds.length && _addrs.length == _amounts.length, 'G010');
+        for (uint256 i = 0; i < _addrs.length; i++) {
+            _airdrop(_addrs[i], _roundIds[i], _amounts[i]);
         }
     }
 
@@ -144,9 +127,6 @@ contract Airdropper is Initializable, OwnableUpgradeable {
         );
         IERC20(roundRecord[_roundId].tokenAddress).safeTransfer(account, amount);
         airdropRecord[account][_roundId] = 0;
-
-        roundRecord[_roundId].unclaimedAmount -= amount;
-        emit AirdropClaimed(account, _roundId, amount);
     }
 
     function batchClaimAirdrop(uint256[] calldata _roundIds) external {
@@ -160,23 +140,5 @@ contract Airdropper is Initializable, OwnableUpgradeable {
         for (uint256 i = 0; i < _roundIds.length; i++) {
             _claimAirdrop(_roundIds[i], _accounts[i]);
         }
-    }
-
-    function settleEndedRound(uint256 _roundId) external {
-        require(roundRecord[_roundId].roundDeadline < block.timestamp, 'A008');
-        require(settleDestination != address(0), 'A008');
-        uint256 unclaimAmount = roundRecord[_roundId].unclaimedAmount;
-        require(unclaimAmount != 0, 'A009');
-        require(
-            IERC20(roundRecord[_roundId].tokenAddress).balanceOf(address(this)) >=
-                roundRecord[_roundId].unclaimedAmount,
-            'A007'
-        );
-        IERC20(roundRecord[_roundId].tokenAddress).safeTransfer(
-            settleDestination,
-            roundRecord[_roundId].unclaimedAmount
-        );
-        roundRecord[_roundId].unclaimedAmount = 0;
-        emit RoundSettled(_roundId, settleDestination, unclaimAmount);
     }
 }

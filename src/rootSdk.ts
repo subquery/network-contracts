@@ -4,7 +4,7 @@
 import type { Provider as AbstractProvider } from '@ethersproject/abstract-provider';
 import { Signer } from 'ethers';
 import { DEPLOYMENT_DETAILS } from './deployments';
-import { ERC20, InflationController, SQToken, Vesting, OpDestination } from './typechain';
+import { AirdropperLite, ERC20, InflationController, SQToken, Vesting, OpDestination } from './typechain';
 import { CONTRACT_FACTORY, ContractDeploymentInner, ContractName, FactoryContstructor, SdkOptions } from './types';
 import assert from 'assert';
 
@@ -15,6 +15,8 @@ const contractNameConversion: Record<string, string> = {
     opDestination: 'inflationDestination',
 };
 
+const ROOT_CONTRACTS = ['SQToken', 'Vesting', 'VTSQToken', 'AirdropperLite'];
+
 export class RootContractSDK {
     private _contractDeployments: ContractDeploymentInner;
     private _signerOrProvider: AbstractProvider | Signer;
@@ -24,6 +26,7 @@ export class RootContractSDK {
     readonly vesting!: Vesting;
     readonly inflationController!: InflationController;
     readonly inflationDestination!: OpDestination;
+    readonly airdropperLite!: AirdropperLite;
 
     constructor(
         private readonly signerOrProvider: AbstractProvider | Signer,
