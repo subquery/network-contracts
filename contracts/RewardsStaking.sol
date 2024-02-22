@@ -138,6 +138,9 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, C
             emit ICRChanged(_indexer, newCommissionRate);
             emit SettledEraUpdated(_indexer, currentEra - 1);
         } else {
+            if (!IIndexerRegistry(settings.getIndexerRegistry()).isIndexer(_indexer)) {
+                return;
+            }
             require(rewardsDistributer.collectAndDistributeEraRewards(currentEra, _indexer) == currentEra - 1, 'RS002');
             IndexerRewardInfo memory rewardInfo = rewardsDistributer.getRewardInfo(_indexer);
 
