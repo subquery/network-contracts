@@ -56,6 +56,7 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     logger.info(`Initial supply to be equal ${amount.toString()}`);
     expect(totalSupply).to.eql(amount);
     logger.info(`SQToken minter is ${sdk.inflationController.address}`);
+    // TODO: update this check after TGE launched
     expect((await sdk.sqToken.getMinter())).to.equal('0x0000000000000000000000000000000000000000');
     const wallet = mainnetConfig.multiSig.root.foundation;
     logger.info(`Foundation wallet: ${wallet} own the total assets`);
