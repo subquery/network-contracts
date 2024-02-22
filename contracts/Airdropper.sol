@@ -155,6 +155,13 @@ contract Airdropper is Initializable, OwnableUpgradeable {
         }
     }
 
+    function batchClaimFor(uint256[] calldata _roundIds, address[] calldata _accounts) external {
+        require(_roundIds.length == _accounts.length, 'G020');
+        for (uint256 i = 0; i < _roundIds.length; i++) {
+            _claimAirdrop(_roundIds[i], _accounts[i]);
+        }
+    }
+
     function settleEndedRound(uint256 _roundId) external {
         require(roundRecord[_roundId].roundDeadline < block.timestamp, 'A008');
         require(settleDestination != address(0), 'A008');

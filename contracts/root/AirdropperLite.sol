@@ -138,4 +138,11 @@ contract AirdropperLite is Initializable, OwnableUpgradeable {
             _claimAirdrop(_roundIds[i], msg.sender);
         }
     }
+
+    function batchClaimFor(uint256[] calldata _roundIds, address[] calldata _accounts) external {
+        require(_roundIds.length == _accounts.length, 'G020');
+        for (uint256 i = 0; i < _roundIds.length; i++) {
+            _claimAirdrop(_roundIds[i], _accounts[i]);
+        }
+    }
 }
