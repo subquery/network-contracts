@@ -41,6 +41,12 @@
             "address": "0x9E3a8e4d0115e5b157B61b6a5372ecc41446D472",
             "bytecodeHash": "fac0a76ba4d2c1f86dbb54e71b4d7030e8cb2e52b56ce61189a72e505dc6fb45",
             "lastUpdate": "Wed, 21 Feb 2024 02:57:13 GMT"
+        },
+        "AirdropperLite": {
+            "innerAddress": "0x6F4a8318CB94589d4C5025a4F9d1eDa8c91aD0D9",
+            "address": "0x82DF281C2cd9da593118f00A86d9998C91F1D1DC",
+            "bytecodeHash": "f6a7fb053a6d558fa20ab45e1a31789d441317d045a4e06b8b2f9e6e9e0ca5fe",
+            "lastUpdate": "Thu, 22 Feb 2024 09:36:15 GMT"
         }
     },
     "child": {
