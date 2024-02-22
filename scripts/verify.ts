@@ -40,8 +40,7 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     logger.info(`l1Token to be equal ${l1Token}`);
     expect((await sdk.inflationDestination.l1Token()).toUpperCase()).to.equal(l1Token.toUpperCase());
     logger.info(`l2Token to be equal ${l2Token}`);
-    // FIXME: l2Token is 0x00
-    // expect((await sdk.inflationDestination.l2Token()).toUpperCase()).to.equal(l2Token.toUpperCase());
+    expect((await sdk.inflationDestination.l2Token()).toUpperCase()).to.equal(l2Token.toUpperCase());
     logger.info(`l1StandardBridge to be equal ${l1StandardBridge}`);
     expect((await sdk.inflationDestination.l1StandardBridge()).toUpperCase()).to.equal(l1StandardBridge.toUpperCase());
     const XcRecipient = mainnetConfig.multiSig.child.treasury;
@@ -85,8 +84,6 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
 
 async function checkChildInitialisation(sdk: ContractSDK, config, caller: string) {
     try {
-        const multiSig = mainnetConfig.multiSig.child.council;
-  
         //Staking
         logger = getLogger('Staking');
         logger.info(`🧮 Verifying Staking Contract: ${sdk.staking.address}`);
@@ -267,7 +264,6 @@ async function checkChildContractsOwnership(sdk: ContractSDK) {
     logger.info(`🧮 Verifying ownership`);
 
     const contracts = [
-        sdk.airdropper,
         sdk.consumerHost,
         sdk.disputeManager,
         sdk.eraManager,
@@ -287,6 +283,8 @@ async function checkChildContractsOwnership(sdk: ContractSDK) {
         sdk.stakingManager,
         sdk.stateChannel,
         sdk.consumerRegistry,
+        sdk.rewardsBooster,
+        sdk.stakingAllocation,
     ];
 
     const owner = mainnetConfig.multiSig.child.council;
