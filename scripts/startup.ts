@@ -240,6 +240,8 @@ export async function childContractOwnerTransfer(sdk: ContractSDK) {
         sdk.consumerRegistry,
         sdk.priceOracle,
         sdk.vSQToken,
+        sdk.rewardsBooster,
+        sdk.stakingAllocation,
     ];
 
     const childCouncil = mainnetConfig.multiSig.child.council;

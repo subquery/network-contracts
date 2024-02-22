@@ -264,7 +264,6 @@ async function checkChildContractsOwnership(sdk: ContractSDK) {
     logger.info(`🧮 Verifying ownership`);
 
     const contracts = [
-        sdk.airdropper,
         sdk.consumerHost,
         sdk.disputeManager,
         sdk.eraManager,
@@ -284,6 +283,8 @@ async function checkChildContractsOwnership(sdk: ContractSDK) {
         sdk.stakingManager,
         sdk.stateChannel,
         sdk.consumerRegistry,
+        sdk.rewardsBooster,
+        sdk.stakingAllocation,
     ];
 
     const owner = mainnetConfig.multiSig.child.council;
