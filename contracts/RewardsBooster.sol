@@ -134,6 +134,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         boosterQueryRewardRate[_type] = _rate;
     }
 
+    function setMinimumDeploymentBooster(uint256 _minimumDeploymentBooster) external onlyOwner {
+        minimumDeploymentBooster = _minimumDeploymentBooster;
+    }
+
     /**
      * @notice Sets the token issuance per block.
      * The issuance is defined as a fixed amount of rewards per block in SQT.
