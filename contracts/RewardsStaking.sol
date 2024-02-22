@@ -166,6 +166,9 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             );
             stakingAllocation.onStakeUpdate(_runner);
         } else {
+            if (!IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).isIndexer(_runner)) {
+                return;
+            }
             require(
                 rewardsDistributor.collectAndDistributeEraRewards(currentEra, _runner) ==
                     currentEra - 1,
