@@ -24,18 +24,6 @@
             "bytecodeHash": "9aebec1e0121aaae8a6d84ab8f599e3e66249fb2781aa4d255670a49f1fdd448",
             "lastUpdate": "Tue, 13 Feb 2024 08:12:17 GMT"
         },
-        "VTSQToken": {
-            "innerAddress": "",
-            "address": "0x43569a8588d3d9ad499dcb70f4eceba3c193bdbc",
-            "bytecodeHash": "",
-            "lastUpdate": "Feb-13-2024 08:18:59 AM +UTC"
-        },
-        "Vesting": {
-            "innerAddress": "",
-            "address": "0xe420f94aA7e8670f997aD67f2A36B08f5bc9364f",
-            "bytecodeHash": "cd35648e02b44fe5fa927638d870b5ac522b9741614b265b517f1259c94df2b1",
-            "lastUpdate": "Wed, 21 Feb 2024 02:56:52 GMT"
-        },
         "OpDestination": {
             "innerAddress": "",
             "address": "0x9E3a8e4d0115e5b157B61b6a5372ecc41446D472",
@@ -47,6 +35,18 @@
             "address": "0x82DF281C2cd9da593118f00A86d9998C91F1D1DC",
             "bytecodeHash": "f6a7fb053a6d558fa20ab45e1a31789d441317d045a4e06b8b2f9e6e9e0ca5fe",
             "lastUpdate": "Thu, 22 Feb 2024 09:36:15 GMT"
+        },
+        "VTSQToken": {
+            "innerAddress": "",
+            "address": "0xccb44019E7AeD7477E5D93256a1d35d8175c686C",
+            "bytecodeHash": "ac96e5120a9dce8eac5f148d3ae534d15b2eb4858e1773a08ffa874dd6a0a681",
+            "lastUpdate": "Thu, 22 Feb 2024 11:58:19 GMT"
+        },
+        "Vesting": {
+            "innerAddress": "",
+            "address": "0x24Ca300577b16096824680A10672e9fDaD734D47",
+            "bytecodeHash": "cd35648e02b44fe5fa927638d870b5ac522b9741614b265b517f1259c94df2b1",
+            "lastUpdate": "Thu, 22 Feb 2024 11:59:26 GMT"
         }
     },
     "child": {

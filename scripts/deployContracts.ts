@@ -309,12 +309,12 @@ export async function deployRootContracts(
         });
         logger?.info('🤞 AirdropLite');
 
-        // logger?.info('🤞 Set addresses');
-        // tx = await settings.setBatchAddress(
-        //     [SQContracts.SQToken, SQContracts.InflationController, SQContracts.Vesting],
-        //     [sqtToken.address, inflationController.address, vesting.address]
-        // );
-        // await tx.wait(confirms);
+        logger?.info('🤞 Set addresses');
+        tx = await settings.setBatchAddress(
+            [SQContracts.SQToken, SQContracts.InflationController, SQContracts.Vesting],
+            [sqtToken.address, inflationController.address, vesting.address]
+        );
+        await tx.wait(confirms);
 
         // Register addresses on settings contract
         return [
