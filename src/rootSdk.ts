@@ -12,10 +12,10 @@ import assert from 'assert';
 const contractNameConversion: Record<string, string> = {
     sQToken: 'sqToken',
     vTSQToken: 'vtSQToken',
-    OpDestination: 'inflationDestination',
+    opDestination: 'inflationDestination',
 };
 
-const ROOT_CONTRACTS = ['SQToken', 'Vesting', 'VTSQToken'];
+const ROOT_CONTRACTS = ['SQToken', 'Vesting', 'VTSQToken', 'InflationController', 'OpDestination'];
 
 export class RootContractSDK {
     private _contractDeployments: ContractDeploymentInner;

@@ -23,9 +23,10 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     //InflationController
     logger = getLogger('InflationController');
     logger.info(`🧮 Verifying inflationController Contract: ${sdk.inflationController.address}`);
-    const [rate, destination] = config.contracts['InflationController'];
+    const [rate] = config['InflationController'];
+    const destination = sdk.inflationDestination.address;
     logger.info(`InflationRate to be equal ${rate}`);
-    expect(await sdk.inflationController.inflationRate()).to.eql(BN(rate));
+    expect((await sdk.inflationController.inflationRate()).toNumber()).to.eq(rate);
     logger.info(`InflationDestination to be equal ${destination}`);
     expect((await sdk.inflationController.inflationDestination()).toUpperCase()).to.equal(
         destination.toUpperCase()
@@ -35,7 +36,7 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     // inflation destination
     logger = getLogger('InflationDestination');
     logger.info(`🧮 Verifying inflationDestination: ${sdk.inflationDestination.address}`);
-    const [XcRecipient] = config.contracts['InflationDestination']
+    const XcRecipient = mainnetConfig.multiSig.child.treasury;
     logger.info(`XcRecipient to be equal ${XcRecipient}`);
     expect(await sdk.inflationDestination.xcRecipient()).eq(XcRecipient);
     logger.info('🎉 InflationDestination Contract verified\n');
@@ -43,14 +44,15 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     // SQToken
     logger = getLogger('SQToken');
     logger.info(`🧮 Verifying SQToken Contract: ${sdk.sqToken.address}`);
-    const [totalSupply] = config.contracts['SQToken'];
+    const [totalSupply] = config['SQToken'];
     const amount = await sdk.sqToken.totalSupply();
     logger.info(`Initial supply to be equal ${amount.toString()}`);
     expect(totalSupply).to.eql(amount);
     const wallet = mainnetConfig.multiSig.root.foundation;
     logger.info(`Foundation wallet: ${wallet} own the total assets`);
-    // TODO: sqt may already transfer to other accounts
-    expect(totalSupply).to.eql(await sdk.sqToken.balanceOf(wallet));
+    const foundationSQTBalance = await sdk.sqToken.balanceOf(wallet);
+    // FIXME: sqt may already transfer to other accounts
+    expect(totalSupply.gt(foundationSQTBalance)).to.be.true;
     logger.info('🎉 SQToken Contract verified\n');
 
     // VTSQToken
@@ -60,6 +62,7 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     logger.info(`Minter to be equal ${minter}`);
     // @ts-expect-error no minter interface
     expect((await sdk.vtSQToken.getMinter()).toUpperCase()).to.equal(minter.toUpperCase());
+    logger.info('🎉 VTSQToken Contract verified\n');
 }
 
 async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig, caller: string) {
@@ -69,7 +72,7 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         //Staking
         logger = getLogger('Staking');
         logger.info(`🧮 Verifying Staking Contract: ${sdk.staking.address}`);
-        const [lockPeriod, unbondFeeRate] = config.contracts['Staking'];
+        const [lockPeriod, unbondFeeRate] = config['Staking'];
         logger.info(`lockPeriod to be equal ${lockPeriod}`);
         expect(await sdk.staking.lockPeriod()).to.eql(BN(lockPeriod));
         logger.info(`unbondFeeRate to be equal ${unbondFeeRate}`);
@@ -79,7 +82,7 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         // Airdrop
         logger = getLogger('Airdrop');
         logger.info(`🧮 Verifying Airdrop Contract: ${sdk.airdropper.address}`);
-        const [settleDestination] = config.contracts['Airdropper'];
+        const [settleDestination] = config['Airdropper'];
         logger.info(`settleDestination to be equal ${settleDestination}`);
         expect((await sdk.airdropper.settleDestination()).toUpperCase()).to.equal(settleDestination.toUpperCase());
         logger.info('🎉 Airdrop Contract verified\n');
@@ -87,7 +90,7 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         //EraManager
         logger = getLogger('EraManager');
         logger.info(`🧮 Verifying EraManager Contract: ${sdk.eraManager.address}`);
-        const [eraPeriod] = config.contracts['EraManager'];
+        const [eraPeriod] = config['EraManager'];
         logger.info(`eraPeriod to be equal ${eraPeriod}`);
         expect(await sdk.eraManager.eraPeriod()).to.eql(BN(eraPeriod));
         logger.info('🎉 EraManager Contract verified\n');
@@ -95,7 +98,7 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         //ServiceAgreementRegistry
         logger = getLogger('ServiceAgreementRegistry');
         logger.info(`🧮 Verifying ServiceAgreementRegistry Contract: ${sdk.serviceAgreementRegistry.address}`);
-        const [threshold] = config.contracts['ServiceAgreementRegistry'];
+        const [threshold] = config['ServiceAgreementRegistry'];
         logger.info(`threshold to be equal ${threshold}`);
         logger.info('PlanMananger and PurchaseOfferContract are in the whitelist');
         expect(await sdk.serviceAgreementRegistry.establisherWhitelist(sdk.planManager.address)).to.be.true;
@@ -105,7 +108,7 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         //PurchaseOfferMarket
         logger = getLogger('PurchaseOfferMarket');
         logger.info(`🧮 Verifying PurchaseOfferMarket Contract: ${sdk.purchaseOfferMarket.address}`);
-        const [penaltyRate, pDestination] = config.contracts['PurchaseOfferMarket'];
+        const [penaltyRate, pDestination] = config['PurchaseOfferMarket'];
         logger.info(`penaltyRate to be equal ${penaltyRate}`);
         expect(await sdk.purchaseOfferMarket.penaltyRate()).to.eql(BN(penaltyRate));
         logger.info(`penaltyDestination to be equal ${pDestination}`);
@@ -115,7 +118,7 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         //IndexerRegistry
         logger = getLogger('IndexerRegistry');
         logger.info(`🧮 Verifying IndexerRegistry Contract: ${sdk.indexerRegistry.address}`);
-        const [minimumStakingAmount] = config.contracts['IndexerRegistry'];
+        const [minimumStakingAmount] = config['IndexerRegistry'];
         logger.info(`minimumStakingAmount to be equal ${minimumStakingAmount}`);
         expect(await sdk.indexerRegistry.minimumStakingAmount()).to.eql(BN(minimumStakingAmount));
         logger.info('🎉 IndexerRegistry Contract verified\n');
@@ -132,7 +135,7 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         //ConsumerHost
         logger = getLogger('ConsumerHost');
         logger.info(`🧮 Verifying ConsumerHost Contract: ${sdk.consumerHost.address}`);
-        const [feePercentage] = config.contracts['ConsumerHost'];
+        const [feePercentage] = config['ConsumerHost'];
         logger.info(`feePercentage to be equal ${feePercentage}`);
         expect(await sdk.consumerHost.fee()).to.eql(BN(feePercentage));
         logger.info('🎉 ConsumerHost Contract verified\n');
@@ -140,7 +143,7 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         //DisputeManager
         logger = getLogger('DisputeManager');
         logger.info(`🧮 Verifying DisputeManager Contract: ${sdk.disputeManager.address}`);
-        const [minDeposit] = config.contracts['DisputeManager'];
+        const [minDeposit] = config['DisputeManager'];
         logger.info(`DisputeManager minimumDeposit to be equal ${minDeposit}`);
         expect(await sdk.disputeManager.minimumDeposit()).to.eql(BN(minDeposit));
         logger.info('🎉 DisputeManager Contract verified\n');
@@ -265,8 +268,6 @@ const main = async () => {
     const childSDK = ContractSDK.create(childProvider, { network });
     const rootSDK = RootContractSDK.create(rootProvider, { network });
     const caller = '0x00';
-
-    console.log('rootSDK:', rootSDK);
 
     const config = contractsConfig[network];
     const verifyType = process.argv[6];

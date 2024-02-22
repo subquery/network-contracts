@@ -2,7 +2,7 @@ import { utils } from 'ethers';
 
 export default {
     mainnet: {
-        InflationController: [12000, '0x9E3a8e4d0115e5b157B61b6a5372ecc41446D472'], // inflationRate, inflationDestination
+        InflationController: [10000, '0x9E3a8e4d0115e5b157B61b6a5372ecc41446D472'], // inflationRate, inflationDestination
         InflationDestination: ['0x9E3a8e4d0115e5b157B61b6a5372ecc41446D472'], // XcRecipient
         SQToken: [utils.parseEther('10000000000')], // initial supply 10 billion
         VTSQToken: [],
