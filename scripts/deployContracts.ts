@@ -54,6 +54,7 @@ import {
     RewardsBooster,
     StakingAllocation,
     L2SQToken,
+    AirdropperLite,
 } from '../src';
 import { CONTRACT_FACTORY, Config, ContractConfig, Contracts, UPGRADEBAL_CONTRACTS } from './contracts';
 import { l1StandardBridge } from './L1StandardBridge';
@@ -301,12 +302,19 @@ export async function deployRootContracts(
             }
         }
 
-        logger?.info('🤞 Set addresses');
-        tx = await settings.setBatchAddress(
-            [SQContracts.SQToken, SQContracts.InflationController, SQContracts.Vesting],
-            [sqtToken.address, inflationController.address, vesting.address]
-        );
-        await tx.wait(confirms);
+        // deploy VTSQToken
+        const airdropperLite = await deployContract<AirdropperLite>('AirdropperLite', 'root', {
+            proxyAdmin,
+            initConfig: [],
+        });
+        logger?.info('🤞 AirdropLite');
+
+        // logger?.info('🤞 Set addresses');
+        // tx = await settings.setBatchAddress(
+        //     [SQContracts.SQToken, SQContracts.InflationController, SQContracts.Vesting],
+        //     [sqtToken.address, inflationController.address, vesting.address]
+        // );
+        // await tx.wait(confirms);
 
         // Register addresses on settings contract
         return [
@@ -318,6 +326,7 @@ export async function deployRootContracts(
                 proxyAdmin,
                 vesting,
                 opDestination,
+                airdropperLite,
             },
         ];
     } catch (error) {

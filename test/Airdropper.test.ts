@@ -104,7 +104,7 @@ describe('Airdropper Contract', () => {
         it('update round with invaild caller should fail', async () => {
             await expect(airdropper.connect(wallet_1).updateRound(0, startTime, endTime)).to.be.revertedWith('A010');
         });
-        it.only('update round with invalid param should fail', async () => {
+        it('update round with invalid param should fail', async () => {
             await airdropper.createRound(sqtAddress, startTime, endTime);
             const blockTime = await lastestBlockTime();
             // invalid round id;

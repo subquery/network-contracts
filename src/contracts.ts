@@ -34,6 +34,7 @@ import OpDestination from './artifacts/contracts/root/OpDestination.sol/OpDestin
 import SQTGift from './artifacts/contracts/SQTGift.sol/SQTGift.json';
 import SQTRedeem from './artifacts/contracts/SQTRedeem.sol/SQTRedeem.json';
 import L2SQToken from './artifacts/contracts/l2/L2SQToken.sol/L2SQToken.json';
+import AirdropperLite from './artifacts/contracts/root/AirdropperLite.sol/AirdropperLite.json';
 
 export default {
     Settings,
@@ -69,4 +70,5 @@ export default {
     SQTGift,
     SQTRedeem,
     L2SQToken,
+    AirdropperLite,
 };

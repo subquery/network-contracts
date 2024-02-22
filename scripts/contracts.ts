@@ -69,6 +69,8 @@ import {
     VTSQToken__factory,
     L2SQToken__factory,
     FactoryContstructor,
+    AirdropperLite__factory,
+    AirdropperLite,
 } from '../src';
 
 export type Contracts = {
@@ -105,6 +107,7 @@ export type Contracts = {
     opDestination: OpDestination;
     sqtGift: SQTGift;
     sqtRedeem: SQTRedeem;
+    airdropperLite: AirdropperLite;
 };
 
 export const UPGRADEBAL_CONTRACTS: Partial<
@@ -133,6 +136,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<
     PriceOracle: [CONTRACTS.PriceOracle, PriceOracle__factory],
     Settings: [CONTRACTS.Settings, Settings__factory],
     SQTGift: [CONTRACTS.SQTGift, SQTGift__factory],
+    AirdropperLite: [CONTRACTS.AirdropperLite, AirdropperLite__factory],
 };
 
 export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
@@ -169,6 +173,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     SQTGift: SQTGift__factory,
     SQTRedeem: SQTRedeem__factory,
     L2SQToken: L2SQToken__factory,
+    AirdropperLite: AirdropperLite__factory,
 };
 
 export type Config = number | string | string[];
