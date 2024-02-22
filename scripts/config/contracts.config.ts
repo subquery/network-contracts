@@ -2,9 +2,10 @@ import { utils } from 'ethers';
 
 export default {
     mainnet: {
-        InflationController: [10000, '0x0000000000000000000000000000000000000000'], // inflationRate, inflationDestination
+        InflationController: [12000, '0x9E3a8e4d0115e5b157B61b6a5372ecc41446D472'], // inflationRate, inflationDestination
+        InflationDestination: ['0x9E3a8e4d0115e5b157B61b6a5372ecc41446D472'], // XcRecipient
         SQToken: [utils.parseEther('10000000000')], // initial supply 10 billion
-        VTSQToken: [], // initial supply 0
+        VTSQToken: [],
         Staking: [1209600, 1e3], // lockPeriod: 14 days, unbondFeeRate: 10e3/10e6=0.001=0.1%
         Airdropper: ['0xC3b9127ceBfFe170616502FaEE3c0bC7822F15BD'], // settle destination
         EraManager: [604800], // 7 day

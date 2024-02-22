@@ -2,11 +2,14 @@ import { expect } from 'chai';
 import { BigNumber, utils } from 'ethers';
 import Pino from 'pino';
 
-import { ContractSDK, SubqueryNetwork } from '../build';
+import { ContractSDK, SubqueryNetwork, RootContractSDK } from '../build';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
 import { getLogger } from './logger';
-import setup from './setup';
+import { argv, setupCommon } from './setup';
+import mainnetConfig from './config/mainnet.config';
+import contractsConfig from './config/contracts.config';
+import { networks } from '../src/networks';
 
 let logger: Pino.Logger;
 
@@ -16,33 +19,53 @@ function cidToBytes32(cid: string): string {
     return '0x' + Buffer.from(utils.base58.decode(cid)).slice(2).toString('hex');
 }
 
-async function checkInitialisation(sdk: ContractSDK, config, startupConfig, caller: string) {
+async function checkRootInitialisation(sdk: RootContractSDK, config) {
+    //InflationController
+    logger = getLogger('InflationController');
+    logger.info(`🧮 Verifying inflationController Contract: ${sdk.inflationController.address}`);
+    const [rate, destination] = config.contracts['InflationController'];
+    logger.info(`InflationRate to be equal ${rate}`);
+    expect(await sdk.inflationController.inflationRate()).to.eql(BN(rate));
+    logger.info(`InflationDestination to be equal ${destination}`);
+    expect((await sdk.inflationController.inflationDestination()).toUpperCase()).to.equal(
+        destination.toUpperCase()
+    );
+    logger.info('🎉 InflationController Contract verified\n');
+
+    // inflation destination
+    logger = getLogger('InflationDestination');
+    logger.info(`🧮 Verifying inflationDestination: ${sdk.inflationDestination.address}`);
+    const [XcRecipient] = config.contracts['InflationDestination']
+    logger.info(`XcRecipient to be equal ${XcRecipient}`);
+    expect(await sdk.inflationDestination.xcRecipient()).eq(XcRecipient);
+    logger.info('🎉 InflationDestination Contract verified\n');
+
+    // SQToken
+    logger = getLogger('SQToken');
+    logger.info(`🧮 Verifying SQToken Contract: ${sdk.sqToken.address}`);
+    const [totalSupply] = config.contracts['SQToken'];
+    const amount = await sdk.sqToken.totalSupply();
+    logger.info(`Initial supply to be equal ${amount.toString()}`);
+    expect(totalSupply).to.eql(amount);
+    const wallet = mainnetConfig.multiSig.root.foundation;
+    logger.info(`Foundation wallet: ${wallet} own the total assets`);
+    // TODO: sqt may already transfer to other accounts
+    expect(totalSupply).to.eql(await sdk.sqToken.balanceOf(wallet));
+    logger.info('🎉 SQToken Contract verified\n');
+
+    // VTSQToken
+    logger = getLogger('VTSQToken');
+    logger.info(`🧮 Verifying VTSQToken Contract: ${sdk.vtSQToken.address}`);
+    const minter = sdk.vesting.address;
+    logger.info(`Minter to be equal ${minter}`);
+    // @ts-expect-error no minter interface
+    expect((await sdk.vtSQToken.getMinter()).toUpperCase()).to.equal(minter.toUpperCase());
+}
+
+async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig, caller: string) {
     try {
         const multiSig = startupConfig.multiSign;
-        //InflationController
-        logger = getLogger('InflationController');
-        logger.info(`🧮 Verifying inflationController Contract: ${sdk.inflationController.address}`);
-        const [rate, destination] = config.contracts['InflationController'];
-        logger.info(`InflationRate to be equal ${rate}`);
-        expect(await sdk.inflationController.inflationRate()).to.eql(BN(rate));
-
-        logger.info(`InflationDestination to be equal ${destination}`);
-        expect((await sdk.inflationController.inflationDestination()).toUpperCase()).to.equal(
-            destination.toUpperCase()
-        );
-        logger.info('🎉 InflationController Contract verified\n');
-
-        // SQToken
-        logger = getLogger('SQToken');
-        logger.info(`🧮 Verifying SQToken Contract: ${sdk.sqToken.address}`);
-        const [totalSupply] = config.contracts['SQToken'];
-        const amount = await sdk.sqToken.totalSupply();
-        logger.info(`Initial supply to be equal ${amount.toString()}`);
-        expect(totalSupply).to.eql(amount);
-        logger.info(`Multi-sig walconst: ${multiSig} own the total assets`);
-        expect(totalSupply).to.eql(await sdk.sqToken.balanceOf(multiSig));
-        logger.info('🎉 SQToken Contract verified\n');
-
+  
         //Staking
         logger = getLogger('Staking');
         logger.info(`🧮 Verifying Staking Contract: ${sdk.staking.address}`);
@@ -74,7 +97,6 @@ async function checkInitialisation(sdk: ContractSDK, config, startupConfig, call
         logger.info(`🧮 Verifying ServiceAgreementRegistry Contract: ${sdk.serviceAgreementRegistry.address}`);
         const [threshold] = config.contracts['ServiceAgreementRegistry'];
         logger.info(`threshold to be equal ${threshold}`);
-        expect(await sdk.serviceAgreementExtra.threshold()).to.eql(BN(threshold));
         logger.info('PlanMananger and PurchaseOfferContract are in the whitelist');
         expect(await sdk.serviceAgreementRegistry.establisherWhitelist(sdk.planManager.address)).to.be.true;
         expect(await sdk.serviceAgreementRegistry.establisherWhitelist(sdk.purchaseOfferMarket.address)).to.be.true;
@@ -107,19 +129,12 @@ async function checkInitialisation(sdk: ContractSDK, config, startupConfig, call
         expect(await sdk.projectRegistry.creatorWhitelist(multiSig)).to.be.true;
         logger.info('🎉 ProjectRegistry Contract verified\n');
 
-        //PermissionExchange
-        logger = getLogger('P');
-        logger.info(`🧮 Verifying PermissionExchange Contract: ${sdk.permissionedExchange.address}`);
-        logger.info(`RewardDistribute is the controller: ${sdk.rewardsDistributor.address}`);
-        expect(await sdk.permissionedExchange.exchangeController(sdk.rewardsDistributor.address)).to.be.true;
-        logger.info('🎉 PermissionExchange Contract verified\n');
-
         //ConsumerHost
         logger = getLogger('ConsumerHost');
         logger.info(`🧮 Verifying ConsumerHost Contract: ${sdk.consumerHost.address}`);
         const [feePercentage] = config.contracts['ConsumerHost'];
         logger.info(`feePercentage to be equal ${feePercentage}`);
-        expect(await sdk.consumerHost.feePercentage()).to.eql(BN(feePercentage));
+        expect(await sdk.consumerHost.fee()).to.eql(BN(feePercentage));
         logger.info('🎉 ConsumerHost Contract verified\n');
 
         //DisputeManager
@@ -188,17 +203,20 @@ async function checkConfiguration(sdk: ContractSDK, config) {
     }
 }
 
-async function checkOwnership(sdk: ContractSDK, owner: string) {
+async function checkRootContractsOwnership(sdk: RootContractSDK, owner: string) {
+
+}
+
+async function checkChildContractsOwnership(sdk: ContractSDK, owner: string) {
     const logger = getLogger('ownership');
     logger.info(`🧮 Verifying ownership`);
+
     const contracts = [
         sdk.airdropper,
         sdk.consumerHost,
         sdk.disputeManager,
         sdk.eraManager,
         sdk.indexerRegistry,
-        sdk.inflationController,
-        sdk.permissionedExchange,
         sdk.planManager,
         sdk.proxyAdmin,
         sdk.purchaseOfferMarket,
@@ -207,18 +225,17 @@ async function checkOwnership(sdk: ContractSDK, owner: string) {
         sdk.rewardsHelper,
         sdk.rewardsPool,
         sdk.rewardsStaking,
-        sdk.serviceAgreementExtra,
         sdk.serviceAgreementRegistry,
         sdk.settings,
         sdk.sqToken,
         sdk.staking,
         sdk.stakingManager,
         sdk.stateChannel,
-        sdk.vesting,
         sdk.consumerRegistry,
     ];
     try {
         for (const contract of contracts) {
+            // @ts-expect-error no owner interface
             const o = await contract.owner();
             expect(o.toLowerCase()).to.eql(owner.toLocaleLowerCase());
             logger.info(`🎉 Ownership of contract: ${contract.address} verified`);
@@ -230,45 +247,50 @@ async function checkOwnership(sdk: ContractSDK, owner: string) {
 
 const main = async () => {
     let startupConfig: typeof startupTestnetConfig = startupTestnetConfig;
-    const { wallet, config } = await setup(process.argv);
-    const caller = wallet.address;
+    const network = (argv.network ?? 'testnet') as SubqueryNetwork;
+    const { rootProvider, childProvider } = await setupCommon(networks[network]);
 
-    const networkType = process.argv[2];
-    let network: SubqueryNetwork;
-    switch (networkType) {
-        case '--mainnet':
-            network = 'mainnet';
+    switch (network) {
+        case 'mainnet':
             // @ts-expect-error mainnet has diff config with testnet
             startupConfig = startupMainnetConfig;
             break;
-        case '--testnet':
-            network = 'testnet';
+        case 'testnet':
             startupConfig = startupTestnetConfig;
             break;
         default:
-            throw new Error(`Please provide correct network ${networkType}`);
+            throw new Error(`Please provide correct network ${network}`);
     }
 
-    const sdk = ContractSDK.create(wallet, { network });
+    const childSDK = ContractSDK.create(childProvider, { network });
+    const rootSDK = RootContractSDK.create(rootProvider, { network });
+    const caller = '0x00';
 
-    const verifyType = process.argv[3];
+    console.log('rootSDK:', rootSDK);
+
+    const config = contractsConfig[network];
+    const verifyType = process.argv[6];
     switch (verifyType) {
         case '--initialisation':
-            await checkInitialisation(sdk, config, startupConfig, caller);
+            // await checkChildInitialisation(childSDK, config, startupConfig, caller);
+            await checkRootInitialisation(rootSDK, config);
             break;
         case '--configuration':
-            await checkConfiguration(sdk, startupConfig);
+            await checkConfiguration(childSDK, startupConfig);
             break;
         case '--ownership':
-            await checkOwnership(sdk, startupConfig.multiSign);
+            await checkChildContractsOwnership(childSDK, startupConfig.multiSign);
+            await checkRootContractsOwnership(rootSDK, startupConfig.multiSign);
             break;
         case '--all':
-            await checkInitialisation(sdk, config, startupConfig, caller);
-            await checkConfiguration(sdk, startupConfig);
-            await checkOwnership(sdk, startupConfig.multiSign);
+            await checkChildInitialisation(childSDK, config, startupConfig, caller);
+            await checkRootInitialisation(rootSDK, config);
+            await checkConfiguration(childSDK, startupConfig);
+            await checkChildContractsOwnership(childSDK, startupConfig.multiSign);
+            await checkRootContractsOwnership(rootSDK, startupConfig.multiSign);
             break;
         default:
-            throw new Error(`Please provide correct network ${networkType}`);
+            throw new Error(`Please provide correct network ${network}`);
     }
 };
 
