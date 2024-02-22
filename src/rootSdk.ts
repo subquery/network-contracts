@@ -15,8 +15,6 @@ const contractNameConversion: Record<string, string> = {
     opDestination: 'inflationDestination',
 };
 
-const ROOT_CONTRACTS = ['SQToken', 'Vesting', 'VTSQToken', 'InflationController', 'OpDestination'];
-
 export class RootContractSDK {
     private _contractDeployments: ContractDeploymentInner;
     private _signerOrProvider: AbstractProvider | Signer;
@@ -46,7 +44,6 @@ export class RootContractSDK {
 
     private async _init() {
         const contracts = Object.entries(this._contractDeployments)
-            .filter(([name]) => ROOT_CONTRACTS.includes(name))
             .map(([name, contract]) => ({
                 address: contract.address,
                 factory: CONTRACT_FACTORY[name as ContractName] as FactoryContstructor,

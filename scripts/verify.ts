@@ -206,11 +206,35 @@ async function checkConfiguration(sdk: ContractSDK, config) {
     }
 }
 
-async function checkRootContractsOwnership(sdk: RootContractSDK, owner: string) {
+async function checkRootContractsOwnership(sdk: RootContractSDK) {
+    const logger = getLogger('ownership');
+    logger.info(`🧮 Verifying root contracts ownership`);
 
+    const foundationW = mainnetConfig.multiSig.root.foundation;
+    const allocationW = mainnetConfig.multiSig.root.foundationAllocation;
+    const contracts = [
+        [sdk.vesting, foundationW],
+        [sdk.sqToken, foundationW],
+        [sdk.vtSQToken, foundationW],
+        [sdk.inflationDestination, foundationW],
+        [sdk.inflationController, foundationW],
+        // TODO: verify `settings` and `proxyAmdin` which owner is `allocationW`
+    ];
+    
+    try {
+        for (const [contract, owner] of contracts) {
+            // @ts-expect-error no owner interface
+            const o = await contract.owner();
+            expect(o.toLowerCase()).to.eql(owner);
+            // @ts-expect-error no address interface
+            logger.info(`🎉 Ownership of contract: ${contract.address} verified`);
+        }
+    } catch (error) {
+        console.log(error);
+    }
 }
 
-async function checkChildContractsOwnership(sdk: ContractSDK, owner: string) {
+async function checkChildContractsOwnership(sdk: ContractSDK) {
     const logger = getLogger('ownership');
     logger.info(`🧮 Verifying ownership`);
 
@@ -236,11 +260,13 @@ async function checkChildContractsOwnership(sdk: ContractSDK, owner: string) {
         sdk.stateChannel,
         sdk.consumerRegistry,
     ];
+
+    const owner = mainnetConfig.multiSig.child.council;
     try {
         for (const contract of contracts) {
             // @ts-expect-error no owner interface
             const o = await contract.owner();
-            expect(o.toLowerCase()).to.eql(owner.toLocaleLowerCase());
+            expect(o.toLowerCase()).to.eql(owner);
             logger.info(`🎉 Ownership of contract: ${contract.address} verified`);
         }
     } catch (error) {
