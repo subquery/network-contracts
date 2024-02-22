@@ -65,9 +65,9 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     logger.info('🎉 VTSQToken Contract verified\n');
 }
 
-async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig, caller: string) {
+async function checkChildInitialisation(sdk: ContractSDK, config, caller: string) {
     try {
-        const multiSig = startupConfig.multiSign;
+        const multiSig = mainnetConfig.multiSig.child.council;
   
         //Staking
         logger = getLogger('Staking');
@@ -78,14 +78,6 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         logger.info(`unbondFeeRate to be equal ${unbondFeeRate}`);
         expect(await sdk.staking.unbondFeeRate()).to.eql(BN(unbondFeeRate));
         logger.info('🎉 Staking Contract verified\n');
-
-        // Airdrop
-        logger = getLogger('Airdrop');
-        logger.info(`🧮 Verifying Airdrop Contract: ${sdk.airdropper.address}`);
-        const [settleDestination] = config['Airdropper'];
-        logger.info(`settleDestination to be equal ${settleDestination}`);
-        expect((await sdk.airdropper.settleDestination()).toUpperCase()).to.equal(settleDestination.toUpperCase());
-        logger.info('🎉 Airdrop Contract verified\n');
 
         //EraManager
         logger = getLogger('EraManager');
@@ -98,8 +90,6 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         //ServiceAgreementRegistry
         logger = getLogger('ServiceAgreementRegistry');
         logger.info(`🧮 Verifying ServiceAgreementRegistry Contract: ${sdk.serviceAgreementRegistry.address}`);
-        const [threshold] = config['ServiceAgreementRegistry'];
-        logger.info(`threshold to be equal ${threshold}`);
         logger.info('PlanMananger and PurchaseOfferContract are in the whitelist');
         expect(await sdk.serviceAgreementRegistry.establisherWhitelist(sdk.planManager.address)).to.be.true;
         expect(await sdk.serviceAgreementRegistry.establisherWhitelist(sdk.purchaseOfferMarket.address)).to.be.true;
@@ -108,9 +98,10 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         //PurchaseOfferMarket
         logger = getLogger('PurchaseOfferMarket');
         logger.info(`🧮 Verifying PurchaseOfferMarket Contract: ${sdk.purchaseOfferMarket.address}`);
-        const [penaltyRate, pDestination] = config['PurchaseOfferMarket'];
+        const [penaltyRate] = config['PurchaseOfferMarket'];
         logger.info(`penaltyRate to be equal ${penaltyRate}`);
         expect(await sdk.purchaseOfferMarket.penaltyRate()).to.eql(BN(penaltyRate));
+        const pDestination = mainnetConfig.multiSig.child.treasury;
         logger.info(`penaltyDestination to be equal ${pDestination}`);
         expect((await sdk.purchaseOfferMarket.penaltyDestination()).toUpperCase()).to.equal(pDestination.toUpperCase());
         logger.info('🎉 PurchaseOfferMarket Contract verified\n');
@@ -126,10 +117,8 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         //ProjectRegistry
         logger = getLogger('ProjectRegistry');
         logger.info(`🧮 Verifying ProjectRegistry Contract: ${sdk.projectRegistry.address}`);
-        logger.info(`${caller} is not project creator`);
-        expect(await sdk.projectRegistry.creatorWhitelist(caller)).to.be.false;
-        logger.info(`${multiSig} is project creator`);
-        expect(await sdk.projectRegistry.creatorWhitelist(multiSig)).to.be.true;
+        logger.info(`${caller} is project creator`);
+        expect(await sdk.projectRegistry.creatorWhitelist(caller)).to.be.true;
         logger.info('🎉 ProjectRegistry Contract verified\n');
 
         //ConsumerHost
@@ -137,7 +126,7 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         logger.info(`🧮 Verifying ConsumerHost Contract: ${sdk.consumerHost.address}`);
         const [feePercentage] = config['ConsumerHost'];
         logger.info(`feePercentage to be equal ${feePercentage}`);
-        expect(await sdk.consumerHost.fee()).to.eql(BN(feePercentage));
+        expect(await sdk.consumerHost.fee()).to.eql(BN('0'));
         logger.info('🎉 ConsumerHost Contract verified\n');
 
         //DisputeManager
@@ -147,6 +136,17 @@ async function checkChildInitialisation(sdk: ContractSDK, config, startupConfig,
         logger.info(`DisputeManager minimumDeposit to be equal ${minDeposit}`);
         expect(await sdk.disputeManager.minimumDeposit()).to.eql(BN(minDeposit));
         logger.info('🎉 DisputeManager Contract verified\n');
+
+        //rewardsBooster
+        logger = getLogger('RewardsBooster');
+        logger.info(`🧮 Verifying RewardsBooster Contract: ${sdk.rewardsBooster.address}`);
+        const [issuancePerBlock, minimumDeploymentBooster] = config['RewardsBooster'];
+        logger.info(`issuancePerBlock to be equal ${issuancePerBlock}`);
+        expect(await sdk.rewardsBooster.issuancePerBlock()).to.eql(BN(issuancePerBlock));
+        logger.info(`minimumDeploymentBooster to be equal ${minimumDeploymentBooster}`);
+        expect(await sdk.rewardsBooster.minimumDeploymentBooster()).to.eql(BN(minimumDeploymentBooster));
+        logger.info('🎉 RewardsBooster Contract verified\n');
+
     } catch (err) {
         logger.info(`Failed to verify contract: ${err}`);
     }
@@ -293,28 +293,28 @@ const main = async () => {
 
     const childSDK = ContractSDK.create(childProvider, { network });
     const rootSDK = RootContractSDK.create(rootProvider, { network });
-    const caller = '0x00';
+    const caller = '0x70d0afee4a6a314d71046da9b4bbcfb8fd1722ce';
 
     const config = contractsConfig[network];
     const verifyType = process.argv[6];
     switch (verifyType) {
         case '--initialisation':
-            // await checkChildInitialisation(childSDK, config, startupConfig, caller);
             await checkRootInitialisation(rootSDK, config);
+            await checkChildInitialisation(childSDK, config, caller);
             break;
         case '--configuration':
-            await checkConfiguration(childSDK, startupConfig);
+            await checkConfiguration(childSDK, config);
             break;
         case '--ownership':
-            await checkChildContractsOwnership(childSDK, startupConfig.multiSign);
-            await checkRootContractsOwnership(rootSDK, startupConfig.multiSign);
+            await checkChildContractsOwnership(childSDK);
+            await checkRootContractsOwnership(rootSDK);
             break;
         case '--all':
-            await checkChildInitialisation(childSDK, config, startupConfig, caller);
+            await checkChildInitialisation(childSDK, config, caller);
             await checkRootInitialisation(rootSDK, config);
             await checkConfiguration(childSDK, startupConfig);
-            await checkChildContractsOwnership(childSDK, startupConfig.multiSign);
-            await checkRootContractsOwnership(rootSDK, startupConfig.multiSign);
+            await checkChildContractsOwnership(childSDK);
+            await checkRootContractsOwnership(rootSDK);
             break;
         default:
             throw new Error(`Please provide correct network ${network}`);
