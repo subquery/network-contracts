@@ -102,10 +102,10 @@
         "lastUpdate": "Thu, 06 Apr 2023 07:23:52 GMT"
     },
     "RewardsStaking": {
-        "innerAddress": "0x4Ce9855C96dd59f805AE9b4440ba36355116f77C",
+        "innerAddress": "0x2224Df7406C7Cc58fbF288f98E887cF4854e86e9",
         "address": "0xe3AD9F941d10A714D35a94Bd52a128EF7Ba05959",
-        "bytecodeHash": "c3b4b69ad033ce7e4b6a346174885feae04a2e81764a58d54d5114b2b222766a",
-        "lastUpdate": "Thu, 06 Apr 2023 07:26:22 GMT"
+        "bytecodeHash": "160772e997207ff98d9b36bbdcea12a14514782c66a7a2b53f7f66c0cf05da29",
+        "lastUpdate": "Thu, 22 Feb 2024 01:53:02 GMT"
     },
     "RewardsHelper": {
         "innerAddress": "0x5A19B37aEfFf633C54df0f6a395Ae8de6499882a",
