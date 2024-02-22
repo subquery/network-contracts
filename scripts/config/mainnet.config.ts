@@ -6,7 +6,8 @@ const config = {
             foundationAllocation: "0x16F94a7719994303125bc7cEB2Dac0Cca2e9b787",
         },
         child: {
-            treasury: "0x31E99bdA5939bA2e7528707507b017f43b67F89B",
+            foundation: "0x31E99bdA5939bA2e7528707507b017f43b67F89B",
+            treasury: "0xd043807A0f41EE95fD66A523a93016a53456e79B",
             council: "0xDD93Add934dCc40b54f3d701C5666CFf1C9FD0Df",
         }
     }
