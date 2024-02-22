@@ -1,0 +1,58 @@
+signer is 0x70d0AFeE4A6A314d71046DA9B4BbcFB8Fd1722Ce
+2024-02-22T05:53:24.315Z <[95mInflationController[39m> [32mINFO[39m 🧮 Verifying inflationController Contract: 0xe802a375a2E5AE2d36e4419cB0E7F0570DD3b8F9 
+2024-02-22T05:53:24.316Z <[95mInflationController[39m> [32mINFO[39m InflationRate to be equal 10000 
+2024-02-22T05:53:25.057Z <[95mInflationController[39m> [32mINFO[39m InflationDestination to be equal 0x9E3a8e4d0115e5b157B61b6a5372ecc41446D472 
+2024-02-22T05:53:25.811Z <[95mInflationController[39m> [32mINFO[39m 🎉 InflationController Contract verified
+ 
+2024-02-22T05:53:25.811Z <[95mInflationDestination[39m> [32mINFO[39m 🧮 Verifying inflationDestination: 0x9E3a8e4d0115e5b157B61b6a5372ecc41446D472 
+2024-02-22T05:53:25.811Z <[95mInflationDestination[39m> [32mINFO[39m XcRecipient to be equal 0x31E99bdA5939bA2e7528707507b017f43b67F89B 
+2024-02-22T05:53:26.776Z <[95mInflationDestination[39m> [32mINFO[39m 🎉 InflationDestination Contract verified
+ 
+2024-02-22T05:53:26.776Z <[95mSQToken[39m> [32mINFO[39m 🧮 Verifying SQToken Contract: 0x09395a2A58DB45db0da254c7EAa5AC469D8bDc85 
+2024-02-22T05:53:27.104Z <[95mSQToken[39m> [32mINFO[39m Initial supply to be equal 10000000000000000000000000000 
+2024-02-22T05:53:27.105Z <[95mSQToken[39m> [32mINFO[39m Foundation wallet: 0x623D1426f5F45D39A1D9EbD3A5f6abeE0c8eC469 own the total assets 
+2024-02-22T05:53:27.395Z <[95mSQToken[39m> [32mINFO[39m 🎉 SQToken Contract verified
+ 
+2024-02-22T05:53:27.396Z <[95mVTSQToken[39m> [32mINFO[39m 🧮 Verifying VTSQToken Contract: 0x43569a8588d3d9ad499dcb70f4eceba3c193bdbc 
+2024-02-22T05:53:27.396Z <[95mVTSQToken[39m> [32mINFO[39m Minter to be equal 0xe420f94aA7e8670f997aD67f2A36B08f5bc9364f 
+2024-02-22T05:53:27.720Z <[95mVTSQToken[39m> [32mINFO[39m 🎉 VTSQToken Contract verified
+ 
+2024-02-22T05:53:27.721Z <[95mStaking[39m> [32mINFO[39m 🧮 Verifying Staking Contract: 0x7A68b10EB116a8b71A9b6f77B32B47EB591B6Ded 
+2024-02-22T05:53:27.721Z <[95mStaking[39m> [32mINFO[39m lockPeriod to be equal 1209600 
+2024-02-22T05:53:27.977Z <[95mStaking[39m> [32mINFO[39m unbondFeeRate to be equal 1000 
+2024-02-22T05:53:28.274Z <[95mStaking[39m> [32mINFO[39m 🎉 Staking Contract verified
+ 
+2024-02-22T05:53:28.275Z <[95mEraManager[39m> [32mINFO[39m 🧮 Verifying EraManager Contract: 0xf80A8E45a13D2C116Aa8cFFEf3dcb6049cd8059e 
+2024-02-22T05:53:28.275Z <[95mEraManager[39m> [32mINFO[39m eraPeriod to be equal 604800 
+2024-02-22T05:53:28.516Z <[95mEraManager[39m> [32mINFO[39m 🎉 EraManager Contract verified
+ 
+2024-02-22T05:53:28.517Z <[95mServiceAgreementRegistry[39m> [32mINFO[39m 🧮 Verifying ServiceAgreementRegistry Contract: 0xe86861fE07Bfb166FE1010467160ffFD70677403 
+2024-02-22T05:53:28.517Z <[95mServiceAgreementRegistry[39m> [32mINFO[39m PlanMananger and PurchaseOfferContract are in the whitelist 
+2024-02-22T05:53:29.021Z <[95mServiceAgreementRegistry[39m> [32mINFO[39m 🎉 ServiceAgreementRegistry Contract verified
+ 
+2024-02-22T05:53:29.021Z <[95mPurchaseOfferMarket[39m> [32mINFO[39m 🧮 Verifying PurchaseOfferMarket Contract: 0x72E7333bEdf33dc70021519457f05B096e971f37 
+2024-02-22T05:53:29.021Z <[95mPurchaseOfferMarket[39m> [32mINFO[39m penaltyRate to be equal 100000 
+2024-02-22T05:53:29.275Z <[95mPurchaseOfferMarket[39m> [32mINFO[39m penaltyDestination to be equal 0x31E99bdA5939bA2e7528707507b017f43b67F89B 
+2024-02-22T05:53:29.814Z <[95mPurchaseOfferMarket[39m> [32mINFO[39m 🎉 PurchaseOfferMarket Contract verified
+ 
+2024-02-22T05:53:29.815Z <[95mIndexerRegistry[39m> [32mINFO[39m 🧮 Verifying IndexerRegistry Contract: 0xadED5DDFA892250018fE54DB8E8C6CAd45476DC9 
+2024-02-22T05:53:29.815Z <[95mIndexerRegistry[39m> [32mINFO[39m minimumStakingAmount to be equal 200000000000000000000000 
+2024-02-22T05:53:30.056Z <[95mIndexerRegistry[39m> [32mINFO[39m 🎉 IndexerRegistry Contract verified
+ 
+2024-02-22T05:53:30.056Z <[95mProjectRegistry[39m> [32mINFO[39m 🧮 Verifying ProjectRegistry Contract: 0x5499c960cc54563E7264Fb96be4E0907a93E825B 
+2024-02-22T05:53:30.056Z <[95mProjectRegistry[39m> [32mINFO[39m 0x70d0afee4a6a314d71046da9b4bbcfb8fd1722ce is project creator 
+2024-02-22T05:53:30.296Z <[95mProjectRegistry[39m> [32mINFO[39m 🎉 ProjectRegistry Contract verified
+ 
+2024-02-22T05:53:30.296Z <[95mConsumerHost[39m> [32mINFO[39m 🧮 Verifying ConsumerHost Contract: 0x1185FD5a8B1dcdea654790219eAfA87105F201C5 
+2024-02-22T05:53:30.296Z <[95mConsumerHost[39m> [32mINFO[39m feePercentage to be equal 10000 
+2024-02-22T05:53:30.547Z <[95mConsumerHost[39m> [32mINFO[39m 🎉 ConsumerHost Contract verified
+ 
+2024-02-22T05:53:30.547Z <[95mDisputeManager[39m> [32mINFO[39m 🧮 Verifying DisputeManager Contract: 0xd82a8f11645f6FEF2b863CEe19755bA22decD42a 
+2024-02-22T05:53:30.547Z <[95mDisputeManager[39m> [32mINFO[39m DisputeManager minimumDeposit to be equal 10000000000000000000000 
+2024-02-22T05:53:30.797Z <[95mDisputeManager[39m> [32mINFO[39m 🎉 DisputeManager Contract verified
+ 
+2024-02-22T05:53:30.797Z <[95mRewardsBooster[39m> [32mINFO[39m 🧮 Verifying RewardsBooster Contract: 0x7F138D57A5e05b6FBF3bCAdDa9a1252354245464 
+2024-02-22T05:53:30.798Z <[95mRewardsBooster[39m> [32mINFO[39m issuancePerBlock to be equal 6341958400000000000 
+2024-02-22T05:53:31.820Z <[95mRewardsBooster[39m> [32mINFO[39m minimumDeploymentBooster to be equal 10000000000000000000000 
+2024-02-22T05:53:32.097Z <[95mRewardsBooster[39m> [32mINFO[39m 🎉 RewardsBooster Contract verified
+ 

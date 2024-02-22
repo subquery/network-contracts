@@ -4,7 +4,7 @@
 import type { Provider as AbstractProvider } from '@ethersproject/abstract-provider';
 import { Signer } from 'ethers';
 import { DEPLOYMENT_DETAILS } from './deployments';
-import { ERC20, SQToken, Vesting } from './typechain';
+import { ERC20, InflationController, SQToken, Vesting, OpDestination } from './typechain';
 import { CONTRACT_FACTORY, ContractDeploymentInner, ContractName, FactoryContstructor, SdkOptions } from './types';
 import assert from 'assert';
 
@@ -12,9 +12,8 @@ import assert from 'assert';
 const contractNameConversion: Record<string, string> = {
     sQToken: 'sqToken',
     vTSQToken: 'vtSQToken',
+    opDestination: 'inflationDestination',
 };
-
-const ROOT_CONTRACTS = ['SQToken', 'Vesting', 'VTSQToken'];
 
 export class RootContractSDK {
     private _contractDeployments: ContractDeploymentInner;
@@ -23,6 +22,8 @@ export class RootContractSDK {
     readonly sqToken!: SQToken;
     readonly vtSQToken!: ERC20;
     readonly vesting!: Vesting;
+    readonly inflationController!: InflationController;
+    readonly inflationDestination!: OpDestination;
 
     constructor(
         private readonly signerOrProvider: AbstractProvider | Signer,
@@ -43,7 +44,6 @@ export class RootContractSDK {
 
     private async _init() {
         const contracts = Object.entries(this._contractDeployments)
-            .filter(([name]) => ROOT_CONTRACTS.includes(name))
             .map(([name, contract]) => ({
                 address: contract.address,
                 factory: CONTRACT_FACTORY[name as ContractName] as FactoryContstructor,
