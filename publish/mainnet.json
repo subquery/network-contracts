@@ -194,12 +194,6 @@
             "bytecodeHash": "fe93463de735091579de9d3ebe7ade0afe8b11c6eb9fd30afd7fb01471f6ca48",
             "lastUpdate": "Wed, 14 Feb 2024 02:44:25 GMT"
         },
-        "Airdropper": {
-            "innerAddress": "",
-            "address": "0xB193ee30DB10bF8811dd0fa35cb25ECe86074363",
-            "bytecodeHash": "8c88264d2c5e72733c71eace444c0b5b88c26c8e762f3050461ea21c7b36f476",
-            "lastUpdate": "Wed, 14 Feb 2024 02:44:33 GMT"
-        },
         "RewardsBooster": {
             "innerAddress": "0x95401e156FE62527a1BE003e0b6929503FD32165",
             "address": "0x7F138D57A5e05b6FBF3bCAdDa9a1252354245464",
@@ -211,6 +205,12 @@
             "address": "0x20E4B978b930ce17a499C33BbF958b5b920F70E1",
             "bytecodeHash": "6ae9a679327f3f2f426b72cc08d27e7aadb5be64d06c99a1f53dea428c4e43fd",
             "lastUpdate": "Wed, 21 Feb 2024 03:17:52 GMT"
+        },
+        "Airdropper": {
+            "innerAddress": "0x69092f49fC684e8E40524301015BdEeb2aaa431A",
+            "address": "0x8611F6647C57339b994aE5C1BB7cD8b101eB4716",
+            "bytecodeHash": "122b9796060b8325d5f2fc93d3d6ffe3f362cb676fcae9c225f15f8796de0d56",
+            "lastUpdate": "Thu, 22 Feb 2024 13:16:16 GMT"
         }
     }
 }

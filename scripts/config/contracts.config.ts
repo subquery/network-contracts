@@ -6,7 +6,7 @@ export default {
         SQToken: [utils.parseEther('10000000000')], // initial supply 10 billion
         VTSQToken: [], // initial supply 0
         Staking: [1209600, 1e3], // lockPeriod: 14 days, unbondFeeRate: 10e3/10e6=0.001=0.1%
-        Airdropper: ['0xC3b9127ceBfFe170616502FaEE3c0bC7822F15BD'], // settle destination
+        Airdropper: ['0x31E99bdA5939bA2e7528707507b017f43b67F89B'], // settle destination
         EraManager: [604800], // 7 day
         PurchaseOfferMarket: [1e5, '0x31E99bdA5939bA2e7528707507b017f43b67F89B'], // _penaltyRate: 1e5/1e6=0.1=10%, _penaltyDestination: treasury
         IndexerRegistry: [utils.parseEther('200000')], // _minimumStakingAmount: 200,000 SQT

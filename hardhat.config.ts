@@ -113,6 +113,17 @@ task('publishRoot', 'verify and publish contracts on etherscan')
                     l2bridge,
                 ],
             });
+
+            //Airdropper
+            console.log(`verify Settings`);
+            await hre.run('verify:verify', {
+                address: deployment.AirdropperLite.address,
+                constructorArguments: [deployment.AirdropperLite.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run('verify:verify', {
+                address: deployment.AirdropperLite.innerAddress,
+                constructorArguments: [],
+            });
         } catch (err) {
             console.log(err);
         }
@@ -142,6 +153,17 @@ task('publishChild', 'verify and publish contracts on etherscan')
                 address: deployment.L2SQToken.address,
                 constructorArguments: contractsConfig[taskArgs.networkpair].L2SQToken,
                 contract: 'contracts/l2/L2SQToken.sol:L2SQToken',
+            });
+
+            //Airdropper
+            console.log(`verify Settings`);
+            await hre.run('verify:verify', {
+                address: deployment.Airdropper.address,
+                constructorArguments: [deployment.Airdropper.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run('verify:verify', {
+                address: deployment.Airdropper.innerAddress,
+                constructorArguments: [],
             });
 
             //VSQToken
