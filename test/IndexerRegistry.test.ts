@@ -1,14 +1,23 @@
 // Copyright (C) 2020-2022 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { expect } from 'chai';
-import { ethers } from 'hardhat';
-import { IndexerRegistry, QueryRegistry, RewardsStaking, SQToken, Staking, StakingManager } from '../src';
-import { DEPLOYMENT_ID, METADATA_1_HASH, METADATA_HASH, VERSION } from './constants';
-import { etherParse, registerIndexer } from './helper';
-import { deployContracts } from './setup';
+import {expect} from 'chai';
+import {ethers, waffle} from 'hardhat';
+import {
+    IndexerRegistry,
+    QueryRegistry,
+    RewardsStaking,
+    SQToken,
+    Staking,
+    StakingManager,
+    EraManager,
+    RewardsHelper,
+} from '../src';
+import {DEPLOYMENT_ID, METADATA_1_HASH, METADATA_HASH, VERSION} from './constants';
+import {etherParse, registerIndexer, startNewEra} from './helper';
+import {deployContracts} from './setup';
 
-const { constants } = require('@openzeppelin/test-helpers');
+const {constants} = require('@openzeppelin/test-helpers');
 
 describe('IndexerRegistry Contract', () => {
     let wallet_0, wallet_1, wallet_2;
@@ -16,6 +25,8 @@ describe('IndexerRegistry Contract', () => {
     let token: SQToken;
     let staking: Staking;
     let stakingManager: StakingManager;
+    let rewardsHelper: RewardsHelper;
+    let eraManager: EraManager;
     let queryRegistry: QueryRegistry;
     let indexerRegistry: IndexerRegistry;
     let rewardsStaking: RewardsStaking;
@@ -34,6 +45,8 @@ describe('IndexerRegistry Contract', () => {
         queryRegistry = deployment.queryRegistry;
         indexerRegistry = deployment.indexerRegistry;
         rewardsStaking = deployment.rewardsStaking;
+        eraManager = deployment.eraManager;
+        rewardsHelper = deployment.rewardsHelper;
         await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, amount);
     });
 
@@ -131,12 +144,28 @@ describe('IndexerRegistry Contract', () => {
     describe('Indexer Unregistry', () => {
         it('indexer deregister should work', async () => {
             // deregister from network
-            await expect(indexerRegistry.unregisterIndexer({ gasLimit: '1000000' }))
+            await expect(indexerRegistry.unregisterIndexer({gasLimit: '1000000'}))
                 .to.be.emit(indexerRegistry, 'UnregisterIndexer')
                 .withArgs(wallet_0.address);
 
             // check updates
             await checkControllerIsEmpty();
+            expect(await indexerRegistry.isIndexer(wallet_0.address)).to.equal(false);
+            expect(await indexerRegistry.metadata(wallet_0.address)).to.equal(constants.ZERO_BYTES32);
+        });
+
+        it('indexer unregister while have delegation should work', async () => {
+            await token.connect(wallet_0).transfer(wallet_1.address, etherParse('1000'));
+            await token.connect(wallet_1).increaseAllowance(staking.address, etherParse('1000'));
+            await stakingManager.connect(wallet_1).delegate(wallet_0.address, etherParse('1000'));
+            await startNewEra(waffle.provider, eraManager);
+            await rewardsHelper.batchCollectAndDistributeRewards(wallet_0.address, 10);
+            await rewardsHelper.batchApplyStakeChange(wallet_0.address, [wallet_1.address]);
+            // deregister from network
+            await expect(indexerRegistry.unregisterIndexer({gasLimit: '1000000'}))
+                .to.be.emit(indexerRegistry, 'UnregisterIndexer')
+                .withArgs(wallet_0.address);
+
             expect(await indexerRegistry.isIndexer(wallet_0.address)).to.equal(false);
             expect(await indexerRegistry.metadata(wallet_0.address)).to.equal(constants.ZERO_BYTES32);
         });
