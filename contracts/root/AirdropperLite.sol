@@ -99,12 +99,8 @@ contract AirdropperLite is Initializable, OwnableUpgradeable {
         uint256[] calldata _amounts
     ) external onlyController {
         require(_addrs.length == _roundIds.length && _addrs.length == _amounts.length, 'G010');
-        uint256 totalAmount;
         for (uint256 i = 0; i < _addrs.length; i++) {
             _airdrop(_addrs[i], _roundIds[i], _amounts[i]);
-            unchecked {
-                totalAmount += _amounts[i];
-            }
         }
     }
 

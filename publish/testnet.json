@@ -43,10 +43,10 @@
             "lastUpdate": "Fri, 16 Feb 2024 02:38:27 GMT"
         },
         "AirdropperLite": {
-            "innerAddress": "0x08882980d381D0576916D88d3EC65222bC5D6E5e",
+            "innerAddress": "0x4f6A1045A56EeD1D2795b5f6F6713972B67C09C2",
             "address": "0xa86D9008803D5a8531505ab2F61c57bE4AC4490D",
-            "bytecodeHash": "9757be1c9c46f6faa72393b4fbb7ee61b9b3bae3344c95524b112a2822938e2f",
-            "lastUpdate": "Thu, 22 Feb 2024 05:34:00 GMT"
+            "bytecodeHash": "f6a7fb053a6d558fa20ab45e1a31789d441317d045a4e06b8b2f9e6e9e0ca5fe",
+            "lastUpdate": "Thu, 22 Feb 2024 08:58:28 GMT"
         }
     },
     "child": {
