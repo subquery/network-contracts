@@ -56,11 +56,22 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     const amount = await sdk.sqToken.totalSupply();
     logger.info(`Initial supply to be equal ${amount.toString()}`);
     expect(totalSupply).to.eql(amount);
+    logger.info(`SQToken minter is ${sdk.inflationController.address}`);
+    expect((await sdk.sqToken.getMinter()).to.equal('0x0000000000000000000000000000000000000000'));
     const wallet = mainnetConfig.multiSig.root.foundation;
     logger.info(`Foundation wallet: ${wallet} own the total assets`);
     const foundationSQTBalance = await sdk.sqToken.balanceOf(wallet);
     expect(totalSupply.gt(foundationSQTBalance)).to.be.true;
     logger.info('🎉 SQToken Contract verified\n');
+
+    // Vesting
+    logger = getLogger('Vesting');
+    logger.info(`🧮 Verifying Vesting Contract: ${sdk.vesting.address}`);
+    logger.info(`Vesting SQToken is ${sdk.sqToken.address}`);
+    expect((await sdk.vesting.token()).toUpperCase()).to.equal(sdk.sqToken.address.toUpperCase());
+    logger.info(`Vesting vtSQToken is ${sdk.vtSQToken.address}`);
+    expect((await sdk.vesting.vtToken()).toUpperCase()).to.equal(sdk.vtSQToken.address.toUpperCase());
+    logger.info('🎉 Vesting Contract verified\n');
 
     // VTSQToken
     logger = getLogger('VTSQToken');
