@@ -3,11 +3,12 @@
 
 pragma solidity 0.8.15;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-contract Airdropper is Ownable {
+contract Airdropper is Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
     // -- Data --
 
@@ -44,7 +45,8 @@ contract Airdropper is Ownable {
         _;
     }
 
-    constructor(address _settleDestination) {
+    function initialize(address _settleDestination) external initializer {
+        __Ownable_init();
         controllers[msg.sender] = true;
         settleDestination = _settleDestination;
     }
@@ -59,6 +61,10 @@ contract Airdropper is Ownable {
 
     function removeController(address controller) external onlyOwner {
         controllers[controller] = false;
+    }
+
+    function withdrawByAdmin(address _tokenAddr, uint256 _amount) external onlyOwner {
+        IERC20(_tokenAddr).safeTransfer(msg.sender, _amount);
     }
 
     function createRound(
@@ -94,11 +100,11 @@ contract Airdropper is Ownable {
         require(airdropRecord[_addr][_roundId] == 0, 'A003');
         require(_amount > 0, 'A004');
 
-        IERC20(roundRecord[_roundId].tokenAddress).safeTransferFrom(
-            msg.sender,
-            address(this),
-            _amount
-        );
+        //        IERC20(roundRecord[_roundId].tokenAddress).safeTransferFrom(
+        //            msg.sender,
+        //            address(this),
+        //            _amount
+        //        );
         airdropRecord[_addr][_roundId] = _amount;
         roundRecord[_roundId].unclaimedAmount += _amount;
         emit AddAirdrop(_addr, _roundId, _amount);
@@ -151,6 +157,7 @@ contract Airdropper is Ownable {
 
     function settleEndedRound(uint256 _roundId) external {
         require(roundRecord[_roundId].roundDeadline < block.timestamp, 'A008');
+        require(settleDestination != address(0), 'A008');
         uint256 unclaimAmount = roundRecord[_roundId].unclaimedAmount;
         require(unclaimAmount != 0, 'A009');
         require(

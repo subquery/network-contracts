@@ -498,9 +498,9 @@ export async function deployContracts(
         });
 
         //deploy Airdropper contract
-        const [settleDestination] = config['Airdropper'];
         const airdropper = await deployContract<Airdropper>('Airdropper', 'child', {
-            deployConfig: [settleDestination],
+            proxyAdmin,
+            initConfig: [],
         });
 
         // deploy rewardsBooster contract
