@@ -7,12 +7,14 @@ import { ContractSDK, SubqueryNetwork } from '../build';
 import { METADATA_HASH } from '../test/constants';
 import startupMainnetConfig from './config/startup.mainnet.json';
 import startupTestnetConfig from './config/startup.testnet.json';
+import mainnetConfig from './config/mainnet.config';
 
 import { Provider, StaticJsonRpcProvider } from '@ethersproject/providers';
 import { MockProvider } from 'ethereum-waffle';
 import { parseEther } from 'ethers/lib/utils';
 import { getLogger } from './logger';
 import { networks } from '../src/networks';
+import { RootContractSDK } from 'src';
 
 let startupConfig: typeof startupTestnetConfig = startupTestnetConfig;
 let logger: Pino.Logger;
@@ -21,7 +23,6 @@ let provider: Provider;
 
 async function getOverrides(): Promise<Overrides> {
     const price = await provider.getGasPrice();
-    // const gasPrice = price.add(20000000000); // add extra 15 gwei
     return { gasPrice: price };
 }
 
@@ -176,30 +177,54 @@ export async function airdrop(sdk: ContractSDK, _provider?: StaticJsonRpcProvide
     console.log('\n');
 }
 
-async function setupTokenExchange(sdk: ContractSDK) {
-    logger = getLogger('Token Exchange');
-    logger.info('Setup exchange order');
-    const { tokenGive, tokenGet, amountGive, amountGet, tokenGiveBalance } = startupConfig.exchange;
-    await sendTx((overrides) => sdk.sqToken.increaseAllowance(sdk.tokenExchange.address, tokenGiveBalance, overrides));
-    await sendTx((overrides) =>
-        sdk.tokenExchange.sendOrder(tokenGive, tokenGet, amountGive, amountGet, tokenGiveBalance, overrides)
-    );
+// async function setupTokenExchange(sdk: ContractSDK) {
+//     logger = getLogger('Token Exchange');
+//     logger.info('Setup exchange order');
+//     const { tokenGive, tokenGet, amountGive, amountGet, tokenGiveBalance } = startupConfig.exchange;
+//     await sendTx((overrides) => sdk.sqToken.increaseAllowance(sdk.tokenExchange.address, tokenGiveBalance, overrides));
+//     await sendTx((overrides) =>
+//         sdk.tokenExchange.sendOrder(tokenGive, tokenGet, amountGive, amountGet, tokenGiveBalance, overrides)
+//     );
 
-    console.log('\n');
-}
+//     console.log('\n');
+// }
 
-export async function ownerTransfer(sdk: ContractSDK) {
+async function rootContractOwnerTransfer(sdk: RootContractSDK) {
     logger = getLogger('Owner Transfer');
     const contracts = [
-        sdk.airdropper,
+        sdk.sqToken,
+        sdk.vtSQToken,
+        sdk.vesting,
+        sdk.inflationDestination,
+    ];
+
+    const foundation = mainnetConfig.multiSig.root.foundation;
+    logger.info(`Transfer Ownership to ${foundation}`);
+    for (const contract of contracts) {
+        // @ts-expect-error owner type missing
+        const owner = await contract.owner();
+        if (owner != startupConfig.multiSign) {
+            logger.info(`Transfer Ownership: ${contract.address}`);
+            // @ts-expect-error transferOwnership type missing
+            await sendTx((overrides) => contract.transferOwnership(foundation, overrides));
+        } else {
+            console.info(`${contract.address} ownership has already transfered`);
+        }
+    }
+
+    // TODO: please manually transfer the ownership of `proxyAdmin` | `settings` | `infaltionController` to `mainnetConfig.multiSig.root.foundationAllocation;`
+}
+    
+
+export async function childContractOwnerTransfer(sdk: ContractSDK) {
+    logger = getLogger('Owner Transfer');
+    // TODO: please manually transfer the ownership of `proxyAdmin`
+    const contracts = [
         sdk.consumerHost,
         sdk.disputeManager,
         sdk.eraManager,
         sdk.indexerRegistry,
-        // sdk.inflationController,
-        // sdk.permissionedExchange,
         sdk.planManager,
-        sdk.proxyAdmin,
         sdk.purchaseOfferMarket,
         sdk.projectRegistry,
         sdk.rewardsDistributor,
@@ -212,12 +237,13 @@ export async function ownerTransfer(sdk: ContractSDK) {
         sdk.staking,
         sdk.stakingManager,
         sdk.stateChannel,
-        // sdk.vesting,
         sdk.consumerRegistry,
         sdk.priceOracle,
         sdk.vSQToken,
     ];
 
+    const childCouncil = mainnetConfig.multiSig.child.council;
+    logger.info(`Transfer Ownership to ${childCouncil}`);
     for (const contract of contracts) {
         // @ts-expect-error owner type missing
         const owner = await contract.owner();
@@ -225,7 +251,7 @@ export async function ownerTransfer(sdk: ContractSDK) {
             logger.info(`Transfer Ownership: ${contract.address}`);
 
             // @ts-expect-error transferOwnership type missing
-            await sendTx((overrides) => contract.transferOwnership(startupConfig.multiSign, overrides));
+            await sendTx((overrides) => contract.transferOwnership(childCouncil, overrides));
         } else {
             console.info(`${contract.address} ownership has already transfered`);
         }
@@ -304,17 +330,25 @@ const main = async () => {
 
     // const polygonSdk = await PolygonSDK.create(wallet, {root: rootProvider, child: childProvider}, {network: 'testnet'});
     const sdk = ContractSDK.create(wallet.connect(childProvider), { network });
-    provider = argv.target === 'root' ? rootProvider : childProvider;
+    const rootSDK = RootContractSDK.create(wallet.connect(rootProvider), { network });
+
+    const isRoot = argv.target === 'root';
+    provider = isRoot ? rootProvider : childProvider;
 
     switch (network) {
         case 'mainnet':
             // @ts-expect-error mainnet config have different types with testnet
             startupConfig = startupMainnetConfig;
             confirms = 20;
-            await createProjects(sdk);
-            await createPlanTemplates(sdk);
-            await balanceTransfer(sdk, wallet);
-            await ownerTransfer(sdk);
+            // await createProjects(sdk);
+            // await createPlanTemplates(sdk);
+            // await balanceTransfer(sdk, wallet);
+            if (isRoot) {
+                await rootContractOwnerTransfer(rootSDK);
+            } else {
+                await childContractOwnerTransfer(sdk);
+            }
+
             break;
         case 'testnet':
             confirms = 5;
@@ -326,7 +360,7 @@ const main = async () => {
             // child contracts
             await createProjects(sdk);
             await createPlanTemplates(sdk);
-            await setupTokenExchange(sdk);
+            // await setupTokenExchange(sdk);
             await transferTokenToIndexers(sdk);
 
             // await setupVesting(sdk);
