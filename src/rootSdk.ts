@@ -14,7 +14,7 @@ const contractNameConversion: Record<string, string> = {
     vTSQToken: 'vtSQToken',
 };
 
-const ROOT_CONTRACTS = ['SQToken', 'Vesting', 'VTSQToken'];
+const ROOT_CONTRACTS = ['SQToken', 'Vesting', 'VTSQToken', 'AirdropperLite'];
 
 export class RootContractSDK {
     private _contractDeployments: ContractDeploymentInner;
