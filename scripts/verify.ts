@@ -57,7 +57,7 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     logger.info(`Initial supply to be equal ${amount.toString()}`);
     expect(totalSupply).to.eql(amount);
     logger.info(`SQToken minter is ${sdk.inflationController.address}`);
-    expect((await sdk.sqToken.getMinter()).to.equal('0x0000000000000000000000000000000000000000'));
+    expect((await sdk.sqToken.getMinter())).to.equal('0x0000000000000000000000000000000000000000');
     const wallet = mainnetConfig.multiSig.root.foundation;
     logger.info(`Foundation wallet: ${wallet} own the total assets`);
     const foundationSQTBalance = await sdk.sqToken.balanceOf(wallet);
@@ -144,7 +144,7 @@ async function checkChildInitialisation(sdk: ContractSDK, config, caller: string
         logger.info(`🧮 Verifying ConsumerHost Contract: ${sdk.consumerHost.address}`);
         const [feePercentage] = config['ConsumerHost'];
         logger.info(`feePercentage to be equal ${feePercentage}`);
-        expect(await sdk.consumerHost.fee()).to.eql(BN('0'));
+        expect(await sdk.consumerHost.feePerMill()).to.eql(BN(feePercentage));
         logger.info('🎉 ConsumerHost Contract verified\n');
 
         //DisputeManager
@@ -164,6 +164,16 @@ async function checkChildInitialisation(sdk: ContractSDK, config, caller: string
         logger.info(`minimumDeploymentBooster to be equal ${minimumDeploymentBooster}`);
         expect(await sdk.rewardsBooster.minimumDeploymentBooster()).to.eql(BN(minimumDeploymentBooster));
         logger.info('🎉 RewardsBooster Contract verified\n');
+
+        //priceOracle
+        logger = getLogger('PriceOracle');
+        logger.info(`🧮 Verifying PriceOracle Contract: ${sdk.priceOracle.address}`);
+        const [sizeLimit, blockLimit] = config['PriceOracle'];
+        logger.info(`sizeLimit to be equal ${sizeLimit}`);
+        expect(await sdk.priceOracle.sizeLimit()).to.eql(BN(sizeLimit));
+        logger.info(`blockLimit to be equal ${blockLimit}`);
+        expect(await sdk.priceOracle.blockLimit()).to.eql(BN(blockLimit));
+        logger.info('🎉 PriceOracle Contract verified\n');
 
     } catch (err) {
         logger.info(`Failed to verify contract: ${err}`);

@@ -12,11 +12,12 @@ export default {
         EraManager: [604800], // 7 day
         PurchaseOfferMarket: [1e5, '0x31E99bdA5939bA2e7528707507b017f43b67F89B'], // _penaltyRate: 1e5/1e6=0.1=10%, _penaltyDestination: treasury
         IndexerRegistry: [utils.parseEther('200000')], // _minimumStakingAmount: 200,000 SQT
-        ConsumerHost: [10000], // Fee Percentage, 1e4/1e6=0.01=1%
+        ConsumerHost: [10000, 10000], // Fee Percentage, 1e4/1e6=0.01=1%
         DisputeManager: [utils.parseEther('10000')], // minimumDeposit: 10,000 SQT
         // base: 2s a block, 31536000/2 = 15768000 blocks a year, 1% rewards = 100000000 / 15768000 = about 6.3419584 SQT per block
         RewardsBooster: [utils.parseEther('6.3419584'), utils.parseEther('10000')], // _issuancePerBlock, _minimumDeploymentBooster
         L2SQToken: ['0x4200000000000000000000000000000000000010', '0x09395a2A58DB45db0da254c7EAa5AC469D8bDc85'], // l2bridge, l1token
+        PriceOracle: [10 , 3600],
     },
     kepler: {
         InflationController: [0, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // inflationRate, inflationDestination
