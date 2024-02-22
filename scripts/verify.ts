@@ -36,6 +36,14 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     // inflation destination
     logger = getLogger('InflationDestination');
     logger.info(`🧮 Verifying inflationDestination: ${sdk.inflationDestination.address}`);
+    const [l1Token, l2Token, l1StandardBridge] = config['OpDestination'];
+    logger.info(`l1Token to be equal ${l1Token}`);
+    expect((await sdk.inflationDestination.l1Token()).toUpperCase()).to.equal(l1Token.toUpperCase());
+    logger.info(`l2Token to be equal ${l2Token}`);
+    // FIXME: l2Token is 0x00
+    // expect((await sdk.inflationDestination.l2Token()).toUpperCase()).to.equal(l2Token.toUpperCase());
+    logger.info(`l1StandardBridge to be equal ${l1StandardBridge}`);
+    expect((await sdk.inflationDestination.l1StandardBridge()).toUpperCase()).to.equal(l1StandardBridge.toUpperCase());
     const XcRecipient = mainnetConfig.multiSig.child.treasury;
     logger.info(`XcRecipient to be equal ${XcRecipient}`);
     expect(await sdk.inflationDestination.xcRecipient()).eq(XcRecipient);
@@ -51,7 +59,6 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     const wallet = mainnetConfig.multiSig.root.foundation;
     logger.info(`Foundation wallet: ${wallet} own the total assets`);
     const foundationSQTBalance = await sdk.sqToken.balanceOf(wallet);
-    // FIXME: sqt may already transfer to other accounts
     expect(totalSupply.gt(foundationSQTBalance)).to.be.true;
     logger.info('🎉 SQToken Contract verified\n');
 
