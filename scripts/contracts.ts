@@ -137,6 +137,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<
     Settings: [CONTRACTS.Settings, Settings__factory],
     SQTGift: [CONTRACTS.SQTGift, SQTGift__factory],
     AirdropperLite: [CONTRACTS.AirdropperLite, AirdropperLite__factory],
+    SQTRedeem: [CONTRACTS.SQTRedeem, SQTRedeem__factory],
 };
 
 export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {

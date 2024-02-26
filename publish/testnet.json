@@ -189,10 +189,10 @@
             "lastUpdate": "Tue, 13 Feb 2024 04:16:15 GMT"
         },
         "SQTRedeem": {
-            "innerAddress": "0xea1A7b345BbA1498FA6E5a059839a8F767ca490C",
+            "innerAddress": "0x4d2a8006619AbeE3D6a10D240c964B78176cfB87",
             "address": "0x7c2c254a7Ae5642Af32F17e46601019C089a90ff",
-            "bytecodeHash": "68dc8275862c0f714bd543f8aa649b21d09b855c33bbead7da98a6424999c95d",
-            "lastUpdate": "Mon, 22 Jan 2024 09:44:40 GMT"
+            "bytecodeHash": "fe93463de735091579de9d3ebe7ade0afe8b11c6eb9fd30afd7fb01471f6ca48",
+            "lastUpdate": "Mon, 26 Feb 2024 06:59:47 GMT"
         },
         "RewardsBooster": {
             "innerAddress": "0x2150e0e743ac741f7C249564ec1bD05ddAFB3C1D",
