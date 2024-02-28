@@ -464,7 +464,8 @@ describe('Vesting Contract', () => {
         });
 
         // each plan has one wallet
-        it('should unlock token according to the plan', async () => {
+        // need to fix test, the start date has passed, so it will fail
+        it.only('should unlock token according to the plan', async () => {
             const wallets = [b0, b1, b2, b3, b4, b5];
             for (const [planId, { total }] of EXPECTATION.entries()) {
                 await vestingContract.batchAllocateVesting([planId], [wallets[planId].address], [parseEther(total)]);
@@ -472,6 +473,8 @@ describe('Vesting Contract', () => {
             // start vesting (set the date, transfer token)
             const total = EXPECTATION.reduce((acc, { total }) => acc.add(total), BigNumber.from(0));
             await sqToken.transfer(vestingContract.address, utils.parseEther(total.toString()));
+            // await mockProvider.send('evm_setNextBlockTimestamp', [startDate-1000]);
+            // await mockProvider.send('evm_mine', []);
             await vestingContract.startVesting(startDate);
             for (const [planId, wallet] of wallets.entries()) {
                 const allocation = await vestingContract.allocations(planId, wallet.address);
