@@ -167,6 +167,12 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      * @param _amount the added amount
      */
     function boostDeployment(bytes32 _deploymentId, uint256 _amount) external {
+        require(
+            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
+                .isDeploymentRegistered(_deploymentId),
+            'RB008'
+        );
+
         address boosterAccount = msg.sender;
         DeploymentPool storage deploymentPool = deploymentPools[_deploymentId];
         onDeploymentBoosterUpdate(_deploymentId, boosterAccount);
