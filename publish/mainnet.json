@@ -57,10 +57,10 @@
             "lastUpdate": "Tue, 23 Jan 2024 06:18:11 GMT"
         },
         "SQTGift": {
-            "innerAddress": "0xCa5A962a57f1A169549C250DD0FC3AE9f1C2012f",
+            "innerAddress": "0xd84e5719121211F9b8ea7c749dBb3310CCB7E02B",
             "address": "0x86DF167B61bd62320058FCc9099D82FebB9a054b",
-            "bytecodeHash": "63d232263e9fec5c38c9ae056e3ca32a383a80180b8cb4feae6c9dd93ffcdbca",
-            "lastUpdate": "Tue, 13 Feb 2024 08:00:50 GMT"
+            "bytecodeHash": "2efdc85039f451b3b7ee5fee15887be5b8fee9817e9cb056d9ea6459c0a3a918",
+            "lastUpdate": "Wed, 28 Feb 2024 03:56:57 GMT"
         },
         "Settings": {
             "innerAddress": "0xf282737992Da4217bf5f8B6AE621181e84d7d3b9",

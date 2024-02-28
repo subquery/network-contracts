@@ -561,6 +561,19 @@
     },
     {
         "inputs": [],
+        "name": "nextTokenId",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "owner",
         "outputs": [
             {
@@ -738,6 +751,19 @@
             }
         ],
         "name": "setMaxSupply",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "setNextTokenId",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
