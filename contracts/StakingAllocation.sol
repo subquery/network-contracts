@@ -14,6 +14,7 @@ import './interfaces/ISQToken.sol';
 import './interfaces/IRewardsBooster.sol';
 import './interfaces/IStakingAllocation.sol';
 import './interfaces/IIndexerRegistry.sol';
+import './interfaces/IProjectRegistry.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
 
@@ -94,6 +95,11 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
 
     function addAllocation(bytes32 _deployment, address _runner, uint256 _amount) external {
         require(_isAuth(_runner), 'SAL02');
+        require(
+            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
+                .isDeploymentRegistered(_deployment),
+            'SAL05'
+        );
 
         // collect rewards (if any) before change allocation
         IRewardsBooster rb = IRewardsBooster(

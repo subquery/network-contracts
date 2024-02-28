@@ -180,7 +180,7 @@ describe('AirdropperLite Contract', () => {
         });
     });
 
-    describe.only('claim airdrop test', () => {
+    describe('claim airdrop test', () => {
         beforeEach(async () => {
             await token.increaseAllowance(airdropperLite.address, etherParse('100'));
             await airdropperLite.createRound(

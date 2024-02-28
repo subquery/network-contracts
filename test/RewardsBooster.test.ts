@@ -238,6 +238,9 @@ describe('RewardsBooster Contract', () => {
             const balanceBefore = await token.balanceOf(root.address);
             await token.increaseAllowance(rewardsBooster.address, boosterAmount);
             await rewardsBooster.boostDeployment(deploymentId0, boosterAmount);
+
+            await expect(rewardsBooster.boostDeployment(deploymentIds[4], boosterAmount)).to.revertedWith('RB008');
+
             expect(await rewardsBooster.getRunnerDeploymentBooster(deploymentId0, root.address)).to.eq(boosterAmount);
             const balanceAfter = await token.balanceOf(root.address);
             expect(balanceBefore.sub(balanceAfter)).to.eq(boosterAmount);
