@@ -260,7 +260,7 @@ describe('Vesting Contract', () => {
         });
     });
 
-    describe.only('Vesting Claim', () => {
+    describe('Vesting Claim', () => {
         const wallet1Allocation = parseEther(1000);
         const wallet2Allocation = parseEther(3000);
         const wallet3Allocation0 = parseEther(2000);
