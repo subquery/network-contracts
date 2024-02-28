@@ -35,6 +35,8 @@ contract SQTGift is
     /// @notice tokenId => Gift
     mapping(uint256 => Gift) public gifts;
 
+    uint256 public nextTokenId;
+
     event AllowListAdded(address indexed account, uint256 indexed seriesId, uint8 amount);
     event AllowListRemoved(address indexed account, uint256 indexed seriesId, uint8 amount);
 
@@ -161,7 +163,8 @@ contract SQTGift is
         require(giftSerie.totalSupply < giftSerie.maxSupply, 'SQG005');
         series[_seriesId].totalSupply += 1;
 
-        uint256 tokenId = totalSupply() + 1;
+        uint256 tokenId = nextTokenId;
+        nextTokenId += 1;
         gifts[tokenId].seriesId = _seriesId;
 
         _safeMint(_account, tokenId);
@@ -193,5 +196,9 @@ contract SQTGift is
     function getSeries(uint256 tokenId) external view returns (uint256) {
         require(ownerOf(tokenId) != address(0), 'SQR006');
         return gifts[tokenId].seriesId;
+    }
+
+    function setNextTokenId(uint256 tokenId) external onlyOwner {
+        nextTokenId = tokenId;
     }
 }
