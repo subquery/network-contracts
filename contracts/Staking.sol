@@ -248,9 +248,12 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
     }
 
     function removeRunner(address _runner) external onlyStakingManager {
-        indexers[indexerNo[_runner]] = indexers[indexerLength - 1];
-        indexerNo[indexers[indexerLength - 1]] = indexerNo[_runner];
+        uint256 indexerIndex = indexerNo[_runner];
+        indexers[indexerIndex] = indexers[indexerLength - 1];
+        indexerNo[indexers[indexerLength - 1]] = indexerIndex;
         indexerLength--;
+        delete indexerNo[_runner];
+        delete indexers[indexerLength];
     }
 
     function removeUnbondingAmount(
