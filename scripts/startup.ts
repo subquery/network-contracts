@@ -191,12 +191,7 @@ export async function airdrop(sdk: ContractSDK, _provider?: StaticJsonRpcProvide
 
 async function rootContractOwnerTransfer(sdk: RootContractSDK) {
     logger = getLogger('Owner Transfer');
-    const contracts = [
-        sdk.sqToken,
-        sdk.vtSQToken,
-        sdk.vesting,
-        sdk.inflationDestination,
-    ];
+    const contracts = [sdk.sqToken, sdk.vtSQToken, sdk.vesting, sdk.inflationDestination];
 
     const foundation = mainnetConfig.multiSig.root.foundation;
     logger.info(`Transfer Ownership to ${foundation}`);
@@ -214,7 +209,6 @@ async function rootContractOwnerTransfer(sdk: RootContractSDK) {
 
     // TODO: please manually transfer the ownership of `proxyAdmin` | `settings` | `infaltionController` to `mainnetConfig.multiSig.root.foundationAllocation;`
 }
-    
 
 export async function childContractOwnerTransfer(sdk: ContractSDK) {
     logger = getLogger('Owner Transfer');

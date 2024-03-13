@@ -1028,6 +1028,34 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "from",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "to",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "swapBoosterDeployment",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "totalBoosterPoint",
         "outputs": [

@@ -205,12 +205,21 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         emit DeploymentBoosterRemoved(deployment, msg.sender, amount);
     }
 
-    function swapBoosterDeployment(address account, bytes32 from, bytes32 to, uint256 amount) external {
+    function swapBoosterDeployment(
+        address account,
+        bytes32 from,
+        bytes32 to,
+        uint256 amount
+    ) external {
         require(_isDeploymentRegistered(from), 'RB008');
         require(from != to, 'RB013');
 
         if (account != msg.sender) {
-            require(IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(account, msg.sender), 'RB014');
+            require(
+                IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry))
+                    .isController(account, msg.sender),
+                'RB014'
+            );
         }
         // address account = msg.sender;
         DeploymentPool storage deploymentPool = deploymentPools[from];
@@ -233,8 +242,9 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     }
 
     function _isDeploymentRegistered(bytes32 deploymentId) internal view returns (bool) {
-        return IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
-            .isDeploymentRegistered(deploymentId);
+        return
+            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
+                .isDeploymentRegistered(deploymentId);
     }
 
     function getRunnerDeploymentBooster(

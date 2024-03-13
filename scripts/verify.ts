@@ -28,9 +28,7 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     logger.info(`InflationRate to be equal ${rate}`);
     expect((await sdk.inflationController.inflationRate()).toNumber()).to.eq(rate);
     logger.info(`InflationDestination to be equal ${destination}`);
-    expect((await sdk.inflationController.inflationDestination()).toUpperCase()).to.equal(
-        destination.toUpperCase()
-    );
+    expect((await sdk.inflationController.inflationDestination()).toUpperCase()).to.equal(destination.toUpperCase());
     logger.info('🎉 InflationController Contract verified\n');
 
     // inflation destination
@@ -57,7 +55,7 @@ async function checkRootInitialisation(sdk: RootContractSDK, config) {
     expect(totalSupply).to.eql(amount);
     logger.info(`SQToken minter is ${sdk.inflationController.address}`);
     // TODO: update this check after TGE launched
-    expect((await sdk.sqToken.getMinter())).to.equal('0x0000000000000000000000000000000000000000');
+    expect(await sdk.sqToken.getMinter()).to.equal('0x0000000000000000000000000000000000000000');
     const wallet = mainnetConfig.multiSig.root.foundation;
     logger.info(`Foundation wallet: ${wallet} own the total assets`);
     const foundationSQTBalance = await sdk.sqToken.balanceOf(wallet);
@@ -172,7 +170,6 @@ async function checkChildInitialisation(sdk: ContractSDK, config, caller: string
         logger.info(`blockLimit to be equal ${blockLimit}`);
         expect(await sdk.priceOracle.blockLimit()).to.eql(BN(blockLimit));
         logger.info('🎉 PriceOracle Contract verified\n');
-
     } catch (err) {
         logger.info(`Failed to verify contract: ${err}`);
     }
@@ -246,7 +243,7 @@ async function checkRootContractsOwnership(sdk: RootContractSDK) {
         [sdk.inflationController, foundationW],
         // TODO: verify `settings` and `proxyAmdin` which owner is `allocationW`
     ];
-    
+
     try {
         for (const [contract, owner] of contracts) {
             // @ts-expect-error no owner interface

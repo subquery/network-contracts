@@ -46,12 +46,11 @@ export class RootContractSDK {
     }
 
     private async _init() {
-        const contracts = Object.entries(this._contractDeployments)
-            .map(([name, contract]) => ({
-                address: contract.address,
-                factory: CONTRACT_FACTORY[name as ContractName] as FactoryContstructor,
-                name: name as ContractName,
-            }));
+        const contracts = Object.entries(this._contractDeployments).map(([name, contract]) => ({
+            address: contract.address,
+            factory: CONTRACT_FACTORY[name as ContractName] as FactoryContstructor,
+            name: name as ContractName,
+        }));
 
         for (const { name, factory, address } of contracts) {
             if (!factory) continue;
