@@ -122,6 +122,7 @@
     "PR009": "deployment id or metadata is empty",
     "PR010": "project latest deployment id not changed",
     "PR011": "deployment not registered",
+    "PR012": "Caller is not the controller ofrunner",
     "RD001": "Waiting Era",
     "RD002": "Era expired",
     "RD003": "Waiting next era",

@@ -855,6 +855,11 @@
                 "internalType": "bytes32",
                 "name": "deploymentId",
                 "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "runner",
+                "type": "address"
             }
         ],
         "name": "startService",
@@ -868,6 +873,11 @@
                 "internalType": "bytes32",
                 "name": "deploymentId",
                 "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "runner",
+                "type": "address"
             }
         ],
         "name": "stopService",

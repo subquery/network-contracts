@@ -296,7 +296,7 @@ describe('RewardsDistributor Contract', () => {
             await startNewEra(eraManager);
             await startNewEra(eraManager);
             // await serviceAgreementExtra.clearAllEndedAgreements(runner.address);
-            await projectRegistry.connect(runner).stopService(DEPLOYMENT_ID);
+            await projectRegistry.connect(runner).stopService(DEPLOYMENT_ID, runner.address);
             await rewardsHelper.indexerCatchup(runner.address);
             await indexerRegistry.connect(runner).unregisterIndexer({ gasLimit: '1000000' });
             await startNewEra(eraManager);
@@ -520,7 +520,7 @@ describe('RewardsDistributor Contract', () => {
             await timeTravel(6);
             await startNewEra(eraManager);
             // await serviceAgreementExtra.clearAllEndedAgreements(runner.address);
-            await projectRegistry.connect(runner).stopService(DEPLOYMENT_ID);
+            await projectRegistry.connect(runner).stopService(DEPLOYMENT_ID, runner.address);
             //unregister indexer
             await indexerRegistry.connect(runner).unregisterIndexer({ gasLimit: '1000000' });
         });

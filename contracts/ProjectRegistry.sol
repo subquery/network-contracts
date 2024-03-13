@@ -276,22 +276,29 @@ contract ProjectRegistry is
     /**
      * @notice Indexer update its service status to ready with a specific deploymentId
      */
-    function startService(bytes32 deploymentId) external onlyIndexer {
-        ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
+    function startService(bytes32 deploymentId, address runner) external onlyIndexer {
+        if (runner != msg.sender) {
+            require(_isRunnerController(runner, msg.sender), 'PR012');
+        }
+
+        ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][runner];
         require(currentStatus == ServiceStatus.TERMINATED, 'PR002');
 
-        deploymentStatusByIndexer[deploymentId][msg.sender] = ServiceStatus.READY;
-        numberOfDeployments[msg.sender]++;
+        deploymentStatusByIndexer[deploymentId][runner] = ServiceStatus.READY;
+        numberOfDeployments[runner]++;
 
-        emit ServiceStatusChanged(msg.sender, deploymentId, ServiceStatus.READY);
+        emit ServiceStatusChanged(runner, deploymentId, ServiceStatus.READY);
     }
 
     /**
      * @notice Indexer stop service with a specific deploymentId
      */
-    function stopService(bytes32 deploymentId) external onlyIndexer {
-        ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
+    function stopService(bytes32 deploymentId, address runner) external onlyIndexer {
+        if (runner != msg.sender) {
+            require(_isRunnerController(runner, msg.sender), 'PR012');
+        }
 
+        ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][msg.sender];
         require(currentStatus == ServiceStatus.READY, 'PR005');
         require(
             !IServiceAgreementRegistry(
@@ -303,6 +310,10 @@ contract ProjectRegistry is
         deploymentStatusByIndexer[deploymentId][msg.sender] = ServiceStatus.TERMINATED;
         numberOfDeployments[msg.sender]--;
         emit ServiceStatusChanged(msg.sender, deploymentId, ServiceStatus.TERMINATED);
+    }
+
+    function _isRunnerController(address runner, address controller) internal view returns (bool) {
+        return IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).getController(runner) == controller;
     }
 
     /**
