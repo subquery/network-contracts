@@ -15,6 +15,7 @@ import './interfaces/IEraManager.sol';
 import './interfaces/IStakingAllocation.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/IIndexerRegistry.sol';
+import './interfaces/IConsumerRegistry.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IRewardsDistributor.sol';
@@ -23,7 +24,6 @@ import './interfaces/IProjectRegistry.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
-import './interfaces/IConsumerRegistry.sol';
 
 /**
  * @title Rewards for running
@@ -221,7 +221,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
                 'RB014'
             );
         }
-        // address account = msg.sender;
+
         DeploymentPool storage deploymentPool = deploymentPools[from];
         require(deploymentPool.accountBooster[account] >= amount, 'RB003');
 

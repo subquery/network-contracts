@@ -417,6 +417,18 @@ describe('RewardsBooster Contract', () => {
                     getQueryReward(reward2.sub(reward1), queryRewardRatePerMill)
                 );
             });
+
+            it.skip('can swap booster from one deployment to another', async () => {
+                const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.RPC);
+                await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('10000'));
+
+                // accumulate rewards
+                await blockTravel(999);
+                const queryReward1C0 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
+                const reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
+                expect(queryReward1C0).to.eq(getQueryReward(reward0, queryRewardRatePerMill));
+
+            });
         });
     });
 
