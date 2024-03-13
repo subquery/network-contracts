@@ -212,5 +212,7 @@
     "RB010": "Invalid report time when setMissedLabor",
     "RB011": "MissedLaborTime exceed current report period",
     "RB012": "Invalid param length to set MissedLabor",
+    "RB013": "Deployment ids can not be same",
+    "RB014": "Caller is not a controller of the account",
     "OPD01": "l2token address is empty"
 }

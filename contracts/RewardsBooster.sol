@@ -23,6 +23,7 @@ import './interfaces/IProjectRegistry.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
+import './interfaces/IConsumerRegistry.sol';
 
 /**
  * @title Rewards for running
@@ -167,11 +168,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      * @param _amount the added amount
      */
     function boostDeployment(bytes32 _deploymentId, uint256 _amount) external {
-        require(
-            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
-                .isDeploymentRegistered(_deploymentId),
-            'RB008'
-        );
+        require(_isDeploymentRegistered(_deploymentId), 'RB008');
 
         address boosterAccount = msg.sender;
         DeploymentPool storage deploymentPool = deploymentPools[_deploymentId];
@@ -206,6 +203,38 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, amount);
         emit DeploymentBoosterRemoved(deployment, msg.sender, amount);
+    }
+
+    function swapBoosterDeployment(address account, bytes32 from, bytes32 to, uint256 amount) external {
+        require(_isDeploymentRegistered(from), 'RB008');
+        require(from != to, 'RB013');
+
+        if (account != msg.sender) {
+            require(IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry)).isController(account, msg.sender), 'RB014');
+        }
+        // address account = msg.sender;
+        DeploymentPool storage deploymentPool = deploymentPools[from];
+        require(deploymentPool.accountBooster[account] >= amount, 'RB003');
+
+        // remove booster from current deploymentId
+        onDeploymentBoosterUpdate(from, account);
+        deploymentPool.boosterPoint -= amount;
+        deploymentPool.accountBooster[account] -= amount;
+        deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
+        emit DeploymentBoosterRemoved(from, account, amount);
+
+        // add booster to the target deploymentId
+        deploymentPool = deploymentPools[to];
+        onDeploymentBoosterUpdate(to, account);
+        deploymentPool.boosterPoint += amount;
+        deploymentPool.accountBooster[account] += amount;
+        deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
+        emit DeploymentBoosterAdded(to, account, amount);
+    }
+
+    function _isDeploymentRegistered(bytes32 deploymentId) internal view returns (bool) {
+        return IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
+            .isDeploymentRegistered(deploymentId);
     }
 
     function getRunnerDeploymentBooster(
