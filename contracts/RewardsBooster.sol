@@ -162,6 +162,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         reporters[reporter] = allow;
     }
 
+    /**
+     * @notice
+     * @param deploymentId project deployment id
+     */
     modifier onlyRegisteredDeployment(bytes32 deploymentId) {
         require(
             IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
@@ -204,7 +208,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     function removeBoosterDeployment(
         bytes32 deploymentId,
         uint256 amount
-    ) external onlyRegisteredDeployment(deploymentId) {
+    ) external {
         DeploymentPool storage deploymentPool = deploymentPools[deploymentId];
         require(deploymentPool.accountBooster[msg.sender] >= amount, 'RB003');
 
