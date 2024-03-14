@@ -24,6 +24,7 @@ import { deployContracts } from './setup';
 describe('Project Registry Contract', () => {
     let wallet_0: Wallet;
     let wallet_1: Wallet;
+    let wallet_2: Wallet;
     let address_0: string;
     let address_1: string;
 
@@ -52,7 +53,7 @@ describe('Project Registry Contract', () => {
     };
     const deployer = () => deployContracts(wallet_0, wallet_1);
     before(async () => {
-        [wallet_0, wallet_1] = await ethers.getSigners();
+        [wallet_0, wallet_1, wallet_2] = await ethers.getSigners();
         address_0 = wallet_0.address;
         address_1 = wallet_1.address;
     });
@@ -314,6 +315,7 @@ describe('Project Registry Contract', () => {
         });
 
         it('start service should work', async () => {
+            // start service by runner
             await expect(projectRegistry.startService(deploymentId, address_0))
                 .to.be.emit(projectRegistry, 'ServiceStatusChanged')
                 .withArgs(address_0, deploymentId, ServiceStatus.READY);
@@ -323,6 +325,15 @@ describe('Project Registry Contract', () => {
                 ServiceStatus.READY
             );
             expect(await projectRegistry.numberOfDeployments(address_0)).to.equal(1);
+
+            // start service by controller
+            await expect(projectRegistry.connect(wallet_1).startService(deploymentId2, address_0))
+                .to.be.emit(projectRegistry, 'ServiceStatusChanged')
+                .withArgs(address_0, deploymentId2, ServiceStatus.READY);
+            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId2, address_0)).to.equal(
+                ServiceStatus.READY
+            );
+            expect(await projectRegistry.numberOfDeployments(address_0)).to.equal(2);
         });
 
         it('stop service should work', async () => {
@@ -338,17 +349,24 @@ describe('Project Registry Contract', () => {
             );
             expect(await projectRegistry.numberOfDeployments(address_0)).to.equal(0);
 
-            // can restart service project
+            // can restart service
             await projectRegistry.startService(deploymentId, address_0);
             expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, address_0)).to.equal(
                 ServiceStatus.READY
             );
             expect(await projectRegistry.numberOfDeployments(address_0)).to.equal(1);
+
+            // can stop by controller
+            await projectRegistry.connect(wallet_1).stopService(deploymentId, address_0);
+            expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, address_0)).to.equal(
+                ServiceStatus.TERMINATED
+            );
+            expect(await projectRegistry.numberOfDeployments(address_0)).to.equal(0);
         });
 
         it('start service with invalid condition should fail', async () => {
             // caller is not indexer
-            await expect(projectRegistry.connect(wallet_1).startService(deploymentId, address_0)).to.be.revertedWith('G002');
+            await expect(projectRegistry.connect(wallet_2).startService(deploymentId, address_0)).to.be.revertedWith('PR012');
             // current status is not `NOTINDEXING`
             await projectRegistry.startService(deploymentId, address_0);
             await expect(projectRegistry.startService(deploymentId, address_0)).to.be.revertedWith('PR002');
@@ -356,7 +374,7 @@ describe('Project Registry Contract', () => {
 
         it('stop indexing with invalid condition should fail', async () => {
             // caller is not an indexer
-            await expect(projectRegistry.connect(wallet_1).stopService(deploymentId, address_0)).to.be.revertedWith('G002');
+            await expect(projectRegistry.connect(wallet_2).stopService(deploymentId, address_0)).to.be.revertedWith('PR012');
             // current status is `TERMINATED`
             await expect(projectRegistry.stopService(deploymentId, address_0)).to.be.revertedWith('PR005');
             // have ongoing service agreement
