@@ -366,7 +366,9 @@ describe('Project Registry Contract', () => {
 
         it('start service with invalid condition should fail', async () => {
             // caller is not indexer
-            await expect(projectRegistry.connect(wallet_2).startService(deploymentId, address_0)).to.be.revertedWith('PR012');
+            await expect(projectRegistry.connect(wallet_2).startService(deploymentId, address_0)).to.be.revertedWith(
+                'PR012'
+            );
             // current status is not `NOTINDEXING`
             await projectRegistry.startService(deploymentId, address_0);
             await expect(projectRegistry.startService(deploymentId, address_0)).to.be.revertedWith('PR002');
@@ -374,7 +376,9 @@ describe('Project Registry Contract', () => {
 
         it('stop indexing with invalid condition should fail', async () => {
             // caller is not an indexer
-            await expect(projectRegistry.connect(wallet_2).stopService(deploymentId, address_0)).to.be.revertedWith('PR012');
+            await expect(projectRegistry.connect(wallet_2).stopService(deploymentId, address_0)).to.be.revertedWith(
+                'PR012'
+            );
             // current status is `TERMINATED`
             await expect(projectRegistry.stopService(deploymentId, address_0)).to.be.revertedWith('PR005');
             // have ongoing service agreement

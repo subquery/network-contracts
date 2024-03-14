@@ -98,14 +98,14 @@ contract ProjectRegistry is
     modifier onlyRunnerOrController(address runner) {
         if (msg.sender == runner) {
             require(
-                IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).isIndexer(
-                msg.sender
-                ),
+                IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
+                    .isIndexer(msg.sender),
                 'G002'
             );
         } else {
             require(
-                IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).getController(runner) == msg.sender,
+                IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
+                    .getController(runner) == msg.sender,
                 'PR012'
             );
         }
@@ -284,7 +284,10 @@ contract ProjectRegistry is
     /**
      * @notice Indexer update its service status to ready with a specific deploymentId
      */
-    function startService(bytes32 deploymentId, address runner) external onlyRunnerOrController(runner) {
+    function startService(
+        bytes32 deploymentId,
+        address runner
+    ) external onlyRunnerOrController(runner) {
         ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][runner];
         require(currentStatus == ServiceStatus.TERMINATED, 'PR002');
 
@@ -297,7 +300,10 @@ contract ProjectRegistry is
     /**
      * @notice Indexer stop service with a specific deploymentId
      */
-    function stopService(bytes32 deploymentId, address runner) external onlyRunnerOrController(runner) {
+    function stopService(
+        bytes32 deploymentId,
+        address runner
+    ) external onlyRunnerOrController(runner) {
         ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][runner];
         require(currentStatus == ServiceStatus.READY, 'PR005');
         require(
