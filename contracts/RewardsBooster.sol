@@ -162,14 +162,24 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         reporters[reporter] = allow;
     }
 
+    modifier onlyRegisteredDeployment(bytes32 deploymentId) {
+        require(
+            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
+                .isDeploymentRegistered(deploymentId),
+            'RB008'
+        );
+        _;
+    }
+
     /**
      * @notice add booster deployment staking modify eraPool and deployment map
      * @param _deploymentId the deployment id
      * @param _amount the added amount
      */
-    function boostDeployment(bytes32 _deploymentId, uint256 _amount) external {
-        require(_isDeploymentRegistered(_deploymentId), 'RB008');
-
+    function boostDeployment(
+        bytes32 _deploymentId,
+        uint256 _amount
+    ) external onlyRegisteredDeployment(_deploymentId) {
         address boosterAccount = msg.sender;
         DeploymentPool storage deploymentPool = deploymentPools[_deploymentId];
         onDeploymentBoosterUpdate(_deploymentId, boosterAccount);
@@ -188,32 +198,40 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
     /**
      * @notice remove booster from deployment
-     * @param deployment deploymentId
+     * @param deploymentId deploymentId
      * @param amount the added amount
      */
-    function removeBoosterDeployment(bytes32 deployment, uint256 amount) external {
-        DeploymentPool storage deploymentPool = deploymentPools[deployment];
+    function removeBoosterDeployment(
+        bytes32 deploymentId,
+        uint256 amount
+    ) external onlyRegisteredDeployment(deploymentId) {
+        DeploymentPool storage deploymentPool = deploymentPools[deploymentId];
         require(deploymentPool.accountBooster[msg.sender] >= amount, 'RB003');
 
-        onDeploymentBoosterUpdate(deployment, msg.sender);
+        onDeploymentBoosterUpdate(deploymentId, msg.sender);
         deploymentPool.boosterPoint -= amount;
         deploymentPool.accountBooster[msg.sender] -= amount;
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
         totalBoosterPoint -= amount;
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, amount);
-        emit DeploymentBoosterRemoved(deployment, msg.sender, amount);
+        emit DeploymentBoosterRemoved(deploymentId, msg.sender, amount);
     }
 
+    /**
+     * @notice swap booster from one deployment to another
+     * @param account the account booster the deployments
+     * @param from from deploymentId
+     * @param to  to deploymentId
+     * @param amount the amount to swap
+     */
     function swapBoosterDeployment(
         address account,
         bytes32 from,
         bytes32 to,
         uint256 amount
-    ) external {
-        require(_isDeploymentRegistered(from), 'RB008');
+    ) external onlyRegisteredDeployment(to) {
         require(from != to, 'RB013');
-
         if (account != msg.sender) {
             require(
                 IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry))
@@ -239,12 +257,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         deploymentPool.accountBooster[account] += amount;
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
         emit DeploymentBoosterAdded(to, account, amount);
-    }
-
-    function _isDeploymentRegistered(bytes32 deploymentId) internal view returns (bool) {
-        return
-            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
-                .isDeploymentRegistered(deploymentId);
     }
 
     function getRunnerDeploymentBooster(

@@ -427,7 +427,6 @@ describe('RewardsBooster Contract', () => {
                 const queryReward1C0 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
                 const reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
                 expect(queryReward1C0).to.eq(getQueryReward(reward0, queryRewardRatePerMill));
-
             });
         });
     });
