@@ -244,22 +244,22 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             );
         }
 
-        DeploymentPool storage deploymentPool = deploymentPools[from];
-        require(deploymentPool.accountBooster[account] >= amount, 'RB003');
+        DeploymentPool storage fromPool = deploymentPools[from];
+        require(fromPool.accountBooster[account] >= amount, 'RB003');
 
         // remove booster from current deploymentId
         onDeploymentBoosterUpdate(from, account);
-        deploymentPool.boosterPoint -= amount;
-        deploymentPool.accountBooster[account] -= amount;
-        deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
+        fromPool.boosterPoint -= amount;
+        fromPool.accountBooster[account] -= amount;
+        fromPool.accRewardsPerBooster = accRewardsPerBooster;
         emit DeploymentBoosterRemoved(from, account, amount);
 
         // add booster to the target deploymentId
-        deploymentPool = deploymentPools[to];
+        DeploymentPool storage toPool = deploymentPools[to];
         onDeploymentBoosterUpdate(to, account);
-        deploymentPool.boosterPoint += amount;
-        deploymentPool.accountBooster[account] += amount;
-        deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
+        toPool.boosterPoint += amount;
+        toPool.accountBooster[account] += amount;
+        toPool.accRewardsPerBooster = accRewardsPerBooster;
         emit DeploymentBoosterAdded(to, account, amount);
     }
 

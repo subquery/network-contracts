@@ -418,15 +418,24 @@ describe('RewardsBooster Contract', () => {
                 );
             });
 
-            it.skip('can swap booster from one deployment to another', async () => {
-                const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.RPC);
-                await boosterDeployment(token, rewardsBooster, consumer0, deploymentId3, etherParse('10000'));
+            it.only('can swap booster from one deployment to another', async () => {
+                await boosterDeployment(token, rewardsBooster, consumer0, deploymentId2, etherParse('10000'));
 
-                // accumulate rewards
                 await blockTravel(999);
-                const queryReward1C0 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
-                const reward0 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
-                expect(queryReward1C0).to.eq(getQueryReward(reward0, queryRewardRatePerMill));
+                const consumer = consumer0.address;
+                await rewardsBooster.connect(consumer0).swapBoosterDeployment(consumer, deploymentId2, deploymentId3, etherParse('3000'));
+                const accRewardsPerBooster = await rewardsBooster.getAccRewardsPerBooster(); 
+                const pool1 = await rewardsBooster.deploymentPools(deploymentId2);
+                expect(pool1.boosterPoint).to.eq(etherParse('7000'));
+                expect(pool1.accRewardsPerBooster).to.eq(accRewardsPerBooster)
+                const runnerDeployment2Booster = await rewardsBooster.getRunnerDeploymentBooster(deploymentId2, consumer);
+                expect(runnerDeployment2Booster).to.eq(etherParse('7000'));
+
+                const pool2 = await rewardsBooster.deploymentPools(deploymentId1);
+                // expect(pool2.boosterPoint).to.eq(etherParse('3000'));
+                expect(pool2.accRewardsPerBooster).to.eq(accRewardsPerBooster);
+                const runnerDeployment3Booster = await rewardsBooster.getRunnerDeploymentBooster(deploymentId3, consumer);
+                // expect(runnerDeployment3Booster).to.eq(etherParse('3000'));
             });
         });
     });
