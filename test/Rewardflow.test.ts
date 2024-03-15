@@ -36,7 +36,7 @@ describe.skip('Rewardflow tests', () => {
         await token.connect(wallet).increaseAllowance(staking.address, amount);
         await indexerRegistry.connect(wallet).registerIndexer(amount, METADATA_HASH, rate, { gasLimit: '2000000' });
         // start indexing project
-        await projectRegistry.connect(wallet).startService(DEPLOYMENT_ID, wallet.address);
+        await projectRegistry.connect(wallet).startService(DEPLOYMENT_ID);
         // create plan
         await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);
         await planManager.createPlanTemplate(

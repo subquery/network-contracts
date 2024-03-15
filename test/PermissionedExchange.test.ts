@@ -121,7 +121,7 @@ describe.skip('PermissionedExchange Contract', () => {
             // create query project
             await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
             // wallet_0 start project
-            await projectRegistry.connect(runner).startService(DEPLOYMENT_ID, runner.address);
+            await projectRegistry.connect(runner).startService(DEPLOYMENT_ID);
             // create plan template
             await planManager.createPlanTemplate(
                 time.duration.days(3).toString(),

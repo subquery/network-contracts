@@ -89,7 +89,7 @@ describe.skip('RewardsDistributor Contract', () => {
             await registerRunner(token, indexerRegistry, staking, root, runner, etherParse('1000'), 0);
             await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
             // start indexing project
-            await projectRegistry.connect(runner).startService(DEPLOYMENT_ID, runner.address);
+            await projectRegistry.connect(runner).startService(DEPLOYMENT_ID);
             // create plan
             await planManager.createPlanTemplate(
                 time.duration.days(7).toString(),
@@ -198,7 +198,7 @@ describe.skip('RewardsDistributor Contract', () => {
             await registerRunner(token, indexerRegistry, staking, root, runner, etherParse('1000'), 0);
             await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
             // start indexing project
-            await projectRegistry.connect(runner).startService(DEPLOYMENT_ID, runner.address);
+            await projectRegistry.connect(runner).startService(DEPLOYMENT_ID);
             // create plan
             await planManager.createPlanTemplate(
                 time.duration.days(35).toString(),

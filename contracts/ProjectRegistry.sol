@@ -282,12 +282,19 @@ contract ProjectRegistry is
     }
 
     /**
-     * @notice Indexer update its service status to ready with a specific deploymentId
+     * @notice Runner update service status to ready with a specific deploymentId
      */
-    function startService(
+    function startService(bytes32 deploymentId) external {
+        startServiceV2(deploymentId, msg.sender);
+    }
+
+    /**
+     * @notice Runner or controller update service status to ready with a specific deploymentId and runner account
+     */
+    function startServiceV2(
         bytes32 deploymentId,
         address runner
-    ) external onlyRunnerOrController(runner) {
+    ) public onlyRunnerOrController(runner) {
         ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][runner];
         require(currentStatus == ServiceStatus.TERMINATED, 'PR002');
 
@@ -298,12 +305,19 @@ contract ProjectRegistry is
     }
 
     /**
-     * @notice Indexer stop service with a specific deploymentId
+     * @notice Runner stop service with a specific deploymentId
      */
-    function stopService(
+    function stopService(bytes32 deploymentId) external {
+        stopServiceV2(deploymentId, msg.sender);
+    }
+
+    /**
+     * @notice Runner or controller stop service with a specific deploymentId and runner account
+     */
+    function stopServiceV2(
         bytes32 deploymentId,
         address runner
-    ) external onlyRunnerOrController(runner) {
+    ) public onlyRunnerOrController(runner) {
         ServiceStatus currentStatus = deploymentStatusByIndexer[deploymentId][runner];
         require(currentStatus == ServiceStatus.READY, 'PR005');
         require(

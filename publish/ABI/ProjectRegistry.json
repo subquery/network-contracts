@@ -855,11 +855,6 @@
                 "internalType": "bytes32",
                 "name": "deploymentId",
                 "type": "bytes32"
-            },
-            {
-                "internalType": "address",
-                "name": "runner",
-                "type": "address"
             }
         ],
         "name": "startService",
@@ -880,7 +875,38 @@
                 "type": "address"
             }
         ],
+        "name": "startServiceV2",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "deploymentId",
+                "type": "bytes32"
+            }
+        ],
         "name": "stopService",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "runner",
+                "type": "address"
+            }
+        ],
+        "name": "stopServiceV2",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

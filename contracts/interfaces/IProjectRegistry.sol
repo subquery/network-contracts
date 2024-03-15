@@ -48,9 +48,9 @@ interface IProjectRegistry {
 
     function setProjectLatestDeployment(uint256 projectId, bytes32 deploymentId) external;
 
-    function startService(bytes32 deploymentId, address runner) external;
+    function startService(bytes32 deploymentId) external;
 
-    function stopService(bytes32 deploymentId, address runner) external;
+    function stopService(bytes32 deploymentId) external;
 
     function getDeploymentProjectType(bytes32 deploymentId) external view returns (ProjectType);
 

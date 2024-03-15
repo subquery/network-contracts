@@ -85,8 +85,8 @@ describe('RewardsDistributor Contract', () => {
         await registerIndexer(root, root, etherParse('1000'), 1e5);
         await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
         // wallet_0 start project
-        await projectRegistry.connect(runner).startService(DEPLOYMENT_ID, runner.address);
-        await projectRegistry.connect(root).startService(DEPLOYMENT_ID, root.address);
+        await projectRegistry.connect(runner).startService(DEPLOYMENT_ID);
+        await projectRegistry.connect(root).startService(DEPLOYMENT_ID);
     });
 
     describe('initialization', async () => {
@@ -296,7 +296,7 @@ describe('RewardsDistributor Contract', () => {
             await startNewEra(eraManager);
             await startNewEra(eraManager);
             // await serviceAgreementExtra.clearAllEndedAgreements(runner.address);
-            await projectRegistry.connect(runner).stopService(DEPLOYMENT_ID, runner.address);
+            await projectRegistry.connect(runner).stopService(DEPLOYMENT_ID);
             await rewardsHelper.indexerCatchup(runner.address);
             await indexerRegistry.connect(runner).unregisterIndexer({ gasLimit: '1000000' });
             await startNewEra(eraManager);
@@ -520,7 +520,7 @@ describe('RewardsDistributor Contract', () => {
             await timeTravel(6);
             await startNewEra(eraManager);
             // await serviceAgreementExtra.clearAllEndedAgreements(runner.address);
-            await projectRegistry.connect(runner).stopService(DEPLOYMENT_ID, runner.address);
+            await projectRegistry.connect(runner).stopService(DEPLOYMENT_ID);
             //unregister indexer
             await indexerRegistry.connect(runner).unregisterIndexer({ gasLimit: '1000000' });
         });
@@ -621,7 +621,7 @@ describe('RewardsDistributor Contract', () => {
             );
             await stakingManager.connect(delegator).delegate(runner.address, etherParse('1'));
             await stakingManager.connect(delegator2).delegate(runner.address, etherParse('1'));
-            await projectRegistry.connect(runner).startService(DEPLOYMENT_ID, runner.address);
+            await projectRegistry.connect(runner).startService(DEPLOYMENT_ID);
             // 4. generate new agreement and check the reward distribution for 2 era
             await acceptPlan(runner, consumer, 5, etherParse('3'), DEPLOYMENT_ID, token, planManager);
             await startNewEra(eraManager);
@@ -661,7 +661,7 @@ describe('RewardsDistributor Contract', () => {
             await checkValues(etherParse('1.997002697'), etherParse('10.001697302697'), etherParse('1000'), 0);
             await stakingManager.connect(delegator).delegate(runner.address, etherParse('1'));
             await stakingManager.connect(delegator2).delegate(runner.address, etherParse('1'));
-            await projectRegistry.connect(runner).startService(DEPLOYMENT_ID, runner.address);
+            await projectRegistry.connect(runner).startService(DEPLOYMENT_ID);
             // 4. generate new agreement and check the reward distribution for 2 era
             await acceptPlan(runner, consumer, 5, etherParse('3'), DEPLOYMENT_ID, token, planManager);
             await startNewEra(eraManager);

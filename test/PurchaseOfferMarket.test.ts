@@ -201,7 +201,7 @@ describe('Purchase Offer Market Contract', () => {
                 // create query project
                 await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
                 // wallet_0 start project
-                await projectRegistry.startService(DEPLOYMENT_ID, wallet_0.address);
+                await projectRegistry.startService(DEPLOYMENT_ID);
             });
 
             it('accept offer should work', async () => {
