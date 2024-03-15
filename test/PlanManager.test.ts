@@ -77,7 +77,7 @@ describe('PlanManger Contract', () => {
         // create query project
         await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
         // wallet_0 start project
-        await projectRegistry.startService(DEPLOYMENT_ID);
+        await projectRegistry.startService(DEPLOYMENT_ID, runner.address);
     };
 
     describe('Plan Manager Config', () => {

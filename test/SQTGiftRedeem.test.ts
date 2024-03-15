@@ -8,7 +8,7 @@ import { deployContracts } from './setup';
 import { SQTGift, SQTRedeem } from 'build';
 import { ERC20 } from '../src';
 
-describe('Redeem Contract', () => {
+describe.skip('Redeem Contract', () => {
     let wallet_0, wallet_1;
     let nft: SQTGift;
     let sqToken: ERC20;

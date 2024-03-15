@@ -1,3 +1,4 @@
+import { assert } from 'assert';
 // Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -136,7 +137,7 @@ describe('IndexerRegistry Contract', () => {
 
             // with running projects
             await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
-            await projectRegistry.startService(DEPLOYMENT_ID);
+            await projectRegistry.startService(DEPLOYMENT_ID, wallet_0.address);
             await expect(indexerRegistry.unregisterIndexer()).to.be.revertedWith('IR004');
         });
     });

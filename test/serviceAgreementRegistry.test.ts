@@ -103,7 +103,7 @@ describe('Service Agreement Registry Contract', () => {
             await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[1], 0);
             await projectRegistry.createProject(METADATA_HASH, VERSION, deploymentIds[2], 0);
 
-            await projectRegistry.startService(deploymentIds[0]);
+            await projectRegistry.startService(deploymentIds[0], wallet.address);
 
             // create a purchase offer
             await createPurchaseOffer(purchaseOfferMarket, token, deploymentIds[0], await futureTimestamp());
@@ -177,7 +177,7 @@ describe('Service Agreement Registry Contract', () => {
 
             // create query project
             await projectRegistry.connect(wallet1).createProject(METADATA_HASH, VERSION, deploymentIds[0], 0);
-            await projectRegistry.connect(wallet1).startService(deploymentIds[0]);
+            await projectRegistry.connect(wallet1).startService(deploymentIds[0], wallet1.address);
 
             // period 10 days
             // planTemplateId: 1
