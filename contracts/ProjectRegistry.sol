@@ -94,7 +94,7 @@ contract ProjectRegistry is
     );
 
     /// @dev MODIFIER
-    /// @notice only indexer can call
+    /// @notice only runner or controller can call
     modifier onlyRunnerOrController(address runner) {
         if (msg.sender == runner) {
             require(
