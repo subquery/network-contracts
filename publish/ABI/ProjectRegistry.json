@@ -875,7 +875,7 @@
                 "type": "address"
             }
         ],
-        "name": "startServiceV2",
+        "name": "startService2",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -906,7 +906,7 @@
                 "type": "address"
             }
         ],
-        "name": "stopServiceV2",
+        "name": "stopService2",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

@@ -327,7 +327,7 @@ describe('Project Registry Contract', () => {
             expect(await projectRegistry.numberOfDeployments(address_0)).to.equal(1);
 
             // start service by controller
-            await expect(projectRegistry.connect(wallet_1).startServiceV2(deploymentId2, address_0))
+            await expect(projectRegistry.connect(wallet_1).startService2(deploymentId2, address_0))
                 .to.be.emit(projectRegistry, 'ServiceStatusChanged')
                 .withArgs(address_0, deploymentId2, ServiceStatus.READY);
             expect(await projectRegistry.deploymentStatusByIndexer(deploymentId2, address_0)).to.equal(
@@ -357,7 +357,7 @@ describe('Project Registry Contract', () => {
             expect(await projectRegistry.numberOfDeployments(address_0)).to.equal(1);
 
             // can stop by controller
-            await projectRegistry.connect(wallet_1).stopServiceV2(deploymentId, address_0);
+            await projectRegistry.connect(wallet_1).stopService2(deploymentId, address_0);
             expect(await projectRegistry.deploymentStatusByIndexer(deploymentId, address_0)).to.equal(
                 ServiceStatus.TERMINATED
             );

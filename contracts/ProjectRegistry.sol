@@ -285,13 +285,13 @@ contract ProjectRegistry is
      * @notice Runner update service status to ready with a specific deploymentId
      */
     function startService(bytes32 deploymentId) external {
-        startServiceV2(deploymentId, msg.sender);
+        startService2(deploymentId, msg.sender);
     }
 
     /**
      * @notice Runner or controller update service status to ready with a specific deploymentId and runner account
      */
-    function startServiceV2(
+    function startService2(
         bytes32 deploymentId,
         address runner
     ) public onlyRunnerOrController(runner) {
@@ -308,13 +308,13 @@ contract ProjectRegistry is
      * @notice Runner stop service with a specific deploymentId
      */
     function stopService(bytes32 deploymentId) external {
-        stopServiceV2(deploymentId, msg.sender);
+        stopService2(deploymentId, msg.sender);
     }
 
     /**
      * @notice Runner or controller stop service with a specific deploymentId and runner account
      */
-    function stopServiceV2(
+    function stopService2(
         bytes32 deploymentId,
         address runner
     ) public onlyRunnerOrController(runner) {
