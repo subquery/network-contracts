@@ -1,8 +1,8 @@
 // Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {expect} from 'chai';
-import {ethers, waffle} from 'hardhat';
+import { expect } from 'chai';
+import { ethers, waffle } from 'hardhat';
 import {
     IndexerRegistry,
     ProjectRegistry,
@@ -13,11 +13,11 @@ import {
     EraManager,
     RewardsHelper,
 } from '../src';
-import {DEPLOYMENT_ID, METADATA_1_HASH, METADATA_HASH, VERSION} from './constants';
-import {etherParse, registerRunner, startNewEra} from './helper';
-import {deployContracts} from './setup';
+import { DEPLOYMENT_ID, METADATA_1_HASH, METADATA_HASH, VERSION } from './constants';
+import { etherParse, registerRunner, startNewEra } from './helper';
+import { deployContracts } from './setup';
 
-const {constants} = require('@openzeppelin/test-helpers');
+const { constants } = require('@openzeppelin/test-helpers');
 
 describe('IndexerRegistry Contract', () => {
     let wallet_0, wallet_1, wallet_2;
@@ -133,7 +133,7 @@ describe('IndexerRegistry Contract', () => {
     describe('Indexer Unregistry', () => {
         it('indexer deregister should work', async () => {
             // deregister from network
-            await expect(indexerRegistry.unregisterIndexer({gasLimit: '1000000'}))
+            await expect(indexerRegistry.unregisterIndexer({ gasLimit: '1000000' }))
                 .to.be.emit(indexerRegistry, 'UnregisterIndexer')
                 .withArgs(wallet_0.address);
 
@@ -151,7 +151,7 @@ describe('IndexerRegistry Contract', () => {
             await rewardsHelper.batchCollectAndDistributeRewards(wallet_0.address, 10);
             await rewardsHelper.batchApplyStakeChange(wallet_0.address, [wallet_1.address]);
             // deregister from network
-            await expect(indexerRegistry.unregisterIndexer({gasLimit: '1000000'}))
+            await expect(indexerRegistry.unregisterIndexer({ gasLimit: '1000000' }))
                 .to.be.emit(indexerRegistry, 'UnregisterIndexer')
                 .withArgs(wallet_0.address);
 
