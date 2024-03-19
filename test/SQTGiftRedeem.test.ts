@@ -81,7 +81,7 @@ describe('Redeem Contract', () => {
                 .to.be.emit(sqtRedeem, 'SQTRedeemed')
                 .withArgs(wallet_0.address, 0, 0, nft.address, amount);
 
-            await expect(sqtRedeem.redeem(nft.address, 1)).to.revertedWith('ERC721: invalid token ID');
+            await expect(sqtRedeem.redeem(nft.address, 0)).to.revertedWith('ERC721: invalid token ID');
         });
 
         it('should not be able to redeem with invalid NFT token', async () => {
