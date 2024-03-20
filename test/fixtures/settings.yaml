@@ -7,11 +7,11 @@
   issuancePerBlock: '6341958400000000000' # 6.34
 - kind: ProjectTypeCreatorRestricted
   value:
-    - projectType: 0 # subquery project
-      restricted: true
-    - projectType: 1 # rpc
-      restricted: true
-    - projectType: 2 # dict
-      restricted: true
-    - projectType: 3 # subgraqh
-      restricted: true
+      - projectType: 0 # subquery project
+        restricted: true
+      - projectType: 1 # rpc
+        restricted: true
+      - projectType: 2 # dict
+        restricted: true
+      - projectType: 3 # subgraqh
+        restricted: true

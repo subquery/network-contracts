@@ -81,7 +81,7 @@ async function getOverrides(): Promise<Overrides> {
     const price = await wallet.provider.getGasPrice();
     // console.log(`gasprice: ${price.toString()}`)
     // price = price.add(15000000000); // add extra 15 gwei
-    return { gasPrice: price, gasLimit: 3000000 };
+    return { gasPrice: price };
 }
 
 export function saveDeployment(name: string, deployment: Partial<ContractDeployment>) {

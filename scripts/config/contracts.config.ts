@@ -4,7 +4,11 @@ export default {
     mainnet: {
         InflationController: [12000, '0x9E3a8e4d0115e5b157B61b6a5372ecc41446D472'], // inflationRate, inflationDestination
         InflationDestination: ['0xd043807A0f41EE95fD66A523a93016a53456e79B'], // XcRecipient
-        OpDestination: ['0x09395a2A58DB45db0da254c7EAa5AC469D8bDc85', '0x858c50C3AF1913b0E849aFDB74617388a1a5340d', '0x3154Cf16ccdb4C6d922629664174b904d80F2C35'],
+        OpDestination: [
+            '0x09395a2A58DB45db0da254c7EAa5AC469D8bDc85',
+            '0x858c50C3AF1913b0E849aFDB74617388a1a5340d',
+            '0x3154Cf16ccdb4C6d922629664174b904d80F2C35',
+        ],
         SQToken: [utils.parseEther('10000000000')], // initial supply 10 billion
         VTSQToken: [],
         Staking: [1209600, 1e3], // lockPeriod: 14 days, unbondFeeRate: 10e3/10e6=0.001=0.1%
@@ -17,7 +21,7 @@ export default {
         // base: 2s a block, 31536000/2 = 15768000 blocks a year, 1% rewards = 100000000 / 15768000 = about 6.3419584 SQT per block
         RewardsBooster: [utils.parseEther('6.3419584'), utils.parseEther('1000')], // _issuancePerBlock, _minimumDeploymentBooster
         L2SQToken: ['0x4200000000000000000000000000000000000010', '0x09395a2A58DB45db0da254c7EAa5AC469D8bDc85'], // l2bridge, l1token
-        PriceOracle: [10 , 3600],
+        PriceOracle: [10, 3600],
     },
     kepler: {
         InflationController: [0, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // inflationRate, inflationDestination
