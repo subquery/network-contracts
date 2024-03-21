@@ -93,13 +93,13 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
     );
     event QueryRewardsSpent(
         bytes32 indexed deploymentId,
-        address indexed runner,
+        address indexed spender,
         uint256 amount,
         bytes data
     );
     event QueryRewardsRefunded(
         bytes32 indexed deploymentId,
-        address indexed runner,
+        address indexed spender,
         uint256 amount,
         bytes data
     );
