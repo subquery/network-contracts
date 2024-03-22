@@ -122,14 +122,15 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      */
     function onStakeChange(address _runner, address _source) external onlyStaking {
         uint256 currentEra = _getCurrentEra();
+        uint256 lastEra = currentEra - 1;
 
         IRewardsDistributor rewardsDistributor = _getRewardsDistributor();
 
         if (totalStakingAmount[_runner] == 0) {
             IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(_runner);
 
-            rewardsDistributor.setLastClaimEra(_runner, currentEra - 1);
-            lastSettledEra[_runner] = currentEra - 1;
+            rewardsDistributor.setLastClaimEra(_runner, lastEra);
+            lastSettledEra[_runner] = lastEra;
 
             IStakingManager stakingManager = IStakingManager(
                 settings.getContractAddress(SQContracts.StakingManager)
@@ -158,7 +159,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
 
             emit StakeChanged(_runner, _runner, newDelegation);
             emit ICRChanged(_runner, newCommissionRate);
-            emit SettledEraUpdated(_runner, currentEra - 1);
+            emit SettledEraUpdated(_runner, lastEra);
 
             // notify stake allocation
             IStakingAllocation stakingAllocation = IStakingAllocation(
@@ -166,20 +167,17 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             );
             stakingAllocation.onStakeUpdate(_runner);
         } else {
+            // if the source is runner or ther runner is unregistered, still need to collect rewards
             if (
+                _runner == _source ||
                 !IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
                     .isIndexer(_runner)
             ) {
-                return;
+                require(rewardsDistributor.collectAndDistributeEraRewards(currentEra, _runner) == lastEra, 'RS002');
+                IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(_runner);
+                require(checkAndReflectSettlement(_runner, rewardInfo.lastClaimEra), 'RS003');
             }
-            require(
-                rewardsDistributor.collectAndDistributeEraRewards(currentEra, _runner) ==
-                    currentEra - 1,
-                'RS002'
-            );
-            IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(_runner);
 
-            require(checkAndReflectSettlement(_runner, rewardInfo.lastClaimEra), 'RS003');
             if (!_pendingStakeChange(_runner, _source)) {
                 pendingStakers[_runner][pendingStakeChangeLength[_runner]] = _source;
                 pendingStakerNos[_runner][_source] = pendingStakeChangeLength[_runner];

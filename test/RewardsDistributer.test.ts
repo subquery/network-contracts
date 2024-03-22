@@ -557,6 +557,7 @@ describe('RewardsDistributor Contract', () => {
             await startNewEra(eraManager);
             await rewardsDistributor.collectAndDistributeRewards(runner.address);
             await rewardsStaking.applyStakeChange(runner.address, runner.address);
+
             // 3. check totalStakingAmount equal delegation amount
             expect(await rewardsStaking.getTotalStakingAmount(runner.address)).to.be.eq(
                 await rewardsStaking.getDelegationAmount(delegator.address, runner.address)
