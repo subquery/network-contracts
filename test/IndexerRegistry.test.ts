@@ -51,7 +51,7 @@ describe('IndexerRegistry Contract', () => {
         rewardsStaking = deployment.rewardsStaking;
         eraManager = deployment.eraManager;
         rewardsHelper = deployment.rewardsHelper;
-        await registerIndexer(token, indexerRegistry, staking, wallet_0, wallet_0, amount);
+        await registerRunner(token, indexerRegistry, staking, wallet_0, wallet_0, amount);
     });
 
     describe('Indexer Registry', () => {
