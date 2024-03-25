@@ -14,7 +14,7 @@ import {
     RewardsHelper,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_1_HASH, METADATA_HASH, VERSION } from './constants';
-import { etherParse, registerRunner, startNewEra } from './helper';
+import { etherParse, registerRunner, revertMsg, startNewEra } from './helper';
 import { deployContracts } from './setup';
 
 const { constants } = require('@openzeppelin/test-helpers');
@@ -51,7 +51,19 @@ describe('IndexerRegistry Contract', () => {
         rewardsStaking = deployment.rewardsStaking;
         eraManager = deployment.eraManager;
         rewardsHelper = deployment.rewardsHelper;
-        await registerRunner(token, indexerRegistry, staking, wallet_0, wallet_0, amount);
+        await registerRunner(token, indexerRegistry, staking, wallet_0, wallet_0, etherParse('2000'));
+    });
+
+    describe('Minimum Staking Management', () => {
+        it('update minimum staking should work', async () => {
+            expect(await indexerRegistry.minimumStakingAmount()).to.equal(etherParse('1000'));
+            await indexerRegistry.setminimumStakingAmount(etherParse('2000'));
+            expect(await indexerRegistry.minimumStakingAmount()).to.equal(etherParse('2000'));
+        });
+
+        it('only owner can update minimum staking', async () => {
+            await expect(indexerRegistry.connect(wallet_1).setminimumStakingAmount(etherParse('2000'))).to.be.revertedWith(revertMsg.notOwner);
+        });
     });
 
     describe('Indexer Registry', () => {
