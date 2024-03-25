@@ -81,10 +81,10 @@
             "lastUpdate": "Thu, 18 Jan 2024 08:43:36 GMT"
         },
         "Staking": {
-            "innerAddress": "0x69Ca4b50E61A80644653504562aa73E34eDCeb66",
+            "innerAddress": "0x76CAD936cD924fB2f5f1EE883BD2A222A2D9C360",
             "address": "0x520c2A23000D134780a90bd9dec533df434140a2",
-            "bytecodeHash": "fe2832db33de18f11348cefeb146e223a7232be09828ab3aae3283d323221585",
-            "lastUpdate": "Fri, 09 Feb 2024 05:53:03 GMT"
+            "bytecodeHash": "7ffd7f96041e56f88c77820fcca56c3a73f90ab035a821fd4e2c96557e8c4db3",
+            "lastUpdate": "Mon, 25 Mar 2024 01:44:16 GMT"
         },
         "StakingManager": {
             "innerAddress": "0xa9bEaA33E02551B398C9b27d22384c251d8FB026",
@@ -105,10 +105,10 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:50:54 GMT"
         },
         "ProjectRegistry": {
-            "innerAddress": "0xAd0aD5CFa29cc1bb54e0576b4DAff5af42274B93",
+            "innerAddress": "0x53b5Df226E16191664258c73EF8631Cd075E7D0b",
             "address": "0xaa5c9b4a3975FF78ffDd00321dAbce28EF7F7C7c",
-            "bytecodeHash": "09126a7d22bd7782cd785c1dd3273f03f4c62bdf09977101f5f76f56bc391682",
-            "lastUpdate": "Fri, 09 Feb 2024 05:51:26 GMT"
+            "bytecodeHash": "4c032df2f01cf73c517b09c05cd042a91be4eb21bdb0292e2ccc5cc24d663982",
+            "lastUpdate": "Mon, 25 Mar 2024 01:44:29 GMT"
         },
         "PlanManager": {
             "innerAddress": "0x21055A3d3F0Edf2c623dEB3dB37B0747e03dB5B2",
@@ -195,10 +195,10 @@
             "lastUpdate": "Mon, 26 Feb 2024 06:59:47 GMT"
         },
         "RewardsBooster": {
-            "innerAddress": "0x2150e0e743ac741f7C249564ec1bD05ddAFB3C1D",
+            "innerAddress": "0x899D217264C8E56Cb956D40A7F262a16d70860e9",
             "address": "0x4f6A1045A56EeD1D2795b5f6F6713972B67C09C2",
-            "bytecodeHash": "0640a0042f1eaefc8143809fceef1ffa7ccbbe89ec258a02a70e7758dd4f3a8e",
-            "lastUpdate": "Mon, 19 Feb 2024 23:32:30 GMT"
+            "bytecodeHash": "da9fd7024efd0fe8c6324b45ffb30d9504925ee7d39379e07aabc3d9e031c0ea",
+            "lastUpdate": "Mon, 25 Mar 2024 01:44:04 GMT"
         },
         "StakingAllocation": {
             "innerAddress": "0x6d987b33a149e44098A9096C57e74068882Ef6D6",
