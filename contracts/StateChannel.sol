@@ -283,11 +283,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         bytes memory callback,
         bytes memory sign
     ) external {
-        require(
-            channels[channelId].status == ChannelStatus.Open &&
-                channels[channelId].expiredAt > block.timestamp,
-            'SC003'
-        );
+        require(channels[channelId].status == ChannelStatus.Open, 'SC003');
         require(channels[channelId].total == preTotal, 'SC010');
 
         address indexer = channels[channelId].indexer;
@@ -383,9 +379,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         require(isIndexer || isConsumer, 'G008');
 
         // check state
-        bool allowState = state.expiredAt > block.timestamp &&
-            query.spent >= state.spent &&
-            query.spent < state.total;
+        bool allowState = query.spent >= state.spent && query.spent < state.total;
         require(allowState, 'SC005');
 
         // check sign
@@ -446,13 +440,8 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         // check if terminate success
         bool isClaimable1 = channels[channelId].status == ChannelStatus.Terminating &&
             channels[channelId].terminatedAt < block.timestamp;
+        require(isClaimable1, 'SC008');
 
-        // check if channel expiration
-        bool isClaimable2 = isClaimable1 ||
-            (channels[channelId].status == ChannelStatus.Open &&
-                channels[channelId].expiredAt < block.timestamp);
-
-        require(isClaimable2, 'SC008');
         _finalize(channelId);
     }
 
@@ -533,12 +522,8 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             emit ChannelLabor(deploymentId, indexer, amount);
         }
 
-        // check is finish
-        bool isFinish1 = query.isFinal;
-        bool isFinish2 = isFinish1 || block.timestamp > channels[query.channelId].expiredAt;
-
         // finalise channel if meet the requirements
-        if (finalize || isFinish2) {
+        if (finalize || query.isFinal) {
             _finalize(query.channelId);
         }
     }

@@ -534,9 +534,10 @@ describe('StateChannel Contract', () => {
             const recover = ethers.utils.verifyMessage(ethers.utils.arrayify(payload), sign);
             expect(consumer.address).to.equal(recover);
 
-            await expect(
-                stateChannel.fund(channelId, etherParse('1'), etherParse('0.1'), '0x', sign)
-            ).to.be.revertedWith('SC003');
+            // fund again when expired.
+            await stateChannel.fund(channelId, etherParse('1'), etherParse('0.1'), '0x', sign);
+            const state2 = await stateChannel.channel(channelId);
+            expect(state2.total).to.equal(etherParse('1.1'));
 
             // extend the expiration
             const state = await stateChannel.channel(channelId);
@@ -551,12 +552,6 @@ describe('StateChannel Contract', () => {
             const consumerSign = await consumer.signMessage(ethers.utils.arrayify(payload2));
 
             await stateChannel.extend(channelId, preExpirationAt, nextExpiration, indexerSign, consumerSign);
-
-            // fund again when renewal expiredAt.
-            await stateChannel.fund(channelId, etherParse('1'), etherParse('0.1'), '0x', sign);
-            const state2 = await stateChannel.channel(channelId);
-            expect(state2.total).to.equal(etherParse('1.1'));
-
             await expect(
                 stateChannel.extend(channelId, preExpirationAt, nextExpiration, indexerSign, consumerSign)
             ).to.be.revertedWith('SC002');
