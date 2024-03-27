@@ -555,8 +555,7 @@ describe('RewardsDistributor Contract', () => {
             ).to.be.revertedWith('RS001');
             // 2. start new era -> indexer `collectAndDistributeRewards` -> `applyStakeChange`: era[n+1]
             await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            await rewardsStaking.applyStakeChange(runner.address, runner.address);
+            await rewardsHelper.indexerCatchup(runner.address);
 
             // 3. check totalStakingAmount equal delegation amount
             expect(await rewardsStaking.getTotalStakingAmount(runner.address)).to.be.eq(
@@ -579,16 +578,13 @@ describe('RewardsDistributor Contract', () => {
         });
 
         it('indexer without delegators can reregister', async () => {
-            // 1. start new era -> indexer `collectAndDistributeRewards` -> `applyStakeChange`: era[n+1]
+            // 1. start new era -> delegator undelegate -> indexer `collectAndDistributeRewards` -> `applyStakeChange`: era[n+1]
             await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            await rewardsStaking.applyStakeChange(runner.address, runner.address);
             // 2. delegator undelegate all the Tokens
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('1'));
             // 3. start new era -> delegator -> `applyStakeChange`
             await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            await rewardsStaking.applyStakeChange(runner.address, delegator.address);
+            await rewardsHelper.indexerCatchup(runner.address);
             // 4. check totalStakingAmount equal 0, era reward equal 0
             await checkValues(etherParse('2.697302697'), etherParse('9.002697302697'), 0, 0);
             // 5. indexer register successfully
@@ -604,9 +600,7 @@ describe('RewardsDistributor Contract', () => {
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('1'));
             // 2. start new era -> indexer `collectAndDistributeRewards` -> `applyStakeChange | delegator -> `applyStakeChange`
             await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            await rewardsStaking.applyStakeChange(runner.address, runner.address);
-            await rewardsStaking.applyStakeChange(runner.address, delegator.address);
+            await rewardsHelper.indexerCatchup(runner.address);
             await stakingManager.connect(runner).widthdraw();
             await stakingManager.connect(delegator).widthdraw();
             // 3. indexer reregister -> add previous delegator and a new delegator
@@ -626,9 +620,7 @@ describe('RewardsDistributor Contract', () => {
             // 4. generate new agreement and check the reward distribution for 2 era
             await acceptPlan(runner, consumer, 5, etherParse('3'), DEPLOYMENT_ID, token, planManager);
             await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            await rewardsStaking.applyStakeChange(runner.address, delegator.address);
-            await rewardsStaking.applyStakeChange(runner.address, delegator2.address);
+            await rewardsHelper.indexerCatchup(runner.address);
             await rewardsDistributor.connect(runner).claim(runner.address);
             await checkValues(
                 etherParse('4.996702697'),
@@ -646,9 +638,7 @@ describe('RewardsDistributor Contract', () => {
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('1'));
             // 2. start new era -> indexer `collectAndDistributeRewards` -> `applyStakeChange | delegator -> `applyStakeChange`
             await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            await rewardsStaking.applyStakeChange(runner.address, runner.address);
-            await rewardsStaking.applyStakeChange(runner.address, delegator.address);
+            await rewardsHelper.indexerCatchup(runner.address);
             await stakingManager.connect(runner).widthdraw();
             await stakingManager.connect(delegator).widthdraw();
             //after few more eras
@@ -666,9 +656,7 @@ describe('RewardsDistributor Contract', () => {
             // 4. generate new agreement and check the reward distribution for 2 era
             await acceptPlan(runner, consumer, 5, etherParse('3'), DEPLOYMENT_ID, token, planManager);
             await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            await rewardsStaking.applyStakeChange(runner.address, delegator.address);
-            await rewardsStaking.applyStakeChange(runner.address, delegator2.address);
+            await rewardsHelper.indexerCatchup(runner.address);
             await rewardsDistributor.connect(runner).claim(runner.address);
             await checkValues(
                 etherParse('4.996702697'),
