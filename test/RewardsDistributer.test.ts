@@ -686,15 +686,7 @@ describe('RewardsDistributor Contract', () => {
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('0.1'));
             // 2. start new era
             await startNewEra(eraManager);
-            // 3. delegator can not undelegate from the indexer
-            await expect(
-                stakingManager.connect(delegator).undelegate(runner.address, etherParse('0.1'))
-            ).to.be.revertedWith('RS003');
-            // 4. one of the delegator call `collectAndDistributeRewards` and `applyStakeChange`
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            await rewardsStaking.applyStakeChange(runner.address, runner.address);
-            await rewardsStaking.applyStakeChange(runner.address, delegator.address);
-            // 5. delegators can undelegate and redelegate
+            // 3. delegator can not undelegate from the indexer directly after indexer unregistered
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('0.1'));
         });
     });

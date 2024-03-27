@@ -167,10 +167,10 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             );
             stakingAllocation.onStakeUpdate(_runner);
         } else {
-            // if the source is runner or ther runner is unregistered, still need to collect rewards
+            // if the staker is runner or ther runner is still registered, need to collect rewards first
             if (
                 _runner == _source ||
-                !IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
+                IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
                     .isIndexer(_runner)
             ) {
                 require(rewardsDistributor.collectAndDistributeEraRewards(currentEra, _runner) == lastEra, 'RS002');
