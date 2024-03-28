@@ -26,6 +26,9 @@ contract ConsumerRegistry is Initializable, OwnableUpgradeable {
     /// consumer address => controller address => bool
     mapping(address => mapping(address => bool)) public controllers;
 
+    /// @notice account address -> is whitelisted
+    mapping(address => bool) public whitelist;
+
     // -- Events --
 
     /**
@@ -36,6 +39,10 @@ contract ConsumerRegistry is Initializable, OwnableUpgradeable {
      * @dev Emitted when consumer remove user
      */
     event ControllerRemoved(address indexed consumer, address controller);
+    /**
+     * @dev Emitted when whitelist account changed
+     */
+    event WhitelistUpdated(address indexed account, bool isWhitelisted);
 
     /**
      * @dev Initialize this contract. Load establisherWhitelist.
@@ -48,6 +55,16 @@ contract ConsumerRegistry is Initializable, OwnableUpgradeable {
 
     function setSettings(ISettings _settings) external onlyOwner {
         settings = _settings;
+    }
+
+    function addWhitelist(address account) external onlyOwner {
+        whitelist[account] = true;
+        emit WhitelistUpdated(account, true);
+    }
+
+    function removeWhitelist(address account) external onlyOwner {
+        delete whitelist[account];
+        emit WhitelistUpdated(account, false);
     }
 
     /**
