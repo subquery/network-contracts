@@ -22,6 +22,17 @@ describe('ConsumerRegistry Contract', () => {
         consumerHost = deployment.consumerHost;
     });
 
+    describe('whitelist management', () => {
+        it('add & remove consumer whitelist', async () => {
+            const account = wallet_0.address;
+            await expect(consumerRegistry.addWhitelist(account)).to.be.emit(consumerRegistry, 'WhitelistUpdated').withArgs(account, true);
+            expect(await consumerRegistry.whitelist(account)).to.equal(true);
+
+            await expect(consumerRegistry.removeWhitelist(account)).to.be.emit(consumerRegistry, 'WhitelistUpdated').withArgs(account, false);
+            expect(await consumerRegistry.whitelist(account)).to.equal(false);
+        });
+    });
+
     describe('controller check', () => {
         it('add & remove common controller', async () => {
             await consumerRegistry.addController(wallet_0.address, wallet_1.address);
