@@ -14,6 +14,7 @@ import './interfaces/IEraManager.sol';
 import './Constants.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/IStakingManager.sol';
+import './utils/MathUtil.sol';
 
 /**
  * @title Indexer Registry Contract
@@ -45,6 +46,7 @@ import './interfaces/IStakingManager.sol';
  */
 contract IndexerRegistry is Initializable, OwnableUpgradeable {
     using SafeERC20 for IERC20;
+    using MathUtil for uint256;
 
     /**
      * @dev Commission rate information. One per Indexer.
@@ -72,6 +74,9 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
     /// @notice indexer's controller: indexer => controller
     mapping(address => address) private controllers;
 
+    /// @notice minimum commission rate
+    uint256 public minimumCommissionRate;
+
     /// @dev ### EVENTS
     /// @notice Emitted when user register to an Indexer.
     event RegisterIndexer(address indexed indexer, uint256 amount, bytes32 metadata);
@@ -87,6 +92,9 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
 
     /// @notice Emitted when Indexer set their commissionRate.
     event SetCommissionRate(address indexed indexer, uint256 amount);
+
+    /// @notice Emitted when owner set the minimum commission rate.
+    event MinimumCommissionRateUpdated(uint256 rate);
 
     /// @dev MODIFIER
     /// @notice only indexer can call
@@ -121,6 +129,16 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
      */
     function setminimumStakingAmount(uint256 amount) external onlyOwner {
         minimumStakingAmount = amount;
+    }
+
+    /**
+     * @notice set the minimum commission rate only by owner.
+     * @param rate new minimumCommissionRate
+     */
+    function setMinimumCommissionRate(uint256 rate) external onlyOwner {
+        require(rate <= PER_MILL, 'IR006');
+        minimumCommissionRate = rate;
+        emit MinimumCommissionRateUpdated(rate);
     }
 
     /**
@@ -216,7 +234,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
             settings.getContractAddress(SQContracts.RewardsStaking)
         );
         require(rewardsStaking.getTotalStakingAmount(indexer) == 0, 'RS001');
-        require(rate <= PER_MILL, 'IR006');
+        require(rate >= minimumCommissionRate && rate <= PER_MILL, 'IR006');
 
         uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager))
             .safeUpdateAndGetEra();
@@ -230,7 +248,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
      * The commissionRate need to apply at two Eras after.
      */
     function setCommissionRate(uint256 rate) external onlyIndexer {
-        require(rate <= PER_MILL, 'IR006');
+        require(rate >= minimumCommissionRate && rate <= PER_MILL, 'IR006');
 
         uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager))
             .safeUpdateAndGetEra();
@@ -252,10 +270,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
     function getCommissionRate(address indexer) external view returns (uint256) {
         uint256 era = IEraManager(settings.getContractAddress(SQContracts.EraManager)).eraNumber();
         CommissionRate memory rate = commissionRates[indexer];
-        if ((rate.era + 1) < era) {
-            return rate.valueAfter;
-        } else {
-            return rate.valueAt;
-        }
+        uint256 cr = rate.era + 1 < era ? rate.valueAfter : rate.valueAt;
+        return MathUtil.max(cr, minimumCommissionRate);
     }
 }
