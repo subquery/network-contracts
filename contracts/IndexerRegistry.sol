@@ -230,7 +230,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
             settings.getContractAddress(SQContracts.RewardsStaking)
         );
         require(rewardsStaking.getTotalStakingAmount(indexer) == 0, 'RS001');
-        require(rate <= PER_MILL, 'IR006');
+        require(rate >= minimumCommissionRate && rate <= PER_MILL, 'IR006');
 
         uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager))
             .safeUpdateAndGetEra();

@@ -66,6 +66,43 @@ describe('IndexerRegistry Contract', () => {
         });
     });
 
+    describe('Commission Rate Management', () => {
+        it('update minimum commission rate should work', async () => {
+            expect(await indexerRegistry.minimumCommissionRate()).to.equal(0);
+            await indexerRegistry.setMinimumCommissionRate(10);
+            expect(await indexerRegistry.minimumCommissionRate()).to.equal(10);
+        });
+
+        it('Set minimum commission rate with invalid params should fail', async () => {
+            // invalid rate
+            await expect(indexerRegistry.setMinimumCommissionRate(1e7)).to.be.revertedWith('IR006');
+            // only owner
+            await expect(indexerRegistry.connect(wallet_1).setMinimumCommissionRate(10)).to.be.revertedWith(revertMsg.notOwner);
+        });
+
+        it('set runner commission rate should work', async () => {
+            await expect(indexerRegistry.setCommissionRate(10))
+                .to.be.emit(indexerRegistry, 'SetCommissionRate')
+                .withArgs(wallet_0.address, 10);
+            expect((await indexerRegistry.commissionRates(wallet_0.address)).valueAfter).to.equal(10);
+        });
+
+        it('set commission rate with invalid params should fail', async () => {
+            await indexerRegistry.setMinimumCommissionRate(1e3);
+            // register runner
+            await expect(registerRunner(token, indexerRegistry, staking, wallet_0, wallet_1, etherParse(amount))).to.be.revertedWith('IR006');
+            // update cr
+            await expect(indexerRegistry.setCommissionRate(1e7)).to.be.revertedWith('IR006');
+            await expect(indexerRegistry.setCommissionRate(1e2)).to.be.revertedWith('IR006');
+        });
+
+        it('get commission rate should work', async () => {
+            await indexerRegistry.setCommissionRate(10);
+            await indexerRegistry.setMinimumCommissionRate(20);
+            expect(await indexerRegistry.getCommissionRate(wallet_0.address)).to.equal(20);
+        });
+    });
+
     describe('Indexer Registry', () => {
         it('register indexer should work', async () => {
             await expect(registerRunner(token, indexerRegistry, staking, wallet_0, wallet_1, etherParse(amount)))
@@ -84,7 +121,6 @@ describe('IndexerRegistry Contract', () => {
             expect(await rewardsStaking.getDelegationAmount(wallet_1.address, wallet_1.address)).to.equal(
                 etherParse(amount)
             );
-            expect(await rewardsStaking.getCommissionRate(wallet_1.address)).to.equal(0);
         });
 
         it('registered indexer reregister should fail', async () => {
@@ -104,13 +140,6 @@ describe('IndexerRegistry Contract', () => {
         it('update metadata with invalid caller should fail', async () => {
             // caller is not an indexer
             await expect(indexerRegistry.connect(wallet_1).updateMetadata(METADATA_1_HASH)).to.be.revertedWith('G002');
-        });
-
-        it('indexer setCommissionRate should work', async () => {
-            await expect(indexerRegistry.setCommissionRate(10))
-                .to.be.emit(indexerRegistry, 'SetCommissionRate')
-                .withArgs(wallet_0.address, 10);
-            expect((await indexerRegistry.commissionRates(wallet_0.address)).valueAfter).to.equal(10);
         });
     });
 
