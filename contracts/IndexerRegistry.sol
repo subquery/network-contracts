@@ -93,6 +93,9 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
     /// @notice Emitted when Indexer set their commissionRate.
     event SetCommissionRate(address indexed indexer, uint256 amount);
 
+    /// @notice Emitted when owner set the minimum commission rate.
+    event MinimumCommissionRateUpdated(uint256 rate);
+
     /// @dev MODIFIER
     /// @notice only indexer can call
     modifier onlyIndexer() {
@@ -135,6 +138,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
     function setMinimumCommissionRate(uint256 rate) external onlyOwner {
         require(rate <= PER_MILL, 'IR006');
         minimumCommissionRate = rate;
+        emit MinimumCommissionRateUpdated(rate);
     }
 
     /**

@@ -69,7 +69,7 @@ describe('IndexerRegistry Contract', () => {
     describe('Commission Rate Management', () => {
         it('update minimum commission rate should work', async () => {
             expect(await indexerRegistry.minimumCommissionRate()).to.equal(0);
-            await indexerRegistry.setMinimumCommissionRate(10);
+            await expect(indexerRegistry.setMinimumCommissionRate(10)).to.be.emit(indexerRegistry, 'MinimumCommissionRateUpdated').withArgs(10);
             expect(await indexerRegistry.minimumCommissionRate()).to.equal(10);
         });
 
