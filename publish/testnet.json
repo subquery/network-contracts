@@ -99,10 +99,10 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:53:37 GMT"
         },
         "IndexerRegistry": {
-            "innerAddress": "0x2F1126E64C6f1304A8216cb6A4708f7f5981fFc5",
+            "innerAddress": "0xB47dc2C3B1aa93809B264ED0614Dc38e3999d9f5",
             "address": "0x9b207b3ba85cE57c398d4ca07BA71a46C917EF1A",
-            "bytecodeHash": "84b63cef319d64348b5a932d56c875d91225e59f50c35b694ca19768e91e8533",
-            "lastUpdate": "Fri, 09 Feb 2024 05:50:54 GMT"
+            "bytecodeHash": "aa70df43e3a1877bcb55d7ddc6095e44c903aa8d5f51cb724962185b667307b4",
+            "lastUpdate": "Thu, 28 Mar 2024 07:11:35 GMT"
         },
         "ProjectRegistry": {
             "innerAddress": "0x53b5Df226E16191664258c73EF8631Cd075E7D0b",
@@ -141,10 +141,10 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:52:10 GMT"
         },
         "RewardsStaking": {
-            "innerAddress": "0x4F4d608A8185031561B6BdA14741104a65C0Dd08",
+            "innerAddress": "0x76105B682f20977FD4B178271739B0737F6dC33c",
             "address": "0xB64D73B96358855075576D66746D2a88e043CC1E",
-            "bytecodeHash": "db69549616cbd4166d17d828be9c1b4a232ba3c514026916029cf5f5307f972f",
-            "lastUpdate": "Fri, 09 Feb 2024 05:52:25 GMT"
+            "bytecodeHash": "ba0b25deebb4f77bf140d5d3d6987a3df7b943c4f30afd9ad2654845dc1e119b",
+            "lastUpdate": "Thu, 28 Mar 2024 07:11:47 GMT"
         },
         "RewardsHelper": {
             "innerAddress": "0xa7eE3bFD854bd609D1485FE845d996EEDE87aF7B",
@@ -153,10 +153,10 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:52:35 GMT"
         },
         "StateChannel": {
-            "innerAddress": "0xc37db29C1d4607E6934452c04467bBfe6A5CE1b7",
+            "innerAddress": "0x2a087b10E8a430174Da6187EB26cf4f45a3B2F2C",
             "address": "0x8C3d312291CC666757daFbb6eD20874Ae573C895",
-            "bytecodeHash": "82f73e278417bc55669a657afe75cb6981d6e08dc67f49ad5fcbd7684b9fda8c",
-            "lastUpdate": "Fri, 09 Feb 2024 05:54:07 GMT"
+            "bytecodeHash": "32147f4138777e4ff961e2a0dd3dc78a6e41b414030b85106b999b2c69de7d4b",
+            "lastUpdate": "Wed, 03 Apr 2024 21:34:37 GMT"
         },
         "ConsumerHost": {
             "innerAddress": "0x75a3f1acE851EF7A1f998063d65C10DC3AAd840a",
@@ -171,10 +171,10 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:54:31 GMT"
         },
         "ConsumerRegistry": {
-            "innerAddress": "0xA417333128E3800ce1c6Db9179622E06Fb1493f4",
+            "innerAddress": "0xa64be2f2B4e69eA270cD9B93722f9BC7AD678C67",
             "address": "0x74C3c2273f47dDF4E435f20A01601a44a519a9c0",
-            "bytecodeHash": "b5ca98fd3c5f211866a15935895bd2e0dcabd43a78a1907dcba703cb8cb3cf24",
-            "lastUpdate": "Mon, 19 Feb 2024 06:32:08 GMT"
+            "bytecodeHash": "bccd929f8b68534f7f879c746bc277937353e71dfef13521f1511b60d8602f30",
+            "lastUpdate": "Thu, 28 Mar 2024 07:11:59 GMT"
         },
         "PriceOracle": {
             "innerAddress": "0xAc792A83b2cE9E532e47Fb6b4A310bb854E800c6",
