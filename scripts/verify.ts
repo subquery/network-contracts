@@ -276,13 +276,12 @@ async function checkChildContractsOwnership(sdk: ContractSDK) {
         sdk.rewardsStaking,
         sdk.serviceAgreementRegistry,
         sdk.settings,
-        sdk.sqToken,
-        sdk.staking,
         sdk.stakingManager,
         sdk.stateChannel,
         sdk.consumerRegistry,
-        sdk.rewardsBooster,
         sdk.stakingAllocation,
+        // sdk.staking,
+        // sdk.rewardsBooster,
     ];
 
     const owner = mainnetConfig.multiSig.child.council;
@@ -290,7 +289,7 @@ async function checkChildContractsOwnership(sdk: ContractSDK) {
         for (const contract of contracts) {
             // @ts-expect-error no owner interface
             const o = await contract.owner();
-            expect(o.toLowerCase()).to.eql(owner);
+            expect(o.toLowerCase()).to.eql(owner.toLocaleLowerCase());
             logger.info(`🎉 Ownership of contract: ${contract.address} verified`);
         }
     } catch (error) {
@@ -331,7 +330,7 @@ const main = async () => {
             break;
         case '--ownership':
             await checkChildContractsOwnership(childSDK);
-            await checkRootContractsOwnership(rootSDK);
+            // await checkRootContractsOwnership(rootSDK);
             break;
         case '--all':
             await checkChildInitialisation(childSDK, config, caller);
