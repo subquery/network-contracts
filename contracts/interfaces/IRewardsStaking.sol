@@ -22,4 +22,6 @@ interface IRewardsStaking {
     function getLastSettledEra(address indexer) external view returns (uint256);
 
     function getDelegationAmount(address source, address indexer) external view returns (uint256);
+
+    function applyRunnerWeightChange(address _runner) external;
 }

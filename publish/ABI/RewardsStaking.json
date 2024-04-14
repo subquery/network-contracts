@@ -111,6 +111,19 @@
         "inputs": [
             {
                 "internalType": "address",
+                "name": "_runner",
+                "type": "address"
+            }
+        ],
+        "name": "applyRunnerWeightChange",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
                 "name": "runner",
                 "type": "address"
             },
@@ -355,8 +368,53 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "runner",
+                "type": "address"
+            }
+        ],
+        "name": "previousRunnerStakeWeight",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "runnerStakeWeight",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_weight",
+                "type": "uint256"
+            }
+        ],
+        "name": "setRunnerStakeWeight",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
