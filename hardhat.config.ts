@@ -389,6 +389,15 @@ task('publishChild', 'verify and publish contracts on etherscan')
                 address: deployment.StakingAllocation.innerAddress,
                 constructorArguments: [],
             });
+            //L2Vesting
+            await hre.run('verify:verify', {
+                address: deployment.L2Vesting.address,
+                constructorArguments: [deployment.L2Vesting.innerAddress, deployment.ProxyAdmin.address, []],
+            });
+            await hre.run('verify:verify', {
+                address: deployment.L2Vesting.innerAddress,
+                constructorArguments: [],
+            });
         } catch (err) {
             console.log(err);
         }
