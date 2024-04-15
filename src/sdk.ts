@@ -31,6 +31,7 @@ import {
     ERC20,
     RewardsBooster,
     StakingAllocation,
+    L2Vesting,
 } from './typechain';
 import { CONTRACT_FACTORY, ContractDeploymentInner, ContractName, FactoryContstructor, SdkOptions } from './types';
 import assert from 'assert';
@@ -71,6 +72,7 @@ export class ContractSDK {
     readonly sqtGift!: SQTGift;
     readonly sqtRedeem!: SQTRedeem;
     readonly stakingAllocation!: StakingAllocation;
+    readonly l2Vesting!: L2Vesting;
 
     constructor(
         // eslint-disable-next-line no-unused-vars
