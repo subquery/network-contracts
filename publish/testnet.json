@@ -211,6 +211,12 @@
             "address": "0x748Fb3A2DBCC300b2a382820Ebec46B77718EF22",
             "bytecodeHash": "122b9796060b8325d5f2fc93d3d6ffe3f362cb676fcae9c225f15f8796de0d56",
             "lastUpdate": "Thu, 22 Feb 2024 13:34:02 GMT"
+        },
+        "L2Vesting": {
+            "innerAddress": "0x56Df28931E4216e7E84Da3A86779A59f0F2Faf4E",
+            "address": "0x7635F80079d6054995Dcd311d673c9f72be364e1",
+            "bytecodeHash": "23cc852f0716e414d6aeaee3a36813ca9a07df9715827cf9682f48aad9544ec6",
+            "lastUpdate": "Mon, 15 Apr 2024 04:36:55 GMT"
         }
     }
 }
