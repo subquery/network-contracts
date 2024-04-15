@@ -26,8 +26,6 @@ contract L2Vesting is Initializable, OwnableUpgradeable {
 
     ISettings public settings;
 
-    //    /// @notice token for vesting
-    //    address public token;
     /// @notice vesting plans
     VestingPlan[] public plans;
 
@@ -86,11 +84,9 @@ contract L2Vesting is Initializable, OwnableUpgradeable {
 
     function _allocateVesting(address addr, uint256 planId, uint256 allocation) internal {
         require(addr != address(0x0), 'V002');
-        //        require(allocations[planId][addr] == 0, 'V003');
         require(allocation > 0, 'V004');
         require(planId < plans.length, 'V013');
 
-        //        userPlanId[addr] = planId;
         allocations[planId][addr] += allocation;
 
         emit VestingAllocated(addr, planId, allocation);
@@ -120,12 +116,7 @@ contract L2Vesting is Initializable, OwnableUpgradeable {
     }
 
     function startVesting(uint256 _planId, uint256 _vestingStartDate) external onlyOwner {
-        //        require(block.timestamp < _vestingStartDate, 'V009');
         plans[_planId].startDate = _vestingStartDate;
-        //        vestingStartDate = _vestingStartDate;
-        //
-        //        uint256 amount = IERC20(token).balanceOf(address(this));
-        //        require(amount == totalAllocation, 'V010');
     }
 
     function claim(uint256 planId) external {
