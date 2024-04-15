@@ -2,7 +2,6 @@ import CONTRACTS from '../src/contracts';
 
 import {
     Airdropper,
-    Airdropper__factory,
     ConsumerHost,
     ConsumerHost__factory,
     ConsumerRegistry,
@@ -19,7 +18,6 @@ import {
     PermissionedExchange,
     PermissionedExchange__factory,
     TokenExchange,
-    TokenExchange__factory,
     PlanManager,
     PlanManager__factory,
     PriceOracle,
@@ -27,7 +25,6 @@ import {
     ProjectRegistry,
     ProjectRegistry__factory,
     ProxyAdmin,
-    ProxyAdmin__factory,
     PurchaseOfferMarket,
     PurchaseOfferMarket__factory,
     RewardsDistributor,
@@ -42,7 +39,6 @@ import {
     RewardsBooster__factory,
     ERC20,
     SQToken,
-    SQToken__factory,
     ServiceAgreementRegistry,
     ServiceAgreementRegistry__factory,
     Settings,
@@ -56,21 +52,18 @@ import {
     StateChannel,
     StateChannel__factory,
     VSQToken,
-    VSQToken__factory,
     Vesting,
-    Vesting__factory,
     OpDestination,
-    OpDestination__factory,
     SQTGift__factory,
     SQTGift,
     SQTRedeem__factory,
     SQTRedeem,
     VTSQToken,
-    VTSQToken__factory,
-    L2SQToken__factory,
     FactoryContstructor,
     AirdropperLite__factory,
     AirdropperLite,
+    L2Vesting,
+    L2Vesting__factory,
 } from '../src';
 
 export type Contracts = {
@@ -108,6 +101,7 @@ export type Contracts = {
     sqtGift: SQTGift;
     sqtRedeem: SQTRedeem;
     airdropperLite: AirdropperLite;
+    l2Vesting: L2Vesting;
 };
 
 export const UPGRADEBAL_CONTRACTS: Partial<
@@ -138,43 +132,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<
     SQTGift: [CONTRACTS.SQTGift, SQTGift__factory],
     AirdropperLite: [CONTRACTS.AirdropperLite, AirdropperLite__factory],
     SQTRedeem: [CONTRACTS.SQTRedeem, SQTRedeem__factory],
-};
-
-export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
-    ProxyAdmin: ProxyAdmin__factory,
-    Settings: Settings__factory,
-    InflationController: InflationController__factory,
-    SQToken: SQToken__factory,
-    VSQToken: VSQToken__factory,
-    Airdropper: Airdropper__factory,
-    Vesting: Vesting__factory,
-    VTSQToken: VTSQToken__factory,
-    Staking: Staking__factory,
-    StakingManager: StakingManager__factory,
-    StakingAllocation: StakingAllocation__factory,
-    EraManager: EraManager__factory,
-    IndexerRegistry: IndexerRegistry__factory,
-    ProjectRegistry: ProjectRegistry__factory,
-    PlanManager: PlanManager__factory,
-    PurchaseOfferMarket: PurchaseOfferMarket__factory,
-    ServiceAgreementRegistry: ServiceAgreementRegistry__factory,
-    RewardsDistributor: RewardsDistributor__factory,
-    RewardsPool: RewardsPool__factory,
-    RewardsStaking: RewardsStaking__factory,
-    RewardsHelper: RewardsHelper__factory,
-    RewardsBooster: RewardsBooster__factory,
-    StateChannel: StateChannel__factory,
-    PermissionedExchange: PermissionedExchange__factory,
-    TokenExchange: TokenExchange__factory,
-    ConsumerHost: ConsumerHost__factory,
-    DisputeManager: DisputeManager__factory,
-    ConsumerRegistry: ConsumerRegistry__factory,
-    PriceOracle: PriceOracle__factory,
-    OpDestination: OpDestination__factory,
-    SQTGift: SQTGift__factory,
-    SQTRedeem: SQTRedeem__factory,
-    L2SQToken: L2SQToken__factory,
-    AirdropperLite: AirdropperLite__factory,
+    L2Vesting: [CONTRACTS.L2Vesting, L2Vesting__factory],
 };
 
 export type Config = number | string | string[];

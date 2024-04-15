@@ -10,6 +10,7 @@ import sha256 from 'sha256';
 
 import CONTRACTS from '../src/contracts';
 import {
+    CONTRACT_FACTORY,
     ContractDeployment,
     ContractDeploymentInner,
     ContractName,
@@ -55,8 +56,9 @@ import {
     StakingAllocation,
     L2SQToken,
     AirdropperLite,
+    L2Vesting,
 } from '../src';
-import { CONTRACT_FACTORY, Config, ContractConfig, Contracts, UPGRADEBAL_CONTRACTS } from './contracts';
+import { Config, ContractConfig, Contracts, UPGRADEBAL_CONTRACTS } from './contracts';
 import { l1StandardBridge } from './L1StandardBridge';
 
 let wallet: Wallet;
@@ -515,6 +517,13 @@ export async function deployContracts(
             initConfig: [settingsAddress],
         });
 
+        //deploy vesting contract
+        const l2Vesting = await deployContract<L2Vesting>('L2Vesting', 'child', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
+        });
+        logger?.info('🤞 L2Vesting');
+
         // Register addresses on settings contract
         logger?.info('🤞 Set settings addresses');
         const txToken = await settings.setBatchAddress(
@@ -594,6 +603,7 @@ export async function deployContracts(
                 sqtRedeem,
                 airdropper,
                 stakingAllocation,
+                l2Vesting,
             },
         ];
     } catch (error) {
