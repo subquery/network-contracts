@@ -8,6 +8,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/utils/Address.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import '../utils/MathUtil.sol';
 import '../interfaces/ISQToken.sol';
 import '../interfaces/ISettings.sol';
 
@@ -18,7 +19,7 @@ contract L2Vesting is Initializable, OwnableUpgradeable {
     struct VestingPlan {
         uint256 lockPeriod;
         uint256 vestingPeriod;
-        uint256 initialUnlockPercent;
+        uint256 initialUnlock;
         uint256 startDate;
         uint256 totalAllocation;
         uint256 totalClaimed;
@@ -41,7 +42,7 @@ contract L2Vesting is Initializable, OwnableUpgradeable {
         uint256 planId,
         uint256 lockPeriod,
         uint256 vestingPeriod,
-        uint256 initialUnlockPercent
+        uint256 initialUnlock
     );
     /**
      * @dev Emitted when a new vesting allocation is added to a user by planId
@@ -73,13 +74,13 @@ contract L2Vesting is Initializable, OwnableUpgradeable {
     function addVestingPlan(
         uint256 _lockPeriod,
         uint256 _vestingPeriod,
-        uint256 _initialUnlockPercent
+        uint256 _initialUnlock
     ) public onlyOwner {
-        require(_initialUnlockPercent <= 100, 'V001');
-        plans.push(VestingPlan(_lockPeriod, _vestingPeriod, _initialUnlockPercent, 0, 0, 0));
+        //        require(_initialUnlockPercent <= 100, 'V001');
+        plans.push(VestingPlan(_lockPeriod, _vestingPeriod, _initialUnlock, 0, 0, 0));
 
         // emit event for vesting plan addition
-        emit VestingPlanAdded(plans.length - 1, _lockPeriod, _vestingPeriod, _initialUnlockPercent);
+        emit VestingPlanAdded(plans.length - 1, _lockPeriod, _vestingPeriod, _initialUnlock);
     }
 
     function _allocateVesting(address addr, uint256 planId, uint256 allocation) internal {
@@ -169,7 +170,7 @@ contract L2Vesting is Initializable, OwnableUpgradeable {
 
         // druring plan period
         uint256 vestedPeriod = block.timestamp - planStartDate;
-        uint256 initialAmount = (allocations[planId][user] * plan.initialUnlockPercent) / 100;
+        uint256 initialAmount = MathUtil.min(allocations[planId][user], plan.initialUnlock);
         uint256 vestingTokens = allocations[planId][user] - initialAmount;
         return
             initialAmount +

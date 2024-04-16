@@ -213,10 +213,10 @@
             "lastUpdate": "Thu, 22 Feb 2024 13:34:02 GMT"
         },
         "L2Vesting": {
-            "innerAddress": "0x56Df28931E4216e7E84Da3A86779A59f0F2Faf4E",
-            "address": "0x7635F80079d6054995Dcd311d673c9f72be364e1",
-            "bytecodeHash": "23cc852f0716e414d6aeaee3a36813ca9a07df9715827cf9682f48aad9544ec6",
-            "lastUpdate": "Mon, 15 Apr 2024 04:36:55 GMT"
+            "innerAddress": "0x3d10fBd0BB7aD6d71B577FD0ddF17D9736779808",
+            "address": "0x45B94e2D1373eC761f8f322c37Fa80ea7eDe61D7",
+            "bytecodeHash": "d38c34ddc8be512acb83f9fa950a52a4a48119c348759db8334c190c4e6296cf",
+            "lastUpdate": "Tue, 16 Apr 2024 03:16:07 GMT"
         }
     }
 }
