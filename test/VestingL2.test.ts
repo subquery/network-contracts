@@ -14,7 +14,7 @@ type ClaimVestingEvent = { user: string; amount: BigNumber };
 
 describe('Vesting Contract', () => {
     const mockProvider = waffle.provider;
-    const [wallet, wallet1, wallet2, wallet3, wallet4, b0, b1, b2, b3, b4, b5] = mockProvider.getWallets();
+    const [wallet, wallet1, wallet2, wallet3, wallet4, wallet5, b0, b1, b2, b3, b4, b5] = mockProvider.getWallets();
 
     let sqToken: ERC20;
     let vestingContract: L2Vesting;
@@ -384,6 +384,8 @@ describe('Vesting Contract', () => {
             await vestingContract.connect(wallet1).claim(planId);
             expect(await sqToken.balanceOf(wallet1.address)).to.gt(balance1.add(claimable1));
             expect(await sqToken.balanceOf(wallet1.address)).to.lt(balance1.add(claimable1).add(parseEther(0.001)));
+            // wallet4
+            expect(await vestingContract.claimableAmount(planId, wallet4.address)).to.eq(0);
             // claim after vesting period
             await timeTravel(vestingPeriod / 2);
             await vestingContract.connect(wallet1).claim(planId);
@@ -392,7 +394,7 @@ describe('Vesting Contract', () => {
 
         it('claim with invalid condition should fail', async () => {
             // claim on non-vesting account should fail
-            await expect(vestingContract.connect(wallet4).claim(planId)).to.be.revertedWith('V011');
+            await expect(vestingContract.connect(wallet5).claim(planId)).to.be.revertedWith('V011');
             await expect(vestingContract.connect(wallet1).claim(planId2)).to.be.revertedWith('V011');
             // claim with zero claimable amount should fail
             // # case 1 (not start vesting)
