@@ -35,6 +35,7 @@ import SQTGift from './artifacts/contracts/SQTGift.sol/SQTGift.json';
 import SQTRedeem from './artifacts/contracts/SQTRedeem.sol/SQTRedeem.json';
 import L2SQToken from './artifacts/contracts/l2/L2SQToken.sol/L2SQToken.json';
 import AirdropperLite from './artifacts/contracts/root/AirdropperLite.sol/AirdropperLite.json';
+import L2Vesting from './artifacts/contracts/l2/L2Vesting.sol/L2Vesting.json';
 
 export default {
     Settings,
@@ -71,4 +72,5 @@ export default {
     SQTRedeem,
     L2SQToken,
     AirdropperLite,
+    L2Vesting,
 };
