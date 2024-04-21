@@ -147,6 +147,31 @@
                 "type": "address"
             },
             {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "token",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "commission",
+                "type": "uint256"
+            }
+        ],
+        "name": "ReturnRewards",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "runner",
+                "type": "address"
+            },
+            {
                 "indexed": true,
                 "internalType": "uint256",
                 "name": "eraIdx",
@@ -456,6 +481,32 @@
             }
         ],
         "name": "setLastClaimEra",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_maxCommissionFactor",
+                "type": "uint256"
+            }
+        ],
+        "name": "setMaxCommissionFactor",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_maxRewardFactor",
+                "type": "uint256"
+            }
+        ],
+        "name": "setMaxRewardFactor",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
