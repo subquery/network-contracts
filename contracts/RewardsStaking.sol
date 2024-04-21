@@ -149,8 +149,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             // apply _runnerStakeWeight
             uint256 _runnerStakeWeight = runnerStakeWeight();
             newDelegation = MathUtil.mulDiv(newDelegation, _runnerStakeWeight, PER_MILL);
-            if (_previousRunnerStakeWeights[runner] != _runnerStakeWeight) {
-                _previousRunnerStakeWeights[runner] = _runnerStakeWeight;
+            if (_previousRunnerStakeWeights[_runner] != _runnerStakeWeight) {
+                _previousRunnerStakeWeights[_runner] = _runnerStakeWeight;
             }
             // end
             delegation[_runner][_runner] = newDelegation;
