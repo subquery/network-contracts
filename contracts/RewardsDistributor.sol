@@ -79,11 +79,11 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
 
     /// @notice perMill, <max commission> = <selfStake> * <maxCommissionFactor>
     /// 0: disabled
-    uint256 maxCommissionFactor;
+    uint256 public maxCommissionFactor;
 
     /// @notice perMill, <max pool reward> = <totalStake> * <maxRewardFactor>
     /// 0: disabled
-    uint256 maxRewardFactor;
+    uint256 public maxRewardFactor;
 
     /// @dev ### EVENTS
     /// @notice Emitted when rewards are distributed for the earliest pending distributed Era.
@@ -373,8 +373,8 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
             ).getCommissionRate(runner);
             uint256 commission = commissionRate.mulDiv(rewardInfo.eraReward, PER_MILL);
 
-            // 1. total reward can not greater than factor2 * total_stake
-            // 2. commission can not greater than factor * self_stake
+            // 1. total reward can not greater than maxRewardFactor * totalStake
+            // 2. commission can not greater than maxCommissionFactor * selfStake
             uint256 cappedReward = maxRewardFactor > 0
                 ? MathUtil.min(rewardInfo.eraReward, totalStake.mulDiv(maxRewardFactor, PER_MILL))
                 : rewardInfo.eraReward;
