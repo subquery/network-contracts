@@ -17,7 +17,7 @@ import {
     StakingManager,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION } from './constants';
-import { acceptPlan, etherParse, startNewEra, time, timeTravel } from './helper';
+import { acceptPlan, addInstantRewards, etherParse, startNewEra, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
 describe('RewardsDistributor Contract', () => {
@@ -128,6 +128,19 @@ describe('RewardsDistributor Contract', () => {
             );
             expect(eraReward).to.be.eq(0);
             expect(totalReward).to.be.eq(etherParse('3'));
+        });
+    });
+
+    describe.only('Capped Rewards', async () => {
+        beforeEach(async () => {});
+        it('receive capped commission', async () => {
+            // self stake 1000 SQT
+            // commission rate: 10%
+            // cap 0.1 times
+            // arrival rewards: 1500 SQT
+            // const arrivalReward =
+            const era = await eraManager.eraNumber();
+            await addInstantRewards(token, rewardsDistributor, consumer, runner.address, era, 1000);
         });
     });
 
