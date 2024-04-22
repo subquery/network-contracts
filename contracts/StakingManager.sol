@@ -43,7 +43,6 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      */
     function stake(address _runner, uint256 _amount) external override {
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        staking.reflectEraUpdate(_runner, _runner);
         if (staking.isEmptyDelegation(_runner, _runner)) {
             require(msg.sender == settings.getContractAddress(SQContracts.IndexerRegistry), 'G001');
             staking.addRunner(_runner);
@@ -59,7 +58,6 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
     function delegate(address _runner, uint256 _amount) external {
         require(msg.sender != _runner, 'G004');
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        staking.reflectEraUpdate(msg.sender, _runner);
         // delegation limit should not exceed
         staking.checkDelegateLimitation(_runner, _amount);
         staking.delegateToIndexer(msg.sender, _runner, _amount);
@@ -72,7 +70,6 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      */
     function unstake(address _runner, uint256 _amount) external {
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        staking.reflectEraUpdate(_runner, _runner);
         if (msg.sender == settings.getContractAddress(SQContracts.IndexerRegistry)) {
             staking.removeRunner(_runner);
         } else {
@@ -97,7 +94,6 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         // check if called by an indexer
         require(_runner != msg.sender, 'G004');
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        staking.reflectEraUpdate(msg.sender, _runner);
         staking.startUnbond(msg.sender, _runner, _amount, UnbondType.Undelegation);
     }
 
@@ -112,9 +108,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         // delegation limit should not exceed
         staking.checkDelegateLimitation(_toRunner, _amount);
 
-        staking.reflectEraUpdate(_source, _fromRunner);
         staking.removeDelegation(_source, _fromRunner, _amount);
-        staking.reflectEraUpdate(_source, _toRunner);
         staking.addDelegation(_source, _toRunner, _amount);
     }
 
