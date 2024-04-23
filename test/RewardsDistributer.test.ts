@@ -132,7 +132,7 @@ describe('RewardsDistributor Contract', () => {
         });
     });
 
-    describe.only('Capped Rewards', async () => {
+    describe('Capped Rewards', async () => {
         beforeEach(async () => {
             await stakingManager.connect(delegator).delegate(runner.address, etherParse(9000));
             await startNewEra(eraManager);
