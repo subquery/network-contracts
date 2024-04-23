@@ -293,6 +293,9 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
             'G008'
         );
         require(_amount > 0, 'S003');
+
+        reflectEraUpdate(_source, _runner);
+
         if (this.isEmptyDelegation(_source, _runner)) {
             stakingIndexerNos[_source][_runner] = stakingIndexerLengths[_source];
             stakingIndexers[_source][stakingIndexerLengths[_source]] = _runner;
@@ -338,6 +341,9 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
                 msg.sender == address(this),
             'G008'
         );
+
+        reflectEraUpdate(_source, _runner);
+
         require(delegation[_source][_runner].valueAfter >= _amount && _amount > 0, 'S005');
 
         delegation[_source][_runner].valueAfter -= _amount;

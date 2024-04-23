@@ -25,6 +25,8 @@ import {
     ProjectRegistry,
     RewardsBooster,
     StateChannel,
+    SQToken,
+    RewardsDistributor,
 } from '../src';
 import { METADATA_HASH } from './constants';
 import { expect } from 'chai';
@@ -295,3 +297,17 @@ export const revertMsg = {
     insufficientBalance: 'ERC20: transfer amount exceeds balance',
     insufficientAllowance: 'ERC20: insufficient allowance',
 };
+
+export async function addInstantRewards(
+    sqtoken: ERC20,
+    rewardsDistributor: RewardsDistributor,
+    signer: SignerWithAddress,
+    runner: string,
+    era: BigNumberish,
+    amount: BigNumberish
+) {
+    await wrapTxs(async () => {
+        await sqtoken.connect(signer).approve(rewardsDistributor.address, amount);
+        await rewardsDistributor.connect(signer).addInstantRewards(runner, signer.address, amount, era);
+    });
+}
