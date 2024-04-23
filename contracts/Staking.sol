@@ -293,14 +293,14 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
             'G008'
         );
         require(_amount > 0, 'S003');
+
+        reflectEraUpdate(_source, _runner);
+
         if (this.isEmptyDelegation(_source, _runner)) {
             stakingIndexerNos[_source][_runner] = stakingIndexerLengths[_source];
             stakingIndexers[_source][stakingIndexerLengths[_source]] = _runner;
             stakingIndexerLengths[_source]++;
         }
-
-        reflectEraUpdate(_source, _runner);
-
         // first stake from runner
         bool firstStake = this.isEmptyDelegation(_runner, _runner) &&
             totalStakingAmount[_runner].valueAt == 0 &&

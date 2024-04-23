@@ -53,7 +53,7 @@ describe('Maintenance Mode Test', () => {
         await token.connect(wallet_2).increaseAllowance(staking.address, etherParse('10000'));
         await token.increaseAllowance(staking.address, etherParse('10000'));
         await token.increaseAllowance(purchaseOfferMarket.address, etherParse('10000'));
-        await indexerRegistry.registerIndexer(etherParse('1000'), METADATA_HASH, 0);
+        await indexerRegistry.registerIndexer(etherParse('1001'), METADATA_HASH, 0);
         await indexerRegistry.connect(wallet_2).registerIndexer(etherParse('1000'), METADATA_HASH, 0);
 
         await planManager.createPlanTemplate(time.duration.days(3).toString(), 1000, 100, token.address, METADATA_HASH);

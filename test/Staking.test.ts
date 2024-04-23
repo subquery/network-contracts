@@ -287,7 +287,7 @@ describe('Staking Contract', () => {
         });
 
         it('request unregister to unstaking all by indexer registry should work', async () => {
-            await indexerRegistry.unregisterIndexer({ gasLimit: '1000000' });
+            await indexerRegistry.connect(runner).unregisterIndexer({ gasLimit: '1000000' });
 
             // check changes of indexer storage
             await startNewEra(eraManager);
