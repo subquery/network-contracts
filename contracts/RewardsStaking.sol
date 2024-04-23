@@ -301,7 +301,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
         ).getCommissionRate(runner);
         commissionRates[runner] = newCommissionRate;
         pendingCommissionRateChange[runner] = 0;
-        _updateTotalStakingAmount(stakingManager, runner, rewardInfo.lastClaimEra);
+        _updateTotalStakingAmount(stakingManager, runner, rewardInfo.lastClaimEra, true);
         emit ICRChanged(runner, newCommissionRate);
     }
 
