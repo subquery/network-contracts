@@ -635,7 +635,7 @@ describe('RewardsDistributor Contract', () => {
             await checkValues(etherParse('4.996702697'), etherParse('9.001697302697'), etherParse('1002'), 0);
         });
 
-        it.only('reward distribution should work after indexer reregister few more ears later', async () => {
+        it('reward distribution should work after indexer reregister few more ears later', async () => {
             // 1. delegator undelegate all the tokens
             await stakingManager.connect(delegator).undelegate(runner.address, etherParse('1'));
             // 2. start new era -> indexer `collectAndDistributeRewards` -> `applyStakeChange | delegator -> `applyStakeChange`
