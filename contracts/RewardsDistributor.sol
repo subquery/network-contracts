@@ -399,10 +399,11 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
             }
 
             emit DistributeRewards(runner, rewardInfo.lastClaimEra, cappedReward, cappedCommission);
-
             if (rewardInfo.eraReward - cappedReward > 0 || commission - cappedCommission > 0) {
                 uint256 rewardsReturn;
-                rewardsReturn += rewardInfo.eraReward - cappedReward;
+                rewardsReturn +=
+                    (rewardInfo.eraReward - commission) -
+                    (cappedReward.sub(cappedCommission));
                 rewardsReturn += commission - cappedCommission;
                 address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
                 SQToken.safeTransfer(treasury, rewardsReturn);
