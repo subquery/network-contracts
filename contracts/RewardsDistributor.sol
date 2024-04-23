@@ -107,7 +107,7 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
     /// @notice Emitted when rewards arrive via increaseAgreementRewards()
     event AgreementRewards(address indexed runner, uint256 agreementId, uint256 token);
     /// @notice Emitted when rewards return to treasury due to exceed reward cap
-    event ReturnRewards(address indexed runner, uint256 token, uint256 commission);
+    event ReturnRewards(address indexed runner, uint256 rewards, uint256 commission);
 
     modifier onlyRewardsStaking() {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'G014');
@@ -398,7 +398,12 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
                 );
             }
 
-            emit DistributeRewards(runner, rewardInfo.lastClaimEra, cappedReward, cappedCommission);
+            emit DistributeRewards(
+                runner,
+                rewardInfo.lastClaimEra,
+                MathUtil.max(cappedReward, cappedCommission),
+                cappedCommission
+            );
             if (rewardInfo.eraReward - cappedReward > 0 || commission - cappedCommission > 0) {
                 uint256 rewardsReturn;
                 rewardsReturn +=
@@ -407,11 +412,7 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
                 rewardsReturn += commission - cappedCommission;
                 address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
                 SQToken.safeTransfer(treasury, rewardsReturn);
-                emit ReturnRewards(
-                    runner,
-                    rewardInfo.eraReward - cappedReward,
-                    commission - cappedCommission
-                );
+                emit ReturnRewards(runner, rewardsReturn, commission - cappedCommission);
             }
         }
         return rewardInfo.lastClaimEra;

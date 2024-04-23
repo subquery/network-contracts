@@ -17,7 +17,7 @@ import {
     StakingManager,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION } from './constants';
-import { acceptPlan, addInstantRewards, etherParse, startNewEra, time, timeTravel } from './helper';
+import { acceptPlan, addInstantRewards, etherParse, eventFrom, startNewEra, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
 describe('RewardsDistributor Contract', () => {
@@ -69,13 +69,14 @@ describe('RewardsDistributor Contract', () => {
         eraManager = deployment.eraManager;
 
         //init delegator account
-        await token.connect(root).transfer(delegator.address, etherParse('10'));
-        await token.connect(root).transfer(delegator2.address, etherParse('10'));
-        await token.connect(root).transfer(consumer.address, etherParse('10'));
-        await token.connect(consumer).increaseAllowance(planManager.address, etherParse('10'));
-        await token.connect(delegator).increaseAllowance(staking.address, etherParse('10'));
-        await token.connect(delegator2).increaseAllowance(staking.address, etherParse('10'));
-        await token.connect(root).increaseAllowance(rewardsDistributor.address, etherParse('10'));
+        await token.connect(root).transfer(runner.address, etherParse('10000'));
+        await token.connect(root).transfer(delegator.address, etherParse('10000'));
+        await token.connect(root).transfer(delegator2.address, etherParse('10000'));
+        await token.connect(root).transfer(consumer.address, etherParse('10000'));
+        await token.connect(consumer).increaseAllowance(planManager.address, etherParse('10000'));
+        await token.connect(delegator).increaseAllowance(staking.address, etherParse('10000'));
+        await token.connect(delegator2).increaseAllowance(staking.address, etherParse('10000'));
+        await token.connect(root).increaseAllowance(rewardsDistributor.address, etherParse('10000'));
 
         //setup era period be 5 days
         await eraManager.connect(root).updateEraPeriod(time.duration.days(5).toString());
@@ -132,15 +133,79 @@ describe('RewardsDistributor Contract', () => {
     });
 
     describe.only('Capped Rewards', async () => {
-        beforeEach(async () => {});
-        it('receive capped commission', async () => {
+        beforeEach(async () => {
+            await stakingManager.connect(delegator).delegate(runner.address, etherParse(9000));
+            await startNewEra(eraManager);
+            await rewardsHelper.connect(runner).indexerCatchup(runner.address);
+        });
+        it('receive capped rewards', async () => {
             // self stake 1000 SQT
-            // commission rate: 10%
-            // cap 0.1 times
+            // delegation: 9000 SQT
+            // commission rate: 5%
+            // reward cap: 10%
+            // commission cap: 10%
             // arrival rewards: 1500 SQT
-            // const arrivalReward =
+            await rewardsDistributor.setMaxCommissionFactor(5e4);
+            await rewardsDistributor.setMaxRewardFactor(1e5);
+            const totalStake = await stakingManager.getTotalStakingAmount(runner.address);
+            expect(totalStake).to.eq(etherParse(10000));
+            const selfStake = await stakingManager.getDelegationAmount(runner.address, runner.address);
+            expect(selfStake).to.eq(etherParse(1000));
+            const arrivalReward = etherParse(1500);
             const era = await eraManager.eraNumber();
-            await addInstantRewards(token, rewardsDistributor, consumer, runner.address, era, 1000);
+            await addInstantRewards(token, rewardsDistributor, consumer, runner.address, era, arrivalReward);
+            await startNewEra(eraManager);
+            const tx = await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
+            const distributedRewards = await eventFrom(
+                tx,
+                rewardsDistributor,
+                'DistributeRewards(address,uint256,uint256,uint256)'
+            );
+            expect(distributedRewards.rewards).to.eq(etherParse(1000));
+            expect(distributedRewards.commission).to.eq(etherParse(50));
+            const returnRewards = await eventFrom(tx, rewardsDistributor, 'ReturnRewards(address,uint256,uint256)');
+            expect(returnRewards.rewards).to.eq(etherParse(500));
+            expect(returnRewards.commission).to.eq(etherParse(100));
+        });
+        it('rewards after capped may become zero', async () => {
+            // self stake 9000 SQT
+            // delegation: 9000 SQT
+            // commission rate: 30%
+            // reward cap: 10%
+            // commission cap: 25%
+            // arrival rewards: 10000 SQT
+            // commission: 3000 SQT
+            // capped commission: 2250 SQT
+            // capped reward: 1800 SQT
+            await rewardsDistributor.setMaxCommissionFactor(2.5e5);
+            await rewardsDistributor.setMaxRewardFactor(1e5);
+            await token.connect(runner).increaseAllowance(staking.address, etherParse(8000));
+            await stakingManager.connect(runner).stake(runner.address, etherParse(8000));
+            await indexerRegistry.connect(runner).setCommissionRate(3e5);
+            await startNewEra(eraManager);
+            await rewardsHelper.connect(runner).indexerCatchup(runner.address);
+            await startNewEra(eraManager);
+            await rewardsHelper.connect(runner).indexerCatchup(runner.address);
+
+            const totalStake = await stakingManager.getTotalStakingAmount(runner.address);
+            expect(totalStake).to.eq(etherParse(18000));
+            const selfStake = await stakingManager.getDelegationAmount(runner.address, runner.address);
+            expect(selfStake).to.eq(etherParse(9000));
+            const arrivalReward = etherParse(10000);
+            const era = await eraManager.eraNumber();
+            await addInstantRewards(token, rewardsDistributor, consumer, runner.address, era, arrivalReward);
+            await startNewEra(eraManager);
+            const tx = await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
+            const distributedRewards = await eventFrom(
+                tx,
+                rewardsDistributor,
+                'DistributeRewards(address,uint256,uint256,uint256)'
+            );
+            expect(distributedRewards.rewards).to.eq(etherParse(2250)); // exclude commission
+            expect(distributedRewards.commission).to.eq(etherParse(2250));
+            const returnRewards = await eventFrom(tx, rewardsDistributor, 'ReturnRewards(address,uint256,uint256)');
+            expect(returnRewards.rewards).to.eq(etherParse(7750));
+            expect(returnRewards.commission).to.eq(etherParse(750));
         });
     });
 
