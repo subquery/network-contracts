@@ -69,10 +69,9 @@ describe('RewardsDistributor Contract', () => {
         eraManager = deployment.eraManager;
 
         //init delegator account
-        await token.connect(root).transfer(runner.address, etherParse('10000'));
-        await token.connect(root).transfer(delegator.address, etherParse('10000'));
-        await token.connect(root).transfer(delegator2.address, etherParse('10000'));
-        await token.connect(root).transfer(consumer.address, etherParse('10000'));
+        await token.connect(root).transfer(delegator.address, etherParse('10'));
+        await token.connect(root).transfer(delegator2.address, etherParse('10'));
+        await token.connect(root).transfer(consumer.address, etherParse('10'));
         await token.connect(consumer).increaseAllowance(planManager.address, etherParse('10000'));
         await token.connect(delegator).increaseAllowance(staking.address, etherParse('10000'));
         await token.connect(delegator2).increaseAllowance(staking.address, etherParse('10000'));
@@ -134,6 +133,9 @@ describe('RewardsDistributor Contract', () => {
 
     describe('Capped Rewards', async () => {
         beforeEach(async () => {
+            await token.connect(root).transfer(runner.address, etherParse('10000'));
+            await token.connect(root).transfer(delegator.address, etherParse('10000'));
+            await token.connect(root).transfer(consumer.address, etherParse('10000'));
             await stakingManager.connect(delegator).delegate(runner.address, etherParse(9000));
             await startNewEra(eraManager);
             await rewardsHelper.connect(runner).indexerCatchup(runner.address);
@@ -222,14 +224,14 @@ describe('RewardsDistributor Contract', () => {
             expect((await rewardsHelper.getRewardsAddTable(runner.address, 2, 1))[0]).to.be.eq(etherParse('0'));
             expect((await rewardsHelper.getRewardsRemoveTable(runner.address, 2, 1))[0]).to.be.eq(etherParse('0'));
             await rewardsDistributor.connect(runner).claim(runner.address);
-
+            rewards = (await token.balanceOf(runner.address)).div(1e14);
             //move to Era 4
             await startNewEra(eraManager);
             await rewardsDistributor.collectAndDistributeRewards(runner.address);
             expect((await rewardsHelper.getRewardsAddTable(runner.address, 3, 1))[0]).to.be.eq(etherParse('0'));
             expect((await rewardsHelper.getRewardsRemoveTable(runner.address, 3, 1))[0]).to.be.eq(etherParse('0'));
             await rewardsDistributor.connect(runner).claim(runner.address);
-
+            rewards = (await token.balanceOf(runner.address)).div(1e14);
             //move to Era 5
             await startNewEra(eraManager);
             await rewardsDistributor.collectAndDistributeRewards(runner.address);
