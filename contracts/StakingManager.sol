@@ -189,6 +189,15 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         return StakingUtil.currentStaking(sm, _currentEra);
     }
 
+    function getDelegationAmount(address _source, address _runner) public view returns (uint256) {
+        uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager))
+            .eraNumber();
+        Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
+        (uint256 era, uint256 valueAt, uint256 valueAfter) = staking.delegation(_source, _runner);
+        StakingAmount memory sm = StakingAmount(era, valueAt, valueAfter);
+        return StakingUtil.currentStaking(sm, eraNumber);
+    }
+
     function getTotalStakingAmount(address _runner) public view override returns (uint256) {
         uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager))
             .eraNumber();
