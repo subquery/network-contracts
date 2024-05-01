@@ -661,7 +661,7 @@ export async function upgradeContracts(configs: {
 
     const changed: (keyof typeof CONTRACTS)[] = [];
     for (const contract of Object.keys(UPGRADEBAL_CONTRACTS)) {
-        if (matcher && !contract.startsWith(matcher)) {
+        if (matcher && contract !== matcher) {
             continue;
         }
         const bytecodeHash = codeToHash(CONTRACTS[contract].bytecode);

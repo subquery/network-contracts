@@ -81,16 +81,16 @@
             "lastUpdate": "Thu, 18 Jan 2024 08:43:36 GMT"
         },
         "Staking": {
-            "innerAddress": "0x76CAD936cD924fB2f5f1EE883BD2A222A2D9C360",
+            "innerAddress": "0x45Cc8a7452B9891883Bb28B0C66cc4220b9c4B69",
             "address": "0x520c2A23000D134780a90bd9dec533df434140a2",
-            "bytecodeHash": "7ffd7f96041e56f88c77820fcca56c3a73f90ab035a821fd4e2c96557e8c4db3",
-            "lastUpdate": "Mon, 25 Mar 2024 01:44:16 GMT"
+            "bytecodeHash": "d26ebebcd19b0e8f756471e4c31ce5cfc6330b15b83aa8dd739f306b09f91ce1",
+            "lastUpdate": "Wed, 01 May 2024 04:31:59 GMT"
         },
         "StakingManager": {
-            "innerAddress": "0xa9bEaA33E02551B398C9b27d22384c251d8FB026",
+            "innerAddress": "0xcE63bf7849472b9A2269a77323aefAB41255c06C",
             "address": "0x9a789E2BB2FB8446ECabF40eea57AAb9aD078bbe",
-            "bytecodeHash": "1eaf03b8f76d193383001bc9df6ed8326d4748c8c29353a6c2fa97f4526ef3d2",
-            "lastUpdate": "Fri, 09 Feb 2024 05:53:13 GMT"
+            "bytecodeHash": "3dc12c9893ece3bc500bdcceff15a11f4b22d4776068a8fe5e8f8dbbbc965454",
+            "lastUpdate": "Wed, 01 May 2024 04:32:12 GMT"
         },
         "EraManager": {
             "innerAddress": "0xe21610af7bE44Be36c6964EB42Ed478922c4Df18",
@@ -129,10 +129,10 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:52:49 GMT"
         },
         "RewardsDistributor": {
-            "innerAddress": "0x742c299a2e04169fee3D919694192Cc65899ee13",
+            "innerAddress": "0x979DAdE3cAd7b843A1F30a09cf81f97F151A61D4",
             "address": "0x5c0d1F22C4D7aaF35Ade34CA7c7491dBB0A91Cb7",
-            "bytecodeHash": "ef34f49ea1e18ea771dc0e9f4793796660fd2c12918b76481dd34255452d5050",
-            "lastUpdate": "Fri, 09 Feb 2024 05:51:45 GMT"
+            "bytecodeHash": "3ef9c5b38940dffea34b442e6b7eda6bddb1f0f88c13f8fb6d225281c465996c",
+            "lastUpdate": "Wed, 01 May 2024 04:34:13 GMT"
         },
         "RewardsPool": {
             "innerAddress": "0x6fC7869eE2411863b810a8A4bc0Ca6e7d1a06244",
