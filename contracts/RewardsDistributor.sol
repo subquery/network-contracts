@@ -77,6 +77,14 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
     /// @notice Reward information: runner => RewardInfo
     mapping(address => RewardInfo) private info;
 
+    /// @notice perMill, <max commission> = <selfStake> * <maxCommissionFactor>
+    /// 0: disabled
+    uint256 public maxCommissionFactor;
+
+    /// @notice perMill, <max pool reward> = <totalStake> * <maxRewardFactor>
+    /// 0: disabled
+    uint256 public maxRewardFactor;
+
     /// @dev ### EVENTS
     /// @notice Emitted when rewards are distributed for the earliest pending distributed Era.
     event DistributeRewards(
@@ -98,6 +106,8 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
     event InstantRewards(address indexed runner, uint256 indexed eraIdx, uint256 token);
     /// @notice Emitted when rewards arrive via increaseAgreementRewards()
     event AgreementRewards(address indexed runner, uint256 agreementId, uint256 token);
+    /// @notice Emitted when rewards return to treasury due to exceed reward cap
+    event ReturnRewards(address indexed runner, uint256 rewards, uint256 commission);
 
     modifier onlyRewardsStaking() {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'G014');
@@ -117,6 +127,14 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
 
     function setSettings(ISettings _settings) external onlyOwner {
         settings = _settings;
+    }
+
+    function setMaxCommissionFactor(uint256 _maxCommissionFactor) external onlyOwner {
+        maxCommissionFactor = _maxCommissionFactor;
+    }
+
+    function setMaxRewardFactor(uint256 _maxRewardFactor) external onlyOwner {
+        maxRewardFactor = _maxRewardFactor;
     }
 
     /**
@@ -347,36 +365,55 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
         delete rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
         if (rewardInfo.eraReward != 0) {
             uint256 totalStake = rewardsStaking.getTotalStakingAmount(runner);
+            uint256 selfStake = rewardsStaking.getDelegationAmount(runner, runner);
             require(totalStake > 0, 'RD006');
 
             uint256 commissionRate = IIndexerRegistry(
                 settings.getContractAddress(SQContracts.IndexerRegistry)
             ).getCommissionRate(runner);
-            uint256 commission = MathUtil.mulDiv(commissionRate, rewardInfo.eraReward, PER_MILL);
+            uint256 commission = commissionRate.mulDiv(rewardInfo.eraReward, PER_MILL);
 
-            info[runner].accSQTPerStake += MathUtil.mulDiv(
-                rewardInfo.eraReward - commission,
+            // 1. total reward can not greater than maxRewardFactor * totalStake
+            // 2. commission can not greater than maxCommissionFactor * selfStake
+            uint256 cappedReward = maxRewardFactor > 0
+                ? MathUtil.min(rewardInfo.eraReward, totalStake.mulDiv(maxRewardFactor, PER_MILL))
+                : rewardInfo.eraReward;
+            uint256 cappedCommission = maxCommissionFactor > 0
+                ? MathUtil.min(commission, selfStake.mulDiv(maxCommissionFactor, PER_MILL))
+                : commission;
+            info[runner].accSQTPerStake += cappedReward.sub(cappedCommission).mulDiv(
                 PER_TRILL,
                 totalStake
             );
-            if (commission > 0) {
+            IERC20 SQToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
+            if (cappedCommission > 0) {
                 // add commission to unbonding request
-                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
+                SQToken.safeTransfer(
                     settings.getContractAddress(SQContracts.Staking),
-                    commission
+                    cappedCommission
                 );
                 IStaking(settings.getContractAddress(SQContracts.Staking)).unbondCommission(
                     runner,
-                    commission
+                    cappedCommission
                 );
             }
 
             emit DistributeRewards(
                 runner,
                 rewardInfo.lastClaimEra,
-                rewardInfo.eraReward,
-                commission
+                MathUtil.max(cappedReward, cappedCommission),
+                cappedCommission
             );
+            if (rewardInfo.eraReward - cappedReward > 0 || commission - cappedCommission > 0) {
+                uint256 rewardsReturn;
+                rewardsReturn +=
+                    (rewardInfo.eraReward - commission) -
+                    (cappedReward.sub(cappedCommission));
+                rewardsReturn += commission - cappedCommission;
+                address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
+                SQToken.safeTransfer(treasury, rewardsReturn);
+                emit ReturnRewards(runner, rewardsReturn, commission - cappedCommission);
+            }
         }
         return rewardInfo.lastClaimEra;
     }
