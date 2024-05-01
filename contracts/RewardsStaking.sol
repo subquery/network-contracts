@@ -346,8 +346,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             // can not find unaltered ownstake, revert calculate from currentStake
             uint256 newStake = MathUtil.mulDiv(
                 currentStake,
-                _previousRunnerStakeWeight,
-                _runnerStakeWeight
+                _runnerStakeWeight,
+                _previousRunnerStakeWeight
             );
             //            assert(newStake >= currentStake, 'error todo');
             uint256 newDebtAmount = MathUtil.mulDiv(newStake, rewardInfo.accSQTPerStake, PER_TRILL);

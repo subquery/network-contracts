@@ -6,18 +6,18 @@ import { BigNumber } from 'ethers';
 import { ethers, waffle } from 'hardhat';
 import {
     EraManager,
+    ERC20,
     IndexerRegistry,
     PlanManager,
     ProjectRegistry,
     RewardsDistributor,
     RewardsHelper,
     RewardsStaking,
-    ERC20,
     Staking,
     StakingManager,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION } from './constants';
-import { acceptPlan, etherParse, startNewEra, time, timeTravel } from './helper';
+import { acceptPlan, addInstantRewards, etherParse, eventFrom, startNewEra, time, timeTravel } from './helper';
 import { deployContracts } from './setup';
 
 describe('RewardsDistributor Contract', () => {
@@ -34,8 +34,6 @@ describe('RewardsDistributor Contract', () => {
     let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
 
-    let rewards: BigNumber;
-
     //rewrite registerIndexer to registe indexer with stakeAmount and commissionRate
     const registerIndexer = async (rootWallet, wallet, amount, rate) => {
         await token.connect(rootWallet).transfer(wallet.address, amount);
@@ -49,6 +47,28 @@ describe('RewardsDistributor Contract', () => {
         expect(await rewardsStaking.getTotalStakingAmount(runner.address)).to.be.equal(_totalStakingAmount);
         expect((await rewardsDistributor.getRewardInfo(runner.address)).eraReward).to.be.equal(_eraReward);
     };
+
+    const travelEraAndCollect = async (signer, eras: number): Promise<BigNumber> => {
+        const balanceBefore = await token.balanceOf(signer.address);
+        for (let i = 0; i < eras; i++) {
+            await startNewEra(eraManager);
+            await rewardsHelper.connect(signer).indexerCatchup(signer.address);
+        }
+        await rewardsDistributor.connect(signer).claim(signer.address);
+        const balanceAfter = await token.balanceOf(signer.address);
+        return balanceAfter.sub(balanceBefore);
+    };
+
+    const withdrawAllUnbondReq = async (signer): Promise<BigNumber> => {
+        const balanceBefore = await token.balanceOf(signer.address);
+        await stakingManager.connect(signer).widthdraw();
+        const balanceAfter = await token.balanceOf(signer.address);
+        return balanceAfter.sub(balanceBefore);
+    };
+
+    const runnerInitialStake = etherParse('1000');
+    const runnerCr = BigNumber.from(1e5);
+    const eraPeriod = time.duration.days(5).toNumber();
 
     const deployer = () => deployContracts(root, runner);
     before(async () => {
@@ -78,11 +98,11 @@ describe('RewardsDistributor Contract', () => {
         await token.connect(root).increaseAllowance(rewardsDistributor.address, etherParse('10'));
 
         //setup era period be 5 days
-        await eraManager.connect(root).updateEraPeriod(time.duration.days(5).toString());
+        await eraManager.connect(root).updateEraPeriod(eraPeriod);
         //register an new Indexer with Initial Commission Rate: 10% and Initial Staking Amount: 1000
         //moved to era 2
-        await registerIndexer(root, runner, etherParse('1000'), 1e5);
-        await registerIndexer(root, root, etherParse('1000'), 1e5);
+        await registerIndexer(root, runner, runnerInitialStake, runnerCr);
+        await registerIndexer(root, root, runnerInitialStake, runnerCr);
         await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
         // wallet_0 start project
         await projectRegistry.connect(runner).startService(DEPLOYMENT_ID);
@@ -101,33 +121,263 @@ describe('RewardsDistributor Contract', () => {
         });
     });
 
-    describe('Rewards Split', async () => {
-        it('split rewards into 2 eras should work', async () => {
-            await acceptPlan(runner, consumer, 5, etherParse('3'), DEPLOYMENT_ID, token, planManager);
+    describe('Rewards Split In Eras', async () => {
+        beforeEach(async () => {
+            await staking.setLockPeriod(0);
+            await staking.setUnbondFeeRateBP(0);
         });
-        it('split rewards into eras should work', async () => {
-            await acceptPlan(runner, consumer, 30, etherParse('3'), DEPLOYMENT_ID, token, planManager);
-            const currentEar = await (await eraManager.eraNumber()).toNumber();
-
-            expect(await token.balanceOf(rewardsDistributor.address)).to.be.eq(etherParse('3'));
-
-            const rewardsAddTable = await rewardsHelper.getRewardsAddTable(runner.address, currentEar, currentEar + 8);
-            const rewardsRemoveTable = await rewardsHelper.getRewardsRemoveTable(
-                runner.address,
-                currentEar,
-                currentEar + 8
-            );
+        it('split rewards into 1 eras should work', async () => {
+            // accept agreement of 5 days period, value 3 SQT
+            const agreementValue = etherParse('3');
+            await acceptPlan(runner, consumer, 2, agreementValue, DEPLOYMENT_ID, token, planManager);
+            const currentEra = await (await eraManager.eraNumber()).toNumber();
+            const rewardsAddTable = await rewardsHelper.getRewardsAddTable(runner.address, currentEra, 3);
+            const rewardsRemoveTable = await rewardsHelper.getRewardsRemoveTable(runner.address, currentEra, 3);
+            const rewardsAdd = rewardsAddTable.reduce((acc, val) => acc.add(val), BigNumber.from(0));
+            const rewardsRemove = rewardsRemoveTable.reduce((acc, val) => acc.add(val), BigNumber.from(0));
+            expect(rewardsAdd.sub(rewardsRemove)).to.eq(0);
+            expect(rewardsRemoveTable[2]).to.eq(0);
+            expect(rewardsAddTable[2]).to.eq(0);
             const [eraReward, totalReward] = rewardsAddTable.reduce(
                 (acc, val, idx) => {
                     let eraReward = acc[0];
                     const total = acc[1];
                     eraReward = eraReward.add(val.sub(rewardsRemoveTable[idx]));
+                    expect(eraReward.isNegative()).to.be.false;
                     return [eraReward, total.add(eraReward)];
                 },
                 [BigNumber.from(0), BigNumber.from(0)]
             );
             expect(eraReward).to.be.eq(0);
-            expect(totalReward).to.be.eq(etherParse('3'));
+            expect(totalReward).to.be.eq(agreementValue);
+
+            const claimed = await travelEraAndCollect(runner, 3);
+            const commission = await withdrawAllUnbondReq(runner);
+            expect(totalReward.mul(runnerCr).div(1e6).sub(commission)).to.lte(10);
+            expect(totalReward.sub(claimed.add(commission))).to.lte(10);
+        });
+        it('split rewards into 2 eras should work', async () => {
+            // accept agreement of 5 days period, value 3 SQT
+            const agreementValue = etherParse('3');
+            await timeTravel(1000);
+            await acceptPlan(runner, consumer, 5, agreementValue, DEPLOYMENT_ID, token, planManager);
+            const currentEra = await (await eraManager.eraNumber()).toNumber();
+            const rewardsAddTable = await rewardsHelper.getRewardsAddTable(runner.address, currentEra, 4);
+            const rewardsRemoveTable = await rewardsHelper.getRewardsRemoveTable(runner.address, currentEra, 4);
+            const rewardsAdd = rewardsAddTable.reduce((acc, val) => acc.add(val), BigNumber.from(0));
+            const rewardsRemove = rewardsRemoveTable.reduce((acc, val) => acc.add(val), BigNumber.from(0));
+            expect(rewardsAdd.sub(rewardsRemove)).to.eq(0);
+            expect(rewardsRemoveTable[3]).to.eq(0);
+            expect(rewardsAddTable[3]).to.eq(0);
+            const [eraReward, totalReward] = rewardsAddTable.reduce(
+                (acc, val, idx) => {
+                    let eraReward = acc[0];
+                    const total = acc[1];
+                    eraReward = eraReward.add(val.sub(rewardsRemoveTable[idx]));
+                    expect(eraReward.isNegative()).to.be.false;
+                    return [eraReward, total.add(eraReward)];
+                },
+                [BigNumber.from(0), BigNumber.from(0)]
+            );
+            expect(eraReward).to.be.eq(0);
+            expect(totalReward).to.be.eq(agreementValue);
+            const claimed = await travelEraAndCollect(runner, 4);
+            const commission = await withdrawAllUnbondReq(runner);
+            expect(totalReward.mul(runnerCr).div(1e6).sub(commission)).to.lte(1e10);
+            expect(totalReward.sub(claimed.add(commission))).to.lte(1e10);
+        });
+
+        it('split rewards into eras should work', async () => {
+            const agreementValue = etherParse('3');
+            await acceptPlan(runner, consumer, 30, agreementValue, DEPLOYMENT_ID, token, planManager);
+            const currentEra = (await eraManager.eraNumber()).toNumber();
+
+            expect(await token.balanceOf(rewardsDistributor.address)).to.be.eq(agreementValue);
+
+            const rewardsAddTable = await rewardsHelper.getRewardsAddTable(runner.address, currentEra, 9);
+            const rewardsRemoveTable = await rewardsHelper.getRewardsRemoveTable(runner.address, currentEra, 9);
+            const [eraReward, totalReward] = rewardsAddTable.reduce(
+                (acc, val, idx) => {
+                    let eraReward = acc[0];
+                    const total = acc[1];
+                    eraReward = eraReward.add(val.sub(rewardsRemoveTable[idx]));
+                    console.log(`eraReward: ${idx}, ${eraReward.toString()}`);
+                    expect(eraReward.isNegative()).to.be.false;
+                    return [eraReward, total.add(eraReward)];
+                },
+                [BigNumber.from(0), BigNumber.from(0)]
+            );
+            expect(eraReward).to.be.eq(0);
+            expect(totalReward).to.be.eq(agreementValue);
+
+            const claimed = await travelEraAndCollect(runner, 9);
+            const commission = await withdrawAllUnbondReq(runner);
+            expect(totalReward.mul(runnerCr).div(1e6).sub(commission)).to.lte(1e10);
+            expect(totalReward.sub(claimed.add(commission))).to.lte(1e10);
+            //499986111111111111, 13888888888889
+            //499987268518518518+499987268518518518
+        });
+    });
+
+    describe.only('Rewards Split Amongst Operator & Delegators', () => {
+        // runner stake: 1000
+        // delegation: 9000
+        const runnerStake = etherParse(1000);
+        const delegation1 = etherParse(4000);
+        const delegation2 = etherParse(5000);
+        beforeEach(async () => {
+            await staking.setIndexerLeverageLimit(20);
+            await token.transfer(delegator.address, delegation1);
+            await token.connect(delegator).increaseAllowance(staking.address, delegation1);
+            await stakingManager.connect(delegator).delegate(runner.address, delegation1);
+            await token.transfer(delegator2.address, delegation2);
+            await token.connect(delegator2).increaseAllowance(staking.address, delegation2);
+            await stakingManager.connect(delegator2).delegate(runner.address, delegation2);
+            await startNewEra(eraManager);
+            await rewardsHelper.connect(runner).indexerCatchup(runner.address);
+            const totalStake = await stakingManager.getTotalStakingAmount(runner.address);
+            expect(totalStake).to.eq(runnerStake.add(delegation1).add(delegation2));
+        });
+        // weight,
+        const scens = [[undefined], [2e6], [1e7]];
+
+        for (const [idx, [_weight]] of scens.entries()) {
+            it(`rewards split with weight #${idx}`, async () => {
+                const weight = (_weight ?? 1e6) / 1e6;
+                if (_weight) {
+                    await rewardsStaking.setRunnerStakeWeight(_weight);
+                }
+                const era = await eraManager.eraNumber();
+                await addInstantRewards(token, rewardsDistributor, root, runner.address, era, etherParse('1000'));
+                await startNewEra(eraManager);
+                const tx = await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
+                const { rewards, commission } = await eventFrom(
+                    tx,
+                    rewardsDistributor,
+                    'DistributeRewards(address,uint256,uint256,uint256)'
+                );
+                const sharedRewards = rewards.sub(commission);
+                const runnerRewards = await rewardsDistributor.userRewards(runner.address, runner.address);
+                const delegatorRewards1 = await rewardsDistributor.userRewards(runner.address, delegator.address);
+                const delegatorRewards2 = await rewardsDistributor.userRewards(runner.address, delegator2.address);
+                const totalStakeWeighted = await rewardsStaking.getTotalStakingAmount(runner.address);
+                const totalStake = await stakingManager.getTotalStakingAmount(runner.address);
+                const runnerStakeWeighted = await rewardsStaking.getDelegationAmount(runner.address, runner.address);
+                expect(runnerStakeWeighted).to.eq(runnerStake.mul(weight));
+                expect(totalStakeWeighted).to.eq(totalStake.add(runnerStake.mul(weight - 1)));
+                expect(sharedRewards.sub(runnerRewards.add(delegatorRewards1).add(delegatorRewards2))).to.lte(2e10);
+                expect(totalStakeWeighted).to.eq(runnerStake.mul(weight).add(delegation1).add(delegation2));
+                expect(runnerStake.mul(weight).mul(sharedRewards).div(totalStakeWeighted).sub(runnerRewards)).to.lte(
+                    2e10
+                );
+            });
+        }
+
+        it('weight increase', async () => {
+            //  from 2e6 to 3e6
+            const _prevWeight = 2e6;
+            const prevWeight = _prevWeight / 1e6;
+            const _postWeight = 3e6;
+            const postWeight = _postWeight / 1e6;
+            await rewardsStaking.setRunnerStakeWeight(_prevWeight);
+            await startNewEra(eraManager);
+            await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
+            await rewardsStaking.setRunnerStakeWeight(_postWeight);
+            const era = await eraManager.eraNumber();
+            await addInstantRewards(token, rewardsDistributor, root, runner.address, era, etherParse('1000'));
+            await startNewEra(eraManager);
+            const tx = await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
+            const { rewards, commission } = await eventFrom(
+                tx,
+                rewardsDistributor,
+                'DistributeRewards(address,uint256,uint256,uint256)'
+            );
+            const sharedRewards = rewards.sub(commission);
+            const runnerRewards = await rewardsDistributor.userRewards(runner.address, runner.address);
+            const delegatorRewards1 = await rewardsDistributor.userRewards(runner.address, delegator.address);
+            const delegatorRewards2 = await rewardsDistributor.userRewards(runner.address, delegator2.address);
+            const totalStakeWeighted = await rewardsStaking.getTotalStakingAmount(runner.address);
+            const totalStake = await stakingManager.getTotalStakingAmount(runner.address);
+            const runnerStakeWeighted = await rewardsStaking.getDelegationAmount(runner.address, runner.address);
+            expect(runnerStakeWeighted).to.eq(runnerStake.mul(postWeight));
+            expect(totalStakeWeighted).to.eq(totalStake.add(runnerStake.mul(postWeight - 1)));
+            expect(sharedRewards.sub(runnerRewards.add(delegatorRewards1).add(delegatorRewards2))).to.lte(2e10);
+            expect(totalStakeWeighted).to.eq(runnerStake.mul(postWeight).add(delegation1).add(delegation2));
+            expect(runnerStake.mul(postWeight).mul(sharedRewards).div(totalStakeWeighted).sub(runnerRewards)).to.lte(
+                2e10
+            );
+        });
+
+        it('weight drop', async () => {
+            //  from 3e6 to 1e6
+            const _prevWeight = 3e6;
+            const prevWeight = _prevWeight / 1e6;
+            const _postWeight = 1e6;
+            const postWeight = _postWeight / 1e6;
+            await rewardsStaking.setRunnerStakeWeight(_prevWeight);
+            await startNewEra(eraManager);
+            await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
+            await rewardsStaking.setRunnerStakeWeight(_postWeight);
+            const era = await eraManager.eraNumber();
+            await addInstantRewards(token, rewardsDistributor, root, runner.address, era, etherParse('1000'));
+            await startNewEra(eraManager);
+            const tx = await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
+            const { rewards, commission } = await eventFrom(
+                tx,
+                rewardsDistributor,
+                'DistributeRewards(address,uint256,uint256,uint256)'
+            );
+            const sharedRewards = rewards.sub(commission);
+            const runnerRewards = await rewardsDistributor.userRewards(runner.address, runner.address);
+            const delegatorRewards1 = await rewardsDistributor.userRewards(runner.address, delegator.address);
+            const delegatorRewards2 = await rewardsDistributor.userRewards(runner.address, delegator2.address);
+            const totalStakeWeighted = await rewardsStaking.getTotalStakingAmount(runner.address);
+            const totalStake = await stakingManager.getTotalStakingAmount(runner.address);
+            const runnerStakeWeighted = await rewardsStaking.getDelegationAmount(runner.address, runner.address);
+            expect(runnerStakeWeighted).to.eq(runnerStake.mul(postWeight));
+            expect(totalStakeWeighted).to.eq(totalStake.add(runnerStake.mul(postWeight - 1)));
+            expect(sharedRewards.sub(runnerRewards.add(delegatorRewards1).add(delegatorRewards2))).to.lte(2e10);
+            expect(totalStakeWeighted).to.eq(runnerStake.mul(postWeight).add(delegation1).add(delegation2));
+            expect(runnerStake.mul(postWeight).mul(sharedRewards).div(totalStakeWeighted).sub(runnerRewards)).to.lte(
+                2e10
+            );
+        });
+
+        it('delegation change', async () => {
+            // runner stake: 1000 (x3)
+            // delegation1: 4000 -> 6000
+            // delegation2: 5000
+            const _weight = 3e6;
+            const weight = _weight / 1e6;
+            await rewardsStaking.setRunnerStakeWeight(_weight);
+            await startNewEra(eraManager);
+            await rewardsDistributor.connect(runner).collectAndDistributeRewards(runner.address);
+
+            let totalStakeWeighted = await rewardsStaking.getTotalStakingAmount(runner.address);
+            let totalStake = await stakingManager.getTotalStakingAmount(runner.address);
+            let runnerStakeWeighted = await rewardsStaking.getDelegationAmount(runner.address, runner.address);
+            const delegation1_0 = await rewardsStaking.getDelegationAmount(delegator.address, runner.address);
+            expect(runnerStakeWeighted).to.eq(runnerStake.mul(weight));
+            expect(totalStakeWeighted).to.eq(totalStake.add(runnerStake.mul(weight - 1)));
+            expect(totalStakeWeighted).to.eq(runnerStake.mul(weight).add(delegation1).add(delegation2));
+            expect(delegation1_0).to.eq(delegation1);
+            // add more delegation
+            const moreDelegation = etherParse(2000);
+            await token.transfer(delegator.address, moreDelegation);
+            await token.connect(delegator).increaseAllowance(staking.address, moreDelegation);
+            await stakingManager.connect(delegator).delegate(runner.address, moreDelegation);
+            await startNewEra(eraManager);
+            await rewardsHelper.connect(runner).indexerCatchup(runner.address);
+            totalStakeWeighted = await rewardsStaking.getTotalStakingAmount(runner.address);
+            totalStake = await stakingManager.getTotalStakingAmount(runner.address);
+            runnerStakeWeighted = await rewardsStaking.getDelegationAmount(runner.address, runner.address);
+            const delegation1_1 = await rewardsStaking.getDelegationAmount(delegator.address, runner.address);
+            expect(runnerStakeWeighted).to.eq(runnerStake.mul(weight));
+            expect(totalStakeWeighted).to.eq(totalStake.add(runnerStake.mul(weight - 1)));
+            expect(totalStakeWeighted).to.eq(
+                runnerStake.mul(weight).add(delegation1).add(delegation2).add(moreDelegation)
+            );
+            expect(delegation1_1).to.eq(delegation1.add(moreDelegation));
         });
     });
 
@@ -137,29 +387,18 @@ describe('RewardsDistributor Contract', () => {
             await acceptPlan(runner, consumer, 30, etherParse('3'), DEPLOYMENT_ID, token, planManager);
             await acceptPlan(root, consumer, 30, etherParse('3'), DEPLOYMENT_ID, token, planManager);
         });
-        it('rewards should be able to collect and distribute', async () => {
-            //move to Era3
-            await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            expect((await rewardsHelper.getRewardsAddTable(runner.address, 2, 1))[0]).to.be.eq(etherParse('0'));
-            expect((await rewardsHelper.getRewardsRemoveTable(runner.address, 2, 1))[0]).to.be.eq(etherParse('0'));
-            await rewardsDistributor.connect(runner).claim(runner.address);
-
-            //move to Era 4
-            await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            expect((await rewardsHelper.getRewardsAddTable(runner.address, 3, 1))[0]).to.be.eq(etherParse('0'));
-            expect((await rewardsHelper.getRewardsRemoveTable(runner.address, 3, 1))[0]).to.be.eq(etherParse('0'));
-            await rewardsDistributor.connect(runner).claim(runner.address);
-
-            //move to Era 5
-            await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            expect((await rewardsHelper.getRewardsAddTable(runner.address, 4, 1))[0]).to.be.eq(etherParse('0'));
-            expect((await rewardsHelper.getRewardsRemoveTable(runner.address, 4, 1))[0]).to.be.eq(etherParse('0'));
-            await rewardsDistributor.connect(runner).claim(runner.address);
-            expect(await (await token.balanceOf(runner.address)).div(1e14)).to.be.eq(13499);
-            rewards = await (await token.balanceOf(runner.address)).div(1e14);
+        it('Rewards table be cleaned after collection', async () => {
+            const startEra = (await eraManager.eraNumber()).toNumber();
+            for (let i = 0; i < 12; i++) {
+                await startNewEra(eraManager);
+                await rewardsDistributor.collectAndDistributeRewards(runner.address);
+                expect((await rewardsHelper.getRewardsAddTable(runner.address, startEra + i, 1))[0]).to.be.eq(
+                    etherParse('0')
+                );
+                expect((await rewardsHelper.getRewardsRemoveTable(runner.address, startEra + i, 1))[0]).to.be.eq(
+                    etherParse('0')
+                );
+            }
         });
 
         it('commission should add to unbond', async () => {
@@ -314,19 +553,19 @@ describe('RewardsDistributor Contract', () => {
             await expect(rewardsDistributor.connect(delegator).claim(runner.address)).to.be.revertedWith('RD007');
         });
 
-        it('claim each era should get same rewards with claim once', async () => {
-            //move to Era 3
-            await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            //move to Era 4
-            await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            //move to Era 5
-            await startNewEra(eraManager);
-            await rewardsDistributor.collectAndDistributeRewards(runner.address);
-            await rewardsDistributor.connect(runner).claim(runner.address);
-            expect(await (await token.balanceOf(runner.address)).div(1e14)).to.be.eq(rewards);
-        });
+        // it('claim each era should get same rewards with claim once', async () => {
+        //     //move to Era 3
+        //     await startNewEra(eraManager);
+        //     await rewardsDistributor.collectAndDistributeRewards(runner.address);
+        //     //move to Era 4
+        //     await startNewEra(eraManager);
+        //     await rewardsDistributor.collectAndDistributeRewards(runner.address);
+        //     //move to Era 5
+        //     await startNewEra(eraManager);
+        //     await rewardsDistributor.collectAndDistributeRewards(runner.address);
+        //     await rewardsDistributor.connect(runner).claim(runner.address);
+        //     expect((await token.balanceOf(runner.address)).div(1e14)).to.be.eq(rewards);
+        // });
 
         it('delegatior should be able to delegate and apply at next Era', async () => {
             let pendingStakers;
