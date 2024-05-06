@@ -93,6 +93,14 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      */
     event SettledEraUpdated(address indexed runner, uint256 era);
 
+    // @dev used for _runnerStakeWeight and other global param changes
+    event ParameterUpdated(string param, uint256 value);
+
+    /**
+     * @dev Emitted when _previousRunnerStakeWeights is update.
+     */
+    event RunnerWeightApplied(address indexed runner, uint256 weight);
+
     /**
      * @dev Initialize this contract.
      */
@@ -119,6 +127,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
 
     function setRunnerStakeWeight(uint256 _weight) external onlyOwner {
         _runnerStakeWeight = _weight;
+        emit ParameterUpdated('RunnerStakeWeight', _weight);
     }
 
     /**
@@ -150,7 +159,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             uint256 _runnerStakeWeight = runnerStakeWeight();
             newDelegation = MathUtil.mulDiv(newDelegation, _runnerStakeWeight, PER_MILL);
             if (_previousRunnerStakeWeights[_runner] != _runnerStakeWeight) {
-                _previousRunnerStakeWeights[_runner] = _runnerStakeWeight;
+                _setPreviousRunnerStakeWeights(_runner, _runnerStakeWeight);
             }
             // end
             delegation[_runner][_runner] = newDelegation;
@@ -252,7 +261,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             uint256 _runnerStakeWeight = runnerStakeWeight();
             newDelegation = MathUtil.mulDiv(newDelegation, _runnerStakeWeight, PER_MILL);
             if (_previousRunnerStakeWeights[runner] != _runnerStakeWeight) {
-                _previousRunnerStakeWeights[runner] = _runnerStakeWeight;
+                _setPreviousRunnerStakeWeights(runner, _runnerStakeWeight);
             }
         }
         delegation[staker][runner] = newDelegation;
@@ -358,7 +367,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             } else {
                 totalStakingAmount[_runner] -= currentStake - newStake;
             }
-            _previousRunnerStakeWeights[_runner] = _runnerStakeWeight;
+            _setPreviousRunnerStakeWeights(_runner, _runnerStakeWeight);
         }
         // else skip
     }
@@ -403,6 +412,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      */
     function _pendingStakeChange(address _runner, address _staker) private view returns (bool) {
         return pendingStakers[_runner][pendingStakerNos[_runner][_staker]] == _staker;
+    }
+
+    function _setPreviousRunnerStakeWeights(address _runner, uint256 _weight) private {
+        _previousRunnerStakeWeights[_runner] = _weight;
+        emit RunnerWeightApplied(_runner, _weight);
     }
 
     // -- Views --
