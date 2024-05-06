@@ -39,6 +39,7 @@ export interface IndexerControllerInput {
 }
 
 export interface ProjectInput {
+    id: string;
     account: string;
     metadata: object;
     projectType: number;
@@ -150,7 +151,7 @@ export const loaders = {
         }
     },
     Project: async function (
-        { account, deployments, metadata, projectType }: ProjectInput,
+        { account, deployments, metadata, projectType, id }: ProjectInput,
         { accounts, ipfs, sdk, rootAccount }: Context
     ) {
         console.log(`Project Start for ${metadata['name']}`);
@@ -163,6 +164,12 @@ export const loaders = {
         if (!deploymentId) {
             const { cid: deploymentCid } = await ipfs.add(firstDeploy.deployment, { pin: true });
             deploymentId = deploymentCid.toString();
+        }
+        // update metadata
+        if (id) {
+            const tx = await sdk.projectRegistry.connect(author).updateProjectMetadata(id, metadataCid.toString());
+            await tx.wait();
+            return;
         }
         const tx = await sdk.projectRegistry
             .connect(author)
