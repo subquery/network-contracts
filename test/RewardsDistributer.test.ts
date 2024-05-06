@@ -219,7 +219,7 @@ describe('RewardsDistributor Contract', () => {
         });
     });
 
-    describe.only('Rewards Split Amongst Operator & Delegators', () => {
+    describe('Rewards Split Amongst Operator & Delegators', () => {
         // runner stake: 1000
         // delegation: 9000
         const runnerStake = etherParse(1000);
