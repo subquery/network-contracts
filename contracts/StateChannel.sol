@@ -379,8 +379,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         require(isIndexer || isConsumer, 'G008');
 
         // check state
-        bool allowState = query.spent >= state.spent && query.spent < state.total;
-        require(allowState, 'SC005');
+        require(query.spent >= state.spent, 'SC005');
 
         // check sign
         if (query.spent > 0) {
@@ -421,7 +420,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             require(msg.sender == state.indexer, 'G008');
         }
 
-        // check count
+        // check state
         require(query.spent >= state.spent, 'SC005');
 
         // check sign
