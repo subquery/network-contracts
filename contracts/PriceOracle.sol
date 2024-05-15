@@ -7,8 +7,9 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 import './interfaces/IPriceOracle.sol';
+import './interfaces/IParameter.sol';
 
-contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable {
+contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable, IParameter {
     ///@notice the price of assetTo in assetFrom
     mapping(address => mapping(address => uint256)) public prices;
 
@@ -32,6 +33,8 @@ contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable {
         sizeLimit = _sizeLimit;
         blockLimit = _blockLimit;
         enlargementFactor = 1e6;
+        emit Parameter('sizeLimit', abi.encodePacked(sizeLimit));
+        emit Parameter('blockLimit', abi.encodePacked(blockLimit));
     }
 
     event PricePosted(address assetFrom, address assetTo, uint256 previousPrice, uint256 newPrice);
@@ -40,6 +43,8 @@ contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable {
     function setLimit(uint256 _sizeLimit, uint256 _blockLimit) public onlyOwner {
         sizeLimit = _sizeLimit;
         blockLimit = _blockLimit;
+        emit Parameter('sizeLimit', abi.encodePacked(sizeLimit));
+        emit Parameter('blockLimit', abi.encodePacked(blockLimit));
     }
 
     ///@notice update the controller account

@@ -13,6 +13,7 @@ import './interfaces/ISettings.sol';
 import './interfaces/IPlanManager.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IPriceOracle.sol';
+import './interfaces/IParameter.sol';
 
 /**
  * @title Plan Manager Contract
@@ -26,7 +27,7 @@ import './interfaces/IPriceOracle.sol';
  * PlanTemplate: PlanTemplate is create and maintenance by owner, we provide a set of PlanTemplates
  * for Indexer to create the Plan.
  */
-contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
+contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager, IParameter {
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
@@ -81,6 +82,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
         settings = _settings;
         limit = 5;
         nextPlanId = 1;
+        emit Parameter('limit', abi.encodePacked(limit));
     }
 
     /**
@@ -97,6 +99,7 @@ contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager {
      */
     function setPlanLimit(uint256 _limit) external onlyOwner {
         limit = _limit;
+        emit Parameter('limit', abi.encodePacked(limit));
     }
 
     /**

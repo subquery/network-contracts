@@ -20,6 +20,7 @@ import './interfaces/IStaking.sol';
 import './interfaces/IStakingManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
+import './interfaces/IParameter.sol';
 
 /**
  * @title Rewards Distributer Contract
@@ -55,7 +56,7 @@ import './utils/MathUtil.sol';
  *
  * Runner's commission is treated as unbond request to Staking Contract, which applies a lock period on it.
  */
-contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgradeable {
+contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgradeable, IParameter {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
@@ -123,6 +124,8 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
 
         //Settings
         settings = _settings;
+        emit Parameter('maxCommissionFactor', abi.encodePacked(uint256(0)));
+        emit Parameter('maxRewardFactor', abi.encodePacked(uint256(0)));
     }
 
     function setSettings(ISettings _settings) external onlyOwner {
@@ -131,10 +134,12 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
 
     function setMaxCommissionFactor(uint256 _maxCommissionFactor) external onlyOwner {
         maxCommissionFactor = _maxCommissionFactor;
+        emit Parameter('maxCommissionFactor', abi.encodePacked(maxCommissionFactor));
     }
 
     function setMaxRewardFactor(uint256 _maxRewardFactor) external onlyOwner {
         maxRewardFactor = _maxRewardFactor;
+        emit Parameter('maxRewardFactor', abi.encodePacked(maxRewardFactor));
     }
 
     /**

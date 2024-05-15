@@ -17,6 +17,7 @@ import './interfaces/IRewardsPool.sol';
 import './interfaces/IConsumerRegistry.sol';
 import './interfaces/IRewardsBooster.sol';
 import './utils/MathUtil.sol';
+import './interfaces/IParameter.sol';
 
 /**
  * @title State Channel Contract
@@ -24,7 +25,7 @@ import './utils/MathUtil.sol';
  * The contact for Pay-as-you-go service for Indexer and Consumer.
  * The consumer is not only a account, but also a contract
  */
-contract StateChannel is Initializable, OwnableUpgradeable {
+contract StateChannel is Initializable, OwnableUpgradeable, IParameter {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
 
@@ -113,6 +114,8 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         terminateExpiration = 86400;
         settings = _settings;
+
+        emit Parameter('terminateExpiration', abi.encodePacked(terminateExpiration));
     }
 
     /**
@@ -129,6 +132,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
      */
     function setTerminateExpiration(uint256 expiration) external onlyOwner {
         terminateExpiration = expiration;
+        emit Parameter('terminateExpiration', abi.encodePacked(terminateExpiration));
     }
 
     /**
