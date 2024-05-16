@@ -15,7 +15,7 @@ import './Constants.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/IStakingManager.sol';
 import './utils/MathUtil.sol';
-import './interfaces/IParameter.sol';
+import './utils/ParameterUtil.sol';
 
 /**
  * @title Indexer Registry Contract
@@ -45,7 +45,7 @@ import './interfaces/IParameter.sol';
  * Indexer must set a appropriate commission rate and stake enough SQT Token when registering.
  * Indexer need to make sure all the query projects with NOT INDEXING status before unregister.
  */
-contract IndexerRegistry is Initializable, OwnableUpgradeable, IParameter {
+contract IndexerRegistry is Initializable, OwnableUpgradeable, ParameterUtil {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 

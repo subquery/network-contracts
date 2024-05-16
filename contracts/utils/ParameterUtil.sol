@@ -3,7 +3,7 @@
 
 pragma solidity ^0.8.15;
 
-abstract contract IParameter {
+abstract contract ParameterUtil {
     /// @notice Emitted when parameter change.
     event Parameter(string name, bytes value);
 }

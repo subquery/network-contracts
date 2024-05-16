@@ -13,7 +13,7 @@ import './interfaces/ISettings.sol';
 import './interfaces/IPlanManager.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/IPriceOracle.sol';
-import './interfaces/IParameter.sol';
+import './utils/ParameterUtil.sol';
 
 /**
  * @title Plan Manager Contract
@@ -27,7 +27,7 @@ import './interfaces/IParameter.sol';
  * PlanTemplate: PlanTemplate is create and maintenance by owner, we provide a set of PlanTemplates
  * for Indexer to create the Plan.
  */
-contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager, IParameter {
+contract PlanManager is Initializable, OwnableUpgradeable, IPlanManager, ParameterUtil {
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;

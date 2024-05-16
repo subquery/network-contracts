@@ -15,7 +15,7 @@ import './interfaces/IConsumer.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IConsumerRegistry.sol';
-import './interfaces/IParameter.sol';
+import './utils/ParameterUtil.sol';
 
 /**
  * @title Consumer Host Contract
@@ -26,7 +26,7 @@ import './interfaces/IParameter.sol';
  * Other contracts can verify the consumer and safeTransfer SQT.
  *
  */
-contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, IParameter {
+contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, ParameterUtil {
     using SafeERC20 for IERC20;
 
     // -- Structs --

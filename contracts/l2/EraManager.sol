@@ -8,13 +8,13 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 import '../interfaces/IEraManager.sol';
 import '../interfaces/ISettings.sol';
-import '../interfaces/IParameter.sol';
+import '../utils/ParameterUtil.sol';
 
 /**
  * @title EraManager contract
  * @notice Produce epochs based on a period to coordinate contracts. Staking and reward distributing are running based on Eras
  */
-contract EraManager is Initializable, OwnableUpgradeable, IEraManager, IParameter {
+contract EraManager is Initializable, OwnableUpgradeable, IEraManager, ParameterUtil {
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;

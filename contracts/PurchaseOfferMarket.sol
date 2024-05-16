@@ -18,7 +18,7 @@ import './interfaces/IEraManager.sol';
 import './interfaces/IStakingManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
-import './interfaces/IParameter.sol';
+import './utils/ParameterUtil.sol';
 
 /**
  * @title Purchase Offer Market Contract
@@ -47,7 +47,7 @@ contract PurchaseOfferMarket is
     Initializable,
     OwnableUpgradeable,
     IPurchaseOfferMarket,
-    IParameter
+    ParameterUtil
 {
     using SafeERC20 for IERC20;
 

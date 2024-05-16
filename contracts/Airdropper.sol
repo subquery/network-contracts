@@ -8,9 +8,9 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-import './interfaces/IParameter.sol';
+import './utils/ParameterUtil.sol';
 
-contract Airdropper is Initializable, OwnableUpgradeable, IParameter {
+contract Airdropper is Initializable, OwnableUpgradeable, ParameterUtil {
     using SafeERC20 for IERC20;
     // -- Data --
 
@@ -51,6 +51,7 @@ contract Airdropper is Initializable, OwnableUpgradeable, IParameter {
         __Ownable_init();
         controllers[msg.sender] = true;
         settleDestination = _settleDestination;
+        emit Parameter('settleDestination', abi.encodePacked(settleDestination));
     }
 
     function setSettleDestination(address _settleDestination) external onlyOwner {

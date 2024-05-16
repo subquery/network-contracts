@@ -7,9 +7,9 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 import './interfaces/IPriceOracle.sol';
-import './interfaces/IParameter.sol';
+import './utils/ParameterUtil.sol';
 
-contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable, IParameter {
+contract PriceOracle is IPriceOracle, Initializable, OwnableUpgradeable, ParameterUtil {
     ///@notice the price of assetTo in assetFrom
     mapping(address => mapping(address => uint256)) public prices;
 
