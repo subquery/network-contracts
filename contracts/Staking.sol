@@ -16,6 +16,7 @@ import './interfaces/ISQToken.sol';
 import './interfaces/IDisputeManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title Staking Contract
@@ -66,7 +67,7 @@ import './utils/MathUtil.sol';
  * Tokens will transfer to user's account after the lockPeriod when users apply withdraw.
  * Every widthdraw will cost a fix rate fees(unbondFeeRate), and these fees will be transferred to treasury.
  */
-contract Staking is IStaking, Initializable, OwnableUpgradeable {
+contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
@@ -188,6 +189,11 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
         unbondFeeRate = _unbondFeeRate;
         lockPeriod = _lockPeriod;
         settings = _settings;
+
+        emit Parameter('indexerLeverageLimit', abi.encodePacked(indexerLeverageLimit));
+        emit Parameter('maxUnbondingRequest', abi.encodePacked(maxUnbondingRequest));
+        emit Parameter('unbondFeeRate', abi.encodePacked(unbondFeeRate));
+        emit Parameter('lockPeriod', abi.encodePacked(lockPeriod));
     }
 
     function setSettings(ISettings _settings) external onlyOwner {
@@ -196,19 +202,23 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable {
 
     function setLockPeriod(uint256 _lockPeriod) external onlyOwner {
         lockPeriod = _lockPeriod;
+        emit Parameter('lockPeriod', abi.encodePacked(lockPeriod));
     }
 
     function setIndexerLeverageLimit(uint256 _runnerLeverageLimit) external onlyOwner {
         indexerLeverageLimit = _runnerLeverageLimit;
+        emit Parameter('indexerLeverageLimit', abi.encodePacked(indexerLeverageLimit));
     }
 
     function setUnbondFeeRateBP(uint256 _unbondFeeRate) external onlyOwner {
         require(_unbondFeeRate < PER_MILL, 'S001');
         unbondFeeRate = _unbondFeeRate;
+        emit Parameter('unbondFeeRate', abi.encodePacked(unbondFeeRate));
     }
 
     function setMaxUnbondingRequest(uint256 maxNum) external onlyOwner {
         maxUnbondingRequest = maxNum;
+        emit Parameter('maxUnbondingRequest', abi.encodePacked(maxUnbondingRequest));
     }
 
     /**

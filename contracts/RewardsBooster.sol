@@ -24,13 +24,14 @@ import './interfaces/IProjectRegistry.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title Rewards for running
  * @notice ### Overview
  * The RewardsRunning using the Cobb-Douglas production function for staking & running
  */
-contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
+contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, SQParameter {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
@@ -120,6 +121,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
         settings = _settings;
         issuancePerBlock = _issuancePerBlock;
         minimumDeploymentBooster = _minimumDeploymentBooster;
+        emit Parameter('issuancePerBlock', abi.encodePacked(issuancePerBlock));
+        emit Parameter('minimumDeploymentBooster', abi.encodePacked(minimumDeploymentBooster));
     }
 
     /**
@@ -137,6 +140,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
     function setMinimumDeploymentBooster(uint256 _minimumDeploymentBooster) external onlyOwner {
         minimumDeploymentBooster = _minimumDeploymentBooster;
+        emit Parameter('minimumDeploymentBooster', abi.encodePacked(minimumDeploymentBooster));
     }
 
     /**
@@ -151,6 +155,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
 
         issuancePerBlock = _issuancePerBlock;
         emit ParameterUpdated('issuancePerBlock', issuancePerBlock);
+        emit Parameter('issuancePerBlock', abi.encodePacked(issuancePerBlock));
     }
 
     /**
@@ -197,10 +202,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
      * @param deploymentId deploymentId
      * @param amount the added amount
      */
-    function removeBoosterDeployment(
-        bytes32 deploymentId,
-        uint256 amount
-    ) external {
+    function removeBoosterDeployment(bytes32 deploymentId, uint256 amount) external {
         require(deploymentPools[deploymentId].accountBooster[msg.sender] >= amount, 'RB003');
         _removeBoosterDeployment(deploymentId, msg.sender, amount);
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, amount);
@@ -278,21 +280,24 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster {
             );
     }
 
-
     /**
      * @notice Add booster deployment staking
      * @param _deploymentId the deployment id
      * @param _account the booster account
      * @param _amount the added amount
      */
-    function _addBoosterDeployment(bytes32 _deploymentId, address _account, uint256 _amount) internal {
+    function _addBoosterDeployment(
+        bytes32 _deploymentId,
+        address _account,
+        uint256 _amount
+    ) internal {
         DeploymentPool storage deploymentPool = deploymentPools[_deploymentId];
         onDeploymentBoosterUpdate(_deploymentId, _account);
         deploymentPool.boosterPoint += _amount;
         deploymentPool.accountBooster[_account] += _amount;
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
         totalBoosterPoint += _amount;
-        
+
         emit DeploymentBoosterAdded(_deploymentId, _account, _amount);
     }
 

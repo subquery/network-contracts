@@ -18,6 +18,7 @@ import './interfaces/IEraManager.sol';
 import './interfaces/IStakingManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title Purchase Offer Market Contract
@@ -42,7 +43,12 @@ import './utils/MathUtil.sol';
  * Consumers can cancel their purchase offer after expire date for free, but if cancel the unexpired Purchase Offer
  * we will charge the penalty fee.
  */
-contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOfferMarket {
+contract PurchaseOfferMarket is
+    Initializable,
+    OwnableUpgradeable,
+    IPurchaseOfferMarket,
+    SQParameter
+{
     using SafeERC20 for IERC20;
 
     /**
@@ -139,6 +145,9 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
         settings = _settings;
         penaltyRate = _penaltyRate;
         penaltyDestination = _penaltyDestination;
+
+        emit Parameter('penaltyRate', abi.encodePacked(penaltyRate));
+        emit Parameter('penaltyDestination', abi.encodePacked(penaltyDestination));
     }
 
     /**
@@ -156,6 +165,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
     function setPenaltyRate(uint256 _penaltyRate) external onlyOwner {
         require(_penaltyRate < PER_MILL, 'PO001');
         penaltyRate = _penaltyRate;
+        emit Parameter('penaltyRate', abi.encodePacked(penaltyRate));
     }
 
     /**
@@ -164,6 +174,7 @@ contract PurchaseOfferMarket is Initializable, OwnableUpgradeable, IPurchaseOffe
      */
     function setPenaltyDestination(address _penaltyDestination) external onlyOwner {
         penaltyDestination = _penaltyDestination;
+        emit Parameter('penaltyDestination', abi.encodePacked(penaltyDestination));
     }
 
     /**

@@ -8,12 +8,13 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 import '../interfaces/IEraManager.sol';
 import '../interfaces/ISettings.sol';
+import '../utils/SQParameter.sol';
 
 /**
  * @title EraManager contract
  * @notice Produce epochs based on a period to coordinate contracts. Staking and reward distributing are running based on Eras
  */
-contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
+contract EraManager is Initializable, OwnableUpgradeable, IEraManager, SQParameter {
     /// @dev ### STATES
     /// @notice ISettings contract which stores SubQuery network contracts address
     ISettings public settings;
@@ -51,6 +52,8 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
         eraPeriod = _eraPeriod;
         eraNumber = 1;
         emit NewEraStart(eraNumber, msg.sender);
+        emit Parameter('eraPeriod', abi.encodePacked(eraPeriod));
+        emit Parameter('maintenance', abi.encodePacked(false));
     }
 
     /**
@@ -63,10 +66,12 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
 
     function enableMaintenance() external onlyOwner {
         maintenance = true;
+        emit Parameter('maintenance', abi.encodePacked(true));
     }
 
     function disableMaintenance() external onlyOwner {
         maintenance = false;
+        emit Parameter('maintenance', abi.encodePacked(false));
     }
 
     /**
@@ -119,5 +124,6 @@ contract EraManager is Initializable, OwnableUpgradeable, IEraManager {
         eraPeriod = newEraPeriod;
 
         emit EraPeriodUpdate(eraNumber, eraPeriod);
+        emit Parameter('eraPeriod', abi.encodePacked(eraPeriod));
     }
 }

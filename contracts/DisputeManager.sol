@@ -13,8 +13,9 @@ import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IDisputeManager.sol';
+import './utils/SQParameter.sol';
 
-contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
+contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable, SQParameter {
     using SafeERC20 for IERC20;
 
     enum DisputeType {
@@ -65,6 +66,7 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
         settings = _settings;
         nextDisputeId = 1;
         minimumDeposit = _minimumDeposit;
+        emit Parameter('minimumDeposit', abi.encodePacked(minimumDeposit));
     }
 
     /**
@@ -77,6 +79,7 @@ contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable {
 
     function setMinimumDeposit(uint256 _minimumDeposit) external onlyOwner {
         minimumDeposit = _minimumDeposit;
+        emit Parameter('minimumDeposit', abi.encodePacked(minimumDeposit));
     }
 
     function createDispute(
