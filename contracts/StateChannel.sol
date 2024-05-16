@@ -17,7 +17,7 @@ import './interfaces/IRewardsPool.sol';
 import './interfaces/IConsumerRegistry.sol';
 import './interfaces/IRewardsBooster.sol';
 import './utils/MathUtil.sol';
-import './utils/ParameterUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title State Channel Contract
@@ -25,7 +25,7 @@ import './utils/ParameterUtil.sol';
  * The contact for Pay-as-you-go service for Indexer and Consumer.
  * The consumer is not only a account, but also a contract
  */
-contract StateChannel is Initializable, OwnableUpgradeable, ParameterUtil {
+contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
 

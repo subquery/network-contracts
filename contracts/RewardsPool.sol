@@ -18,14 +18,14 @@ import './interfaces/ISQToken.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
-import './utils/ParameterUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title Rewards Pool Contract
  * @notice ### Overview
  * The Rewards Pool using the Cobb-Douglas production function for PAYG and Open Agreement
  */
-contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, ParameterUtil {
+contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParameter {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
     using MathUtil for uint256;

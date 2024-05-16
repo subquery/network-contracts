@@ -13,9 +13,9 @@ import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/ISQToken.sol';
 import './interfaces/IDisputeManager.sol';
-import './utils/ParameterUtil.sol';
+import './utils/SQParameter.sol';
 
-contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable, ParameterUtil {
+contract DisputeManager is IDisputeManager, Initializable, OwnableUpgradeable, SQParameter {
     using SafeERC20 for IERC20;
 
     enum DisputeType {

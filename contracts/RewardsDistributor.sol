@@ -20,7 +20,7 @@ import './interfaces/IStaking.sol';
 import './interfaces/IStakingManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
-import './utils/ParameterUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title Rewards Distributer Contract
@@ -56,12 +56,7 @@ import './utils/ParameterUtil.sol';
  *
  * Runner's commission is treated as unbond request to Staking Contract, which applies a lock period on it.
  */
-contract RewardsDistributor is
-    IRewardsDistributor,
-    Initializable,
-    OwnableUpgradeable,
-    ParameterUtil
-{
+contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgradeable, SQParameter {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 

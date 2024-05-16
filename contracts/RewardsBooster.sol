@@ -24,14 +24,14 @@ import './interfaces/IProjectRegistry.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
-import './utils/ParameterUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title Rewards for running
  * @notice ### Overview
  * The RewardsRunning using the Cobb-Douglas production function for staking & running
  */
-contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, ParameterUtil {
+contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, SQParameter {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
     using MathUtil for uint256;

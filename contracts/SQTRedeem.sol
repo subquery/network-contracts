@@ -10,9 +10,9 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import './interfaces/ISQTGift.sol';
-import './utils/ParameterUtil.sol';
+import './utils/SQParameter.sol';
 
-contract SQTRedeem is Initializable, OwnableUpgradeable, ParameterUtil {
+contract SQTRedeem is Initializable, OwnableUpgradeable, SQParameter {
     address public sqtoken;
 
     /// @notice redeemable status of the contract

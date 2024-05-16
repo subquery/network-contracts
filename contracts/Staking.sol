@@ -16,7 +16,7 @@ import './interfaces/ISQToken.sol';
 import './interfaces/IDisputeManager.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
-import './utils/ParameterUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title Staking Contract
@@ -67,7 +67,7 @@ import './utils/ParameterUtil.sol';
  * Tokens will transfer to user's account after the lockPeriod when users apply withdraw.
  * Every widthdraw will cost a fix rate fees(unbondFeeRate), and these fees will be transferred to treasury.
  */
-contract Staking is IStaking, Initializable, OwnableUpgradeable, ParameterUtil {
+contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
