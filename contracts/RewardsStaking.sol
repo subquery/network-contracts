@@ -449,8 +449,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
     }
 
     function runnerStakeWeight() public view returns (uint256) {
-        if (_runnerStakeWeight < 1e6) {
-            return 1e6;
+        if (_runnerStakeWeight < PER_MILL) {
+            return PER_MILL;
         } else {
             return _runnerStakeWeight;
         }
@@ -458,8 +458,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
 
     function previousRunnerStakeWeight(address runner) public view returns (uint256) {
         uint256 runnerStakeWeight = _previousRunnerStakeWeights[runner];
-        if (runnerStakeWeight < 1e6) {
-            return 1e6;
+        if (runnerStakeWeight < PER_MILL) {
+            return PER_MILL;
         } else {
             return runnerStakeWeight;
         }
