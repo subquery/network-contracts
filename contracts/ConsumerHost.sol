@@ -15,6 +15,7 @@ import './interfaces/IConsumer.sol';
 import './interfaces/IEraManager.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IConsumerRegistry.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title Consumer Host Contract
@@ -25,7 +26,7 @@ import './interfaces/IConsumerRegistry.sol';
  * Other contracts can verify the consumer and safeTransfer SQT.
  *
  */
-contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
+contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, SQParameter {
     using SafeERC20 for IERC20;
 
     // -- Structs --
@@ -109,6 +110,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
         __Ownable_init();
         settings = _settings;
         feePerMill = _feePerMill;
+        emit Parameter('feePerMill', abi.encodePacked(feePerMill));
 
         // Approve Token to State Channel.
         IERC20 sqt = IERC20(_sqt);
@@ -130,6 +132,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165 {
     function setFeeRate(uint256 _feePerMill) external onlyOwner {
         require(_feePerMill <= PER_MILL, 'C001');
         feePerMill = _feePerMill;
+
+        emit Parameter('feePerMill', abi.encodePacked(feePerMill));
     }
 
     /**

@@ -17,6 +17,7 @@ import './interfaces/IRewardsPool.sol';
 import './interfaces/IConsumerRegistry.sol';
 import './interfaces/IRewardsBooster.sol';
 import './utils/MathUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title State Channel Contract
@@ -24,7 +25,7 @@ import './utils/MathUtil.sol';
  * The contact for Pay-as-you-go service for Indexer and Consumer.
  * The consumer is not only a account, but also a contract
  */
-contract StateChannel is Initializable, OwnableUpgradeable {
+contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
 
@@ -113,6 +114,8 @@ contract StateChannel is Initializable, OwnableUpgradeable {
 
         terminateExpiration = 86400;
         settings = _settings;
+
+        emit Parameter('terminateExpiration', abi.encodePacked(terminateExpiration));
     }
 
     /**
@@ -129,6 +132,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
      */
     function setTerminateExpiration(uint256 expiration) external onlyOwner {
         terminateExpiration = expiration;
+        emit Parameter('terminateExpiration', abi.encodePacked(terminateExpiration));
     }
 
     /**
@@ -379,8 +383,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
         require(isIndexer || isConsumer, 'G008');
 
         // check state
-        bool allowState = query.spent >= state.spent && query.spent < state.total;
-        require(allowState, 'SC005');
+        require(query.spent >= state.spent, 'SC005');
 
         // check sign
         if (query.spent > 0) {
@@ -421,7 +424,7 @@ contract StateChannel is Initializable, OwnableUpgradeable {
             require(msg.sender == state.indexer, 'G008');
         }
 
-        // check count
+        // check state
         require(query.spent >= state.spent, 'SC005');
 
         // check sign

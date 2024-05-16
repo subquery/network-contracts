@@ -10,13 +10,14 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
 import './interfaces/ISettings.sol';
 import './interfaces/IEraManager.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title PermissionedExchange Contract
  * @notice For now PermissionedExchange contract allows traders trade their SQTs on admin sent orders, later on we may allow others to send their orders. Controllers may set the trade quota for trader, and trader cannot trade over the their quota.
  * It provides a way for indexers to swap their rewards(SQT) to stable token with a fixed exchange rate.
  */
-contract PermissionedExchange is Initializable, OwnableUpgradeable {
+contract PermissionedExchange is Initializable, OwnableUpgradeable, SQParameter {
     using SafeERC20 for IERC20;
 
     struct ExchangeOrder {
@@ -93,6 +94,9 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
         for (uint256 i; i < _controllers.length; i++) {
             exchangeController[_controllers[i]] = true;
         }
+
+        emit Parameter('tradeLimitation', abi.encodePacked(uint256(0)));
+        emit Parameter('tradeLimitationPerAccount', abi.encodePacked(uint256(0)));
     }
 
     /**
@@ -118,6 +122,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      */
     function setTradeLimitation(uint256 _limit) external onlyOwner {
         tradeLimitation = _limit;
+        emit Parameter('tradeLimitation', abi.encodePacked(tradeLimitation));
     }
 
     /**
@@ -126,6 +131,7 @@ contract PermissionedExchange is Initializable, OwnableUpgradeable {
      */
     function setTradeLimitationPerAccount(uint256 _limit) external onlyOwner {
         tradeLimitationPerAccount = _limit;
+        emit Parameter('tradeLimitationPerAccount', abi.encodePacked(tradeLimitationPerAccount));
     }
 
     /**

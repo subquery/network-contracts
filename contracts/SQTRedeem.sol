@@ -10,8 +10,9 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import './interfaces/ISQTGift.sol';
+import './utils/SQParameter.sol';
 
-contract SQTRedeem is Initializable, OwnableUpgradeable {
+contract SQTRedeem is Initializable, OwnableUpgradeable, SQParameter {
     address public sqtoken;
 
     /// @notice redeemable status of the contract
@@ -32,6 +33,7 @@ contract SQTRedeem is Initializable, OwnableUpgradeable {
         __Ownable_init();
 
         sqtoken = _sqtoken;
+        emit Parameter('redeemable', abi.encodePacked(false));
     }
 
     function deposit(uint256 amount) public onlyOwner {
@@ -44,6 +46,7 @@ contract SQTRedeem is Initializable, OwnableUpgradeable {
 
     function setRedeemable(bool _redeemable) external onlyOwner {
         redeemable = _redeemable;
+        emit Parameter('redeemable', abi.encodePacked(redeemable));
     }
 
     function setRedeemableAmount(address nft, uint256 seriesId, uint256 amount) public onlyOwner {

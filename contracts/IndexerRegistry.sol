@@ -15,6 +15,7 @@ import './Constants.sol';
 import './interfaces/IRewardsStaking.sol';
 import './interfaces/IStakingManager.sol';
 import './utils/MathUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title Indexer Registry Contract
@@ -44,7 +45,7 @@ import './utils/MathUtil.sol';
  * Indexer must set a appropriate commission rate and stake enough SQT Token when registering.
  * Indexer need to make sure all the query projects with NOT INDEXING status before unregister.
  */
-contract IndexerRegistry is Initializable, OwnableUpgradeable {
+contract IndexerRegistry is Initializable, OwnableUpgradeable, SQParameter {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
@@ -113,6 +114,8 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
 
         settings = _settings;
         minimumStakingAmount = _minimumStakingAmount;
+        emit Parameter('minimumStakingAmount', abi.encodePacked(minimumStakingAmount));
+        emit Parameter('minimumCommissionRate', abi.encodePacked(uint256(0)));
     }
 
     /**
@@ -129,6 +132,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
      */
     function setminimumStakingAmount(uint256 amount) external onlyOwner {
         minimumStakingAmount = amount;
+        emit Parameter('minimumStakingAmount', abi.encodePacked(minimumStakingAmount));
     }
 
     /**
@@ -139,6 +143,7 @@ contract IndexerRegistry is Initializable, OwnableUpgradeable {
         require(rate <= PER_MILL, 'IR006');
         minimumCommissionRate = rate;
         emit MinimumCommissionRateUpdated(rate);
+        emit Parameter('minimumCommissionRate', abi.encodePacked(minimumCommissionRate));
     }
 
     /**

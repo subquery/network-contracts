@@ -18,13 +18,14 @@ import './interfaces/ISQToken.sol';
 import './utils/FixedMath.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title Rewards Pool Contract
  * @notice ### Overview
  * The Rewards Pool using the Cobb-Douglas production function for PAYG and Open Agreement
  */
-contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
+contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParameter {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
@@ -94,6 +95,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
         alphaNumerator = 1;
         alphaDenominator = 3;
         settings = _settings;
+
+        emit Parameter('alphaNumerator', abi.encodePacked(alphaNumerator));
+        emit Parameter('alphaDenominator', abi.encodePacked(alphaDenominator));
     }
 
     /**
@@ -115,6 +119,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable {
         alphaDenominator = _alphaDenominator;
 
         emit Alpha(alphaNumerator, alphaDenominator);
+        emit Parameter('alphaNumerator', abi.encodePacked(alphaNumerator));
+        emit Parameter('alphaDenominator', abi.encodePacked(alphaDenominator));
     }
 
     /**
