@@ -39,6 +39,7 @@ export interface IndexerControllerInput {
 }
 
 export interface ProjectInput {
+    id: string;
     account: string;
     metadata: object;
     projectType: number;
@@ -150,7 +151,7 @@ export const loaders = {
         }
     },
     Project: async function (
-        { account, deployments, metadata, projectType }: ProjectInput,
+        { account, deployments, metadata, projectType, id }: ProjectInput,
         { accounts, ipfs, sdk, rootAccount }: Context
     ) {
         console.log(`Project Start for ${metadata['name']}`);
@@ -163,6 +164,12 @@ export const loaders = {
         if (!deploymentId) {
             const { cid: deploymentCid } = await ipfs.add(firstDeploy.deployment, { pin: true });
             deploymentId = deploymentCid.toString();
+        }
+        // update metadata
+        if (id) {
+            const tx = await sdk.projectRegistry.connect(author).updateProjectMetadata(id, metadataCid.toString());
+            await tx.wait();
+            return;
         }
         const tx = await sdk.projectRegistry
             .connect(author)
@@ -191,14 +198,16 @@ export const loaders = {
         assert(indexer, `can't find indexer account ${account}`);
         let tx;
         if (action === 'index') {
-            tx = await sdk.projectRegistry.connect(indexer).startService(cidToBytes32(deploymentId), indexer.address);
+            tx = await sdk.projectRegistry.connect(indexer).startService2(cidToBytes32(deploymentId), indexer.address);
         } else if (action === 'ready') {
             const status = await sdk.projectRegistry.deploymentStatusByIndexer(
                 cidToBytes32(deploymentId),
                 indexer.address
             );
             if (status === 1) {
-                tx = await sdk.projectRegistry.connect(indexer).startService(cidToBytes32(deploymentId), indexer.address);
+                tx = await sdk.projectRegistry
+                    .connect(indexer)
+                    .startService2(cidToBytes32(deploymentId), indexer.address);
             } else {
                 console.log(`skip because the current status is ${status}`);
             }

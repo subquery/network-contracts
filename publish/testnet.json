@@ -141,10 +141,10 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:52:10 GMT"
         },
         "RewardsStaking": {
-            "innerAddress": "0x76105B682f20977FD4B178271739B0737F6dC33c",
+            "innerAddress": "0x04Cd739fE7E1a684f3c97F1EE09894c66F51a104",
             "address": "0xB64D73B96358855075576D66746D2a88e043CC1E",
-            "bytecodeHash": "ba0b25deebb4f77bf140d5d3d6987a3df7b943c4f30afd9ad2654845dc1e119b",
-            "lastUpdate": "Thu, 28 Mar 2024 07:11:47 GMT"
+            "bytecodeHash": "973d6f56de547f460b966b06a0189163146471417c3d8d25e47217315fd78b26",
+            "lastUpdate": "Mon, 06 May 2024 21:47:28 GMT"
         },
         "RewardsHelper": {
             "innerAddress": "0xa7eE3bFD854bd609D1485FE845d996EEDE87aF7B",

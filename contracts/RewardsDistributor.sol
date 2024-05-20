@@ -355,7 +355,7 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
         );
         rewardsStaking.checkAndReflectSettlement(runner, rewardInfo.lastClaimEra);
         require(rewardInfo.lastClaimEra <= rewardsStaking.getLastSettledEra(runner), 'RD005');
-
+        rewardsStaking.applyRunnerWeightChange(runner);
         rewardInfo.lastClaimEra++;
 
         // claim rewards pool.

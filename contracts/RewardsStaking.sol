@@ -59,7 +59,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
     //Era number of CommissionRateChange should apply: runner => CommissionRateChange Era number
     mapping(address => uint256) private pendingCommissionRateChange;
 
-    //Last settled Era number: runner => lastSettledEra
+    //Last settled Era number: runner => lastSettledEra this is the last era runner have applied all stake changes
     mapping(address => uint256) private lastSettledEra;
 
     //total staking amount per runner: runner => totalStakingAmount
@@ -70,6 +70,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
 
     //rewards commission rates per runner: runner => commissionRates
     mapping(address => uint256) private commissionRates;
+
+    // @notice Node Runner Stake Weight (PerMill), must be > 1e6
+    uint256 private _runnerStakeWeight;
+
+    mapping(address => uint256) private _previousRunnerStakeWeights;
 
     // -- Events --
 
@@ -87,6 +92,14 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      * @dev Emitted when lastSettledEra update.
      */
     event SettledEraUpdated(address indexed runner, uint256 era);
+
+    // @dev used for _runnerStakeWeight and other global param changes
+    event ParameterUpdated(string param, uint256 value);
+
+    /**
+     * @dev Emitted when _previousRunnerStakeWeights is update.
+     */
+    event RunnerWeightApplied(address indexed runner, uint256 weight);
 
     /**
      * @dev Initialize this contract.
@@ -110,6 +123,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
     modifier onlyIndexerRegistry() {
         require(msg.sender == settings.getContractAddress(SQContracts.IndexerRegistry), 'G017');
         _;
+    }
+
+    function setRunnerStakeWeight(uint256 _weight) external onlyOwner {
+        _runnerStakeWeight = _weight;
+        emit ParameterUpdated('RunnerStakeWeight', _weight);
     }
 
     /**
@@ -137,6 +155,13 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             );
             //apply first onStakeChange
             uint256 newDelegation = stakingManager.getAfterDelegationAmount(_runner, _runner);
+            // apply _runnerStakeWeight
+            uint256 _runnerStakeWeight = runnerStakeWeight();
+            newDelegation = MathUtil.mulDiv(newDelegation, _runnerStakeWeight, PER_MILL);
+            if (_previousRunnerStakeWeights[_runner] != _runnerStakeWeight) {
+                _setPreviousRunnerStakeWeights(_runner, _runnerStakeWeight);
+            }
+            // end
             delegation[_runner][_runner] = newDelegation;
 
             uint256 newAmount = MathUtil.mulDiv(
@@ -149,7 +174,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             //make sure the eraReward be 0, when runner reregister
             rewardsDistributor.resetEraReward(_runner, currentEra);
 
-            totalStakingAmount[_runner] = stakingManager.getTotalStakingAmount(_runner);
+            _updateTotalStakingAmount(stakingManager, _runner, 0, false);
 
             //apply first onICRChgange
             uint256 newCommissionRate = IIndexerRegistry(
@@ -173,7 +198,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
                 IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
                     .isIndexer(_runner)
             ) {
-                require(rewardsDistributor.collectAndDistributeEraRewards(currentEra, _runner) == lastEra, 'RS002');
+                require(
+                    rewardsDistributor.collectAndDistributeEraRewards(currentEra, _runner) ==
+                        lastEra,
+                    'RS002'
+                );
                 IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(_runner);
                 require(checkAndReflectSettlement(_runner, rewardInfo.lastClaimEra), 'RS003');
             }
@@ -226,6 +255,15 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             settings.getContractAddress(SQContracts.StakingManager)
         );
         uint256 newDelegation = stakingManager.getAfterDelegationAmount(staker, runner);
+
+        // test whether it is runner's Stake Change
+        if (staker == runner) {
+            uint256 _runnerStakeWeight = runnerStakeWeight();
+            newDelegation = MathUtil.mulDiv(newDelegation, _runnerStakeWeight, PER_MILL);
+            if (_previousRunnerStakeWeights[runner] != _runnerStakeWeight) {
+                _setPreviousRunnerStakeWeights(runner, _runnerStakeWeight);
+            }
+        }
         delegation[staker][runner] = newDelegation;
 
         uint256 newAmount = MathUtil.mulDiv(newDelegation, rewardInfo.accSQTPerStake, PER_TRILL);
@@ -239,7 +277,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
         pendingStakerNos[runner][lastStaker] = stakerIndex;
         pendingStakeChangeLength[runner]--;
 
-        _updateTotalStakingAmount(stakingManager, runner, lastClaimEra);
+        _updateTotalStakingAmount(stakingManager, runner, lastClaimEra, true);
         emit StakeChanged(runner, staker, newDelegation);
 
         // notify stake allocation
@@ -272,7 +310,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
         ).getCommissionRate(runner);
         commissionRates[runner] = newCommissionRate;
         pendingCommissionRateChange[runner] = 0;
-        _updateTotalStakingAmount(stakingManager, runner, rewardInfo.lastClaimEra);
+        _updateTotalStakingAmount(stakingManager, runner, rewardInfo.lastClaimEra, true);
         emit ICRChanged(runner, newCommissionRate);
     }
 
@@ -302,6 +340,39 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
     }
 
     /**
+     * @dev Called by RewardsDistributor#collectAndDistributeEraRewards(), apply
+     * Require to be true when someone try to claimRewards() or onStakeChangeRequested().
+     */
+    function applyRunnerWeightChange(address _runner) public {
+        uint256 _runnerStakeWeight = runnerStakeWeight();
+        uint256 _previousRunnerStakeWeight = previousRunnerStakeWeight(_runner);
+        if (_runnerStakeWeight != _previousRunnerStakeWeight) {
+            IRewardsDistributor rewardsDistributor = _getRewardsDistributor();
+            rewardsDistributor.claimFrom(_runner, _runner);
+            IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(_runner);
+            // increase runner stake
+            uint256 currentStake = delegation[_runner][_runner];
+            // can not find unaltered ownstake, revert calculate from currentStake
+            uint256 newStake = MathUtil.mulDiv(
+                currentStake,
+                _runnerStakeWeight,
+                _previousRunnerStakeWeight
+            );
+            //            assert(newStake >= currentStake, 'error todo');
+            uint256 newDebtAmount = MathUtil.mulDiv(newStake, rewardInfo.accSQTPerStake, PER_TRILL);
+            rewardsDistributor.setRewardDebt(_runner, _runner, newDebtAmount);
+            delegation[_runner][_runner] = newStake;
+            if (newStake > currentStake) {
+                totalStakingAmount[_runner] += newStake - currentStake;
+            } else {
+                totalStakingAmount[_runner] -= currentStake - newStake;
+            }
+            _setPreviousRunnerStakeWeights(_runner, _runnerStakeWeight);
+        }
+        // else skip
+    }
+
+    /**
      * @dev Update the totalStakingAmount of the runner with the state from Staking contract.
      * Called when applyStakeChange or applyICRChange.
      * @param stakingManager Staking contract interface
@@ -310,10 +381,14 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
     function _updateTotalStakingAmount(
         IStakingManager stakingManager,
         address runner,
-        uint256 lastClaimEra
+        uint256 lastClaimEra,
+        bool doCheck
     ) private {
-        if (checkAndReflectSettlement(runner, lastClaimEra)) {
-            totalStakingAmount[runner] = stakingManager.getTotalStakingAmount(runner);
+        if (!doCheck || checkAndReflectSettlement(runner, lastClaimEra)) {
+            uint256 runnerStake = stakingManager.getAfterDelegationAmount(runner, runner);
+            totalStakingAmount[runner] =
+                stakingManager.getTotalStakingAmount(runner) +
+                MathUtil.mulDiv(runnerStake, (runnerStakeWeight() - PER_MILL), PER_MILL);
         }
     }
 
@@ -337,6 +412,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      */
     function _pendingStakeChange(address _runner, address _staker) private view returns (bool) {
         return pendingStakers[_runner][pendingStakerNos[_runner][_staker]] == _staker;
+    }
+
+    function _setPreviousRunnerStakeWeights(address _runner, uint256 _weight) private {
+        _previousRunnerStakeWeights[_runner] = _weight;
+        emit RunnerWeightApplied(_runner, _weight);
     }
 
     // -- Views --
@@ -366,5 +446,22 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
 
     function getPendingStaker(address runner, uint256 i) public view returns (address) {
         return pendingStakers[runner][i];
+    }
+
+    function runnerStakeWeight() public view returns (uint256) {
+        if (_runnerStakeWeight < PER_MILL) {
+            return PER_MILL;
+        } else {
+            return _runnerStakeWeight;
+        }
+    }
+
+    function previousRunnerStakeWeight(address runner) public view returns (uint256) {
+        uint256 runnerStakeWeight = _previousRunnerStakeWeights[runner];
+        if (runnerStakeWeight < PER_MILL) {
+            return PER_MILL;
+        } else {
+            return runnerStakeWeight;
+        }
     }
 }

@@ -281,7 +281,8 @@ export async function acceptPlan(
         sqtToken.address,
         METADATA_HASH
     );
-    await planManager.connect(indexer).createPlan(value, 0, DEPLOYMENT_ID);
+    const planTplId = (await planManager.nextTemplateId()).toNumber() - 1;
+    await planManager.connect(indexer).createPlan(value, planTplId, DEPLOYMENT_ID);
     await planManager.connect(consumer).acceptPlan((await planManager.nextPlanId()).toNumber() - 1, DEPLOYMENT_ID);
 }
 
