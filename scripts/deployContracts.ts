@@ -640,7 +640,7 @@ export async function upgradeContracts(configs: {
     checkOnly: boolean;
     implementationOnly: boolean;
     target: string;
-    matcher: string;
+    matcher?: string[];
     network: SubqueryNetwork;
 }): Promise<ContractDeployment> {
     const { deployment, confirms, checkOnly, implementationOnly, target, matcher } = configs;
@@ -661,7 +661,7 @@ export async function upgradeContracts(configs: {
 
     const changed: (keyof typeof CONTRACTS)[] = [];
     for (const contract of Object.keys(UPGRADEBAL_CONTRACTS)) {
-        if (matcher && contract !== matcher) {
+        if (matcher && !matcher.includes(contract)) {
             continue;
         }
         const bytecodeHash = codeToHash(CONTRACTS[contract].bytecode);
