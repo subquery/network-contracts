@@ -24,6 +24,7 @@
         "upgrade": "ts-node --transpileOnly scripts/upgrade.ts",
         "setup": "ts-node --transpileOnly scripts/startup.ts",
         "verify": "ts-node --transpileOnly scripts/verify.ts",
+        "upgrade:verify": "ts-node --transpileOnly scripts/verifyUpgrade.ts",
         "seed": "node -r ts-node/register/transpile-only -r dotenv/config scripts/seed.ts",
         "kepler-e2e-test": "node -r ts-node/register/transpile-only test/e2e/kepler.e2e.ts"
     },
@@ -86,6 +87,7 @@
         "typechain": "^8.3.1",
         "typescript": "^4.6.3",
         "vuepress": "^1.9.7",
+        "web3": "^4.8.0",
         "yargs": "^16.2.0"
     },
     "lint-staged": {
