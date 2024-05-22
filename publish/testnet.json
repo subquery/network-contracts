@@ -207,10 +207,10 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:53:27 GMT"
         },
         "Airdropper": {
-            "innerAddress": "0x86DF167B61bd62320058FCc9099D82FebB9a054b",
+            "innerAddress": "0xbE33E2433Fa9640e3B027D84FC6864C1F2D82AF3",
             "address": "0x748Fb3A2DBCC300b2a382820Ebec46B77718EF22",
-            "bytecodeHash": "122b9796060b8325d5f2fc93d3d6ffe3f362cb676fcae9c225f15f8796de0d56",
-            "lastUpdate": "Thu, 22 Feb 2024 13:34:02 GMT"
+            "bytecodeHash": "d8a9c84eb6b982ae4a5f3b0d850cbfe70b25af00a445f2066417fb57348d00f5",
+            "lastUpdate": "Wed, 22 May 2024 03:39:40 GMT"
         },
         "L2Vesting": {
             "innerAddress": "0x3d10fBd0BB7aD6d71B577FD0ddF17D9736779808",
