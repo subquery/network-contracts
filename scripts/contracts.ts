@@ -64,6 +64,7 @@ import {
     AirdropperLite,
     L2Vesting,
     L2Vesting__factory,
+    Airdropper__factory,
 } from '../src';
 
 export type Contracts = {
@@ -133,6 +134,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<
     AirdropperLite: [CONTRACTS.AirdropperLite, AirdropperLite__factory],
     SQTRedeem: [CONTRACTS.SQTRedeem, SQTRedeem__factory],
     L2Vesting: [CONTRACTS.L2Vesting, L2Vesting__factory],
+    Airdropper: [CONTRACTS.Airdropper, Airdropper__factory],
 };
 
 export type Config = number | string | string[];
