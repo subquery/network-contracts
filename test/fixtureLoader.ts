@@ -166,25 +166,31 @@ export const loaders = {
             deploymentId = deploymentCid.toString();
         }
         // update metadata
+        let projectId = id;
         if (id) {
             const tx = await sdk.projectRegistry.connect(author).updateProjectMetadata(id, metadataCid.toString());
             await tx.wait();
-            return;
-        }
-        const tx = await sdk.projectRegistry
-            .connect(author)
-            .createProject(
-                metadataCid.toString(),
-                cidToBytes32(deploymentMetadata.toString()),
-                cidToBytes32(deploymentId),
-                projectType
+        } else {
+            const tx = await sdk.projectRegistry
+                .connect(author)
+                .createProject(
+                    metadataCid.toString(),
+                    cidToBytes32(deploymentMetadata.toString()),
+                    cidToBytes32(deploymentId),
+                    projectType
+                );
+            const receipt = await tx.wait();
+            const evt = receipt.events.find(
+                (log) => log.topics[0] === utils.id('ProjectCreated(address,uint256,string,uint8,bytes32,bytes32)')
             );
-        const receipt = await tx.wait();
-        const evt = receipt.events.find(
-            (log) => log.topics[0] === utils.id('ProjectCreated(address,uint256,string,uint8,bytes32,bytes32)')
-        );
-        const { projectId } = evt.args;
-        for (const { deploymentId, version } of restDeploy) {
+            projectId = evt.args.projectId;
+        }
+        for (const { deploymentId: _d, deployment, version } of restDeploy) {
+            let deploymentId = _d;
+            if (!deploymentId) {
+                const { cid: deploymentCid } = await ipfs.add(deployment, { pin: true });
+                deploymentId = deploymentCid.toString();
+            }
             const { cid } = await ipfs.add(JSON.stringify(version), { pin: true });
             await sdk.projectRegistry
                 .connect(author)

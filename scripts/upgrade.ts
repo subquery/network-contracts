@@ -21,7 +21,7 @@ const main = async () => {
         checkOnly,
         implementationOnly,
         target,
-        matcher,
+        matcher: matcher ? matcher.split(',') : undefined,
         network: name,
     });
 
