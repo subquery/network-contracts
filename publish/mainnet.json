@@ -165,10 +165,10 @@
             "lastUpdate": "Tue, 21 May 2024 22:09:23 GMT"
         },
         "ConsumerHost": {
-            "innerAddress": "0x8EBbDC3e6400ED4584E1D095aDB62366600Dc2ac",
+            "innerAddress": "0x11649D79776B5f19892E6999fe9dce3fe9Bb4b3A",
             "address": "0x1185FD5a8B1dcdea654790219eAfA87105F201C5",
-            "bytecodeHash": "587e755977f0840b092458302753b869d9caa8bbc3039a162d84df86640b2e5a",
-            "lastUpdate": "Tue, 21 May 2024 22:09:43 GMT"
+            "bytecodeHash": "de234bb8469a5d72b99f72b79f5a0dea0f9fe0ff2dc72a6984ba3d6bc91ca70f",
+            "lastUpdate": "Mon, 27 May 2024 04:08:54 GMT"
         },
         "DisputeManager": {
             "innerAddress": "0xbec62e17BBF014c748ce2913f8F4108183566a07",
