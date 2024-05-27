@@ -114,7 +114,15 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
 
         // Approve Token to State Channel.
         IERC20 sqt = IERC20(_sqt);
-        sqt.approve(_channel, sqt.totalSupply());
+        sqt.approve(_channel, type(uint256).max);
+    }
+
+    /**
+     * @notice Allowance enough token to state channel.
+     */
+    function allowance() external onlyOwner {
+        IERC20 sqt = IERC20(settings.getContractAddress(SQContracts.SQToken));
+        sqt.approve(settings.getContractAddress(SQContracts.StateChannel), type(uint256).max);
     }
 
     /**
@@ -247,7 +255,6 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
         // transfer the balance to contract
         IERC20 sqt = IERC20(settings.getContractAddress(SQContracts.SQToken));
         sqt.safeTransferFrom(msg.sender, address(this), amount);
-        sqt.safeIncreaseAllowance(settings.getContractAddress(SQContracts.StateChannel), amount);
 
         Consumer storage consumer = consumers[msg.sender];
         consumer.balance += amount;
