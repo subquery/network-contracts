@@ -259,13 +259,6 @@
     },
     {
         "inputs": [],
-        "name": "allowance",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [],
         "name": "approve",
         "outputs": [],
         "stateMutability": "nonpayable",
@@ -621,6 +614,13 @@
     {
         "inputs": [],
         "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "resetAllowance",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

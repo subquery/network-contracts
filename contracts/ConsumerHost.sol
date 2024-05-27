@@ -118,9 +118,9 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
     }
 
     /**
-     * @notice Allowance enough token to state channel.
+     * @notice aprove enough token to state channel.
      */
-    function allowance() external onlyOwner {
+    function resetAllowance() external onlyOwner {
         IERC20 sqt = IERC20(settings.getContractAddress(SQContracts.SQToken));
         sqt.approve(settings.getContractAddress(SQContracts.StateChannel), type(uint256).max);
     }
