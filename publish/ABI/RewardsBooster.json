@@ -828,6 +828,24 @@
             },
             {
                 "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "refreshAccRewardsPerBooster",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
                 "name": "_spender",
                 "type": "address"
             },
