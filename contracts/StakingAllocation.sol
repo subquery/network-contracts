@@ -97,7 +97,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         require(_isAuth(_runner), 'SAL02');
         require(
             IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
-                .isDeploymentRegistered(_deployment),
+                .isServiceAvailable(_deployment, _runner),
             'SAL05'
         );
 
@@ -120,6 +120,17 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         require(_isAuth(_runner), 'SAL02');
         require(allocatedTokens[_runner][_deployment] >= _amount, 'SAL04');
 
+        _removeAllocation(_deployment, _runner, _amount);
+    }
+
+    function stopService(bytes32 _deployment, address _runner) external {
+        require(msg.sender == settings.getContractAddress(SQContracts.ProjectRegistry), 'SAL06');
+        uint256 amount = allocatedTokens[_runner][_deployment];
+
+        _removeAllocation(_deployment, _runner, amount);
+    }
+
+    function _removeAllocation(bytes32 _deployment, address _runner, uint256 _amount) private {
         // collect rewards (if any) before change allocation
         IRewardsBooster rb = IRewardsBooster(
             settings.getContractAddress(SQContracts.RewardsBooster)
