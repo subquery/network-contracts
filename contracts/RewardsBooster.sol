@@ -834,8 +834,9 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     function refreshAccRewardsPerBooster(bytes32 _deploymentId, address _account) external {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
         BoosterQueryReward memory boosterQueryRewards = deployment.boosterQueryRewards[_account];
-        require(deployment.accQueryRewardsPerBooster == 0, 'Not needed');
-        deployment.accQueryRewardsPerBooster = boosterQueryRewards
-            .accQueryRewardsPerBoosterSnapshot;
+        if (deployment.accQueryRewardsPerBooster == 0) {
+            deployment.accQueryRewardsPerBooster = boosterQueryRewards
+                .accQueryRewardsPerBoosterSnapshot;
+        }
     }
 }
