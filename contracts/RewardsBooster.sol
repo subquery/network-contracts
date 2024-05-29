@@ -705,7 +705,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
 
         uint256 deploymentBoostedToken = deployment.boosterPoint;
         if (deploymentBoostedToken == 0) {
-            return (0, accRewardsForDeployment);
+            return (deployment.accQueryRewardsPerBooster, accRewardsForDeployment);
         }
 
         ProjectType projectType = IProjectRegistry(
