@@ -33,6 +33,7 @@ import {
     timeTravel,
     revertMsg,
     lastestBlockTime,
+    startService,
 } from './helper';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { BigNumber, constants } from 'ethers';
@@ -199,6 +200,19 @@ describe('RewardsBooster Contract', () => {
         await registerRunner(token, indexerRegistry, staking, root, runner0, etherParse('10000'), 1e5);
         await registerRunner(token, indexerRegistry, staking, root, runner1, etherParse('10000'), 1e5);
         await registerRunner(token, indexerRegistry, staking, root, runner2, etherParse('10000'), 1e5);
+
+        await startService(projectRegistry, deploymentId0, runner0);
+        await startService(projectRegistry, deploymentId1, runner0);
+        await startService(projectRegistry, deploymentId2, runner0);
+        await startService(projectRegistry, deploymentId3, runner0);
+        await startService(projectRegistry, deploymentId0, runner1);
+        await startService(projectRegistry, deploymentId1, runner1);
+        await startService(projectRegistry, deploymentId2, runner1);
+        await startService(projectRegistry, deploymentId3, runner1);
+        await startService(projectRegistry, deploymentId0, runner2);
+        await startService(projectRegistry, deploymentId1, runner2);
+        await startService(projectRegistry, deploymentId2, runner2);
+        await startService(projectRegistry, deploymentId3, runner2);
 
         await token.connect(runner0).increaseAllowance(staking.address, etherParse('100000'));
     });
@@ -430,35 +444,67 @@ describe('RewardsBooster Contract', () => {
                 await blockTravel(999);
                 const consumer = consumer0.address;
                 // swap with consumer account
-                await rewardsBooster.connect(consumer0).swapBoosterDeployment(consumer, deploymentId1, deploymentId2, etherParse('3000'));
+                await rewardsBooster
+                    .connect(consumer0)
+                    .swapBoosterDeployment(consumer, deploymentId1, deploymentId2, etherParse('3000'));
                 // check states
-                const accRewardsPerBooster = await rewardsBooster.getAccRewardsPerBooster(); 
+                const accRewardsPerBooster = await rewardsBooster.getAccRewardsPerBooster();
                 const pool1 = await rewardsBooster.deploymentPools(deploymentId1);
                 expect(pool1.boosterPoint).to.eq(etherParse('7000'));
-                expect(pool1.accRewardsPerBooster).to.eq(accRewardsPerBooster)
-                const runnerDeployment2Booster = await rewardsBooster.getRunnerDeploymentBooster(deploymentId1, consumer);
+                expect(pool1.accRewardsPerBooster).to.eq(accRewardsPerBooster);
+                const runnerDeployment2Booster = await rewardsBooster.getRunnerDeploymentBooster(
+                    deploymentId1,
+                    consumer
+                );
                 expect(runnerDeployment2Booster).to.eq(etherParse('7000'));
 
                 const pool2 = await rewardsBooster.deploymentPools(deploymentId2);
                 expect(pool2.boosterPoint).to.eq(etherParse('3000'));
                 expect(pool2.accRewardsPerBooster).to.eq(accRewardsPerBooster);
-                const runnerDeployment3Booster = await rewardsBooster.getRunnerDeploymentBooster(deploymentId2, consumer);
+                const runnerDeployment3Booster = await rewardsBooster.getRunnerDeploymentBooster(
+                    deploymentId2,
+                    consumer
+                );
                 expect(runnerDeployment3Booster).to.eq(etherParse('3000'));
 
                 // swap with controller account
                 await consumerRegistry.connect(consumer0).addController(consumer, controller.address);
-                await rewardsBooster.connect(consumer0).swapBoosterDeployment(consumer, deploymentId1, deploymentId3, etherParse('3000'));
+                await rewardsBooster
+                    .connect(consumer0)
+                    .swapBoosterDeployment(consumer, deploymentId1, deploymentId3, etherParse('3000'));
             });
 
             it('fail to swap booster with invalid params', async () => {
                 // 1. invalid `to` deploymentId
-                await expect(rewardsBooster.swapBoosterDeployment(consumer0.address, deploymentId2, deploymentId4, etherParse('10000'))).to.be.revertedWith('RB008');
+                await expect(
+                    rewardsBooster.swapBoosterDeployment(
+                        consumer0.address,
+                        deploymentId2,
+                        deploymentId4,
+                        etherParse('10000')
+                    )
+                ).to.be.revertedWith('RB008');
                 // 2. same `from` and `to` deploymentId
-                await expect(rewardsBooster.swapBoosterDeployment(consumer0.address, deploymentId2, deploymentId2, etherParse('10000'))).to.be.revertedWith('RB013');
+                await expect(
+                    rewardsBooster.swapBoosterDeployment(
+                        consumer0.address,
+                        deploymentId2,
+                        deploymentId2,
+                        etherParse('10000')
+                    )
+                ).to.be.revertedWith('RB013');
                 // 3. invalid caller
-                await expect(rewardsBooster.connect(consumer0).swapBoosterDeployment(consumer1.address, deploymentId1, deploymentId2, etherParse('10000'))).to.be.revertedWith('RB014');
+                await expect(
+                    rewardsBooster
+                        .connect(consumer0)
+                        .swapBoosterDeployment(consumer1.address, deploymentId1, deploymentId2, etherParse('10000'))
+                ).to.be.revertedWith('RB014');
                 // 4. not enough amount to swap
-                await expect(rewardsBooster.connect(consumer0).swapBoosterDeployment(consumer0.address, deploymentId1, deploymentId2, etherParse('10000'))).to.be.revertedWith('RB003');
+                await expect(
+                    rewardsBooster
+                        .connect(consumer0)
+                        .swapBoosterDeployment(consumer0.address, deploymentId1, deploymentId2, etherParse('10000'))
+                ).to.be.revertedWith('RB003');
             });
         });
     });
@@ -910,9 +956,7 @@ describe('RewardsBooster Contract', () => {
 
     describe('overflow in allocation and booster', () => {
         it('overflow clear by RewardsBooster', async () => {
-            await stakingAllocation
-                .connect(runner0)
-                .addAllocation(deploymentId0, runner0.address, etherParse('10000'));
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('10000'));
             const status0 = await stakingAllocation.runnerAllocation(runner0.address);
             expect(status0.overflowAt).to.eq(0);
             expect(status0.overflowTime).to.eq(0);

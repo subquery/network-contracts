@@ -24,4 +24,6 @@ interface IStakingAllocation {
 
     // total allocations on the deployment
     function deploymentAllocations(bytes32 _deploymentId) external view returns (uint256);
+
+    function stopService(bytes32 _deployment, address _runner) external;
 }

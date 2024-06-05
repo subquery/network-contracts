@@ -161,6 +161,16 @@ export async function registerRunner(
     return tx;
 }
 
+export async function startService(projectRegistry: ProjectRegistry, deploymentId: string, runner: Wallet) {
+    const tx = await projectRegistry.connect(runner).startService(deploymentId);
+    return tx;
+}
+
+export async function stopService(projectRegistry: ProjectRegistry, deploymentId: string, runner: Wallet) {
+    const tx = await projectRegistry.connect(runner).stopService(deploymentId);
+    return tx;
+}
+
 export async function createPurchaseOffer(
     purchaseOfferMarket: PurchaseOfferMarket,
     token: Contract,

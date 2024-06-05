@@ -15,6 +15,7 @@ import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IProjectRegistry.sol';
 import './interfaces/IServiceAgreementRegistry.sol';
+import './interfaces/IStakingAllocation.sol';
 
 /**
  * @title Project Registry Contract
@@ -330,6 +331,12 @@ contract ProjectRegistry is
         deploymentStatusByIndexer[deploymentId][runner] = ServiceStatus.TERMINATED;
         numberOfDeployments[runner]--;
         emit ServiceStatusChanged(runner, deploymentId, ServiceStatus.TERMINATED);
+
+        // remove allocation from staking
+        IStakingAllocation(settings.getContractAddress(SQContracts.StakingAllocation)).stopService(
+            deploymentId,
+            runner
+        );
     }
 
     /**

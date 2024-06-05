@@ -19,7 +19,7 @@ import {
     RewardsHelper,
 } from '../src';
 import { deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
-import { etherParse, time, startNewEra, timeTravel, registerRunner } from './helper';
+import { etherParse, time, startNewEra, timeTravel, registerRunner, startService, stopService } from './helper';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { constants } from 'ethers';
 
@@ -130,6 +130,10 @@ describe('StakingAllocation Contract', () => {
         await registerRunner(token, indexerRegistry, staking, root, runner0, etherParse('10000'), 1e5);
         await registerRunner(token, indexerRegistry, staking, root, runner1, etherParse('10000'), 1e5);
         await registerRunner(token, indexerRegistry, staking, root, runner2, etherParse('10000'), 1e5);
+
+        await startService(projectRegistry, deploymentId0, runner0);
+        await startService(projectRegistry, deploymentId1, runner0);
+        await startService(projectRegistry, deploymentId0, runner1);
 
         await token.connect(runner0).increaseAllowance(staking.address, etherParse('100000'));
         await token.connect(runner1).increaseAllowance(staking.address, etherParse('100000'));
@@ -261,6 +265,20 @@ describe('StakingAllocation Contract', () => {
             await checkAllocation(runner1, etherParse('9000'), etherParse('9000'), false, true);
         });
 
+        it('add allocation to a stopped project', async () => {
+            await checkAllocation(runner0, etherParse('10000'), 0, false, false);
+            await stopService(projectRegistry, deploymentId0, runner0);
+
+            await expect(
+                stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('5000'))
+            ).to.revertedWith('SAL05');
+
+            await startService(projectRegistry, deploymentId0, runner0);
+
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('5000'));
+            await checkAllocation(runner0, etherParse('10000'), etherParse('5000'), false, false);
+        });
+
         it('over-allocate and recover', async () => {
             await stakingAllocation
                 .connect(runner0)
@@ -297,6 +315,25 @@ describe('StakingAllocation Contract', () => {
             await expect(
                 stakingAllocation.connect(runner0).addAllocation(deploymentIds[0], runner0.address, 1)
             ).to.revertedWith('SAL03');
+        });
+
+        it('remove allocation when stop service', async () => {
+            await checkAllocation(runner0, etherParse('10000'), 0, false, false);
+            await stakingManager.connect(runner0).stake(runner0.address, etherParse('10000'));
+            await checkAllocation(runner0, etherParse('10000'), 0, false, false);
+            await applyStaking(runner0, runner0);
+            await checkAllocation(runner0, etherParse('20000'), 0, false, false);
+
+            await stakingAllocation
+                .connect(runner0)
+                .addAllocation(deploymentIds[0], runner0.address, etherParse('20000'));
+            await checkAllocation(runner0, etherParse('20000'), etherParse('20000'), false, false);
+
+            await stopService(projectRegistry, deploymentId0, runner0);
+            await checkAllocation(runner0, etherParse('20000'), 0, false, false);
+            await expect(
+                stakingAllocation.connect(runner0).addAllocation(deploymentIds[0], runner0.address, etherParse('20000'))
+            ).to.revertedWith('SAL05');
         });
     });
 });
