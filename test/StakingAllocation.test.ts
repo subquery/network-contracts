@@ -265,6 +265,20 @@ describe('StakingAllocation Contract', () => {
             await checkAllocation(runner1, etherParse('9000'), etherParse('9000'), false, true);
         });
 
+        it('add allocation to a stopped project', async () => {
+            await checkAllocation(runner0, etherParse('10000'), 0, false, false);
+            await stopService(projectRegistry, deploymentId0, runner0);
+
+            await expect(
+                stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('5000'))
+            ).to.revertedWith('SAL05');
+
+            await startService(projectRegistry, deploymentId0, runner0);
+
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('5000'));
+            await checkAllocation(runner0, etherParse('10000'), etherParse('5000'), false, false);
+        });
+
         it('over-allocate and recover', async () => {
             await stakingAllocation
                 .connect(runner0)
