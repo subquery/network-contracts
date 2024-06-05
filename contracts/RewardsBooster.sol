@@ -136,6 +136,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     function setBoosterQueryRewardRate(ProjectType _type, uint256 _rate) external onlyOwner {
         require(_rate < PER_MILL, 'RB002');
         boosterQueryRewardRate[_type] = _rate;
+        emit Parameter('boosterQueryRewardRate', abi.encodePacked(_type, _rate));
     }
 
     function setMinimumDeploymentBooster(uint256 _minimumDeploymentBooster) external onlyOwner {
@@ -155,7 +156,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
 
         issuancePerBlock = _issuancePerBlock;
         emit ParameterUpdated('issuancePerBlock', issuancePerBlock);
-        emit Parameter('issuancePerBlock', abi.encodePacked(issuancePerBlock));
     }
 
     /**
