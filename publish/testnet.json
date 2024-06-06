@@ -105,10 +105,10 @@
             "lastUpdate": "Tue, 21 May 2024 22:11:11 GMT"
         },
         "ProjectRegistry": {
-            "innerAddress": "0x53b5Df226E16191664258c73EF8631Cd075E7D0b",
+            "innerAddress": "0x43586d56Cc6D3f081c877a169eA4BE0f573e8529",
             "address": "0xaa5c9b4a3975FF78ffDd00321dAbce28EF7F7C7c",
-            "bytecodeHash": "4c032df2f01cf73c517b09c05cd042a91be4eb21bdb0292e2ccc5cc24d663982",
-            "lastUpdate": "Mon, 25 Mar 2024 01:44:29 GMT"
+            "bytecodeHash": "90978aa8087976f3477da84931bc060f641ab527fbc1720939123e689d6faeb4",
+            "lastUpdate": "Thu, 06 Jun 2024 02:34:17 GMT"
         },
         "PlanManager": {
             "innerAddress": "0xfA719F8f1ed171483264Bf27DDCeF57416aCECC8",
@@ -195,16 +195,16 @@
             "lastUpdate": "Tue, 21 May 2024 22:04:33 GMT"
         },
         "RewardsBooster": {
-            "innerAddress": "0x50dCFa4D100EB8E35a40857B7B7F0E64BE319b82",
+            "innerAddress": "0x2Cb04e0d3aA393E996CBc32c65fd5DB10d1BB88e",
             "address": "0x4f6A1045A56EeD1D2795b5f6F6713972B67C09C2",
-            "bytecodeHash": "96934570da9e4be1704b1b77df95dac61def599e53102bdc4129926e1556b6ad",
-            "lastUpdate": "Wed, 29 May 2024 00:59:17 GMT"
+            "bytecodeHash": "2f4543bc54ef9d9fcc8599511583ae41166d52f34772e230fdd7c0e59d537c0e",
+            "lastUpdate": "Thu, 06 Jun 2024 02:34:30 GMT"
         },
         "StakingAllocation": {
-            "innerAddress": "0x6d987b33a149e44098A9096C57e74068882Ef6D6",
+            "innerAddress": "0xbB2644201b14b5253a14FA56435796b6D66B6Cc9",
             "address": "0x505B8fD4331080e5130A21349E5438951D4d2e4a",
-            "bytecodeHash": "a04b6daa73e78a63a7080932c1757ad215cb6555b7ac8ebc7610f90553d04905",
-            "lastUpdate": "Fri, 09 Feb 2024 05:53:27 GMT"
+            "bytecodeHash": "e483f63f7aa52cb919fb15eb2813ec66ac1b390baa0253d6019a22b5510f7ef7",
+            "lastUpdate": "Thu, 06 Jun 2024 02:34:42 GMT"
         },
         "Airdropper": {
             "innerAddress": "0xbE33E2433Fa9640e3B027D84FC6864C1F2D82AF3",
