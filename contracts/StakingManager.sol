@@ -266,4 +266,32 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         }
         return slashableAmount;
     }
+
+    function cancelUnbondingFor(uint256 unbondReqId, address user) external onlyOwner {
+        Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
+        require(unbondReqId >= staking.withdrawnLength(user), 'S007');
+        (address indexer, uint256 amount, ) = staking.unbondingAmount(user, unbondReqId);
+        require(amount > 0, 'S007');
+        IIndexerRegistry indexerRegistry = IIndexerRegistry(
+            settings.getContractAddress(SQContracts.IndexerRegistry)
+        );
+        require(indexerRegistry.isIndexer(indexer), 'S007');
+
+        staking.removeUnbondingAmount(user, unbondReqId);
+        staking.addDelegation(msg.sender, indexer, amount);
+    }
+
+    function undelegateFor(
+        address _runner,
+        address _user,
+        uint256 _amount,
+        address _recipient
+    ) external onlyOwner {
+        // check if called by an indexer
+        require(_runner != _user, 'G004');
+        Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
+        uint256 unboundId = staking.startUnbond(_user, _runner, _amount, UnbondType.Undelegation);
+
+        staking.withdrawARequest2(msg.sender, unboundId, _recipient);
+    }
 }

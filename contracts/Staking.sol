@@ -379,7 +379,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         address _runner,
         uint256 _amount,
         UnbondType _type
-    ) external {
+    ) external returns (uint256) {
         require(
             msg.sender == settings.getContractAddress(SQContracts.StakingManager) ||
                 msg.sender == address(this),
@@ -407,6 +407,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         uamount.indexer = _runner;
 
         emit UnbondRequested(_source, _runner, _amount, nextIndex, _type);
+        return nextIndex;
     }
 
     /**
@@ -479,5 +480,30 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         return
             delegation[_source][_runner].valueAt == 0 &&
             delegation[_source][_runner].valueAfter == 0;
+    }
+
+    function withdrawARequest2(
+        address _source,
+        uint256 _index,
+        address _recipient
+    ) external onlyStakingManager {
+        require(_index == withdrawnLength[_source], 'S009');
+        withdrawnLength[_source]++;
+
+        uint256 amount = unbondingAmount[_source][_index].amount;
+        if (amount > 0) {
+            // take specific percentage for fee
+            uint256 feeAmount = MathUtil.mulDiv(unbondFeeRate, amount, PER_MILL);
+            uint256 availableAmount = amount - feeAmount;
+
+            address SQToken = settings.getContractAddress(SQContracts.SQToken);
+            address treasury = settings.getContractAddress(SQContracts.Treasury);
+            IERC20(SQToken).safeTransfer(treasury, feeAmount);
+            IERC20(SQToken).safeTransfer(_recipient, availableAmount);
+
+            lockedAmount[_source] -= amount;
+
+            emit UnbondWithdrawn(_source, availableAmount, feeAmount, _index);
+        }
     }
 }
