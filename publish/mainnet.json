@@ -87,10 +87,10 @@
             "lastUpdate": "Wed, 19 Jun 2024 01:43:43 GMT"
         },
         "StakingManager": {
-            "innerAddress": "0xd59151a4Ee6780586C1d5Ff51e734BF0a2668026",
+            "innerAddress": "0x7BAc0e88DaeA8FA6b32121d6EdCC760F69FFaC60",
             "address": "0x09395a2A58DB45db0da254c7EAa5AC469D8bDc85",
-            "bytecodeHash": "3aa072bf4aa5aec081fa5cf861a01a239df957c3931d9927ae1ed33a58469105",
-            "lastUpdate": "Wed, 19 Jun 2024 01:43:50 GMT"
+            "bytecodeHash": "ee369761379cd961a663e778e9d0fd5384ad2c801a717a7222889619181346ed",
+            "lastUpdate": "Wed, 19 Jun 2024 04:49:25 GMT"
         },
         "EraManager": {
             "innerAddress": "0x94A8E45E9D6dCA44A95BEc33E828B9E9257443D6",

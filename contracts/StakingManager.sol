@@ -278,7 +278,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         require(indexerRegistry.isIndexer(indexer), 'S007');
 
         staking.removeUnbondingAmount(user, unbondReqId);
-        staking.addDelegation(msg.sender, indexer, amount);
+        staking.addDelegation(user, indexer, amount);
     }
 
     function undelegateFor(
@@ -292,6 +292,6 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         uint256 unboundId = staking.startUnbond(_user, _runner, _amount, UnbondType.Undelegation);
 
-        staking.withdrawARequest2(msg.sender, unboundId, _recipient);
+        staking.withdrawARequest2(_user, unboundId, _recipient);
     }
 }
