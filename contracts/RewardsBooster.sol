@@ -190,6 +190,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         uint256 _amount
     ) external onlyRegisteredDeployment(_deploymentId) {
         _addBoosterDeployment(_deploymentId, msg.sender, _amount);
+
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
             msg.sender,
             address(this),
@@ -298,6 +299,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
         totalBoosterPoint += _amount;
 
+        require(deploymentPool.boosterPoint >= minimumDeploymentBooster, 'RB015');
+
         emit DeploymentBoosterAdded(_deploymentId, _account, _amount);
     }
 
@@ -318,6 +321,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         deploymentPool.accountBooster[_account] -= _amount;
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
         totalBoosterPoint -= _amount;
+
+        if (deploymentPool.boosterPoint < minimumDeploymentBooster) {
+            require(deploymentPool.accountBooster[_account] == 0, 'RB016');
+        }
 
         emit DeploymentBoosterRemoved(_deploymentId, _account, _amount);
     }
