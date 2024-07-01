@@ -299,7 +299,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
         totalBoosterPoint += _amount;
 
-        require(deploymentPool.boosterPoint >= minimumDeploymentBooster, 'RB015');
+        require(deploymentPool.accountBooster[_account] >= minimumDeploymentBooster, 'RB015');
 
         emit DeploymentBoosterAdded(_deploymentId, _account, _amount);
     }
@@ -322,7 +322,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
         totalBoosterPoint -= _amount;
 
-        if (deploymentPool.boosterPoint < minimumDeploymentBooster) {
+        if (deploymentPool.accountBooster[_account] < minimumDeploymentBooster) {
             require(deploymentPool.accountBooster[_account] == 0, 'RB016');
         }
 

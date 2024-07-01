@@ -290,14 +290,14 @@ describe('RewardsBooster Contract', () => {
         });
 
         it('can not get booster reward if boosted token less than minimum', async () => {
-            const boosterAmount1 = etherParse('10000');
-            await token.connect(runner0).increaseAllowance(rewardsBooster.address, boosterAmount1);
-            await rewardsBooster.connect(runner0).boostDeployment(deploymentId0, boosterAmount1);
+            const boosterAmount = etherParse('10000');
+            await token.connect(runner0).increaseAllowance(rewardsBooster.address, boosterAmount);
+            await rewardsBooster.connect(runner0).boostDeployment(deploymentId0, boosterAmount);
 
-            const boosterAmount = etherParse('9999');
             await boosterDeployment(token, rewardsBooster, root, deploymentId0, boosterAmount);
 
-            await rewardsBooster.connect(runner0).removeBoosterDeployment(deploymentId0, boosterAmount1);
+            await rewardsBooster.connect(runner0).removeBoosterDeployment(deploymentId0, boosterAmount);
+            await rewardsBooster.removeBoosterDeployment(deploymentId0, boosterAmount);
 
             const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId0);
             await blockTravel(1000);
