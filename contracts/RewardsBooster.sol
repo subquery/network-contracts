@@ -435,13 +435,12 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
 
         // Only accrue rewards if over a threshold
-        uint256 newRewards = (deployment.boosterPoint >= minimumDeploymentBooster) // Accrue new rewards since last snapshot
-            ? MathUtil.mulDiv(
-                getAccRewardsPerBooster() - deployment.accRewardsPerBoosterSnapshot,
-                deployment.boosterPoint,
-                FIXED_POINT_SCALING_FACTOR
-            )
-            : 0;
+        // Accrue new rewards since last snapshot
+        uint256 newRewards = MathUtil.mulDiv(
+            getAccRewardsPerBooster() - deployment.accRewardsPerBoosterSnapshot,
+            deployment.boosterPoint,
+            FIXED_POINT_SCALING_FACTOR
+        );
         return deployment.accRewardsForDeployment + newRewards;
     }
 
