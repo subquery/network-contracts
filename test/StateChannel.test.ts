@@ -544,16 +544,30 @@ describe('StateChannel Contract', () => {
             const preExpirationAt = state.expiredAt;
             const nextExpiration = 5;
             const msg2 = abi.encode(
-                ['uint256', 'address', 'address', 'uint256', 'uint256'],
-                [channelId, runner.address, consumer.address, preExpirationAt, nextExpiration]
+                ['uint256', 'address', 'address', 'uint256', 'uint256', 'uint256'],
+                [channelId, runner.address, consumer.address, etherParse('0.2'), preExpirationAt, nextExpiration]
             );
             const payload2 = ethers.utils.keccak256(msg2);
             const indexerSign = await runner.signMessage(ethers.utils.arrayify(payload2));
             const consumerSign = await consumer.signMessage(ethers.utils.arrayify(payload2));
 
-            await stateChannel.extend(channelId, preExpirationAt, nextExpiration, indexerSign, consumerSign);
+            await stateChannel.extend(
+                channelId,
+                etherParse('0.2'),
+                preExpirationAt,
+                nextExpiration,
+                indexerSign,
+                consumerSign
+            );
             await expect(
-                stateChannel.extend(channelId, preExpirationAt, nextExpiration, indexerSign, consumerSign)
+                stateChannel.extend(
+                    channelId,
+                    etherParse('0.2'),
+                    preExpirationAt,
+                    nextExpiration,
+                    indexerSign,
+                    consumerSign
+                )
             ).to.be.revertedWith('SC002');
         });
 
