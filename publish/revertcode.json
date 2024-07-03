@@ -215,5 +215,7 @@
     "RB012": "Invalid param length to set MissedLabor",
     "RB013": "Deployment ids can not be same",
     "RB014": "Caller is not a controller of the account",
+    "RB015": "Deployment booster is too small, need add more"
+    "RB016": "Deployment booster already too samll, need remove all"
     "OPD01": "l2token address is empty"
 }
