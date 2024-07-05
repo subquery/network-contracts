@@ -87,7 +87,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         bytes callback
     );
     /// @notice Emitted when extend the channel
-    event ChannelExtend(uint256 indexed channelId, uint256 price, uint256 expiredAt);
+    event ChannelExtend(uint256 indexed channelId, uint256 expiredAt, uint256 price);
     /// @notice Emitted when deposit more amount to the channel
     event ChannelFund(uint256 indexed channelId, uint256 realTotal, uint256 total);
     /// @notice Emitted when indexer send a checkpoint to claim the part-amount
@@ -249,11 +249,11 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
      */
     function extend(
         uint256 channelId,
-        uint256 price,
         uint256 preExpirationAt,
         uint256 expiration,
         bytes memory indexerSign,
-        bytes memory consumerSign
+        bytes memory consumerSign,
+        uint256 price
     ) external {
         address indexer = channels[channelId].indexer;
         address consumer = channels[channelId].consumer;
@@ -273,7 +273,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         channels[channelId].expiredAt += expiration;
         channelPrice[channelId] = price;
 
-        emit ChannelExtend(channelId, price, channels[channelId].expiredAt);
+        emit ChannelExtend(channelId, channels[channelId].expiredAt, price);
     }
 
     /**
