@@ -553,20 +553,20 @@ describe('StateChannel Contract', () => {
 
             await stateChannel.extend(
                 channelId,
-                etherParse('0.2'),
                 preExpirationAt,
                 nextExpiration,
                 indexerSign,
-                consumerSign
+                consumerSign,
+                etherParse('0.2')
             );
             await expect(
                 stateChannel.extend(
                     channelId,
-                    etherParse('0.2'),
                     preExpirationAt,
                     nextExpiration,
                     indexerSign,
-                    consumerSign
+                    consumerSign,
+                    etherParse('0.2')
                 )
             ).to.be.revertedWith('SC002');
         });
