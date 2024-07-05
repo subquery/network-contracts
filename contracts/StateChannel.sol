@@ -241,11 +241,11 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
     /**
      * @notice Extend the channel expiredAt
      * @param channelId channel id
-     * @param price new price
      * @param preExpirationAt previous ExpirationAt timestamp
      * @param expiration Extend tiem in seconds
      * @param indexerSign indexer's signature
      * @param consumerSign consumer's signature
+     * @param price new price
      */
     function extend(
         uint256 channelId,
