@@ -87,7 +87,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         bytes callback
     );
     /// @notice Emitted when extend the channel
-    event ChannelExtend(uint256 indexed channelId, uint256 expiredAt);
+    event ChannelExtend(uint256 indexed channelId, uint256 expiredAt, uint256 price);
     /// @notice Emitted when deposit more amount to the channel
     event ChannelFund(uint256 indexed channelId, uint256 realTotal, uint256 total);
     /// @notice Emitted when indexer send a checkpoint to claim the part-amount
@@ -245,13 +245,15 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
      * @param expiration Extend tiem in seconds
      * @param indexerSign indexer's signature
      * @param consumerSign consumer's signature
+     * @param price new price
      */
     function extend(
         uint256 channelId,
         uint256 preExpirationAt,
         uint256 expiration,
         bytes memory indexerSign,
-        bytes memory consumerSign
+        bytes memory consumerSign,
+        uint256 price
     ) external {
         address indexer = channels[channelId].indexer;
         address consumer = channels[channelId].consumer;
@@ -259,7 +261,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
 
         // check sign
         bytes32 payload = keccak256(
-            abi.encode(channelId, indexer, consumer, preExpirationAt, expiration)
+            abi.encode(channelId, indexer, consumer, price, preExpirationAt, expiration)
         );
         if (_isContract(consumer)) {
             require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'C006');
@@ -269,7 +271,9 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         _checkSign(payload, indexerSign, indexer, true);
 
         channels[channelId].expiredAt += expiration;
-        emit ChannelExtend(channelId, channels[channelId].expiredAt);
+        channelPrice[channelId] = price;
+
+        emit ChannelExtend(channelId, channels[channelId].expiredAt, price);
     }
 
     /**
