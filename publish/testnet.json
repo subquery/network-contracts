@@ -153,10 +153,10 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:52:35 GMT"
         },
         "StateChannel": {
-            "innerAddress": "0xFa627a11BC56515305a01450cADCa285efe2C774",
+            "innerAddress": "0xb42c92Cff3d39F625a84cC2Cf3593F2BC334184d",
             "address": "0x8C3d312291CC666757daFbb6eD20874Ae573C895",
-            "bytecodeHash": "577e7bb811e8185c2e9e73f56104ece2eb46846f41110165dac9c61eada232c4",
-            "lastUpdate": "Tue, 21 May 2024 22:03:57 GMT"
+            "bytecodeHash": "1bf3330c01761ee411d6d81f2d29213be3d343cca1478ac1b0e2a25a253745db",
+            "lastUpdate": "Sat, 20 Jul 2024 03:52:21 GMT"
         },
         "ConsumerHost": {
             "innerAddress": "0x0fCCC76D1B4Fb5D19Ea88Ce649D00e77c909F989",
@@ -201,10 +201,10 @@
             "lastUpdate": "Thu, 06 Jun 2024 02:34:30 GMT"
         },
         "StakingAllocation": {
-            "innerAddress": "0xbB2644201b14b5253a14FA56435796b6D66B6Cc9",
+            "innerAddress": "0x9F2375830b1F9b274b2cE422b37589d731D7C781",
             "address": "0x505B8fD4331080e5130A21349E5438951D4d2e4a",
-            "bytecodeHash": "e483f63f7aa52cb919fb15eb2813ec66ac1b390baa0253d6019a22b5510f7ef7",
-            "lastUpdate": "Thu, 06 Jun 2024 02:34:42 GMT"
+            "bytecodeHash": "626d8a8701519096481d09b5f941de4111b36c6e7a007b0b557c5bb17b0b23c8",
+            "lastUpdate": "Sat, 20 Jul 2024 03:52:08 GMT"
         },
         "Airdropper": {
             "innerAddress": "0xbE33E2433Fa9640e3B027D84FC6864C1F2D82AF3",
