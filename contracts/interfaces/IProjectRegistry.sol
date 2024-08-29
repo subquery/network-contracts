@@ -12,7 +12,8 @@ enum ProjectType {
     SUBQUERY,
     RPC,
     SQ_DICT,
-    SUBGRAPH
+    SUBGRAPH,
+    LLM
 }
 
 struct ProjectInfo {

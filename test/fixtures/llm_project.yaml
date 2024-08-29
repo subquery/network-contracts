@@ -1,0 +1,67 @@
+- kind: Project
+  projectType: 4 # llm
+  id: 53
+  metadata:
+    name: Gemma2
+    description: Gemma2 is an open-weights large language model (LLM) developed by the Gemma team at Google DeepMind.
+    websiteUrl: https://github.com/google/gemma
+    codeUrl: https://github.com/google/gemma
+  deployments:
+    - deployment: |
+        kind: LLM
+        specVersion: "1.0.0"
+        model:
+          name: gemma2
+        runner:
+          name: ollama
+          parameter:
+            temperature: 1
+            num_ctx: 4096
+          system: You can call me SubQuery Helper. I am here to help you with your SubQuery projects.
+      version:
+        version: 1.0.0
+        description: |
+          Runner: ollama
+          Parameter: temperature=1, num_ctx=4096
+- kind: Project
+  projectType: 4 # llm
+  metadata:
+    name: llama3.1-8B
+    description: Llama 3.1 is an open-weights large language model (LLM) developed by Meta AI. It's designed to be accessible, adaptable, and powerful, allowing researchers, developers, and individuals to explore the capabilities of artificial intelligence and build innovative applications.
+    websiteUrl: https://ai.facebook.com/
+    codeUrl: https://ai.facebook.com/
+  deployments:
+    - deployment: |
+        kind: LLM
+        specVersion: "1.0.0"
+        model:
+          name: llama3.1
+        runner: 
+          name: ollama
+          system: You can call me SubQuery Helper. I am here to help you with your SubQuery projects.
+      version:
+        version: 1.0.0
+        description: |
+          Runner: ollama
+          Parameters: 8B
+- kind: Project
+  projectType: 4 # llm
+  metadata:
+    name: Mistral-7B
+    description: Mistral is an AI company known for developing advanced, efficient language models. They focus on creating powerful NLP models that are optimized for performance and accessible to a wide audience. Mistral is committed to open-source principles, allowing others to build on their work, and their models are versatile, suitable for various applications across industries.
+    websiteUrl: https://mistral.ai
+    codeUrl: https://mistral.ai
+  deployments:
+    - deployment: |
+        kind: LLM
+        specVersion: "1.0.0"
+        model:
+          name: mistral
+        runner: 
+          name: ollama
+          system: You can call me SubQuery Helper. I am here to help you with your SubQuery projects.
+      version:
+        version: 1.0.0
+        description: |
+          Runner: ollama
+          Parameters: 7B
