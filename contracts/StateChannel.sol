@@ -370,7 +370,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
     }
 
     /**
-     * @notice When indexer/consumer what to finalize in advance, can start a terminate.
+     * @notice When indexer/consumer want to finalize in advance, can start a terminate.
      * If terminate success, consumer will claim the rest of the locked amount.
      * Indexer can respond to this terminate within the time limit
      * @param query the state of the channel
@@ -381,6 +381,12 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         // check sender
         bool isIndexer = msg.sender == state.indexer;
         bool isConsumer = msg.sender == state.consumer;
+        if (!isIndexer && !isConsumer) {
+            address controller;
+            controller = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
+                .getController(state.indexer);
+            isIndexer = msg.sender == controller;
+        }
         if (_isContract(state.consumer)) {
             isConsumer = IConsumer(state.consumer).checkSender(query.channelId, msg.sender);
         }

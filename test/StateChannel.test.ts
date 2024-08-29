@@ -38,7 +38,7 @@ describe('StateChannel Contract', () => {
     const defaultChannelId = ethers.utils.randomBytes(32);
     let queryRewards0;
 
-    let wallet_0, runner, consumer, runner2, runner3, treasury;
+    let wallet_0, runner, controller, consumer, runner2, runner3, treasury;
 
     let token: ERC20;
     let staking: Staking;
@@ -106,7 +106,7 @@ describe('StateChannel Contract', () => {
 
     const deployer = () => deployContracts(wallet_0, runner, treasury);
     before(async () => {
-        [wallet_0, runner, consumer, runner2, runner3, treasury] = await ethers.getSigners();
+        [wallet_0, runner, controller, consumer, runner2, runner3, treasury] = await ethers.getSigners();
     });
 
     beforeEach(async () => {
@@ -409,6 +409,7 @@ describe('StateChannel Contract', () => {
             await token.connect(wallet_0).transfer(consumer.address, etherParse('5'));
             await token.connect(consumer).increaseAllowance(stateChannel.address, etherParse('5'));
             await eraManager.updateEraPeriod(time.duration.days(1).toString());
+            await indexerRegistry.connect(runner).setControllerAccount(controller.address);
         });
 
         it('terminate without spent success', async () => {
@@ -569,6 +570,33 @@ describe('StateChannel Contract', () => {
                     etherParse('0.2')
                 )
             ).to.be.revertedWith('SC002');
+        });
+
+        it('terminate State Channel with controller account', async () => {
+            const channelId = ethers.utils.randomBytes(32);
+            await openChannel(
+                stateChannel,
+                channelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                60
+            );
+
+            const state0 = await stateChannel.channel(channelId);
+            expect(state0.total).to.equal(etherParse('1'));
+            expect(state0.spent).to.equal(etherParse('0'));
+            expect(state0.status).to.equal(1); // Open
+
+            await stateChannel
+                .connect(controller)
+                .terminate(await buildQueryState(channelId, runner, consumer, etherParse('0.1'), true));
+
+            const state = await stateChannel.channel(channelId);
+            expect(state.total).to.equal(etherParse('0')); // empty channel returned
+            expect(state.status).to.equal(0);
         });
 
         /**

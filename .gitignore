@@ -32,3 +32,5 @@ docs/contracts/
 crytic-export/
 corpus/
 package-lock.json
+
+.vscode/settings.json
