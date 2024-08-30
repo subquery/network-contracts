@@ -246,6 +246,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
     /**
      * @notice Deposit amount to hosting, consumer can choose approve or not
      * @param amount the amount
+     * @param isApprove approve consumer host agent to act on user's behalf
      */
     function deposit(uint256 amount, bool isApprove) external {
         require(
@@ -264,6 +265,26 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
         }
 
         emit Deposit(msg.sender, amount, consumer.balance);
+    }
+
+    /**
+     * @notice Deposit amount to hosting, consumer can choose approve or not
+     * @param _amount the amount
+     * @param _for account
+     */
+    function depositFor(uint256 _amount, address _for) external {
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
+        // transfer the balance to contract
+        IERC20 sqt = IERC20(settings.getContractAddress(SQContracts.SQToken));
+        sqt.safeTransferFrom(msg.sender, address(this), _amount);
+
+        Consumer storage consumer = consumers[_for];
+        consumer.balance += _amount;
+
+        emit Deposit(_for, _amount, consumer.balance);
     }
 
     /**

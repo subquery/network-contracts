@@ -316,6 +316,29 @@
     {
         "inputs": [
             {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "_for",
+                "type": "address"
+            }
+        ],
+        "name": "boostDeploymentFor",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "enum ProjectType",
                 "name": "",
                 "type": "uint8"

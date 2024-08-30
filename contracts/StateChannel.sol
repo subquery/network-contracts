@@ -382,9 +382,9 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         bool isIndexer = msg.sender == state.indexer;
         bool isConsumer = msg.sender == state.consumer;
         if (!isIndexer && !isConsumer) {
-            address controller;
-            controller = IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry))
-                .getController(state.indexer);
+            address controller = IIndexerRegistry(
+                settings.getContractAddress(SQContracts.IndexerRegistry)
+            ).getController(state.indexer);
             isIndexer = msg.sender == controller;
         }
         if (_isContract(state.consumer)) {
