@@ -153,10 +153,10 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:52:35 GMT"
         },
         "StateChannel": {
-            "innerAddress": "0xFa627a11BC56515305a01450cADCa285efe2C774",
+            "innerAddress": "0xc7B3B15c7568eA8cD9434d439EBb0058546b3Dee",
             "address": "0x8C3d312291CC666757daFbb6eD20874Ae573C895",
-            "bytecodeHash": "577e7bb811e8185c2e9e73f56104ece2eb46846f41110165dac9c61eada232c4",
-            "lastUpdate": "Tue, 21 May 2024 22:03:57 GMT"
+            "bytecodeHash": "bf89e35fbed0839038beba35cd0461936aef753be05c49ac8261d723b2780c83",
+            "lastUpdate": "Mon, 02 Sep 2024 07:52:06 GMT"
         },
         "ConsumerHost": {
             "innerAddress": "0x0fCCC76D1B4Fb5D19Ea88Ce649D00e77c909F989",
