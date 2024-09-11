@@ -502,12 +502,9 @@ describe('RewardsBooster Contract', () => {
                 ).to.be.revertedWith('RB008');
                 // 2. same `from` and `to` deploymentId
                 await expect(
-                    rewardsBooster.swapBoosterDeployment(
-                        consumer0.address,
-                        deploymentId2,
-                        deploymentId2,
-                        etherParse('10000')
-                    )
+                    rewardsBooster
+                        .connect(consumer0)
+                        .swapBoosterDeployment(consumer0.address, deploymentId2, deploymentId2, etherParse('10000'))
                 ).to.be.revertedWith('RB013');
                 // 3. invalid caller
                 await expect(
