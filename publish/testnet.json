@@ -105,10 +105,10 @@
             "lastUpdate": "Thu, 01 Aug 2024 08:54:22 GMT"
         },
         "ProjectRegistry": {
-            "innerAddress": "0xCdD2DDA50d678352A2FBE7B7468aCDAef5486a27",
+            "innerAddress": "0x59d06e42dd3b96b578B16eD13DFAF9dA92a2b0d4",
             "address": "0xaa5c9b4a3975FF78ffDd00321dAbce28EF7F7C7c",
-            "bytecodeHash": "8ede8dbe7be2bc9f65de3f98f8184e33c6be66a26979e68af5a49bb8be2630e0",
-            "lastUpdate": "Thu, 01 Aug 2024 01:59:36 GMT"
+            "bytecodeHash": "28c1a7326ae290e39ce3e57325f500f8eb3c9b39fc76d6db052d81d20c985fe6",
+            "lastUpdate": "Wed, 11 Sep 2024 11:31:12 GMT"
         },
         "PlanManager": {
             "innerAddress": "0xfA719F8f1ed171483264Bf27DDCeF57416aCECC8",
@@ -129,10 +129,10 @@
             "lastUpdate": "Thu, 01 Aug 2024 08:55:43 GMT"
         },
         "RewardsDistributor": {
-            "innerAddress": "0x5625e26c70bA1D9AD24b47A40E56d86801a66d8a",
+            "innerAddress": "0xe42A85e38017cE848eEa220CF53f2D0fb772c6E0",
             "address": "0x5c0d1F22C4D7aaF35Ade34CA7c7491dBB0A91Cb7",
-            "bytecodeHash": "1e4a62766686f36e717bf8e75972d0d8dfe436597a1bfb4d6a309fc3331abe3f",
-            "lastUpdate": "Tue, 21 May 2024 22:11:22 GMT"
+            "bytecodeHash": "d6772ec56699815859ee19fdd98fe548c8632b434b5ab933abb6305434fda96b",
+            "lastUpdate": "Wed, 11 Sep 2024 11:31:24 GMT"
         },
         "RewardsPool": {
             "innerAddress": "0x6C7F6Cd6A4295D74897ae19Ab01Ea04821979d80",
@@ -141,10 +141,10 @@
             "lastUpdate": "Tue, 21 May 2024 22:02:45 GMT"
         },
         "RewardsStaking": {
-            "innerAddress": "0xD2453Ef535F0100F63aEDF372Ed76B9A79C2FA81",
+            "innerAddress": "0x4AA3fC3848Eddf751642BDE26DBD18a8224C2679",
             "address": "0xB64D73B96358855075576D66746D2a88e043CC1E",
-            "bytecodeHash": "d09589e100dd83e5200944c2ee776aa1b502299d55a16dd60b82606685762557",
-            "lastUpdate": "Tue, 21 May 2024 22:11:34 GMT"
+            "bytecodeHash": "0150db578b495dbc48d4c16d5d7f7125f350fad0c9de11fc5d20f950e06178e4",
+            "lastUpdate": "Wed, 11 Sep 2024 11:31:36 GMT"
         },
         "RewardsHelper": {
             "innerAddress": "0xa7eE3bFD854bd609D1485FE845d996EEDE87aF7B",
@@ -153,16 +153,16 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:52:35 GMT"
         },
         "StateChannel": {
-            "innerAddress": "0xc7B3B15c7568eA8cD9434d439EBb0058546b3Dee",
+            "innerAddress": "0x48e657895d8DEc38558d095d9f5f7825AA7Da1E2",
             "address": "0x8C3d312291CC666757daFbb6eD20874Ae573C895",
-            "bytecodeHash": "bf89e35fbed0839038beba35cd0461936aef753be05c49ac8261d723b2780c83",
-            "lastUpdate": "Mon, 02 Sep 2024 07:52:06 GMT"
+            "bytecodeHash": "4bd7790e735b8f973d4c84bf46c7a6b5aea1352bb0271dfb75a46e630a63e8a8",
+            "lastUpdate": "Wed, 11 Sep 2024 11:32:13 GMT"
         },
         "ConsumerHost": {
-            "innerAddress": "0x0fCCC76D1B4Fb5D19Ea88Ce649D00e77c909F989",
+            "innerAddress": "0x07B1C6beeF0455135C37F8680f136bbE9aE8a9Ad",
             "address": "0xeD5fc5a4AD3e952291FE02B223b137C5d212266f",
-            "bytecodeHash": "de234bb8469a5d72b99f72b79f5a0dea0f9fe0ff2dc72a6984ba3d6bc91ca70f",
-            "lastUpdate": "Mon, 27 May 2024 04:08:00 GMT"
+            "bytecodeHash": "f9f571c4db3784fc0dda7d623b8f84e491c3e96f4c50bbebbb595716ba0a14f2",
+            "lastUpdate": "Wed, 11 Sep 2024 11:32:25 GMT"
         },
         "DisputeManager": {
             "innerAddress": "0xEF9BB723F81f553C2b54A3EE6015aA6403981AEC",
@@ -195,16 +195,16 @@
             "lastUpdate": "Tue, 21 May 2024 22:04:33 GMT"
         },
         "RewardsBooster": {
-            "innerAddress": "0x24be83c03D0202059A7Ef8830b0372f3e35E4e48",
+            "innerAddress": "0x113F10C5fe8C66e7F51Df6A2Dfd1d26d283d7bC4",
             "address": "0x4f6A1045A56EeD1D2795b5f6F6713972B67C09C2",
-            "bytecodeHash": "d73e8fef649dc12d85e0232056a41973f1b9f79af12b5494fb7a5e595b0f8f60",
-            "lastUpdate": "Thu, 01 Aug 2024 08:55:07 GMT"
+            "bytecodeHash": "cf14fe59440af7049bdb6a7520836f02d6a4a3d643850d2260b31234ce211bce",
+            "lastUpdate": "Wed, 11 Sep 2024 11:31:48 GMT"
         },
         "StakingAllocation": {
-            "innerAddress": "0x6c605038CAB04a05125d123Afb8A06Ac98A1216B",
+            "innerAddress": "0xfbeB402CADFCDB28407E86f5F20Ee719f5F6F430",
             "address": "0x505B8fD4331080e5130A21349E5438951D4d2e4a",
-            "bytecodeHash": "ccd53a642783d5640c0ab81fe0fb55bcce3daf53850cf79b48d2070e7c42b3f2",
-            "lastUpdate": "Thu, 01 Aug 2024 08:56:33 GMT"
+            "bytecodeHash": "2798cf9ea2d3501f929d8b3c7083462f97e060774bb0197b3e161c485452ea62",
+            "lastUpdate": "Wed, 11 Sep 2024 11:32:01 GMT"
         },
         "Airdropper": {
             "innerAddress": "0xbE33E2433Fa9640e3B027D84FC6864C1F2D82AF3",
