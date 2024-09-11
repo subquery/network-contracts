@@ -297,12 +297,12 @@ contract ProjectRegistry is
     ) external projectAuthorised(projectId) {
         _setTokenURI(projectId, metadataUri);
 
-        emit ProjectMetadataUpdated(msg.sender, projectId, metadataUri);
+        emit ProjectMetadataUpdated(ownerOf(projectId), projectId, metadataUri);
     }
 
     function _updateProjectLatestDeployment(uint256 projectId, bytes32 deploymentId) internal {
         projectInfos[projectId].latestDeploymentId = deploymentId;
-        emit ProjectLatestDeploymentUpdated(msg.sender, projectId, deploymentId);
+        emit ProjectLatestDeploymentUpdated(ownerOf(projectId), projectId, deploymentId);
     }
 
     /**
@@ -324,7 +324,7 @@ contract ProjectRegistry is
             deploymentInfos[deploymentId].metadata = metadata;
         }
 
-        emit ProjectDeploymentUpdated(msg.sender, projectId, deploymentId, metadata);
+        emit ProjectDeploymentUpdated(ownerOf(projectId), projectId, deploymentId, metadata);
 
         if (updateLatest && projectInfos[projectId].latestDeploymentId != deploymentId) {
             _updateProjectLatestDeployment(projectId, deploymentId);

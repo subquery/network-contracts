@@ -276,6 +276,22 @@ describe('RewardsBooster Contract', () => {
             await rewardsBooster.removeBoosterDeployment(deploymentId0, boosterAmount);
             expect(await token.balanceOf(root.address)).to.eq(balanceBefore);
         });
+        it('can add and remove booster to a deployment from controller', async () => {
+            const boosterAmount = etherParse('10000');
+            const balanceBefore = await token.balanceOf(runner0.address);
+            await token.connect(runner0).increaseAllowance(rewardsBooster.address, boosterAmount);
+
+            await expect(
+                rewardsBooster.connect(runner0).boostDeploymentFor(deploymentId0, boosterAmount, root.address)
+            ).to.be.revertedWith('RB014');
+            await consumerRegistry.connect(root).addController(root.address, runner0.address);
+
+            await rewardsBooster.connect(runner0).boostDeploymentFor(deploymentId0, boosterAmount, root.address);
+
+            expect(await rewardsBooster.getRunnerDeploymentBooster(deploymentId0, root.address)).to.eq(boosterAmount);
+            const balanceAfter = await token.balanceOf(runner0.address);
+            expect(balanceBefore.sub(balanceAfter)).to.eq(boosterAmount);
+        });
 
         it('can query deployment rewards', async () => {
             const perBlockReward = await rewardsBooster.issuancePerBlock();
@@ -470,7 +486,7 @@ describe('RewardsBooster Contract', () => {
                 // swap with controller account
                 await consumerRegistry.connect(consumer0).addController(consumer, controller.address);
                 await rewardsBooster
-                    .connect(consumer0)
+                    .connect(controller)
                     .swapBoosterDeployment(consumer, deploymentId1, deploymentId3, etherParse('10000'));
             });
 

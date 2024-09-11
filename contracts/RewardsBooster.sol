@@ -113,7 +113,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
             bool isController = IConsumerRegistry(
                 settings.getContractAddress(SQContracts.ConsumerRegistry)
             ).isController(consumer, msg.sender);
-            require(isController, 'PR012');
+            require(isController, 'RB014');
         }
 
         _;
@@ -254,15 +254,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         bytes32 from,
         bytes32 to,
         uint256 amount
-    ) external onlyRegisteredDeployment(to) {
+    ) external onlyRegisteredDeployment(to) consumerAuthorised(account) {
         require(from != to, 'RB013');
-        if (account != msg.sender) {
-            require(
-                IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry))
-                    .isController(account, msg.sender),
-                'RB014'
-            );
-        }
 
         require(deploymentPools[from].accountBooster[account] >= amount, 'RB003');
         _removeBoosterDeployment(from, account, amount);

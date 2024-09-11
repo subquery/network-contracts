@@ -4,6 +4,7 @@
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { constants } from 'ethers';
+import { deployContracts } from './setup';
 
 import { metadatas } from './constants';
 import {
@@ -16,10 +17,10 @@ import {
     Staking,
     ProjectType,
     ServiceStatus,
+    ConsumerRegistry,
 } from '../src';
 import { METADATA_HASH, POI, deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
 import { Wallet, createPurchaseOffer, etherParse, futureTimestamp, registerRunner } from './helper';
-import { deployContracts } from './setup';
 
 describe('Project Registry Contract', () => {
     let wallet_0: Wallet;
@@ -35,6 +36,7 @@ describe('Project Registry Contract', () => {
     let purchaseOfferMarket: PurchaseOfferMarket;
     let planManager: PlanManager;
     let setting: Settings;
+    let consumerRegistry: ConsumerRegistry;
 
     const deploymentId = deploymentIds[0];
     const deploymentId2 = deploymentIds[1];
@@ -67,6 +69,7 @@ describe('Project Registry Contract', () => {
         purchaseOfferMarket = deployment.purchaseOfferMarket;
         planManager = deployment.planManager;
         setting = deployment.settings;
+        consumerRegistry = deployment.consumerRegistry;
     });
 
     describe('Initialisation', () => {
@@ -138,6 +141,66 @@ describe('Project Registry Contract', () => {
             expect(await projectRegistry.tokenURI(projectId)).to.equal(`ipfs://${projectMetadata}`);
             await checkTokenUri(projectId, projectMetadata);
         });
+        it('createProjectFor should fail if not the controller', async () => {
+            // create project
+            const projectId = 1;
+            await expect(
+                projectRegistry
+                    .connect(wallet_0)
+                    .createProjectFor(
+                        projectMetadata,
+                        deploymentMetadata,
+                        deploymentId,
+                        ProjectType.SUBQUERY,
+                        wallet_1.address
+                    )
+            ).to.be.revertedWith('PR012');
+        });
+        it('createProjectFor should work', async () => {
+            // create project
+            const projectId = 1;
+            await consumerRegistry.connect(wallet_1).addController(wallet_1.address, wallet_0.address);
+            await projectRegistry.setCreatorRestricted(ProjectType.SUBQUERY, false);
+            await expect(
+                projectRegistry
+                    .connect(wallet_0)
+                    .createProjectFor(
+                        projectMetadata,
+                        deploymentMetadata,
+                        deploymentId,
+                        ProjectType.SUBQUERY,
+                        wallet_1.address
+                    )
+            )
+                .to.be.emit(projectRegistry, 'ProjectCreated')
+                .withArgs(
+                    wallet_1.address,
+                    projectId,
+                    projectMetadata,
+                    ProjectType.SUBQUERY,
+                    deploymentId,
+                    deploymentMetadata
+                );
+
+            // check state updates
+            const projectInfos = await projectRegistry.projectInfos(projectId);
+            expect(projectInfos.latestDeploymentId).to.equal(deploymentId);
+            expect(projectInfos.projectType).to.equal(ProjectType.SUBQUERY);
+
+            const deploymentInfos = await projectRegistry.deploymentInfos(deploymentId);
+            expect(deploymentInfos.projectId).to.equal(projectId);
+            expect(deploymentInfos.metadata).to.equal(deploymentMetadata);
+            expect(await projectRegistry.nextProjectId()).to.equal(2);
+
+            // check nft features
+            expect(await projectRegistry.ownerOf(projectId)).to.equal(wallet_1.address);
+            expect(await projectRegistry.balanceOf(wallet_1.address)).to.equal(1);
+            expect(await projectRegistry.tokenOfOwnerByIndex(wallet_1.address, 0)).to.equal(projectId);
+            expect(await projectRegistry.tokenByIndex(0)).to.equal(projectId);
+            expect(await projectRegistry.totalSupply()).to.equal(1);
+            expect(await projectRegistry.tokenURI(projectId)).to.equal(`ipfs://${projectMetadata}`);
+            await checkTokenUri(projectId, projectMetadata);
+        });
 
         it('authorised account can create project in creatorRestricted mode', async () => {
             await projectRegistry.addCreator(address_1);
@@ -167,6 +230,21 @@ describe('Project Registry Contract', () => {
         it('update project metadata should work', async () => {
             const newProjectMetadata = projectMetadatas[1];
             await expect(projectRegistry.updateProjectMetadata(1, newProjectMetadata))
+                .to.be.emit(projectRegistry, 'ProjectMetadataUpdated')
+                .withArgs(address_0, 1, newProjectMetadata);
+
+            // check state changes
+            const tokenUri = await projectRegistry.tokenURI(1);
+            expect(tokenUri).to.equal(`ipfs://${newProjectMetadata}`);
+        });
+
+        it('update project metadata from controller should work', async () => {
+            const newProjectMetadata = projectMetadatas[1];
+            await expect(
+                projectRegistry.connect(wallet_1).updateProjectMetadata(1, newProjectMetadata)
+            ).to.be.revertedWith('PR004');
+            await consumerRegistry.connect(wallet_0).addController(wallet_0.address, wallet_1.address);
+            await expect(projectRegistry.connect(wallet_1).updateProjectMetadata(1, newProjectMetadata))
                 .to.be.emit(projectRegistry, 'ProjectMetadataUpdated')
                 .withArgs(address_0, 1, newProjectMetadata);
 
@@ -221,6 +299,26 @@ describe('Project Registry Contract', () => {
             expect(deploymentInfo.metadata).to.equal(metadata);
         });
 
+        it("add deployment's metadata from controller should work", async () => {
+            const projectId = 1;
+            const metadata = deploymentMetadatas[1];
+            await expect(
+                projectRegistry.connect(wallet_1).addOrUpdateDeployment(1, deploymentId, metadata, false)
+            ).to.be.revertedWith('PR004');
+            await consumerRegistry.connect(wallet_0).addController(wallet_0.address, wallet_1.address);
+            await expect(projectRegistry.connect(wallet_1).addOrUpdateDeployment(1, deploymentId, metadata, false))
+                .to.be.emit(projectRegistry, 'ProjectDeploymentUpdated')
+                .withArgs(address_0, projectId, deploymentId, metadata);
+
+            // check state changes
+            const projectInfo = await projectRegistry.projectInfos(projectId);
+            const deploymentInfo = await projectRegistry.deploymentInfos(deploymentId);
+            expect(projectInfo.latestDeploymentId).to.equal(deploymentId);
+            expect(projectInfo.projectType).to.equal(ProjectType.SUBQUERY);
+            expect(deploymentInfo.projectId).to.equal(projectId);
+            expect(deploymentInfo.metadata).to.equal(metadata);
+        });
+
         it('update selected deployment as latest should work', async () => {
             const projectId = 1;
             await projectRegistry.addOrUpdateDeployment(projectId, deploymentId2, deploymentMetadata, false);
@@ -228,6 +326,27 @@ describe('Project Registry Contract', () => {
             expect(projectInfo.latestDeploymentId).to.equal(deploymentId);
 
             await expect(projectRegistry.setProjectLatestDeployment(projectId, deploymentId2))
+                .to.be.emit(projectRegistry, 'ProjectLatestDeploymentUpdated')
+                .withArgs(address_0, projectId, deploymentId2);
+
+            // check state changes
+            projectInfo = await projectRegistry.projectInfos(projectId);
+            expect(projectInfo.latestDeploymentId).to.equal(deploymentId2);
+        });
+
+        it('update selected deployment as latest from controller should work', async () => {
+            const projectId = 1;
+
+            await projectRegistry.addOrUpdateDeployment(projectId, deploymentId2, deploymentMetadata, false);
+            let projectInfo = await projectRegistry.projectInfos(projectId);
+            expect(projectInfo.latestDeploymentId).to.equal(deploymentId);
+
+            await expect(
+                projectRegistry.connect(wallet_1).setProjectLatestDeployment(projectId, deploymentId2)
+            ).to.be.revertedWith('PR004');
+            await consumerRegistry.connect(wallet_0).addController(wallet_0.address, wallet_1.address);
+
+            await expect(projectRegistry.connect(wallet_1).setProjectLatestDeployment(projectId, deploymentId2))
                 .to.be.emit(projectRegistry, 'ProjectLatestDeploymentUpdated')
                 .withArgs(address_0, projectId, deploymentId2);
 
@@ -366,9 +485,7 @@ describe('Project Registry Contract', () => {
 
         it('start service with invalid condition should fail', async () => {
             // caller is not indexer
-            await expect(projectRegistry.connect(wallet_2).startService(deploymentId)).to.be.revertedWith(
-                'G002'
-            );
+            await expect(projectRegistry.connect(wallet_2).startService(deploymentId)).to.be.revertedWith('G002');
             // current status is not `NOTINDEXING`
             await projectRegistry.startService(deploymentId);
             await expect(projectRegistry.startService(deploymentId)).to.be.revertedWith('PR002');
@@ -376,9 +493,7 @@ describe('Project Registry Contract', () => {
 
         it('stop indexing with invalid condition should fail', async () => {
             // caller is not an indexer
-            await expect(projectRegistry.connect(wallet_2).stopService(deploymentId)).to.be.revertedWith(
-                'G002'
-            );
+            await expect(projectRegistry.connect(wallet_2).stopService(deploymentId)).to.be.revertedWith('G002');
             // current status is `TERMINATED`
             await expect(projectRegistry.stopService(deploymentId)).to.be.revertedWith('PR005');
             // have ongoing service agreement
