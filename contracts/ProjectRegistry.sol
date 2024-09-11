@@ -10,6 +10,7 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
+import './interfaces/IConsumerRegistry.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IStaking.sol';
 import './interfaces/ISettings.sol';
@@ -114,6 +115,33 @@ contract ProjectRegistry is
         _;
     }
 
+    /// @dev MODIFIER
+    /// @notice only consumer or its controller can call
+    modifier consumerAuthorised(address consumer) {
+        if (msg.sender != consumer) {
+            bool isController = IConsumerRegistry(
+                settings.getContractAddress(SQContracts.ConsumerRegistry)
+            ).isController(consumer, msg.sender);
+            require(isController, 'PR012');
+        }
+
+        _;
+    }
+
+    /// @dev MODIFIER
+    /// @notice only consumer or its controller can call
+    modifier projectAuthorised(uint256 projectId) {
+        address owner = ownerOf(projectId);
+        if (msg.sender != owner) {
+            bool isController = IConsumerRegistry(
+                settings.getContractAddress(SQContracts.ConsumerRegistry)
+            ).isController(owner, msg.sender);
+            require(isController, 'PR004');
+        }
+
+        _;
+    }
+
     /**
      * @dev ### FUNCTIONS
      * @notice Initialize the contract
@@ -205,8 +233,37 @@ contract ProjectRegistry is
         bytes32 deploymentId,
         ProjectType projectType
     ) external {
+        _createProject(
+            projectMetadataUri,
+            deploymentMetdata,
+            deploymentId,
+            projectType,
+            msg.sender
+        );
+    }
+
+    /**
+     * @notice create a project, if in the restrict mode, only creator allowed to call this function
+     */
+    function createProjectFor(
+        string memory projectMetadataUri,
+        bytes32 deploymentMetdata,
+        bytes32 deploymentId,
+        ProjectType projectType,
+        address creator
+    ) external consumerAuthorised(creator) {
+        _createProject(projectMetadataUri, deploymentMetdata, deploymentId, projectType, creator);
+    }
+
+    function _createProject(
+        string memory projectMetadataUri,
+        bytes32 deploymentMetdata,
+        bytes32 deploymentId,
+        ProjectType projectType,
+        address creator
+    ) internal {
         if (creatorRestricted[projectType]) {
-            require(creatorWhitelist[msg.sender], 'PR001');
+            require(creatorWhitelist[creator], 'PR001');
         }
 
         require(deploymentInfos[deploymentId].projectId == 0, 'PR003');
@@ -218,11 +275,11 @@ contract ProjectRegistry is
         deploymentInfos[deploymentId] = DeploymentInfo(projectId, deploymentMetdata);
 
         // Mint the corresponding NFT
-        _safeMint(msg.sender, projectId);
+        _safeMint(creator, projectId);
         _setTokenURI(projectId, projectMetadataUri);
 
         emit ProjectCreated(
-            msg.sender,
+            creator,
             projectId,
             projectMetadataUri,
             projectType,
@@ -234,17 +291,18 @@ contract ProjectRegistry is
     /**
      * @notice update the Metadata of a project, if in the restrict mode, only creator allowed call this function
      */
-    function updateProjectMetadata(uint256 projectId, string memory metadataUri) external {
-        require(ownerOf(projectId) == msg.sender, 'PR004');
-
+    function updateProjectMetadata(
+        uint256 projectId,
+        string memory metadataUri
+    ) external projectAuthorised(projectId) {
         _setTokenURI(projectId, metadataUri);
 
-        emit ProjectMetadataUpdated(msg.sender, projectId, metadataUri);
+        emit ProjectMetadataUpdated(ownerOf(projectId), projectId, metadataUri);
     }
 
     function _updateProjectLatestDeployment(uint256 projectId, bytes32 deploymentId) internal {
         projectInfos[projectId].latestDeploymentId = deploymentId;
-        emit ProjectLatestDeploymentUpdated(msg.sender, projectId, deploymentId);
+        emit ProjectLatestDeploymentUpdated(ownerOf(projectId), projectId, deploymentId);
     }
 
     /**
@@ -255,8 +313,7 @@ contract ProjectRegistry is
         bytes32 deploymentId,
         bytes32 metadata,
         bool updateLatest
-    ) external {
-        require(ownerOf(projectId) == msg.sender, 'PR004');
+    ) external projectAuthorised(projectId) {
         require(deploymentId != bytes32(0) && metadata != bytes32(0), 'PR009');
 
         if (deploymentInfos[deploymentId].projectId == 0) {
@@ -267,15 +324,17 @@ contract ProjectRegistry is
             deploymentInfos[deploymentId].metadata = metadata;
         }
 
-        emit ProjectDeploymentUpdated(msg.sender, projectId, deploymentId, metadata);
+        emit ProjectDeploymentUpdated(ownerOf(projectId), projectId, deploymentId, metadata);
 
         if (updateLatest && projectInfos[projectId].latestDeploymentId != deploymentId) {
             _updateProjectLatestDeployment(projectId, deploymentId);
         }
     }
 
-    function setProjectLatestDeployment(uint256 projectId, bytes32 deploymentId) external {
-        require(ownerOf(projectId) == msg.sender, 'PR004');
+    function setProjectLatestDeployment(
+        uint256 projectId,
+        bytes32 deploymentId
+    ) external projectAuthorised(projectId) {
         require(deploymentInfos[deploymentId].projectId == projectId, 'PR007');
         require(projectInfos[projectId].latestDeploymentId != deploymentId, 'PR010');
 

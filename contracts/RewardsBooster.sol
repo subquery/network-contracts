@@ -106,6 +106,19 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         bytes data
     );
 
+    /// @dev MODIFIER
+    /// @notice only consumer or its controller can call
+    modifier consumerAuthorised(address consumer) {
+        if (msg.sender != consumer) {
+            bool isController = IConsumerRegistry(
+                settings.getContractAddress(SQContracts.ConsumerRegistry)
+            ).isController(consumer, msg.sender);
+            require(isController, 'RB014');
+        }
+
+        _;
+    }
+
     /**
      * @notice ### FUNCTIONS
      * @notice Initialize the contract
@@ -181,7 +194,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     }
 
     /**
-     * @notice add booster deployment staking modify eraPool and deployment map
+     * @notice add booster to a deployment
      * @param _deploymentId the deployment id
      * @param _amount the added amount
      */
@@ -190,6 +203,26 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         uint256 _amount
     ) external onlyRegisteredDeployment(_deploymentId) {
         _addBoosterDeployment(_deploymentId, msg.sender, _amount);
+
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _amount
+        );
+    }
+
+    /**
+     * @notice add booster to a deployment for a different user
+     * @param _deploymentId the deployment id
+     * @param _amount the added amount
+     * @param _for on behalf of the account boost was added
+     */
+    function boostDeploymentFor(
+        bytes32 _deploymentId,
+        uint256 _amount,
+        address _for
+    ) external consumerAuthorised(_for) onlyRegisteredDeployment(_deploymentId) {
+        _addBoosterDeployment(_deploymentId, _for, _amount);
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
             msg.sender,
@@ -221,15 +254,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         bytes32 from,
         bytes32 to,
         uint256 amount
-    ) external onlyRegisteredDeployment(to) {
+    ) external onlyRegisteredDeployment(to) consumerAuthorised(account) {
         require(from != to, 'RB013');
-        if (account != msg.sender) {
-            require(
-                IConsumerRegistry(settings.getContractAddress(SQContracts.ConsumerRegistry))
-                    .isController(account, msg.sender),
-                'RB014'
-            );
-        }
 
         require(deploymentPools[from].accountBooster[account] >= amount, 'RB003');
         _removeBoosterDeployment(from, account, amount);

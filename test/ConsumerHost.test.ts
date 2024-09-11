@@ -248,6 +248,18 @@ describe('ConsumerHost Contract', () => {
             expect((await consumerHost.consumers(consumer.address)).balance).to.equal(etherParse('10'));
         });
 
+        it('Consumer depositFor should work', async () => {
+            await token.increaseAllowance(consumerHost.address, etherParse('10'));
+
+            await expect(consumerHost.depositFor(etherParse('10'), consumer.address))
+                .to.be.emit(consumerHost, 'Deposit')
+                .withArgs(consumer.address, etherParse('10'), etherParse('10'));
+
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('0'));
+            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('10'));
+            expect((await consumerHost.consumers(consumer.address)).balance).to.equal(etherParse('10'));
+        });
+
         it('Consumer withdraw should work', async () => {
             await token.connect(wallet_0).transfer(consumer.address, etherParse('10'));
             await token.connect(consumer).increaseAllowance(consumerHost.address, etherParse('10'));
