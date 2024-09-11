@@ -135,6 +135,37 @@
             },
             {
                 "indexed": false,
+                "internalType": "bytes32",
+                "name": "deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "indexer",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "ChannelLabor2",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "channelId",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
                 "internalType": "address",
                 "name": "indexer",
                 "type": "address"

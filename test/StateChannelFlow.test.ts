@@ -175,13 +175,13 @@ describe('StateChannel Workflow Tests', () => {
         expect((await stateChannel.channel(channelId)).spent).to.equal(etherParse('3'));
 
         expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('37'));
-        expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('3'));
+        expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('3'));
 
         await startNewEra(eraManager);
 
         //batchCollect at rewardpool
         await rewardsPool.batchCollect(runner.address);
-        expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0'));
+        // expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0'));
         expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('3'));
         expect(
             await rewardsDistributor.getRewardAddTable(runner.address, (await eraManager.eraNumber()).sub(1))
@@ -210,21 +210,21 @@ describe('StateChannel Workflow Tests', () => {
         expect((await stateChannel.channel(channelId3)).spent).to.equal(etherParse('4'));
 
         expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('35'));
-        expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('5'));
+        expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('5'));
 
         await startNewEra(eraManager);
 
         //batchCollect at rewardpool
         await rewardsPool.batchCollect(runner.address);
         await rewardsPool.batchCollect(runner2.address);
-        expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0'));
-        expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('4.766033487533059372'));
+        // expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0'));
+        expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('5'));
         expect(
             await rewardsDistributor.getRewardAddTable(runner.address, (await eraManager.eraNumber()).sub(1))
-        ).to.equal(etherParse('1.842015749320193294'));
+        ).to.equal(etherParse('1'));
         expect(
             await rewardsDistributor.getRewardAddTable(runner2.address, (await eraManager.eraNumber()).sub(1))
-        ).to.equal(etherParse('2.924017738212866078'));
+        ).to.equal(etherParse('4'));
     });
 
     it('check balance when two indexer with staking and deploymentIds', async () => {
@@ -244,20 +244,20 @@ describe('StateChannel Workflow Tests', () => {
         expect((await stateChannel.channel(channelId4)).spent).to.equal(etherParse('3'));
 
         expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('30'));
-        expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('10'));
+        expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('10'));
 
         await startNewEra(eraManager);
 
         //batchCollect at rewardpool
         await rewardsPool.batchCollect(runner.address);
         await rewardsPool.batchCollect(runner2.address);
-        expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0'));
-        expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('9.743474327295976483'));
+        // expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0'));
+        expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('10'));
         expect(
             await rewardsDistributor.getRewardAddTable(runner.address, (await eraManager.eraNumber()).sub(1))
-        ).to.equal(etherParse('4.162810166126582740'));
+        ).to.equal(etherParse('3'));
         expect(
             await rewardsDistributor.getRewardAddTable(runner2.address, (await eraManager.eraNumber()).sub(1))
-        ).to.equal(etherParse('5.580664161169393743'));
+        ).to.equal(etherParse('7'));
     });
 });

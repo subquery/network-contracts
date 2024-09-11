@@ -11,8 +11,10 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 
 import './interfaces/IConsumer.sol';
+import './interfaces/IEraManager.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './interfaces/ISettings.sol';
+import './interfaces/IRewardsDistributor.sol';
 import './interfaces/IRewardsPool.sol';
 import './interfaces/IConsumerRegistry.sol';
 import './interfaces/IRewardsBooster.sol';
@@ -103,6 +105,13 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
     event ChannelFinalize(uint256 indexed channelId, uint256 total, uint256 remain);
     /// @notice Emitted when Settle the channel with new state
     event ChannelLabor(bytes32 deploymentId, address indexer, uint256 amount);
+    /// @notice Emitted when Settle the channel with new state
+    event ChannelLabor2(
+        uint256 indexed channelId,
+        bytes32 deploymentId,
+        address indexer,
+        uint256 amount
+    );
 
     /**
      * @dev ### FUNCTIONS
@@ -525,14 +534,32 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         if (amount > 0) {
             address indexer = channels[query.channelId].indexer;
             bytes32 deploymentId = channels[query.channelId].deploymentId;
-            address rewardPoolAddress = settings.getContractAddress(SQContracts.RewardsPool);
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(
-                rewardPoolAddress,
+            // rewards pool is deprecated
+            //            address rewardPoolAddress = settings.getContractAddress(SQContracts.RewardsPool);
+            //            IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(
+            //                rewardPoolAddress,
+            //                amount
+            //            );
+            //            IRewardsPool rewardsPool = IRewardsPool(rewardPoolAddress);
+            //            rewardsPool.labor(deploymentId, indexer, amount);
+
+            IRewardsDistributor rewardsDistributor = IRewardsDistributor(
+                ISettings(settings).getContractAddress(SQContracts.RewardsDistributor)
+            );
+            IEraManager eraManager = IEraManager(
+                ISettings(settings).getContractAddress(SQContracts.EraManager)
+            );
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeIncreaseAllowance(
+                address(rewardsDistributor),
                 amount
             );
-            IRewardsPool rewardsPool = IRewardsPool(rewardPoolAddress);
-            rewardsPool.labor(deploymentId, indexer, amount);
-            emit ChannelLabor(deploymentId, indexer, amount);
+            rewardsDistributor.addInstantRewards(
+                indexer,
+                address(this),
+                amount,
+                eraManager.safeUpdateAndGetEra()
+            );
+            emit ChannelLabor2(query.channelId, deploymentId, indexer, amount);
         }
 
         // finalise channel if meet the requirements

@@ -368,10 +368,10 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
         rewardInfo.eraReward -= rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
         delete rewardInfo.eraRewardAddTable[rewardInfo.lastClaimEra];
         delete rewardInfo.eraRewardRemoveTable[rewardInfo.lastClaimEra];
-        if (rewardInfo.eraReward != 0) {
-            uint256 totalStake = rewardsStaking.getTotalStakingAmount(runner);
+        uint256 totalStake = rewardsStaking.getTotalStakingAmount(runner);
+        if (rewardInfo.eraReward != 0 && totalStake > 0) {
             uint256 selfStake = rewardsStaking.getDelegationAmount(runner, runner);
-            require(totalStake > 0, 'RD006');
+            //  require(totalStake > 0, 'RD006'); moved to if condition
 
             uint256 commissionRate = IIndexerRegistry(
                 settings.getContractAddress(SQContracts.IndexerRegistry)
