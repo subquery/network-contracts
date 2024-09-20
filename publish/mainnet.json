@@ -105,10 +105,10 @@
             "lastUpdate": "Tue, 21 May 2024 22:14:53 GMT"
         },
         "ProjectRegistry": {
-            "innerAddress": "0x39279f56A9065afB1AaF6cbFeE96DEee86d58bB6",
+            "innerAddress": "0x22C62f513f03B1D63dd81D980DAa373bE979B441",
             "address": "0x5499c960cc54563E7264Fb96be4E0907a93E825B",
-            "bytecodeHash": "90978aa8087976f3477da84931bc060f641ab527fbc1720939123e689d6faeb4",
-            "lastUpdate": "Thu, 06 Jun 2024 02:35:35 GMT"
+            "bytecodeHash": "28c1a7326ae290e39ce3e57325f500f8eb3c9b39fc76d6db052d81d20c985fe6",
+            "lastUpdate": "Thu, 19 Sep 2024 05:25:36 GMT"
         },
         "PlanManager": {
             "innerAddress": "0x1cdA4E7f07C32527630f372aB8243dB9B5bb3099",
@@ -135,10 +135,10 @@
             "lastUpdate": "Wed, 14 Feb 2024 02:40:50 GMT"
         },
         "RewardsDistributor": {
-            "innerAddress": "0x7Ab2AaF3bc4fAaA9e5524244C1162B1d99B9431D",
+            "innerAddress": "0x41C4aC5cC975f2e29A1B2504D30a3a49160c7331",
             "address": "0x18AEC6c407235d446E52Aa243CD1A75421bb264e",
-            "bytecodeHash": "1e4a62766686f36e717bf8e75972d0d8dfe436597a1bfb4d6a309fc3331abe3f",
-            "lastUpdate": "Tue, 21 May 2024 22:14:59 GMT"
+            "bytecodeHash": "d6772ec56699815859ee19fdd98fe548c8632b434b5ab933abb6305434fda96b",
+            "lastUpdate": "Thu, 19 Sep 2024 05:25:42 GMT"
         },
         "RewardsPool": {
             "innerAddress": "0xCa816760aE2d72AC31EB0890f152688BE148Fd31",
@@ -159,16 +159,16 @@
             "lastUpdate": "Wed, 14 Feb 2024 02:42:07 GMT"
         },
         "StateChannel": {
-            "innerAddress": "0x3437371e67be18c05e370c08797365fcaD0Fcf32",
+            "innerAddress": "0xbE9F525369f8429494Ea9764bF7e05c40611aE46",
             "address": "0x6797Df373589dF2AA37FA353c4254FD7834B751A",
-            "bytecodeHash": "577e7bb811e8185c2e9e73f56104ece2eb46846f41110165dac9c61eada232c4",
-            "lastUpdate": "Tue, 21 May 2024 22:09:23 GMT"
+            "bytecodeHash": "4bd7790e735b8f973d4c84bf46c7a6b5aea1352bb0271dfb75a46e630a63e8a8",
+            "lastUpdate": "Thu, 19 Sep 2024 05:26:01 GMT"
         },
         "ConsumerHost": {
-            "innerAddress": "0x11649D79776B5f19892E6999fe9dce3fe9Bb4b3A",
+            "innerAddress": "0x45daB32f75BD9884B1bC5d123dEC8E7465ec3bf5",
             "address": "0x1185FD5a8B1dcdea654790219eAfA87105F201C5",
-            "bytecodeHash": "de234bb8469a5d72b99f72b79f5a0dea0f9fe0ff2dc72a6984ba3d6bc91ca70f",
-            "lastUpdate": "Mon, 27 May 2024 04:08:54 GMT"
+            "bytecodeHash": "f9f571c4db3784fc0dda7d623b8f84e491c3e96f4c50bbebbb595716ba0a14f2",
+            "lastUpdate": "Thu, 19 Sep 2024 05:26:07 GMT"
         },
         "DisputeManager": {
             "innerAddress": "0xbec62e17BBF014c748ce2913f8F4108183566a07",
@@ -195,16 +195,16 @@
             "lastUpdate": "Tue, 21 May 2024 22:09:56 GMT"
         },
         "RewardsBooster": {
-            "innerAddress": "0xed9740c3B18b19a6c8E06C15b88c285728f3AbbD",
+            "innerAddress": "0x6DA2eA5591d39d94Cc2Aae17e619d041D3315c6c",
             "address": "0x7F138D57A5e05b6FBF3bCAdDa9a1252354245464",
-            "bytecodeHash": "2f4543bc54ef9d9fcc8599511583ae41166d52f34772e230fdd7c0e59d537c0e",
-            "lastUpdate": "Thu, 06 Jun 2024 02:35:41 GMT"
+            "bytecodeHash": "cf14fe59440af7049bdb6a7520836f02d6a4a3d643850d2260b31234ce211bce",
+            "lastUpdate": "Thu, 19 Sep 2024 05:25:48 GMT"
         },
         "StakingAllocation": {
-            "innerAddress": "0x1D0314fC6A0457fA2A312E9be32A2C77ED1cB85B",
+            "innerAddress": "0x5Fa0105aa31e05d2f639Fe79DB20700AEC2B859C",
             "address": "0x20E4B978b930ce17a499C33BbF958b5b920F70E1",
-            "bytecodeHash": "e483f63f7aa52cb919fb15eb2813ec66ac1b390baa0253d6019a22b5510f7ef7",
-            "lastUpdate": "Thu, 06 Jun 2024 02:35:47 GMT"
+            "bytecodeHash": "2798cf9ea2d3501f929d8b3c7083462f97e060774bb0197b3e161c485452ea62",
+            "lastUpdate": "Thu, 19 Sep 2024 05:25:55 GMT"
         },
         "Airdropper": {
             "innerAddress": "0xbdF10CE01BE0d0d51c733800382b7A300f9273e4",
