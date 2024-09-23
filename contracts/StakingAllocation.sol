@@ -123,6 +123,10 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         _removeAllocation(_deployment, _runner, _amount);
     }
 
+    function removeAllocationAdmin(bytes32 _deployment, address _runner) external {
+        _removeAllocation(_deployment, _runner, allocatedTokens[_runner][_deployment]);
+    }
+
     function stopService(bytes32 _deployment, address _runner) external {
         require(msg.sender == settings.getContractAddress(SQContracts.ProjectRegistry), 'SAL06');
         uint256 amount = allocatedTokens[_runner][_deployment];
