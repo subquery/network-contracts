@@ -10,28 +10,112 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol';
 
-import './Constants.sol';
-import './interfaces/IEraManager.sol';
-import './interfaces/IStakingAllocation.sol';
-import './interfaces/IStakingManager.sol';
-import './interfaces/IIndexerRegistry.sol';
-import './interfaces/IConsumerRegistry.sol';
-import './interfaces/ISettings.sol';
-import './interfaces/ISQToken.sol';
-import './interfaces/IRewardsDistributor.sol';
-import './interfaces/IRewardsBooster.sol';
-import './interfaces/IProjectRegistry.sol';
-import './utils/FixedMath.sol';
-import './utils/MathUtil.sol';
-import './utils/StakingUtil.sol';
-import './utils/SQParameter.sol';
+import '../Constants.sol';
+import '../interfaces/IEraManager.sol';
+import '../interfaces/IStakingAllocation.sol';
+import '../interfaces/IStakingManager.sol';
+import '../interfaces/IIndexerRegistry.sol';
+import '../interfaces/IConsumerRegistry.sol';
+import '../interfaces/ISettings.sol';
+import '../interfaces/ISQToken.sol';
+import '../interfaces/IRewardsDistributor.sol';
+import '../interfaces/IProjectRegistry.sol';
+import '../utils/FixedMath.sol';
+import '../utils/MathUtil.sol';
+import '../utils/StakingUtil.sol';
+import '../utils/SQParameter.sol';
+
+interface IRewardsBooster {
+    /// @notice Project Running Reward Pool
+    struct DeploymentPool {
+        // total booster for the deployment
+        uint256 boosterPoint;
+        // account => booster points staked
+        mapping(address => uint256) accountBooster;
+        // account => query rewards
+        mapping(address => BoosterQueryReward) boosterQueryRewards;
+        mapping(address => RunnerDeploymentReward) runnerAllocationRewards;
+        // update when booster point changed, to calculate deployment rewards, including allocation and query reward
+        uint256 accRewardsForDeployment;
+        // update when allocation changed, so new allocation are not entitled for earlier rewards, for allocation only
+        uint256 accRewardsForDeploymentSnapshot;
+        // ?? not sure if needed?? update when booster point changed, including allocation and query reward
+        uint256 accRewardsPerBooster;
+        // update when booster changed, snapshot for claimed
+        uint256 accRewardsPerBoosterSnapshot;
+        // update when allocation changed, so new allocation are not entitled for earlier rewards
+        uint256 accRewardsPerAllocatedToken;
+        // update when booster changed, used to calc query booster rewards
+        uint256 accQueryRewardsPerBooster;
+    }
+
+    struct BoosterQueryReward {
+        // update when booster changed
+        uint256 accQueryRewardsPerBoosterSnapshot;
+        // add when booster change
+        uint256 accQueryRewards;
+        uint256 spentQueryRewards;
+    }
+
+    struct RunnerDeploymentReward {
+        uint256 accRewardsPerToken;
+        uint256 lastClaimedAt;
+        uint256 overflowTimeSnapshot;
+        // missedLabor
+        uint256 missedLaborTime;
+        uint256 lastMissedLaborReportAt;
+        bool disabled;
+    }
+
+    function setIssuancePerBlock(uint256 _issuancePerBlock) external;
+
+    function getNewRewardsPerBooster() external view returns (uint256);
+
+    function getAccRewardsPerBooster() external view returns (uint256);
+
+    function updateAccRewardsPerBooster() external returns (uint256);
+
+    function getAccRewardsForDeployment(bytes32 _deploymentId) external view returns (uint256);
+
+    function onDeploymentBoosterUpdate(
+        bytes32 _deploymentId,
+        address _account
+    ) external returns (uint256);
+
+    function onAllocationUpdate(bytes32 _deploymentId) external returns (uint256);
+
+    function getAccRewardsPerAllocatedToken(
+        bytes32 _deploymentId
+    ) external view returns (uint256, uint256);
+
+    function getAllocationRewards(
+        bytes32 _deploymentId,
+        address _runner
+    ) external view returns (uint256, uint256);
+
+    function collectAllocationReward(bytes32 _deploymentId, address _runner) external;
+
+    function spendQueryRewards(
+        bytes32 _deploymentId,
+        address _spender,
+        uint256 _amount,
+        bytes calldata data
+    ) external returns (uint256);
+
+    function refundQueryRewards(
+        bytes32 _deploymentId,
+        address _spender,
+        uint256 _amount,
+        bytes calldata data
+    ) external;
+}
 
 /**
  * @title Rewards for running
  * @notice ### Overview
  * The RewardsRunning using the Cobb-Douglas production function for staking & running
  */
-contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, SQParameter {
+contract RewardsBoosterOld is Initializable, OwnableUpgradeable, IRewardsBooster, SQParameter {
     using ERC165CheckerUpgradeable for address;
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
@@ -54,27 +138,19 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     // --------- configs end
 
     // --------- booster
-    // @deprecated
+
     uint256 public accSQTPerStake;
-    // @deprecated
     uint256 public totalBoosterPoint;
-    // @deprecated
     mapping(bytes32 => DeploymentPool) public deploymentPools;
-    // @deprecated
+
     uint256 public accRewardsPerBooster;
-    // @deprecated
     uint256 public accRewardsPerBoosterLastBlockUpdated;
     // @notice projectType => rate (per_mill)
     mapping(ProjectType => uint256) public boosterQueryRewardRate;
     // --------- booster end
 
-    // --------- separated boost pool
-    mapping(ProjectType => uint256) public issuancePerBlockByType;
-    mapping(ProjectType => uint256) public totalBoosterPointByType;
-    mapping(bytes32 => DeploymentPool) public deploymentPoolsByType;
-    mapping(ProjectType => uint256) public accRewardsPerBoosterByType;
-    mapping(ProjectType => uint256) public accRewardsPerBoosterLastBlockUpdatedByType;
-    // --------- separated boost end
+    // --------- allocation
+    // --------- allocation end
 
     /// @notice ### EVENTS
     event ParameterUpdated(string param, uint256 value);
@@ -112,11 +188,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         address indexed spender,
         uint256 amount,
         bytes data
-    );
-    event DeploymentBoostMigrated(
-        bytes32 indexed deploymentId,
-        address indexed account,
-        uint256 amount
     );
 
     /// @dev MODIFIER
@@ -176,33 +247,12 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
      * Whenever this function is called in child chain, the inflation rate also need to update from root chain
      * @param _issuancePerBlock Issuance expressed in SQT per block (scaled by 1e18)
      */
-    function setIssuancePerBlock(uint256 _issuancePerBlock) external onlyOwner {
+    function setIssuancePerBlock(uint256 _issuancePerBlock) external override onlyOwner {
         // Called since `issuance per block` will change
         updateAccRewardsPerBooster();
 
         issuancePerBlock = _issuancePerBlock;
         emit ParameterUpdated('issuancePerBlock', issuancePerBlock);
-    }
-
-    /**
-     * @notice Sets the token issuance per block.
-     * The issuance is defined as a fixed amount of rewards per block in SQT.
-     * Whenever this function is called in child chain, the inflation rate also need to update from root chain
-     * @param _issuancePerBlock Issuance expressed in SQT per block (scaled by 1e18)
-     */
-    function setIssuancePerBlockByType(
-        ProjectType _type,
-        uint256 _issuancePerBlock
-    ) external onlyOwner {
-        // Called since `issuance per block` will change
-        _updateAccRewardsPerBooster(_type);
-
-        issuancePerBlockByType[_type] = _issuancePerBlock;
-        // Assuming enum fits in 8 bits, shift the uint256 by 8 bits and then add the enum value
-        emit ParameterUpdated(
-            'issuancePerBlockByType',
-            (uint256(_issuancePerBlock) << 8) | uint256(uint8(_type))
-        );
     }
 
     /**
@@ -236,10 +286,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         bytes32 _deploymentId,
         uint256 _amount
     ) external onlyRegisteredDeployment(_deploymentId) {
-        // migrate deployment pool
-        ProjectType projectType = migrateDeploymentBoost(_deploymentId, msg.sender);
-
-        _addBoosterDeployment(projectType, _deploymentId, msg.sender, _amount);
+        _addBoosterDeployment(_deploymentId, msg.sender, _amount);
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
             msg.sender,
@@ -259,10 +306,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         uint256 _amount,
         address _for
     ) external consumerAuthorised(_for) onlyRegisteredDeployment(_deploymentId) {
-        // migrate deployment pool
-        ProjectType projectType = migrateDeploymentBoost(_deploymentId, _for);
-
-        _addBoosterDeployment(projectType, _deploymentId, _for, _amount);
+        _addBoosterDeployment(_deploymentId, _for, _amount);
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
             msg.sender,
@@ -273,19 +317,13 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
 
     /**
      * @notice remove booster from deployment
-     * @param _deploymentId deploymentId
-     * @param _amount the added amount
+     * @param deploymentId deploymentId
+     * @param amount the added amount
      */
-    function removeBoosterDeployment(bytes32 _deploymentId, uint256 _amount) external {
-        // migrate deployment pool
-        ProjectType projectType = migrateDeploymentBoost(_deploymentId, msg.sender);
-        require(
-            deploymentPoolsByType[_deploymentId].accountBooster[msg.sender] >= _amount,
-            'RB003'
-        );
-
-        _removeBoosterDeployment(projectType, _deploymentId, msg.sender, _amount);
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, _amount);
+    function removeBoosterDeployment(bytes32 deploymentId, uint256 amount) external {
+        require(deploymentPools[deploymentId].accountBooster[msg.sender] >= amount, 'RB003');
+        _removeBoosterDeployment(deploymentId, msg.sender, amount);
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, amount);
     }
 
     /**
@@ -303,23 +341,12 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     ) external onlyRegisteredDeployment(to) consumerAuthorised(account) {
         require(from != to, 'RB013');
 
-        // migrate deployment pool
-        ProjectType projectTypeFrom = migrateDeploymentBoost(from, account);
-        require(deploymentPoolsByType[from].accountBooster[account] >= amount, 'RB003');
-        _removeBoosterDeployment(projectTypeFrom, from, account, amount);
-
-        ProjectType projectTypeTo = migrateDeploymentBoost(to, account);
-        _addBoosterDeployment(projectTypeTo, to, account, amount);
+        require(deploymentPools[from].accountBooster[account] >= amount, 'RB003');
+        _removeBoosterDeployment(from, account, amount);
+        _addBoosterDeployment(to, account, amount);
     }
 
     function getRunnerDeploymentBooster(
-        bytes32 _deploymentId,
-        address _runner
-    ) public view returns (uint256) {
-        return deploymentPoolsByType[_deploymentId].accountBooster[_runner];
-    }
-
-    function getRunnerDeploymentBoosterOld(
         bytes32 _deploymentId,
         address _runner
     ) public view returns (uint256) {
@@ -337,43 +364,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     function getAllocationRewards(
         bytes32 _deploymentId,
         address _runner
-    ) external view returns (uint256, uint256) {
-        ProjectType projectType = IProjectRegistry(
-            settings.getContractAddress(SQContracts.ProjectRegistry)
-        ).getDeploymentProjectType(_deploymentId);
-        DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
-        IStakingAllocation sa = IStakingAllocation(
-            settings.getContractAddress(SQContracts.StakingAllocation)
-        );
-        uint256 runnerAllocAmount = sa.allocatedTokens(_runner, _deploymentId);
-
-        RunnerDeploymentReward memory runnerDeplReward = deployment.runnerAllocationRewards[
-            _runner
-        ];
-
-        (uint256 accRewardsPerAllocatedToken, ) = _getAccRewardsPerAllocatedToken(
-            projectType,
-            _deploymentId
-        );
-
-        uint256 totalRewards = _calcRewards(
-            runnerAllocAmount,
-            runnerDeplReward.accRewardsPerToken,
-            accRewardsPerAllocatedToken
-        );
-
-        return
-            _fixRewardsWithMissedLaborAndOverflow(
-                totalRewards,
-                runnerDeplReward,
-                sa.overAllocationTime(_runner)
-            );
-    }
-
-    function getAllocationRewardsOld(
-        bytes32 _deploymentId,
-        address _runner
-    ) external view returns (uint256, uint256) {
+    ) external view override returns (uint256, uint256) {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
         IStakingAllocation sa = IStakingAllocation(
             settings.getContractAddress(SQContracts.StakingAllocation)
@@ -384,7 +375,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
             _runner
         ];
 
-        (uint256 accRewardsPerAllocatedToken, ) = _getAccRewardsPerAllocatedToken(_deploymentId);
+        (uint256 accRewardsPerAllocatedToken, ) = getAccRewardsPerAllocatedToken(_deploymentId);
 
         uint256 totalRewards = _calcRewards(
             runnerAllocAmount,
@@ -407,49 +398,20 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
      * @param _amount the added amount
      */
     function _addBoosterDeployment(
-        ProjectType _projectType,
         bytes32 _deploymentId,
         address _account,
         uint256 _amount
     ) internal {
-        DeploymentPool storage deploymentPool = deploymentPoolsByType[_deploymentId];
-        _onDeploymentBoosterUpdate(_projectType, _deploymentId, _account);
+        DeploymentPool storage deploymentPool = deploymentPools[_deploymentId];
+        onDeploymentBoosterUpdate(_deploymentId, _account);
         deploymentPool.boosterPoint += _amount;
         deploymentPool.accountBooster[_account] += _amount;
+        deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
+        totalBoosterPoint += _amount;
+
         require(deploymentPool.accountBooster[_account] >= minimumDeploymentBooster, 'RB015');
 
-        deploymentPool.accRewardsPerBooster = accRewardsPerBoosterByType[_projectType];
-        totalBoosterPointByType[_projectType] += _amount;
-
         emit DeploymentBoosterAdded(_deploymentId, _account, _amount);
-    }
-
-    function migrateDeploymentBoost(
-        bytes32 _deploymentId,
-        address _account
-    ) public returns (ProjectType) {
-        DeploymentPool storage deploymentPool = deploymentPools[_deploymentId];
-        uint _amount = deploymentPool.accountBooster[_account];
-
-        ProjectType projectType = IProjectRegistry(
-            settings.getContractAddress(SQContracts.ProjectRegistry)
-        ).getDeploymentProjectType(_deploymentId);
-
-        if (_amount > 0) {
-            // need to migrate over
-            _onDeploymentBoosterUpdate(_deploymentId, _account);
-            deploymentPool.boosterPoint -= _amount;
-            deploymentPool.accountBooster[_account] = 0;
-            deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
-            totalBoosterPoint -= _amount;
-
-            emit DeploymentBoosterRemoved(_deploymentId, _account, _amount);
-
-            _addBoosterDeployment(projectType, _deploymentId, _account, _amount);
-
-            emit DeploymentBoostMigrated(_deploymentId, _account, _amount);
-        }
-        return projectType;
     }
 
     /**
@@ -459,17 +421,16 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
      * @param _amount the added amount
      */
     function _removeBoosterDeployment(
-        ProjectType _projectType,
         bytes32 _deploymentId,
         address _account,
         uint256 _amount
     ) internal {
-        DeploymentPool storage deploymentPool = deploymentPoolsByType[_deploymentId];
-        _onDeploymentBoosterUpdate(_projectType, _deploymentId, _account);
+        DeploymentPool storage deploymentPool = deploymentPools[_deploymentId];
+        onDeploymentBoosterUpdate(_deploymentId, _account);
         deploymentPool.boosterPoint -= _amount;
         deploymentPool.accountBooster[_account] -= _amount;
-        deploymentPool.accRewardsPerBooster = accRewardsPerBoosterByType[_projectType];
-        totalBoosterPointByType[_projectType] -= _amount;
+        deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
+        totalBoosterPoint -= _amount;
 
         require(
             deploymentPool.accountBooster[_account] >= minimumDeploymentBooster ||
@@ -541,7 +502,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
      *
      * @return newly accrued rewards per signal since last update, scaled by FIXED_POINT_SCALING_FACTOR
      */
-    function getNewRewardsPerBooster() public view returns (uint256) {
+    function getNewRewardsPerBooster() public view override returns (uint256) {
         // Calculate time steps
         uint256 t = block.number.sub(accRewardsPerBoosterLastBlockUpdated);
         // Optimization to skip calculations if zero time steps elapsed or issuancePerBlock is zero or totalBoosterPoint is zero
@@ -556,32 +517,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         return MathUtil.mulDiv(x, FIXED_POINT_SCALING_FACTOR, totalBoosterPoint);
     }
 
-    function getNewRewardsPerBoosterByType(ProjectType _type) public view returns (uint256) {
-        // Calculate time steps
-        uint256 t = block.number.sub(accRewardsPerBoosterLastBlockUpdatedByType[_type]);
-        // Optimization to skip calculations if zero time steps elapsed or issuancePerBlock is zero or totalBoosterPoint is zero
-        if (t == 0 || issuancePerBlockByType[_type] == 0 || totalBoosterPointByType[_type] == 0) {
-            return 0;
-        }
-
-        uint256 x = issuancePerBlockByType[_type] * t;
-
-        // Get the new issuance per booster token
-        // We multiply the decimals to keep the precision as fixed-point number
-        return MathUtil.mulDiv(x, FIXED_POINT_SCALING_FACTOR, totalBoosterPointByType[_type]);
-    }
-
     /**
      * @notice Gets the currently accumulated rewards per signal.
      * @return Currently accumulated rewards per signal
      */
-
-    function getAccRewardsPerBooster(ProjectType _projectType) public view returns (uint256) {
-        return
-            accRewardsPerBoosterByType[_projectType] + getNewRewardsPerBoosterByType(_projectType);
-    }
-
-    function _getAccRewardsPerBooster() internal view returns (uint256) {
+    function getAccRewardsPerBooster() public view override returns (uint256) {
         return accRewardsPerBooster + getNewRewardsPerBooster();
     }
 
@@ -590,65 +530,26 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
      * Must be called before `issuancePerBlock` or `total booster` changes
      * @return Accumulated rewards per boosted token
      */
-    function updateAccRewardsPerBooster() public returns (uint256) {
-        accRewardsPerBooster = _getAccRewardsPerBooster();
+    function updateAccRewardsPerBooster() public override returns (uint256) {
+        accRewardsPerBooster = getAccRewardsPerBooster();
         accRewardsPerBoosterLastBlockUpdated = block.number;
         return accRewardsPerBooster;
     }
 
-    function _updateAccRewardsPerBooster(ProjectType _projectType) internal returns (uint256) {
-        accRewardsPerBoosterByType[_projectType] = getAccRewardsPerBooster(_projectType);
-        accRewardsPerBoosterLastBlockUpdatedByType[_projectType] = block.number;
-        return accRewardsPerBoosterByType[_projectType];
-    }
-
     /**
      * @notice Gets the accumulated rewards for the deployment. including query rewards and allocation rewards
      * @param _deploymentId deployment
      * @return Accumulated rewards for deployment
      */
-    function getAccRewardsForDeployment(bytes32 _deploymentId) external view returns (uint256) {
-        ProjectType projectType = IProjectRegistry(
-            settings.getContractAddress(SQContracts.ProjectRegistry)
-        ).getDeploymentProjectType(_deploymentId);
-
-        return _getAccRewardsForDeployment(projectType, _deploymentId);
-    }
-
-    /**
-     * @notice Gets the accumulated rewards for the deployment. including query rewards and allocation rewards
-     * @param _deploymentId deployment
-     * @return Accumulated rewards for deployment
-     */
-    function _getAccRewardsForDeployment(bytes32 _deploymentId) internal view returns (uint256) {
+    function getAccRewardsForDeployment(
+        bytes32 _deploymentId
+    ) public view override returns (uint256) {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
 
         // Only accrue rewards if over a threshold
         // Accrue new rewards since last snapshot
         uint256 newRewards = MathUtil.mulDiv(
-            _getAccRewardsPerBooster() - deployment.accRewardsPerBoosterSnapshot,
-            deployment.boosterPoint,
-            FIXED_POINT_SCALING_FACTOR
-        );
-        return deployment.accRewardsForDeployment + newRewards;
-    }
-
-    /**
-     * @notice Gets the accumulated rewards for the deployment. including query rewards and allocation rewards
-     * @param _projectType project type, caller should make sure project type match the deployment
-     * @param _deploymentId deployment
-     * @return Accumulated rewards for deployment
-     */
-    function _getAccRewardsForDeployment(
-        ProjectType _projectType,
-        bytes32 _deploymentId
-    ) internal view returns (uint256) {
-        DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
-
-        // Only accrue rewards if over a threshold
-        // Accrue new rewards since last snapshot
-        uint256 newRewards = MathUtil.mulDiv(
-            getAccRewardsPerBooster(_projectType) - deployment.accRewardsPerBoosterSnapshot,
+            getAccRewardsPerBooster() - deployment.accRewardsPerBoosterSnapshot,
             deployment.boosterPoint,
             FIXED_POINT_SCALING_FACTOR
         );
@@ -658,20 +559,19 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     /**
      * @notice Triggers an update of rewards for a deployment.
      * Must be called before booster changes.
-     * must use old boost storages
      * @param _deploymentId deployment
      * @return Accumulated rewards for deployment
      */
-    function _onDeploymentBoosterUpdate(
+    function onDeploymentBoosterUpdate(
         bytes32 _deploymentId,
         address _account
-    ) internal returns (uint256) {
+    ) public override returns (uint256) {
         // Called since `total boosted token` will change
         updateAccRewardsPerBooster();
 
         // Updates the accumulated rewards
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
-        deployment.accRewardsForDeployment = _getAccRewardsForDeployment(_deploymentId);
+        deployment.accRewardsForDeployment = getAccRewardsForDeployment(_deploymentId);
         deployment.accRewardsPerBoosterSnapshot = accRewardsPerBooster;
 
         // update accQueryRewards
@@ -685,48 +585,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         deployment.accQueryRewardsPerBooster = accQueryRewardsPerBooster;
 
         // also update perAllocatedToken
-        (uint256 accRewardsPerAllocatedToken, ) = _getAccRewardsPerAllocatedToken(_deploymentId);
-        deployment.accRewardsPerAllocatedToken = accRewardsPerAllocatedToken;
-        deployment.accRewardsForDeploymentSnapshot = accRewardsForDeploymentSnapshot;
-
-        return deployment.accRewardsForDeployment;
-    }
-
-    function _onDeploymentBoosterUpdate(
-        ProjectType _projectType,
-        bytes32 _deploymentId,
-        address _account
-    ) internal returns (uint256) {
-        // Called since `total boosted token` will change
-        _updateAccRewardsPerBooster(_projectType);
-
-        // Updates the accumulated rewards
-        DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
-        deployment.accRewardsForDeployment = _getAccRewardsForDeployment(
-            _projectType,
-            _deploymentId
-        );
-        deployment.accRewardsPerBoosterSnapshot = accRewardsPerBoosterByType[_projectType];
-
-        // update accQueryRewards
-        BoosterQueryReward storage boosterQueryReward = deployment.boosterQueryRewards[_account];
-        (
-            uint256 accQueryRewardsPerBooster,
-            uint256 accRewardsForDeploymentSnapshot
-        ) = _getAccQueryRewardsPerBooster(_projectType, _deploymentId);
-        boosterQueryReward.accQueryRewards = _getAccQueryRewardsByType(
-            _projectType,
-            _deploymentId,
-            _account
-        );
-        boosterQueryReward.accQueryRewardsPerBoosterSnapshot = accQueryRewardsPerBooster;
-        deployment.accQueryRewardsPerBooster = accQueryRewardsPerBooster;
-
-        // also update perAllocatedToken
-        (uint256 accRewardsPerAllocatedToken, ) = _getAccRewardsPerAllocatedToken(
-            _projectType,
-            _deploymentId
-        );
+        (uint256 accRewardsPerAllocatedToken, ) = getAccRewardsPerAllocatedToken(_deploymentId);
         deployment.accRewardsPerAllocatedToken = accRewardsPerAllocatedToken;
         deployment.accRewardsForDeploymentSnapshot = accRewardsForDeploymentSnapshot;
 
@@ -740,36 +599,15 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
      * @param _deploymentId deployment
      * @return Accumulated rewards per allocated token for a deployment
      */
-    function onAllocationUpdate(bytes32 _deploymentId) public returns (uint256) {
+    function onAllocationUpdate(bytes32 _deploymentId) public override returns (uint256) {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
         (
             uint256 accRewardsPerAllocatedToken,
             uint256 accRewardsForDeployment
-        ) = _getAccRewardsPerAllocatedToken(_deploymentId);
+        ) = getAccRewardsPerAllocatedToken(_deploymentId);
         deployment.accRewardsPerAllocatedToken = accRewardsPerAllocatedToken;
         // also update for booster
         (uint256 accQueryRewardsPerBooster, ) = getAccQueryRewardsPerBooster(_deploymentId);
-        deployment.accQueryRewardsPerBooster = accQueryRewardsPerBooster;
-        deployment.accRewardsForDeploymentSnapshot = accRewardsForDeployment;
-
-        return deployment.accRewardsPerAllocatedToken;
-    }
-
-    function _onAllocationUpdate(
-        ProjectType _projectType,
-        bytes32 _deploymentId
-    ) internal returns (uint256) {
-        DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
-        (
-            uint256 accRewardsPerAllocatedToken,
-            uint256 accRewardsForDeployment
-        ) = _getAccRewardsPerAllocatedToken(_projectType, _deploymentId);
-        deployment.accRewardsPerAllocatedToken = accRewardsPerAllocatedToken;
-        // also update for booster
-        (uint256 accQueryRewardsPerBooster, ) = _getAccQueryRewardsPerBooster(
-            _projectType,
-            _deploymentId
-        );
         deployment.accQueryRewardsPerBooster = accQueryRewardsPerBooster;
         deployment.accRewardsForDeploymentSnapshot = accRewardsForDeployment;
 
@@ -784,19 +622,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
      */
     function getAccRewardsPerAllocatedToken(
         bytes32 _deploymentId
-    ) external view returns (uint256, uint256) {
-        ProjectType projectType = IProjectRegistry(
-            settings.getContractAddress(SQContracts.ProjectRegistry)
-        ).getDeploymentProjectType(_deploymentId);
-        return _getAccRewardsPerAllocatedToken(projectType, _deploymentId);
-    }
-
-    function _getAccRewardsPerAllocatedToken(
-        bytes32 _deploymentId
-    ) internal view returns (uint256, uint256) {
+    ) public view override returns (uint256, uint256) {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
 
-        uint256 accRewardsForDeployment = _getAccRewardsForDeployment(_deploymentId);
+        uint256 accRewardsForDeployment = getAccRewardsForDeployment(_deploymentId);
 
         uint256 newRewardsForDeployment = MathUtil.diffOrZero(
             accRewardsForDeployment,
@@ -834,67 +663,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         );
     }
 
-    function _getAccRewardsPerAllocatedToken(
-        ProjectType _projectType,
-        bytes32 _deploymentId
-    ) internal view returns (uint256, uint256) {
-        DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
-
-        uint256 accRewardsForDeployment = _getAccRewardsForDeployment(_projectType, _deploymentId);
-
-        uint256 newRewardsForDeployment = MathUtil.diffOrZero(
-            accRewardsForDeployment,
-            deployment.accRewardsForDeploymentSnapshot
-        );
-
-        IStakingAllocation sa = IStakingAllocation(
-            settings.getContractAddress(SQContracts.StakingAllocation)
-        );
-        uint256 deploymentAllocatedTokens = sa.deploymentAllocations(_deploymentId);
-        if (deploymentAllocatedTokens == 0) {
-            // newRewardsPerAllocatedToken is zero
-            return (deployment.accRewardsPerAllocatedToken, accRewardsForDeployment);
-        }
-
-        uint256 allocateRewardRate = PER_MILL - boosterQueryRewardRate[_projectType];
-        uint256 newAllocRewardsForDeployment = MathUtil.mulDiv(
-            newRewardsForDeployment,
-            allocateRewardRate,
-            PER_MILL
-        );
-
-        uint256 newRewardsPerAllocatedToken = MathUtil.mulDiv(
-            newAllocRewardsForDeployment,
-            FIXED_POINT_SCALING_FACTOR,
-            deploymentAllocatedTokens
-        );
-
-        return (
-            deployment.accRewardsPerAllocatedToken + newRewardsPerAllocatedToken,
-            accRewardsForDeployment
-        );
-    }
-
-    function migrateRunnerDeploymentReward(
-        bytes32 _deploymentId,
-        address _runner
-    ) public returns (bool) {
-        RunnerDeploymentReward storage runnerDeplRewardOld = deploymentPools[_deploymentId]
-            .runnerAllocationRewards[_runner];
-        RunnerDeploymentReward storage runnerDeplReward = deploymentPoolsByType[_deploymentId]
-            .runnerAllocationRewards[_runner];
-        if (runnerDeplReward.lastClaimedAt == 0 && runnerDeplRewardOld.lastClaimedAt > 0) {
-            runnerDeplReward.missedLaborTime = runnerDeplRewardOld.missedLaborTime;
-            runnerDeplReward.disabled = runnerDeplRewardOld.disabled;
-            runnerDeplReward.lastMissedLaborReportAt = runnerDeplRewardOld.lastMissedLaborReportAt;
-            runnerDeplReward.overflowTimeSnapshot = runnerDeplRewardOld.overflowTimeSnapshot;
-            runnerDeplReward.lastClaimedAt = runnerDeplRewardOld.lastClaimedAt;
-
-            return true;
-        }
-        return false;
-    }
-
     /**
      * @notice Add Labor(online status) for current era project pool
      * @param _deploymentIds deployment id
@@ -918,11 +686,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         );
 
         for (uint256 i = 0; i < _runners.length; i++) {
-            migrateRunnerDeploymentReward(_deploymentIds[i], _runners[i]);
-            // skip set miss labor on old reward pool
-            RunnerDeploymentReward storage runnerDeplReward = deploymentPoolsByType[
-                _deploymentIds[i]
-            ].runnerAllocationRewards[_runners[i]];
+            RunnerDeploymentReward storage runnerDeplReward = deploymentPools[_deploymentIds[i]]
+                .runnerAllocationRewards[_runners[i]];
             require(
                 _reportAt > runnerDeplReward.lastMissedLaborReportAt &&
                     _reportAt <= block.timestamp,
@@ -958,7 +723,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     }
 
     function getMissedLabor(bytes32 _deploymentId, address _runner) public view returns (uint256) {
-        DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
+        DeploymentPool storage deployment = deploymentPools[_deploymentId];
         RunnerDeploymentReward memory runnerDeplReward = deployment.runnerAllocationRewards[
             _runner
         ];
@@ -986,15 +751,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
             'RB005'
         );
 
-        migrateRunnerDeploymentReward(_deploymentId, _runner);
-
-        // migrate old reward
         _collectAllocationReward(_deploymentId, _runner);
-
-        ProjectType projectType = IProjectRegistry(
-            settings.getContractAddress(SQContracts.ProjectRegistry)
-        ).getDeploymentProjectType(_deploymentId);
-        _collectAllocationReward(projectType, _deploymentId, _runner);
     }
 
     function _collectAllocationReward(bytes32 _deploymentId, address _runner) internal {
@@ -1053,72 +810,12 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         }
     }
 
-    function _collectAllocationReward(
-        ProjectType _projectType,
-        bytes32 _deploymentId,
-        address _runner
-    ) internal {
-        uint256 accRewardsPerAllocatedToken = _onAllocationUpdate(_projectType, _deploymentId);
-        DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
-        IStakingAllocation sa = IStakingAllocation(
-            settings.getContractAddress(SQContracts.StakingAllocation)
-        );
-        uint256 runnerAllocAmount = sa.allocatedTokens(_runner, _deploymentId);
-        RunnerDeploymentReward storage runnerDeplReward = deployment.runnerAllocationRewards[
-            _runner
-        ];
-        uint256 reward = _calcRewards(
-            runnerAllocAmount,
-            runnerDeplReward.accRewardsPerToken,
-            accRewardsPerAllocatedToken
-        );
-
-        runnerDeplReward.accRewardsPerToken = accRewardsPerAllocatedToken;
-        uint256 burnt;
-        uint256 totalOverflowTime = sa.overAllocationTime(_runner);
-        (reward, burnt) = _fixRewardsWithMissedLaborAndOverflow(
-            reward,
-            runnerDeplReward,
-            totalOverflowTime
-        );
-
-        // clean missedlabor
-        runnerDeplReward.lastClaimedAt = block.timestamp;
-        runnerDeplReward.missedLaborTime = 0;
-        runnerDeplReward.lastMissedLaborReportAt = block.timestamp;
-        runnerDeplReward.overflowTimeSnapshot = totalOverflowTime;
-
-        if (reward > 0) {
-            address treasury = ISettings(settings).getContractAddress(SQContracts.Treasury);
-            IRewardsDistributor rewardsDistributor = IRewardsDistributor(
-                ISettings(settings).getContractAddress(SQContracts.RewardsDistributor)
-            );
-            IEraManager eraManager = IEraManager(
-                ISettings(settings).getContractAddress(SQContracts.EraManager)
-            );
-            IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
-            sqToken.safeTransferFrom(treasury, address(this), reward);
-            sqToken.safeIncreaseAllowance(address(rewardsDistributor), reward);
-            rewardsDistributor.addInstantRewards(
-                _runner,
-                address(this),
-                reward,
-                eraManager.safeUpdateAndGetEra()
-            );
-            emit AllocationRewardsGiven(_deploymentId, _runner, reward);
-        }
-        if (burnt > 0) {
-            // since rewards is pulled from treasury, and burn returns rewards to treasury, we don't need to do anything here
-            emit AllocationRewardsBurnt(_deploymentId, _runner, burnt);
-        }
-    }
-
     function getAccQueryRewardsPerBooster(
         bytes32 _deploymentId
     ) public view returns (uint256, uint256) {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
 
-        uint256 accRewardsForDeployment = _getAccRewardsForDeployment(_deploymentId);
+        uint256 accRewardsForDeployment = getAccRewardsForDeployment(_deploymentId);
         uint256 newRewardsForDeployment = MathUtil.diffOrZero(
             accRewardsForDeployment,
             deployment.accRewardsForDeploymentSnapshot
@@ -1149,84 +846,14 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
             accRewardsForDeployment
         );
     }
-    function _getAccQueryRewardsPerBooster(
-        ProjectType _projectType,
-        bytes32 _deploymentId
-    ) internal view returns (uint256, uint256) {
-        DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
-
-        uint256 accRewardsForDeployment = _getAccRewardsForDeployment(_projectType, _deploymentId);
-        uint256 newRewardsForDeployment = MathUtil.diffOrZero(
-            accRewardsForDeployment,
-            deployment.accRewardsForDeploymentSnapshot
-        );
-
-        uint256 deploymentBoostedToken = deployment.boosterPoint;
-        if (deploymentBoostedToken == 0) {
-            return (deployment.accQueryRewardsPerBooster, accRewardsForDeployment);
-        }
-
-        uint256 newQueryRewardsForDeployment = MathUtil.mulDiv(
-            newRewardsForDeployment,
-            boosterQueryRewardRate[_projectType],
-            PER_MILL
-        );
-
-        uint256 newQueryRewardsPerBooster = MathUtil.mulDiv(
-            newQueryRewardsForDeployment,
-            FIXED_POINT_SCALING_FACTOR,
-            deploymentBoostedToken
-        );
-
-        return (
-            deployment.accQueryRewardsPerBooster + newQueryRewardsPerBooster,
-            accRewardsForDeployment
-        );
-    }
 
     function getQueryRewards(
         bytes32 _deploymentId,
         address _account
-    ) external view returns (uint256) {
-        ProjectType projectType = IProjectRegistry(
-            settings.getContractAddress(SQContracts.ProjectRegistry)
-        ).getDeploymentProjectType(_deploymentId);
-        return
-            _getQueryRewards(_deploymentId, _account) +
-            _getQueryRewards(projectType, _deploymentId, _account);
-    }
-
-    function _getQueryRewards(
-        bytes32 _deploymentId,
-        address _account
-    ) internal view returns (uint256) {
+    ) public view returns (uint256) {
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
 
         (uint256 accQueryRewardsPerBoostedToken, ) = getAccQueryRewardsPerBooster(_deploymentId);
-
-        uint256 newRewards = _calcRewards(
-            deployment.accountBooster[_account],
-            deployment.boosterQueryRewards[_account].accQueryRewardsPerBoosterSnapshot,
-            accQueryRewardsPerBoostedToken
-        );
-        BoosterQueryReward memory boosterQueryRewards = deployment.boosterQueryRewards[_account];
-        return
-            boosterQueryRewards.accQueryRewards +
-            newRewards -
-            boosterQueryRewards.spentQueryRewards;
-    }
-
-    function _getQueryRewards(
-        ProjectType _projectType,
-        bytes32 _deploymentId,
-        address _account
-    ) internal view returns (uint256) {
-        DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
-
-        (uint256 accQueryRewardsPerBoostedToken, ) = _getAccQueryRewardsPerBooster(
-            _projectType,
-            _deploymentId
-        );
 
         uint256 newRewards = _calcRewards(
             deployment.accountBooster[_account],
@@ -1257,37 +884,6 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         return boosterQueryRewards.accQueryRewards + newRewards;
     }
 
-    function getAccQueryRewardsByType(
-        bytes32 _deploymentId,
-        address _account
-    ) external view returns (uint256) {
-        ProjectType projectType = IProjectRegistry(
-            settings.getContractAddress(SQContracts.ProjectRegistry)
-        ).getDeploymentProjectType(_deploymentId);
-        return _getAccQueryRewardsByType(projectType, _deploymentId, _account);
-    }
-
-    function _getAccQueryRewardsByType(
-        ProjectType _projectType,
-        bytes32 _deploymentId,
-        address _account
-    ) internal view returns (uint256) {
-        DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
-
-        (uint256 accQueryRewardsPerBoostedToken, ) = _getAccQueryRewardsPerBooster(
-            _projectType,
-            _deploymentId
-        );
-        BoosterQueryReward memory boosterQueryRewards = deployment.boosterQueryRewards[_account];
-
-        uint256 newRewards = _calcRewards(
-            deployment.accountBooster[_account],
-            boosterQueryRewards.accQueryRewardsPerBoosterSnapshot,
-            accQueryRewardsPerBoostedToken
-        );
-        return boosterQueryRewards.accQueryRewards + newRewards;
-    }
-
     function getBoosterQueryRewards(
         bytes32 _deploymentId,
         address _account
@@ -1299,7 +895,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         bytes32 _deploymentId,
         address _account
     ) external view returns (RunnerDeploymentReward memory) {
-        return deploymentPoolsByType[_deploymentId].runnerAllocationRewards[_account];
+        return deploymentPools[_deploymentId].runnerAllocationRewards[_account];
     }
 
     function spendQueryRewards(
@@ -1309,33 +905,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         bytes calldata _data
     ) external override returns (uint256) {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB006');
-        migrateDeploymentBoost(_deploymentId, _spender);
-
-        uint256 spend1 = _spendQueryRewards(_deploymentId, _spender, _amount, _data);
-        if (_amount > spend1) {
-            ProjectType projectType = IProjectRegistry(
-                settings.getContractAddress(SQContracts.ProjectRegistry)
-            ).getDeploymentProjectType(_deploymentId);
-            uint256 spend2 = _spendQueryRewards(
-                projectType,
-                _deploymentId,
-                _spender,
-                _amount - spend1,
-                _data
-            );
-            return spend1 + spend2;
-        } else {
-            return spend1;
-        }
-    }
-
-    function _spendQueryRewards(
-        bytes32 _deploymentId,
-        address _spender,
-        uint256 _amount,
-        bytes calldata _data
-    ) internal returns (uint256) {
-        uint256 queryRewards = _getQueryRewards(_deploymentId, _spender);
+        uint256 queryRewards = getQueryRewards(_deploymentId, _spender);
 
         if (queryRewards < _amount) {
             _amount = queryRewards;
@@ -1343,51 +913,18 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
         BoosterQueryReward storage boosterQueryRewards = deployment.boosterQueryRewards[_spender];
         boosterQueryRewards.spentQueryRewards += _amount;
-        if (_amount > 0) {
-            // pull rewards
-            IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
-            sqToken.safeTransferFrom(
-                ISettings(settings).getContractAddress(SQContracts.Treasury),
-                address(this),
-                _amount
-            );
-            // Allowance
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(msg.sender, _amount);
-
-            emit QueryRewardsSpent(_deploymentId, _spender, _amount, _data);
-        }
-        return _amount;
-    }
-
-    function _spendQueryRewards(
-        ProjectType _projectType,
-        bytes32 _deploymentId,
-        address _spender,
-        uint256 _amount,
-        bytes calldata _data
-    ) internal returns (uint256) {
-        uint256 queryRewards = _getQueryRewards(_projectType, _deploymentId, _spender);
-
-        if (queryRewards < _amount) {
-            _amount = queryRewards;
-        }
-        DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
-        BoosterQueryReward storage boosterQueryRewards = deployment.boosterQueryRewards[_spender];
-        boosterQueryRewards.spentQueryRewards += _amount;
 
         // pull rewards
-        if (_amount > 0) {
-            IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
-            sqToken.safeTransferFrom(
-                ISettings(settings).getContractAddress(SQContracts.Treasury),
-                address(this),
-                _amount
-            );
-            // Allowance
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(msg.sender, _amount);
+        IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
+        sqToken.safeTransferFrom(
+            ISettings(settings).getContractAddress(SQContracts.Treasury),
+            address(this),
+            _amount
+        );
+        // Allowance
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(msg.sender, _amount);
 
-            emit QueryRewardsSpent(_deploymentId, _spender, _amount, _data);
-        }
+        emit QueryRewardsSpent(_deploymentId, _spender, _amount, _data);
         return _amount;
     }
 
@@ -1398,24 +935,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         bytes calldata _data
     ) external override {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB006');
-        migrateDeploymentBoost(_deploymentId, _spender);
 
-        DeploymentPool storage deploymentByType = deploymentPoolsByType[_deploymentId];
-        BoosterQueryReward storage boosterQueryRewardsByType = deploymentByType.boosterQueryRewards[
-            _spender
-        ];
-        if (boosterQueryRewardsByType.spentQueryRewards >= _amount) {
-            // refund to new pool
-            boosterQueryRewardsByType.spentQueryRewards -= _amount;
-        } else {
-            // refund to old pool
-            DeploymentPool storage deployment = deploymentPools[_deploymentId];
-            BoosterQueryReward storage boosterQueryRewards = deployment.boosterQueryRewards[
-                _spender
-            ];
-            require(boosterQueryRewards.spentQueryRewards >= _amount, 'RB007');
-            boosterQueryRewards.spentQueryRewards -= _amount;
-        }
+        DeploymentPool storage deployment = deploymentPools[_deploymentId];
+        BoosterQueryReward storage boosterQueryRewards = deployment.boosterQueryRewards[_spender];
+        require(boosterQueryRewards.spentQueryRewards >= _amount, 'RB007');
+        boosterQueryRewards.spentQueryRewards -= _amount;
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
             ISettings(settings).getContractAddress(SQContracts.Treasury),

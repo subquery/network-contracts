@@ -45,32 +45,6 @@ interface IRewardsBooster {
         bool disabled;
     }
 
-    function setIssuancePerBlock(uint256 _issuancePerBlock) external;
-
-    function getNewRewardsPerBooster() external view returns (uint256);
-
-    function getAccRewardsPerBooster() external view returns (uint256);
-
-    function updateAccRewardsPerBooster() external returns (uint256);
-
-    function getAccRewardsForDeployment(bytes32 _deploymentId) external view returns (uint256);
-
-    function onDeploymentBoosterUpdate(
-        bytes32 _deploymentId,
-        address _account
-    ) external returns (uint256);
-
-    function onAllocationUpdate(bytes32 _deploymentId) external returns (uint256);
-
-    function getAccRewardsPerAllocatedToken(
-        bytes32 _deploymentId
-    ) external view returns (uint256, uint256);
-
-    function getAllocationRewards(
-        bytes32 _deploymentId,
-        address _runner
-    ) external view returns (uint256, uint256);
-
     function collectAllocationReward(bytes32 _deploymentId, address _runner) external;
 
     function spendQueryRewards(

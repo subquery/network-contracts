@@ -71,6 +71,31 @@
                 "type": "uint256"
             }
         ],
+        "name": "DeploymentBoostMigrated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
         "name": "DeploymentBoosterAdded",
         "type": "event"
     },
@@ -257,6 +282,54 @@
         "type": "event"
     },
     {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "_getQueryRewards",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "enum ProjectType",
+                "name": "_projectType",
+                "type": "uint8"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            }
+        ],
+        "name": "_onAllocationUpdate",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "accRewardsPerBooster",
         "outputs": [
@@ -270,8 +343,46 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "enum ProjectType",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "name": "accRewardsPerBoosterByType",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "accRewardsPerBoosterLastBlockUpdated",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "enum ProjectType",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "name": "accRewardsPerBoosterLastBlockUpdatedByType",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -426,6 +537,55 @@
         "inputs": [
             {
                 "internalType": "bytes32",
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "name": "deploymentPoolsByType",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "boosterPoint",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "accRewardsForDeployment",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "accRewardsForDeploymentSnapshot",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "accRewardsPerBooster",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "accRewardsPerBoosterSnapshot",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "accRewardsPerAllocatedToken",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "accQueryRewardsPerBooster",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
                 "name": "_deploymentId",
                 "type": "bytes32"
             },
@@ -436,6 +596,30 @@
             }
         ],
         "name": "getAccQueryRewards",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "getAccQueryRewardsByType",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -514,7 +698,13 @@
         "type": "function"
     },
     {
-        "inputs": [],
+        "inputs": [
+            {
+                "internalType": "enum ProjectType",
+                "name": "_projectType",
+                "type": "uint8"
+            }
+        ],
         "name": "getAccRewardsPerBooster",
         "outputs": [
             {
@@ -636,6 +826,25 @@
     {
         "inputs": [
             {
+                "internalType": "enum ProjectType",
+                "name": "_type",
+                "type": "uint8"
+            }
+        ],
+        "name": "getNewRewardsPerBoosterByType",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "bytes32",
                 "name": "_deploymentId",
                 "type": "bytes32"
@@ -671,6 +880,30 @@
             }
         ],
         "name": "getRunnerDeploymentBooster",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_runner",
+                "type": "address"
+            }
+        ],
+        "name": "getRunnerDeploymentBoosterOld",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -774,6 +1007,49 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "enum ProjectType",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "name": "issuancePerBlockByType",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "migrateDeploymentBoost",
+        "outputs": [
+            {
+                "internalType": "enum ProjectType",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "minimumDeploymentBooster",
         "outputs": [
@@ -874,12 +1150,12 @@
         "inputs": [
             {
                 "internalType": "bytes32",
-                "name": "deploymentId",
+                "name": "_deploymentId",
                 "type": "bytes32"
             },
             {
                 "internalType": "uint256",
-                "name": "amount",
+                "name": "_amount",
                 "type": "uint256"
             }
         ],
@@ -941,6 +1217,24 @@
             }
         ],
         "name": "setIssuancePerBlock",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "enum ProjectType",
+                "name": "_type",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_issuancePerBlock",
+                "type": "uint256"
+            }
+        ],
+        "name": "setIssuancePerBlockByType",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -1100,6 +1394,25 @@
     {
         "inputs": [],
         "name": "totalBoosterPoint",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "enum ProjectType",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "name": "totalBoosterPointByType",
         "outputs": [
             {
                 "internalType": "uint256",
