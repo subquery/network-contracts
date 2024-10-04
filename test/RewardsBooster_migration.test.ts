@@ -734,48 +734,111 @@ describe('RewardsBooster Contract', () => {
 
         // overallocate will carry over
         // runner0 has allocated 4000 SQT, with 1000 SQT delegated, can allocate 7000 SQT more
-        it.only('overallocate status will carry over', async () => {
+        it('overallocate status will carry over', async () => {
             // delegate0 to runner0
             await token.connect(root).transfer(delegator0.address, etherParse('1000'));
             await token.connect(delegator0).increaseAllowance(staking.address, etherParse('1000'));
             await stakingManager.connect(delegator0).delegate(runner0.address, etherParse('1000'));
-            await startNewEra(eraManager);
+            const currentEra = await startNewEra(eraManager);
+            await rewardsHelper.connect(runner0).indexerCatchup(runner0.address);
             const totalStake0 = await staking.totalStakingAmount(runner0.address);
-            expect(totalStake0.valueAt).to.eq(etherParse('11000'));
-
-            await stakingAllocation.connect(runner0).addAllocation(runner0.address, deploymentId3, etherParse('7000'));
+            expect(totalStake0.era).to.lt(currentEra);
+            expect(totalStake0.valueAfter).to.eq(etherParse('11000'));
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId3, runner0.address, etherParse('7000'));
             await stakingManager.connect(runner0).unstake(runner0.address, etherParse('1000'));
+            const oat1 = await stakingAllocation.overAllocationTime(runner0.address);
+            expect(oat1).to.eq(0);
+            let isOa = await stakingAllocation.isOverAllocation(runner0.address);
+            expect(isOa).to.be.false;
             await startNewEra(eraManager);
             await rewardsHelper.connect(runner0).indexerCatchup(runner0.address);
+            isOa = await stakingAllocation.isOverAllocation(runner0.address);
+            expect(isOa).to.be.true;
+            await blockTravel(10);
+            const oat2 = await stakingAllocation.overAllocationTime(runner0.address);
+            expect(oat2).to.gt(0);
+            await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
+            await blockTravel(1000);
+            const [alReward0] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
+            // disable -> true, so all following time should be counted as misslabor
+            expect(alReward0).to.eq(0);
+            // migrate
+            await upgrade();
+            await rewardsBooster.migrateDeploymentBoost(deploymentId0, consumer0.address);
+            // Can skip this step, when collect rewards it will call this anyway
+            await rewardsBooster.migrateRunnerDeploymentReward(deploymentId0, runner0.address);
+            await blockTravel(999);
+            const [alReward1] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
+            const [alRewardOld1] = await rewardsBooster.getAllocationRewardsOld(deploymentId0, runner0.address);
+            const alt = await stakingAllocation.overAllocationTime(runner0.address);
+            console.log(`alt: ${alt.toString()}`);
+            console.log(`alReward1: ${alReward1.toString()}`);
+            console.log(`alRewardOld1: ${alRewardOld1.toString()}`);
+            expect(alReward1).to.eq(0);
+            let tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
+            let evts = await eventsFrom(tx, rewardsBooster, 'AllocationRewardsGiven(bytes32,address,uint256)');
+            expect(evts.length).to.eq(0);
 
-            // await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
-            // const lastClaimedAt = await lastestBlockTime();
-            // await blockTravel(999, 1);
-            // const lastClaimedAt2 = await lastestBlockTime();
-            // console.log(`time passed： ${lastClaimedAt2 - lastClaimedAt}`);
-            // await rewardsBooster.setMissedLabor([deploymentId0], [runner0.address], [true], [0], lastClaimedAt+1000);
-            // let [alReward0] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
-            // // disable -> true, so all following time should be counted as misslabor
-            // expect(alReward0).to.eq(0);
-            // // migrate
-            // await upgrade();
-            // await rewardsBooster.migrateDeploymentBoost(deploymentId0, consumer0.address);
-            //
-            // await blockTravel(999, 1);
-            // let tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
-            // let evts = await eventsFrom(tx, rewardsBooster, 'AllocationRewardsGiven(bytes32,address,uint256)');
-            // expect(evts.length).to.eq(0);
-            //
-            // const lastClaimedAt3 = await lastestBlockTime();
-            // await rewardsBooster.setMissedLabor([deploymentId0], [runner0.address], [false], [0], lastClaimedAt3+1);
-            // await blockTravel(998, 1);
-            // tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
-            // evts = await eventsFrom(tx, rewardsBooster, 'AllocationRewardsGiven(bytes32,address,uint256)');
-            // expect(evts.length).to.eq(1);
-            // console.log(`evts[0]: ${evts[0].amount.toString()}`);
-            // // 1000 blocks passed (998 + setMissedLabor + collectAllocationReward) since we last collectAllocationReward,
-            // // so we should get 1.25 * 1000 = 1250 SQT reward
-            // expect(evts[0].amount).to.eq(etherParse('1250'));
+            await stakingAllocation
+                .connect(runner0)
+                .removeAllocation(deploymentId3, runner0.address, etherParse('1000'));
+            await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
+            await blockTravel(999);
+            const [alReward2] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
+            console.log(`alReward2: ${alReward2.toString()}`);
+            tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
+            evts = await eventsFrom(tx, rewardsBooster, 'AllocationRewardsGiven(bytes32,address,uint256)');
+            expect(evts.length).to.eq(1);
+            expect(evts[0].amount).to.eq(etherParse('1250'));
+        });
+        it('overallocate status will carry over #2', async () => {
+            // delegate0 to runner0
+            await token.connect(root).transfer(delegator0.address, etherParse('1000'));
+            await token.connect(delegator0).increaseAllowance(staking.address, etherParse('1000'));
+            await stakingManager.connect(delegator0).delegate(runner0.address, etherParse('1000'));
+            const currentEra = await startNewEra(eraManager);
+            await rewardsHelper.connect(runner0).indexerCatchup(runner0.address);
+            const totalStake0 = await staking.totalStakingAmount(runner0.address);
+            expect(totalStake0.era).to.lt(currentEra);
+            expect(totalStake0.valueAfter).to.eq(etherParse('11000'));
+            await stakingAllocation.connect(runner0).addAllocation(deploymentId3, runner0.address, etherParse('7000'));
+            await stakingManager.connect(runner0).unstake(runner0.address, etherParse('1000'));
+            const oat1 = await stakingAllocation.overAllocationTime(runner0.address);
+            expect(oat1).to.eq(0);
+            let isOa = await stakingAllocation.isOverAllocation(runner0.address);
+            expect(isOa).to.be.false;
+            await startNewEra(eraManager);
+            await rewardsHelper.connect(runner0).indexerCatchup(runner0.address);
+            isOa = await stakingAllocation.isOverAllocation(runner0.address);
+            expect(isOa).to.be.true;
+            await blockTravel(10);
+            const oat2 = await stakingAllocation.overAllocationTime(runner0.address);
+            expect(oat2).to.gt(0);
+            await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
+            await blockTravel(1000);
+            const [alReward0] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
+            // disable -> true, so all following time should be counted as misslabor
+            expect(alReward0).to.eq(0);
+            // migrate
+            await upgrade();
+            await rewardsBooster.migrateDeploymentBoost(deploymentId0, consumer0.address);
+            // Can skip this step, when collect rewards it will call this anyway
+            await blockTravel(999);
+            let tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
+            let evts = await eventsFrom(tx, rewardsBooster, 'AllocationRewardsGiven(bytes32,address,uint256)');
+            expect(evts.length).to.eq(0);
+
+            await stakingAllocation
+                .connect(runner0)
+                .removeAllocation(deploymentId3, runner0.address, etherParse('1000'));
+            await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
+            await blockTravel(999);
+            const [alReward2] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
+            console.log(`alReward2: ${alReward2.toString()}`);
+            tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
+            evts = await eventsFrom(tx, rewardsBooster, 'AllocationRewardsGiven(bytes32,address,uint256)');
+            expect(evts.length).to.eq(1);
+            expect(evts[0].amount).to.eq(etherParse('1250'));
         });
     });
 });
