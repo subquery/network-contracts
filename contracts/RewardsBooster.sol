@@ -1295,6 +1295,13 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         bytes32 _deploymentId,
         address _account
     ) external view returns (BoosterQueryReward memory) {
+        return deploymentPoolsByType[_deploymentId].boosterQueryRewards[_account];
+    }
+
+    function getBoosterQueryRewardsOld(
+        bytes32 _deploymentId,
+        address _account
+    ) external view returns (BoosterQueryReward memory) {
         return deploymentPools[_deploymentId].boosterQueryRewards[_account];
     }
 
