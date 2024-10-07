@@ -48,7 +48,7 @@ import { ConsumerRegistry } from 'build';
 
 const PER_MILL = BigNumber.from(1e6);
 
-describe('RewardsBooster Contract', () => {
+describe.skip('RewardsBooster Contract', () => {
     const deploymentId0 = deploymentIds[0];
     const deploymentId1 = deploymentIds[1];
     // RPC

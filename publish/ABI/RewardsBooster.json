@@ -706,35 +706,6 @@
             },
             {
                 "internalType": "address",
-                "name": "_runner",
-                "type": "address"
-            }
-        ],
-        "name": "getAllocationRewardsOld",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "_deploymentId",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "address",
                 "name": "_account",
                 "type": "address"
             }
@@ -776,65 +747,11 @@
             },
             {
                 "internalType": "address",
-                "name": "_account",
-                "type": "address"
-            }
-        ],
-        "name": "getBoosterQueryRewardsOld",
-        "outputs": [
-            {
-                "components": [
-                    {
-                        "internalType": "uint256",
-                        "name": "accQueryRewardsPerBoosterSnapshot",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "accQueryRewards",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "spentQueryRewards",
-                        "type": "uint256"
-                    }
-                ],
-                "internalType": "struct IRewardsBooster.BoosterQueryReward",
-                "name": "",
-                "type": "tuple"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "_deploymentId",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "address",
                 "name": "_runner",
                 "type": "address"
             }
         ],
         "name": "getMissedLabor",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getNewRewardsPerBooster",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -902,30 +819,6 @@
             }
         ],
         "name": "getRunnerDeploymentBooster",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "_deploymentId",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "address",
-                "name": "_runner",
-                "type": "address"
-            }
-        ],
-        "name": "getRunnerDeploymentBoosterOld",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -1048,54 +941,6 @@
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "_deploymentId",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "address",
-                "name": "_account",
-                "type": "address"
-            }
-        ],
-        "name": "migrateDeploymentBoost",
-        "outputs": [
-            {
-                "internalType": "enum ProjectType",
-                "name": "",
-                "type": "uint8"
-            }
-        ],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "_deploymentId",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "address",
-                "name": "_runner",
-                "type": "address"
-            }
-        ],
-        "name": "migrateRunnerDeploymentReward",
-        "outputs": [
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [],
         "name": "minimumDeploymentBooster",
         "outputs": [
@@ -1106,25 +951,6 @@
             }
         ],
         "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "_deploymentId",
-                "type": "bytes32"
-            }
-        ],
-        "name": "onAllocationUpdate",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -1226,19 +1052,6 @@
             }
         ],
         "name": "setBoosterQueryRewardRate",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_issuancePerBlock",
-                "type": "uint256"
-            }
-        ],
-        "name": "setIssuancePerBlock",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
