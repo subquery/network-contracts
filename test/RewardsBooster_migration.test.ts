@@ -624,17 +624,14 @@ describe('RewardsBooster Contract', () => {
             await blockTravel(1000);
             [alReward0] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             expect(alReward0).to.eq(etherParse('500'));
-            console.log(`alReward0: ${alReward0.toString()}`);
             // migrate
             await upgrade();
             await rewardsBooster.migrateDeploymentBoost(deploymentId0, consumer0.address);
             const [alReward0After] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             // no block pass since upgrade
             expect(alReward0After).to.eq(0);
-            console.log(`alReward0After: ${alReward0After.toString()}`);
             await blockTravel(999);
             const [alReward0After2] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
-            console.log(`alReward0After2: ${alReward0After2.toString()}`);
             const tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
             const evts = await eventsFrom(tx, rewardsBooster, 'AllocationRewardsGiven(bytes32,address,uint256)');
             expect(evts.length).to.eq(2);
@@ -663,8 +660,6 @@ describe('RewardsBooster Contract', () => {
             await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
             const lastClaimedAt = await lastestBlockTime();
             await blockTravel(999, 1);
-            const lastClaimedAt2 = await lastestBlockTime();
-            console.log(`time passed： ${lastClaimedAt2 - lastClaimedAt}`);
             await rewardsBooster.setMissedLabor(
                 [deploymentId0],
                 [runner0.address],
@@ -676,7 +671,6 @@ describe('RewardsBooster Contract', () => {
             // without misslabor should have 500 SQT (0.5 SQT * 1000 blocks)
             // misslabor is 900 sec in 1000 sec, so final rewards become 500*(100 sec/1000 sec) = 50 SQT
             expect(alReward0).to.eq(etherParse('50'));
-            console.log(`alReward0: ${alReward0.toString()}`);
             // migrate
             await upgrade();
             await rewardsBooster.migrateDeploymentBoost(deploymentId0, consumer0.address);
@@ -688,9 +682,7 @@ describe('RewardsBooster Contract', () => {
             // and 1 of them counts on old rewards, so we should get 500.5 SQT * 103 (availabe secs) / 1003 (total secs) = 51.397308075772681954
             // sometimes the test takes longer than 3 sec for 3 blocks, so result may become 51844
             expect(evts[0].amount.div((1e15).toString()).toString()).to.be.oneOf(['51397', '51844']);
-            console.log(`evts[0]: ${evts[0].amount.toString()}`); //51.397308075772681954
             // 1 block(collectAllocationReward) passed for new reward pool, so we should get 1.25 SQT more
-            console.log(`evts[1]: ${evts[1].amount.toString()}`);
             expect(evts[1].amount).to.lt(etherParse('1.25'));
             await blockTravel(999);
             tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
@@ -706,8 +698,6 @@ describe('RewardsBooster Contract', () => {
             await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
             const lastClaimedAt = await lastestBlockTime();
             await blockTravel(999, 1);
-            const lastClaimedAt2 = await lastestBlockTime();
-            console.log(`time passed： ${lastClaimedAt2 - lastClaimedAt}`);
             await rewardsBooster.setMissedLabor([deploymentId0], [runner0.address], [true], [0], lastClaimedAt + 1000);
             const [alReward0] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             // disable -> true, so all following time should be counted as misslabor
@@ -727,7 +717,6 @@ describe('RewardsBooster Contract', () => {
             tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
             evts = await eventsFrom(tx, rewardsBooster, 'AllocationRewardsGiven(bytes32,address,uint256)');
             expect(evts.length).to.eq(1);
-            console.log(`evts[0]: ${evts[0].amount.toString()}`);
             // 1000 blocks passed (998 + setMissedLabor + collectAllocationReward) since we last collectAllocationReward,
             // so we should get 1.25 * 1000 = 1250 SQT reward
             expect(evts[0].amount).to.eq(etherParse('1250'));
@@ -772,9 +761,6 @@ describe('RewardsBooster Contract', () => {
             const [alReward1] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             const [alRewardOld1] = await rewardsBooster.getAllocationRewardsOld(deploymentId0, runner0.address);
             const alt = await stakingAllocation.overAllocationTime(runner0.address);
-            console.log(`alt: ${alt.toString()}`);
-            console.log(`alReward1: ${alReward1.toString()}`);
-            console.log(`alRewardOld1: ${alRewardOld1.toString()}`);
             expect(alReward1).to.eq(0);
             let tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
             let evts = await eventsFrom(tx, rewardsBooster, 'AllocationRewardsGiven(bytes32,address,uint256)');
@@ -786,7 +772,6 @@ describe('RewardsBooster Contract', () => {
             await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
             await blockTravel(999);
             const [alReward2] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
-            console.log(`alReward2: ${alReward2.toString()}`);
             tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
             evts = await eventsFrom(tx, rewardsBooster, 'AllocationRewardsGiven(bytes32,address,uint256)');
             expect(evts.length).to.eq(1);
@@ -835,7 +820,6 @@ describe('RewardsBooster Contract', () => {
             await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
             await blockTravel(999);
             const [alReward2] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
-            console.log(`alReward2: ${alReward2.toString()}`);
             tx = await rewardsBooster.connect(runner0).collectAllocationReward(deploymentId0, runner0.address);
             evts = await eventsFrom(tx, rewardsBooster, 'AllocationRewardsGiven(bytes32,address,uint256)');
             expect(evts.length).to.eq(1);
