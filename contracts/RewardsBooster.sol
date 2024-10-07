@@ -989,9 +989,9 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
             'RB005'
         );
 
+        // migrate old reward
         migrateRunnerDeploymentReward(_deploymentId, _runner);
 
-        // migrate old reward
         _collectAllocationReward(_deploymentId, _runner);
 
         ProjectType projectType = IProjectRegistry(
