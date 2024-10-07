@@ -178,7 +178,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
      */
     function setIssuancePerBlock(uint256 _issuancePerBlock) external onlyOwner {
         // Called since `issuance per block` will change
-        updateAccRewardsPerBooster();
+        _updateAccRewardsPerBooster();
 
         issuancePerBlock = _issuancePerBlock;
         emit ParameterUpdated('issuancePerBlock', issuancePerBlock);
@@ -315,14 +315,14 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     function getRunnerDeploymentBooster(
         bytes32 _deploymentId,
         address _runner
-    ) public view returns (uint256) {
+    ) external view returns (uint256) {
         return deploymentPoolsByType[_deploymentId].accountBooster[_runner];
     }
 
     function getRunnerDeploymentBoosterOld(
         bytes32 _deploymentId,
         address _runner
-    ) public view returns (uint256) {
+    ) external view returns (uint256) {
         return deploymentPools[_deploymentId].accountBooster[_runner];
     }
 
@@ -590,7 +590,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
      * Must be called before `issuancePerBlock` or `total booster` changes
      * @return Accumulated rewards per boosted token
      */
-    function updateAccRewardsPerBooster() public returns (uint256) {
+    function _updateAccRewardsPerBooster() internal returns (uint256) {
         accRewardsPerBooster = _getAccRewardsPerBooster();
         accRewardsPerBoosterLastBlockUpdated = block.number;
         return accRewardsPerBooster;
@@ -667,7 +667,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         address _account
     ) internal returns (uint256) {
         // Called since `total boosted token` will change
-        updateAccRewardsPerBooster();
+        _updateAccRewardsPerBooster();
 
         // Updates the accumulated rewards
         DeploymentPool storage deployment = deploymentPools[_deploymentId];
@@ -957,7 +957,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         }
     }
 
-    function getMissedLabor(bytes32 _deploymentId, address _runner) public view returns (uint256) {
+    function getMissedLabor(
+        bytes32 _deploymentId,
+        address _runner
+    ) external view returns (uint256) {
         DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
         RunnerDeploymentReward memory runnerDeplReward = deployment.runnerAllocationRewards[
             _runner
