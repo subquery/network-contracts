@@ -233,8 +233,8 @@ describe('RewardsBooster Contract', () => {
             expect(await rewardsBooster.reporters(root.address)).to.eq(false);
         });
         it('can set issuance per block', async () => {
-            await rewardsBooster.setIssuancePerBlock(etherParse('1000'));
-            expect(await rewardsBooster.issuancePerBlock()).to.eq(etherParse('1000'));
+            await rewardsBooster.setIssuancePerBlockByType(ProjectType.RPC, etherParse('1000'));
+            expect(await rewardsBooster.issuancePerBlockByType(ProjectType.RPC)).to.eq(etherParse('1000'));
         });
         it('set booster query reward rate with invalid param should fail', async () => {
             await expect(rewardsBooster.setBoosterQueryRewardRate(ProjectType.SUBQUERY, 1e6)).to.be.revertedWith(
@@ -245,9 +245,9 @@ describe('RewardsBooster Contract', () => {
             await expect(
                 rewardsBooster.connect(runner0).setBoosterQueryRewardRate(ProjectType.SUBQUERY, 5e5)
             ).to.be.revertedWith(revertMsg.notOwner);
-            await expect(rewardsBooster.connect(runner0).setIssuancePerBlock(etherParse('1000'))).to.be.revertedWith(
-                revertMsg.notOwner
-            );
+            await expect(
+                rewardsBooster.connect(runner0).setIssuancePerBlockByType(ProjectType.RPC, etherParse('1000'))
+            ).to.be.revertedWith(revertMsg.notOwner);
             await expect(rewardsBooster.connect(runner0).setReporter(runner0.address, true)).to.be.revertedWith(
                 revertMsg.notOwner
             );
@@ -662,12 +662,6 @@ describe('RewardsBooster Contract', () => {
             [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             // const state1 = await getStats();
             expect(allocReward).to.eq(getAllocationReward(reward1.sub(reward0), queryRewardRatePerMill));
-            // console.log(`allocReward: ${allocReward.toString()}`);
-            await rewardsBooster.onAllocationUpdate(deploymentId0);
-            // const state2 = await getStats();
-            // await blockTravel(1);
-            [allocReward] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
-            // console.log(`allocReward: ${allocReward.toString()}`);
         });
 
         it('can claim allocation reward, single indexer', async () => {
