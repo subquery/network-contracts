@@ -282,54 +282,6 @@
         "type": "event"
     },
     {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "_deploymentId",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "address",
-                "name": "_account",
-                "type": "address"
-            }
-        ],
-        "name": "_getQueryRewards",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "enum ProjectType",
-                "name": "_projectType",
-                "type": "uint8"
-            },
-            {
-                "internalType": "bytes32",
-                "name": "_deploymentId",
-                "type": "bytes32"
-            }
-        ],
-        "name": "_onAllocationUpdate",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "inputs": [],
         "name": "accRewardsPerBooster",
         "outputs": [
@@ -754,11 +706,81 @@
             },
             {
                 "internalType": "address",
+                "name": "_runner",
+                "type": "address"
+            }
+        ],
+        "name": "getAllocationRewardsOld",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
                 "name": "_account",
                 "type": "address"
             }
         ],
         "name": "getBoosterQueryRewards",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "accQueryRewardsPerBoosterSnapshot",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "accQueryRewards",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "spentQueryRewards",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct IRewardsBooster.BoosterQueryReward",
+                "name": "",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "getBoosterQueryRewardsOld",
         "outputs": [
             {
                 "components": [
@@ -1050,6 +1072,30 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_runner",
+                "type": "address"
+            }
+        ],
+        "name": "migrateRunnerDeploymentReward",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "minimumDeploymentBooster",
         "outputs": [
@@ -1071,30 +1117,6 @@
             }
         ],
         "name": "onAllocationUpdate",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "bytes32",
-                "name": "_deploymentId",
-                "type": "bytes32"
-            },
-            {
-                "internalType": "address",
-                "name": "_account",
-                "type": "address"
-            }
-        ],
-        "name": "onDeploymentBoosterUpdate",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -1433,19 +1455,6 @@
         ],
         "name": "transferOwnership",
         "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "updateAccRewardsPerBooster",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
         "stateMutability": "nonpayable",
         "type": "function"
     }
