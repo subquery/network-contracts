@@ -670,7 +670,9 @@ describe('RewardsBooster Contract', () => {
             const [alReward0] = await rewardsBooster.getAllocationRewards(deploymentId0, runner0.address);
             // without misslabor should have 500 SQT (0.5 SQT * 1000 blocks)
             // misslabor is 900 sec in 1000 sec, so final rewards become 500*(100 sec/1000 sec) = 50 SQT
-            expect(alReward0).to.eq(etherParse('50'));
+            // sometimes in unittest setMissedLabor spends more then 1 sec, which makes the rewards
+            // = 500 * (101 / 1001) = 50.44955045
+            expect(alReward0.div((1e15).toString()).toString()).to.be.oneOf(['50000', '50449']);
             // migrate
             await upgrade();
             await rewardsBooster.migrateDeploymentBoost(deploymentId0, consumer0.address);
