@@ -75,6 +75,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     mapping(ProjectType => uint256) public accRewardsPerBoosterByType;
     mapping(ProjectType => uint256) public accRewardsPerBoosterLastBlockUpdatedByType;
     // --------- separated boost end
+    // --------- booster deduction
+    // @notice projectType => rate (per_mill)
+    mapping(ProjectType => uint256) public boosterDeductionRate;
+    // @notice deploymentId => account => amount
+    mapping(bytes32 => mapping(address => uint256)) public deploymentBoosterDeductionSnapshot;
 
     /// @notice ### EVENTS
     event ParameterUpdated(string param, uint256 value);
@@ -114,6 +119,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         bytes data
     );
     event DeploymentBoostMigrated(
+        bytes32 indexed deploymentId,
+        address indexed account,
+        uint256 amount
+    );
+    event DeploymentBoosterDeducted(
         bytes32 indexed deploymentId,
         address indexed account,
         uint256 amount
@@ -211,6 +221,32 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
             'RB008'
         );
         _;
+    }
+
+    function deductDeploymentBoost(bytes32 _deploymentId, address _account) external override {
+        deploymentBoosterDeductionSnapshot[_deploymentId][_account] += _amount;
+        emit DeploymentBoosterDeducted(_deploymentId, _account, _amount);
+    }
+
+    // @notice set deploymentPool.accQueryRewardsPerBooster with new value with deduction
+    // and send the deduction to treasury
+    // @return boost deduction
+    function _deductBoostByNewQueryRewards(
+        ProjectType _projectType,
+        DeploymentPool storage _deploymentPool,
+        uint256 _newQueryRewards
+    ) internal returns (uint256) {
+        uint256 deduction = _newQueryRewards.mulDiv(boosterDeductionRate[_projectType], PER_MILL);
+
+        _deploymentPool.boosterPoint = _deploymentPool.boosterPoint.sub(deduction);
+        // transfer to treasury
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
+            settings.getContractAddress(SQContracts.Treasury),
+            deduction
+        );
+        // emit event
+        emit DeploymentBoosterDeducted(_deploymentPool.deploymentId, address(0), deduction);
+        return deductionPerBoost;
     }
 
     /**
@@ -566,7 +602,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         address _account
     ) internal returns (uint256) {
         // Called since `total boosted token` will change
-        _updateAccRewardsPerBooster(_projectType);
+        uint256 accRewardsPerBoosterSnapshot = _updateAccRewardsPerBooster(_projectType);
 
         // Updates the accumulated rewards
         DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
@@ -574,13 +610,14 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
             _projectType,
             _deploymentId
         );
-        deployment.accRewardsPerBoosterSnapshot = accRewardsPerBoosterByType[_projectType];
+        deployment.accRewardsPerBoosterSnapshot = accRewardsPerBoosterSnapshot;
 
         // update accQueryRewards
         BoosterQueryReward storage boosterQueryReward = deployment.boosterQueryRewards[_account];
         (
             uint256 accQueryRewardsPerBooster,
-            uint256 accRewardsForDeploymentSnapshot
+            uint256 accRewardsForDeploymentSnapshot,
+            uint256 newQueryRewardsForDeployment
         ) = _getAccQueryRewardsPerBooster(_projectType, _deploymentId);
         boosterQueryReward.accQueryRewards = _getAccQueryRewardsByType(
             _projectType,
@@ -597,6 +634,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         );
         deployment.accRewardsPerAllocatedToken = accRewardsPerAllocatedToken;
         deployment.accRewardsForDeploymentSnapshot = accRewardsForDeploymentSnapshot;
+
+        _deductBoostByNewQueryRewards(_projectType, deployment, newQueryRewardsForDeployment);
 
         return deployment.accRewardsForDeployment;
     }
@@ -619,12 +658,15 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         ) = _getAccRewardsPerAllocatedToken(_projectType, _deploymentId);
         deployment.accRewardsPerAllocatedToken = accRewardsPerAllocatedToken;
         // also update for booster
-        (uint256 accQueryRewardsPerBooster, ) = _getAccQueryRewardsPerBooster(
-            _projectType,
-            _deploymentId
-        );
+        (
+            uint256 accQueryRewardsPerBooster,
+            ,
+            uint256 newQueryRewardsForDeployment
+        ) = _getAccQueryRewardsPerBooster(_projectType, _deploymentId);
         deployment.accQueryRewardsPerBooster = accQueryRewardsPerBooster;
         deployment.accRewardsForDeploymentSnapshot = accRewardsForDeployment;
+
+        _deductBoostByNewQueryRewards(_projectType, deployment, newQueryRewardsForDeployment);
 
         return deployment.accRewardsPerAllocatedToken;
     }
@@ -880,10 +922,15 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
             accRewardsForDeployment
         );
     }
+
+    // @notice calculate accumulated query rewards per boost
+    // @return new accQueryRewardsPerBooster for the deployment
+    // @return new accRewardsForDeployment for the deployment
+    // @return new deducted boost for the deployment
     function _getAccQueryRewardsPerBooster(
         ProjectType _projectType,
         bytes32 _deploymentId
-    ) internal view returns (uint256, uint256) {
+    ) internal view returns (uint256, uint256, uint256) {
         DeploymentPool storage deployment = deploymentPoolsByType[_deploymentId];
 
         uint256 accRewardsForDeployment = _getAccRewardsForDeployment(_projectType, _deploymentId);
@@ -911,7 +958,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
 
         return (
             deployment.accQueryRewardsPerBooster + newQueryRewardsPerBooster,
-            accRewardsForDeployment
+            accRewardsForDeployment,
+            newQueryRewardsForDeployment
         );
     }
 
@@ -1152,5 +1200,13 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         );
 
         emit QueryRewardsRefunded(_deploymentId, _spender, _amount, _data);
+    }
+
+    function getBoostDeduction(
+        bytes32 _deploymentId,
+        address _account
+    ) public view returns (uint256) {
+        DeploymentPool storage deployment = deploymentPools[_deploymentId];
+        return deployment.boosterQueryRewards[_account].spentQueryRewards;
     }
 }
