@@ -4,10 +4,10 @@
 import { expect } from 'chai';
 import { BigNumber, BigNumberish, BytesLike, Wallet } from 'ethers';
 import { ethers, waffle } from 'hardhat';
-import { ConsumerHost, IndexerRegistry, ERC20, Staking, StateChannel } from '../src';
-import { deploymentIds } from './constants';
-import { delay, etherParse, registerRunner } from './helper';
 import { deployContracts } from './setup';
+import { ConsumerHost, IndexerRegistry, ERC20, Staking, StateChannel, ProjectType, ProjectRegistry } from '../src';
+import { deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
+import { createProject, delay, etherParse, registerRunner } from './helper';
 
 describe('ConsumerHost Contract', () => {
     const deploymentId = deploymentIds[0];
@@ -18,6 +18,7 @@ describe('ConsumerHost Contract', () => {
     let indexerRegistry: IndexerRegistry;
     let stateChannel: StateChannel;
     let consumerHost: ConsumerHost;
+    let projectRegistry: ProjectRegistry;
     const address_zero = '0x0000000000000000000000000000000000000000';
 
     const openChannel = async (
@@ -186,6 +187,7 @@ describe('ConsumerHost Contract', () => {
         token = deployment.token;
         stateChannel = deployment.stateChannel;
         consumerHost = deployment.consumerHost;
+        projectRegistry = deployment.projectRegistry;
     });
 
     describe('Consumer Host Config', () => {
@@ -287,6 +289,15 @@ describe('ConsumerHost Contract', () => {
             await token.connect(consumer2).increaseAllowance(consumerHost.address, etherParse('10'));
             await consumerHost.connect(consumer).deposit(etherParse('10'), false);
             await consumerHost.connect(consumer2).deposit(etherParse('10'), true);
+
+            await createProject(
+                projectRegistry,
+                wallet_0,
+                projectMetadatas[0],
+                deploymentMetadatas[0],
+                deploymentId,
+                ProjectType.SUBQUERY
+            );
         });
 
         it('open a State Channel should work', async () => {

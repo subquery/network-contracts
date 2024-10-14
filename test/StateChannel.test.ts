@@ -137,6 +137,9 @@ describe('StateChannel Contract', () => {
             ProjectType.SUBQUERY
         );
         await rewardsBooster.setIssuancePerBlock(etherParse('0.5'));
+        await rewardsBooster.setIssuancePerBlockByType(ProjectType.SUBQUERY, etherParse('0.5'));
+        // await rewardsBooster.setIssuancePerBlockByType(ProjectType.RPC, etherParse('0.5'));
+
         await rewardsBooster.setBoosterQueryRewardRate(ProjectType.SUBQUERY, 5e5); // 50%
         await token.connect(treasury).approve(rewardsBooster.address, constants.MaxInt256);
     });

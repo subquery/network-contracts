@@ -145,6 +145,8 @@ describe('RewardsBooster Contract', () => {
         await token.approve(rewardsBooster.address, constants.MaxInt256);
 
         // config rewards booster
+        await rewardsBooster.setIssuancePerBlockByType(ProjectType.SUBQUERY, etherParse('10'));
+        await rewardsBooster.setIssuancePerBlockByType(ProjectType.RPC, etherParse('5'));
         await rewardsBooster.setBoosterQueryRewardRate(ProjectType.SUBQUERY, 5e5); // 50%
         await rewardsBooster.setBoosterQueryRewardRate(ProjectType.RPC, 9e5); // 90%
         await rewardsBooster.setReporter(root.address, true);
@@ -464,8 +466,8 @@ describe('RewardsBooster Contract', () => {
                     .connect(consumer0)
                     .swapBoosterDeployment(consumer, deploymentId1, deploymentId2, etherParse('13000'));
                 // check states
-                const accRewardsPerBooster = await rewardsBooster.getAccRewardsPerBooster();
-                const pool1 = await rewardsBooster.deploymentPools(deploymentId1);
+                const accRewardsPerBooster = await rewardsBooster.getAccRewardsPerBooster(ProjectType.SUBQUERY);
+                const pool1 = await rewardsBooster.deploymentPoolsByType(deploymentId1);
                 expect(pool1.boosterPoint).to.eq(etherParse('27000'));
                 expect(pool1.accRewardsPerBooster).to.eq(accRewardsPerBooster);
                 const runnerDeployment2Booster = await rewardsBooster.getRunnerDeploymentBooster(
@@ -474,7 +476,7 @@ describe('RewardsBooster Contract', () => {
                 );
                 expect(runnerDeployment2Booster).to.eq(etherParse('27000'));
 
-                const pool2 = await rewardsBooster.deploymentPools(deploymentId2);
+                const pool2 = await rewardsBooster.deploymentPoolsByType(deploymentId2);
                 expect(pool2.boosterPoint).to.eq(etherParse('13000'));
                 expect(pool2.accRewardsPerBooster).to.eq(accRewardsPerBooster);
                 const runnerDeployment3Booster = await rewardsBooster.getRunnerDeploymentBooster(
@@ -576,7 +578,7 @@ describe('RewardsBooster Contract', () => {
             // setup, use deploymentId0, runner0
             const queryRewardRatePerMill = await rewardsBooster.boosterQueryRewardRate(ProjectType.SUBQUERY);
             await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('1000'));
-            const perBlockAllocationReward = (await rewardsBooster.issuancePerBlock())
+            const perBlockAllocationReward = (await rewardsBooster.issuancePerBlockByType(ProjectType.SUBQUERY))
                 .div(2)
                 .mul(queryRewardRatePerMill)
                 .div(1e6);
