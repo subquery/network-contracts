@@ -1434,4 +1434,27 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
 
         emit QueryRewardsRefunded(_deploymentId, _spender, _amount, _data);
     }
+
+    function cleanDeploymentBoost(bytes32 _deploymentId, address _account) external {
+        DeploymentPool storage deploymentPool = deploymentPools[_deploymentId];
+        uint _amount = deploymentPool.accountBooster[_account];
+
+        if (_amount > 0) {
+            // need to migrate over
+            _onDeploymentBoosterUpdate(_deploymentId, _account);
+            deploymentPool.boosterPoint -= _amount;
+            deploymentPool.accountBooster[_account] = 0;
+            deploymentPool.accRewardsPerBooster = accRewardsPerBooster;
+            totalBoosterPoint -= _amount;
+
+            emit DeploymentBoosterRemoved(_deploymentId, _account, _amount);
+
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
+                _account,
+                _amount
+            );
+
+            emit DeploymentBoostMigrated(_deploymentId, _account, _amount);
+        }
+    }
 }

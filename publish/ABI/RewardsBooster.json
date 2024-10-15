@@ -427,6 +427,24 @@
             },
             {
                 "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            }
+        ],
+        "name": "cleanDeploymentBoost",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
                 "name": "_runner",
                 "type": "address"
             }
