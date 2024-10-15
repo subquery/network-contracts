@@ -23,6 +23,8 @@
         "deploy": "ts-node --transpileOnly scripts/deploy.ts",
         "upgrade": "ts-node --transpileOnly scripts/upgrade.ts",
         "setup": "ts-node --transpileOnly scripts/startup.ts",
+        "scan-verify:testnet": "hardhat publishChild --deployment publish/testnet.json --network base-sepolia --networkpair testnet ",
+        "scan-verify:mainnet": "hardhat publishChild --deployment publish/mainnet.json --network base --networkpair mainnet ",
         "verify": "ts-node --transpileOnly scripts/verify.ts",
         "upgrade:verify": "ts-node --transpileOnly scripts/verifyUpgrade.ts",
         "seed": "node -r ts-node/register/transpile-only -r dotenv/config scripts/seed.ts",
