@@ -419,6 +419,8 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
                 SQToken.safeTransfer(treasury, rewardsReturn);
                 emit ReturnRewards(runner, rewardsReturn, commission - cappedCommission);
             }
+        } else {
+            emit DistributeRewards(runner, rewardInfo.lastClaimEra, 0, 0);
         }
         return rewardInfo.lastClaimEra;
     }
