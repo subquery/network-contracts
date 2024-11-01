@@ -450,8 +450,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         emit ChannelTerminate(channelId, state.spent, expiration, isIndexer);
 
         // update channel state.
-        QueryState memory query = QueryState(channelId, state.spent, false, '', '');
-        _settlement(query.channelId, query.spent, query.isFinal);
+        _settlement(channelId, state.spent, false);
     }
 
     /**
