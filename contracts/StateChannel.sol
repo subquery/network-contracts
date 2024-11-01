@@ -327,13 +327,6 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
             amount,
             abi.encode(channelId)
         );
-        if (rewardsAmount > 0) {
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
-                rbAddress,
-                address(this),
-                rewardsAmount
-            );
-        }
 
         if (rewardsAmount < amount) {
             // transfer the balance to contract
@@ -592,13 +585,6 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
                 spent - rewardsTotal,
                 abi.encode(channelId)
             );
-            if (rewardsAmount > 0) {
-                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
-                    rbAddress,
-                    address(this),
-                    rewardsAmount
-                );
-            }
             total += rewardsAmount;
         }
 
