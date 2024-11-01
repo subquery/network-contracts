@@ -609,6 +609,47 @@ describe('StateChannel Contract', () => {
             expect(state.status).to.equal(0);
         });
 
+        it('terminate State Channel with current onchain state', async () => {
+            await stateChannel.setTerminateExpiration(5); // 5s
+
+            const channelId = ethers.utils.randomBytes(32);
+            await openChannel(
+                stateChannel,
+                channelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('1'),
+                etherParse('0.1'),
+                60
+            );
+
+            const query1 = await buildQueryState(channelId, runner, consumer, etherParse('0.1'), false);
+            await stateChannel.connect(runner).checkpoint(query1);
+            let state1 = await stateChannel.channel(channelId);
+            expect(state1.spent).to.equal(etherParse('0.1'));
+
+            await expect(stateChannel.connect(runner).terminateWithCurrentState(channelId)).to.emit(
+                stateChannel,
+                'ChannelTerminate'
+            );
+            state1 = await stateChannel.channel(channelId);
+            expect(state1.status).to.equal(2); // Terminate
+
+            await expect(stateChannel.claim(channelId)).to.be.revertedWith('SC008');
+
+            await delay(6);
+            await stateChannel.claim(channelId);
+
+            const balance2 = await token.balanceOf(consumer.address);
+            expect(balance2).to.equal(etherParse('4.9'));
+
+            await startNewEra(eraManager);
+            await rewardsHelper.connect(runner).indexerCatchup(runner.address);
+            const indexerReward = await rewardsDistributor.userRewards(runner.address, runner.address);
+
+            expect(indexerReward).to.eq(etherParse('0.1'));
+        });
         /**
          * when only one indexer in the pool and that indexer unregistered,
          * channel can still be terminated, consumer can claim the channel token
