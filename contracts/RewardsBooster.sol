@@ -1361,8 +1361,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
                 address(this),
                 _amount
             );
-            // Allowance
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(msg.sender, _amount);
+            sqToken.safeTransfer(msg.sender, _amount);
 
             emit QueryRewardsSpent(_deploymentId, _spender, _amount, _data);
         }
@@ -1393,8 +1392,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
                 address(this),
                 _amount
             );
-            // Allowance
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(msg.sender, _amount);
+            sqToken.safeTransfer(msg.sender, _amount);
 
             emit QueryRewardsSpent(_deploymentId, _spender, _amount, _data);
         }
