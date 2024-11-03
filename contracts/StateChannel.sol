@@ -368,7 +368,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         emit ChannelCheckpoint(query.channelId, query.spent, query.isFinal);
 
         // update channel state
-        _settlement(query, false);
+        _settlement(query.channelId, query.spent, query.isFinal);
     }
 
     /**
@@ -414,7 +414,36 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         emit ChannelTerminate(query.channelId, query.spent, expiration, isIndexer);
 
         // update channel state.
-        _settlement(query, false);
+        _settlement(query.channelId, query.spent, query.isFinal);
+    }
+
+    function terminateWithCurrentState(uint256 channelId) external {
+        ChannelState storage state = channels[channelId];
+
+        // check sender
+        bool isIndexer = msg.sender == state.indexer;
+        bool isConsumer = msg.sender == state.consumer;
+        if (!isIndexer && !isConsumer) {
+            address controller = IIndexerRegistry(
+                settings.getContractAddress(SQContracts.IndexerRegistry)
+            ).getController(state.indexer);
+            isIndexer = msg.sender == controller;
+        }
+        if (_isContract(state.consumer)) {
+            isConsumer = IConsumer(state.consumer).checkSender(channelId, msg.sender);
+        }
+        require(isIndexer || isConsumer, 'G008');
+
+        // set state to terminate
+        state.status = ChannelStatus.Terminating;
+        uint256 expiration = block.timestamp + terminateExpiration;
+        state.terminatedAt = expiration;
+        state.terminateByIndexer = isIndexer;
+
+        emit ChannelTerminate(channelId, state.spent, expiration, isIndexer);
+
+        // update channel state.
+        _settlement(channelId, state.spent, false);
     }
 
     /**
@@ -444,7 +473,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         _checkStateSign(query.channelId, payload, query.indexerSign, query.consumerSign);
 
         // update channel state
-        _settlement(query, true);
+        _settlement(query.channelId, query.spent, true);
     }
 
     /**
@@ -512,21 +541,22 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
     }
 
     /// @notice Settlement the new state
-    function _settlement(QueryState calldata query, bool finalize) private {
+    function _settlement(uint256 channelId, uint256 spent, bool isFinal) private {
         // update channel state
-        uint256 amount = query.spent - channels[query.channelId].spent;
+        ChannelState storage state = channels[channelId];
+        uint256 amount = spent - state.spent;
 
-        if (channels[query.channelId].total > query.spent) {
-            channels[query.channelId].spent = query.spent;
+        if (state.total > spent) {
+            state.spent = spent;
         } else {
-            amount = channels[query.channelId].total - channels[query.channelId].spent;
-            channels[query.channelId].spent = channels[query.channelId].total;
+            amount = state.total - state.spent;
+            state.spent = state.total;
         }
 
         // reward pool
         if (amount > 0) {
-            address indexer = channels[query.channelId].indexer;
-            bytes32 deploymentId = channels[query.channelId].deploymentId;
+            address indexer = state.indexer;
+            bytes32 deploymentId = state.deploymentId;
             // rewards pool is deprecated
             //            address rewardPoolAddress = settings.getContractAddress(SQContracts.RewardsPool);
             //            IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(
@@ -552,12 +582,12 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
                 amount,
                 eraManager.safeUpdateAndGetEra()
             );
-            emit ChannelLabor2(query.channelId, deploymentId, indexer, amount);
+            emit ChannelLabor2(channelId, deploymentId, indexer, amount);
         }
 
         // finalise channel if meet the requirements
-        if (finalize || query.isFinal) {
-            _finalize(query.channelId);
+        if (isFinal) {
+            _finalize(channelId);
         }
     }
 
