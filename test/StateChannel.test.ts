@@ -656,7 +656,7 @@ describe('StateChannel Contract', () => {
             // reward distribution should be skipped due to total stake is 0
             tx = await rewardsHelper.connect(runner).indexerCatchup(runner.address);
             evt = await eventFrom(tx, rewardsDistributor, 'DistributeRewards(address,uint256,uint256,uint256)');
-            expect(evt).to.be.undefined;
+            expect(evt.rewards).to.eq(0);
         });
 
         /**
@@ -695,7 +695,7 @@ describe('StateChannel Contract', () => {
             await stateChannel.claim(channelId);
             balanceAfter = await token.balanceOf(consumer.address);
             expect(balanceBefore.sub(balanceAfter)).to.eq(etherParse('0.4'));
-            let evt = await eventFrom(tx, stateChannel, 'ChannelLabor2(uint256,bytes32,address,uint256)');
+            const evt = await eventFrom(tx, stateChannel, 'ChannelLabor2(uint256,bytes32,address,uint256)');
             expect(evt.amount).to.be.eq(etherParse('0.4'));
 
             // start new era so we can try collect the channel reward
@@ -703,8 +703,10 @@ describe('StateChannel Contract', () => {
 
             // reward distribution should be skipped due to total stake is 0
             tx = await rewardsHelper.connect(runner).indexerCatchup(runner.address);
-            evt = await eventFrom(tx, rewardsDistributor, 'DistributeRewards(address,uint256,uint256,uint256)');
-            expect(evt.rewards).to.eq(etherParse('0.4'));
+            const evts = await eventsFrom(tx, rewardsDistributor, 'DistributeRewards(address,uint256,uint256,uint256)');
+            expect(evts.length).to.eq(2);
+            expect(evts[0].rewards).to.eq(0);
+            expect(evts[1].rewards).to.eq(etherParse('0.4'));
 
             // delegator
             const delegatorRewards = await rewardsDistributor.userRewards(runner.address, delegator.address);
