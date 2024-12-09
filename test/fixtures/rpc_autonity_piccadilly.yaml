@@ -28,12 +28,12 @@
 #           - evm
 #         nodeType: full
 #         rpcDenyList:
-#           - admin
-#           - debug
-#           - txpool
-#           - personal
-#           - miner
-#           - les
+#           - admin_
+#           - debug_
+#           - txpool_
+#           - personal_
+#           - miner_
+#           - les_
 #       version:
 #         version: 1.0.0
 - kind: Project
@@ -66,11 +66,11 @@
           - evm
         nodeType: archive
         rpcDenyList:
-          - admin
-          - debug
-          - txpool
-          - personal
-          - miner
-          - les
+          - admin_
+          - debug_
+          - txpool_
+          - personal_
+          - miner_
+          - les_
       version:
         version: 1.0.0
