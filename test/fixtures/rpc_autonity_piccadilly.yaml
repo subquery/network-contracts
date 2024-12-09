@@ -1,0 +1,78 @@
+- kind: Project
+  projectType: 1
+  metadata:
+    name: Autonity Piccadilly RPC - Full Node
+    description: |
+      **Public RPC endpoint:** https://autonity-piccadilly.rpc.subquery.network/public
+
+      An example query for your terminal is
+
+      ```
+      curl -H 'content-type:application/json' -d '{"id": 1, "jsonrpc": "2.0", "method": "eth_blockNumber"}' 'https://autonity-piccadilly.rpc.subquery.network/public'
+      ```
+
+      Piccadilly is a testnet for the Autonity project and is being developed by a community that is passionate about the social benefits of monetary and market structure innovation.
+
+      Connect in seconds to SubQuery's decentralised network of RPC node operators running around the world so your dApps benefit from more reliable, scalable, and affordable RPC services. By accessing this public RPC endpoint, you agree to our Free Public RPC terms of service.
+
+      Autonity is a public, EVM based, proof-of-stake blockchain for decentralized clearing of smart derivatives contracts. Autonity aims to make every risk that the market wants to speculate on or hedge against into a smart derivative product that is tradable between anyone in a fully decentralized ecosystem of price discovery and trade execution.
+    websiteUrl: https://autonity.org/testnets
+  deployments:
+    - deployment: |
+        kind: ChainRpc
+        specVersion: "1.0.0"
+        name: autonity piccadilly - full
+        chain:
+          chainId: 65100003
+        rpcFamily:
+          - evm
+        nodeType: full
+        rpcDenyList:
+          - admin
+          - debug
+          - txpool
+          - personal
+          - miner
+          - les
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 1
+  metadata:
+    name: Autonity Piccadilly RPC - Archive Node
+    description: |
+      **Public RPC endpoint:** https://autonity-piccadilly.rpc.subquery.network/public
+
+      An example query for your terminal is
+
+      ```
+      curl -H 'content-type:application/json' -d '{"id": 1, "jsonrpc": "2.0", "method": "eth_blockNumber"}' 'https://autonity-piccadilly.rpc.subquery.network/public'
+      ```
+
+      Piccadilly is a testnet for the Autonity project and is being developed by a community that is passionate about the social benefits of monetary and market structure innovation.
+
+      Connect in seconds to SubQuery's decentralised network of RPC node operators running around the world so your dApps benefit from more reliable, scalable, and affordable RPC services. By accessing this public RPC endpoint, you agree to our Free Public RPC terms of service.
+
+      Autonity is a public, EVM based, proof-of-stake blockchain for decentralized clearing of smart derivatives contracts. Autonity aims to make every risk that the market wants to speculate on or hedge against into a smart derivative product that is tradable between anyone in a fully decentralized ecosystem of price discovery and trade execution.
+    websiteUrl: https://autonity.org/testnets
+  deployments:
+    - deployment: |
+        kind: ChainRpc
+        specVersion: "1.0.0"
+        name: autonity piccadilly - archive
+        chain:
+          chainId: 65100003
+        rpcFamily:
+          - evm
+        nodeType: archive
+        rpcDenyList:
+          - admin
+          - debug
+          - txpool
+          - personal
+          - miner
+          - les
+      version:
+        version: 1.0.0
+        description:
