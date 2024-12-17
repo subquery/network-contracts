@@ -75,6 +75,10 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     mapping(ProjectType => uint256) public accRewardsPerBoosterByType;
     mapping(ProjectType => uint256) public accRewardsPerBoosterLastBlockUpdatedByType;
     // --------- separated boost end
+    // --------- booster deduction
+    // @notice projectType => rate (per_mill)
+    mapping(ProjectType => uint256) public boosterDeductionRate;
+    // --------- booster deduction end
 
     /// @notice ### EVENTS
     event ParameterUpdated(string param, uint256 value);
@@ -114,6 +118,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         bytes data
     );
     event DeploymentBoostMigrated(
+        bytes32 indexed deploymentId,
+        address indexed account,
+        uint256 amount
+    );
+    event DeploymentBoosterDeducted(
         bytes32 indexed deploymentId,
         address indexed account,
         uint256 amount
@@ -211,6 +220,29 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
             'RB008'
         );
         _;
+    }
+
+    // @notice set deploymentPool.accQueryRewardsPerBooster with new value with deduction
+    // and send the deduction to treasury
+    // @return boost deduction
+    function _deductBoostByNewQueryRewards(
+        ProjectType _projectType,
+        bytes32 _deploymentId,
+        address _account,
+        uint256 _rewardsSpent
+    ) internal returns (uint256) {
+        uint256 deduction = _rewardsSpent.mulDiv(boosterDeductionRate[_projectType], PER_MILL);
+
+        _removeBoosterDeployment(_projectType, _deploymentId, _account, deduction);
+
+        // transfer to treasury
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
+            settings.getContractAddress(SQContracts.Treasury),
+            deduction
+        );
+        // emit event
+        emit DeploymentBoosterDeducted(_deploymentId, _account, deduction);
+        return deduction;
     }
 
     /**
@@ -1084,6 +1116,11 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
             sqToken.safeTransfer(msg.sender, _amount);
 
             emit QueryRewardsSpent(_deploymentId, _spender, _amount, _data);
+
+            ProjectType projectType = IProjectRegistry(
+                settings.getContractAddress(SQContracts.ProjectRegistry)
+            ).getDeploymentProjectType(_deploymentId);
+            _deductBoostByNewQueryRewards(projectType, _deploymentId, _spender, _amount);
         }
         return _amount;
     }
@@ -1115,6 +1152,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
             sqToken.safeTransfer(msg.sender, _amount);
 
             emit QueryRewardsSpent(_deploymentId, _spender, _amount, _data);
+
+            _deductBoostByNewQueryRewards(_projectType, _deploymentId, _spender, _amount);
         }
         return _amount;
     }
