@@ -241,7 +241,7 @@ export const loaders = {
     ) {
         console.log(`PlanTemplate Start`);
         const next = await sdk.planManager.nextTemplateId();
-        let templates;
+        const templates = [];
         for (let i = 0; i < next.toNumber(); i++) {
             const template = await sdk.planManager.getPlanTemplate(i);
             templates.push(template);
@@ -319,12 +319,12 @@ export const loaders = {
                 await tx.wait();
             }
         }
-        const currentIssuancePerBlock = await sdk.rewardsBooster.issuancePerBlock();
-        if (!currentIssuancePerBlock.eq(issuancePerBlock)) {
-            console.log(`set issuancePerBlock: from ${currentIssuancePerBlock.toString()} to ${issuancePerBlock}`);
-            const tx = await sdk.rewardsBooster.connect(rootAccount).setIssuancePerBlock(issuancePerBlock);
-            await tx.wait();
-        }
+        // const currentIssuancePerBlock = await sdk.rewardsBooster.issuancePerBlock();
+        // if (!currentIssuancePerBlock.eq(issuancePerBlock)) {
+        //     console.log(`set issuancePerBlock: from ${currentIssuancePerBlock.toString()} to ${issuancePerBlock}`);
+        //     const tx = await sdk.rewardsBooster.connect(rootAccount).setIssuancePerBlock(issuancePerBlock);
+        //     await tx.wait();
+        // }
     },
     DeploymentBooster: async function (
         { user, amount, deploymentId }: DeploymentBoosterInput,

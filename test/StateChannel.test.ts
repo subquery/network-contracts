@@ -136,7 +136,6 @@ describe('StateChannel Contract', () => {
             deploymentIds[0],
             ProjectType.SUBQUERY
         );
-        await rewardsBooster.setIssuancePerBlock(etherParse('0.5'));
         await rewardsBooster.setIssuancePerBlockByType(ProjectType.SUBQUERY, etherParse('0.5'));
         // await rewardsBooster.setIssuancePerBlockByType(ProjectType.RPC, etherParse('0.5'));
 

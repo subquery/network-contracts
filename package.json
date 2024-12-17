@@ -19,7 +19,7 @@
         "docs:dev": "vuepress dev docs",
         "docs:build": "vuepress build docs",
         "docs:generate": "hardhat docgen",
-        "debug": "node --inspect-brk -r ts-node/register -r tsconfig-paths/register",
+        "debug": "node --inspect-brk -r ts-node/register -r tsconfig-paths/register -r dotenv/config",
         "deploy": "ts-node --transpileOnly scripts/deploy.ts",
         "upgrade": "ts-node --transpileOnly scripts/upgrade.ts",
         "setup": "ts-node --transpileOnly scripts/startup.ts",
