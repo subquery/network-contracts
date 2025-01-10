@@ -319,13 +319,21 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
         delete pool.stake[runner];
 
         if (pool.unclaimTotalLabor == 0) {
-            // burn the remained
+            // don't burn the remained, instead, move to latest era
             if (pool.unclaimReward > 0) {
-                address treasury = settings.getContractAddress(SQContracts.Treasury);
-                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
-                    treasury,
-                    pool.unclaimReward
+                // address treasury = settings.getContractAddress(SQContracts.Treasury);
+                // IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
+                //     treasury,
+                //     pool.unclaimReward
+                // );
+                IEraManager eraManager = IEraManager(
+                    ISettings(settings).getContractAddress(SQContracts.EraManager)
                 );
+                uint256 latestEra = eraManager.safeUpdateAndGetEra();
+                EraPool storage latestEraPool = pools[latestEra];
+                Pool storage latestPool = latestEraPool.pools[deploymentId];
+                latestPool.totalReward += pool.unclaimReward;
+                latestPool.unclaimReward += pool.unclaimReward;
             }
 
             delete eraPool.pools[deploymentId];
