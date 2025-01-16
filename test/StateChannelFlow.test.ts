@@ -225,6 +225,36 @@ describe('StateChannel Workflow Tests', () => {
         expect(
             await rewardsDistributor.getRewardAddTable(runner2.address, (await eraManager.eraNumber()).sub(1))
         ).to.equal(etherParse('2.924017738212866078'));
+
+        await rewardsDistributor.collectAndDistributeRewards(runner.address);
+        await rewardsDistributor.collectAndDistributeRewards(runner2.address);
+
+        await rewardsDistributor.claimFrom(runner.address, runner.address);
+        await rewardsDistributor.claimFrom(runner2.address, runner2.address);
+
+        //checkpoint channel
+        await operateChannel(channelId2, runner, consumer2, etherParse('1'), false, 0);
+        expect((await stateChannel.channel(channelId2)).spent).to.equal(etherParse('1'));
+
+        await operateChannel(channelId4, runner2, consumer2, etherParse('4'), false, 0);
+        expect((await stateChannel.channel(channelId4)).spent).to.equal(etherParse('4'));
+
+        expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('30'));
+        expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('5.233966512466940628'));
+
+        await startNewEra(eraManager);
+
+        //batchCollect at rewardpool
+        await rewardsPool.batchCollect(runner.address);
+        await rewardsPool.batchCollect(runner2.address);
+        expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0.467572850030058593'));
+        expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('4.766393663969941407'));
+        expect(
+            await rewardsDistributor.getRewardAddTable(runner.address, (await eraManager.eraNumber()).sub(1))
+        ).to.equal(etherParse('1.841402306386014846'));
+        expect(
+            await rewardsDistributor.getRewardAddTable(runner2.address, (await eraManager.eraNumber()).sub(1))
+        ).to.equal(etherParse('2.924991356050867189'));
     });
 
     it('check balance when two indexer with staking and deploymentIds', async () => {
