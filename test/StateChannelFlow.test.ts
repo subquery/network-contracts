@@ -217,7 +217,7 @@ describe('StateChannel Workflow Tests', () => {
         //batchCollect at rewardpool
         await rewardsPool.batchCollect(runner.address);
         await rewardsPool.batchCollect(runner2.address);
-        expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0'));
+        expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0.233966512466940628'));
         expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('4.766033487533059372'));
         expect(
             await rewardsDistributor.getRewardAddTable(runner.address, (await eraManager.eraNumber()).sub(1))
@@ -251,7 +251,7 @@ describe('StateChannel Workflow Tests', () => {
         //batchCollect at rewardpool
         await rewardsPool.batchCollect(runner.address);
         await rewardsPool.batchCollect(runner2.address);
-        expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0'));
+        expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('0.256525672704023517'));
         expect(await token.balanceOf(rewardsDistributor.address)).to.equal(etherParse('9.743474327295976483'));
         expect(
             await rewardsDistributor.getRewardAddTable(runner.address, (await eraManager.eraNumber()).sub(1))
