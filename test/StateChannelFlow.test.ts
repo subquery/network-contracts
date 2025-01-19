@@ -242,7 +242,15 @@ describe('StateChannel Workflow Tests', () => {
         expect(await token.balanceOf(stateChannel.address)).to.equal(etherParse('30'));
         expect(await token.balanceOf(rewardsPool.address)).to.equal(etherParse('5.233966512466940628'));
 
+        expect(await eraManager.eraNumber()).equals(4);
+        // expect(await rewardsPool.poolAdjustments((await eraManager.eraNumber()), deploymentIds[0])).equals(
+        //     etherParse('11')
+        // );
         await startNewEra(eraManager);
+        expect(await eraManager.eraNumber()).equals(5);
+        // expect(await rewardsPool.poolAdjustments((await eraManager.eraNumber()), deploymentIds[0])).equals(
+        //     etherParse('12')
+        // );
 
         //batchCollect at rewardpool
         await rewardsPool.batchCollect(runner.address);
