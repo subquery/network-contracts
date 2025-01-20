@@ -66,9 +66,6 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
         mapping(bytes32 => Pool) pools;
     }
 
-    /// @notice Adjustment for Era Rewards Pools: era => deployment => adjustment
-    mapping(uint256 => mapping(bytes32 => uint256)) public poolAdjustments;
-
     /// @dev ### STATES
     /// @notice Settings info
     ISettings public settings;
@@ -78,6 +75,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
     int32 public alphaNumerator;
     /// @notice the denominator of the alpha
     int32 public alphaDenominator;
+
+    /// @notice Adjustment for Era Rewards Pools: era => deployment => adjustment
+    mapping(uint256 => mapping(bytes32 => uint256)) public poolAdjustments;
 
     /// @dev ### EVENTS
     /// @notice Emitted when update the alpha for cobb-douglas function
@@ -322,13 +322,13 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
         delete pool.labor[runner];
         delete pool.stake[runner];
 
-        if (poolAdjustments[era][deploymentId] > 0) {
-            if (amount < poolAdjustments[era][deploymentId]) {
-                poolAdjustments[era][deploymentId] -= amount;
-            } else {
-                delete poolAdjustments[era][deploymentId];
-            }
-        }
+        // if (poolAdjustments[era][deploymentId] > 0) {
+        //     if (amount < poolAdjustments[era][deploymentId]) {
+        //         poolAdjustments[era][deploymentId] -= amount;
+        //     } else {
+        //         delete poolAdjustments[era][deploymentId];
+        //     }
+        // }
 
         // if (pool.unclaimTotalLabor == 0) {
         //     // don't burn the remained, instead, move to latest era
@@ -382,11 +382,11 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
                 latestPool.unclaimReward += pool.unclaimReward;
                 if (poolAdjustments[era][deploymentId] > 0) {
                     poolAdjustments[latestEra][deploymentId] += poolAdjustments[era][deploymentId];
-                    delete poolAdjustments[era][deploymentId];
                 }
                 poolAdjustments[latestEra][deploymentId] += pool.unclaimReward;
             }
 
+            delete poolAdjustments[era][deploymentId];
             delete eraPool.pools[deploymentId];
             eraPool.totalUnclaimedDeployment -= 1;
 
