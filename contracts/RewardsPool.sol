@@ -380,9 +380,6 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
                 Pool storage latestPool = latestEraPool.pools[deploymentId];
                 // latestPool.totalReward += pool.unclaimReward;
                 latestPool.unclaimReward += pool.unclaimReward;
-                if (poolAdjustments[era][deploymentId] > 0) {
-                    poolAdjustments[latestEra][deploymentId] += poolAdjustments[era][deploymentId];
-                }
                 poolAdjustments[latestEra][deploymentId] += pool.unclaimReward;
             }
 
@@ -393,7 +390,6 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
             // if unclaimed pool == 0, delete the era
             if (eraPool.totalUnclaimedDeployment == 0) {
                 delete pools[era];
-                // delete poolAdjustments[era]; // TODO: raise error
             }
         }
     }
