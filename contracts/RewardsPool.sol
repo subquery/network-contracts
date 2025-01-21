@@ -322,64 +322,17 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
         delete pool.labor[runner];
         delete pool.stake[runner];
 
-        // if (poolAdjustments[era][deploymentId] > 0) {
-        //     if (amount < poolAdjustments[era][deploymentId]) {
-        //         poolAdjustments[era][deploymentId] -= amount;
-        //     } else {
-        //         delete poolAdjustments[era][deploymentId];
-        //     }
-        // }
-
-        // if (pool.unclaimTotalLabor == 0) {
-        //     // don't burn the remained, instead, move to latest era
-        //     if (pool.unclaimReward > 0) {
-        //         // address treasury = settings.getContractAddress(SQContracts.Treasury);
-        //         // IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
-        //         //     treasury,
-        //         //     pool.unclaimReward
-        //         // );
-        //         IEraManager eraManager = IEraManager(
-        //             ISettings(settings).getContractAddress(SQContracts.EraManager)
-        //         );
-        //         uint256 latestEra = eraManager.safeUpdateAndGetEra();
-        //         EraPool storage latestEraPool = pools[latestEra];
-        //         Pool storage latestPool = latestEraPool.pools[deploymentId];
-        //         // latestPool.totalReward += pool.unclaimReward;
-        //         latestPool.unclaimReward += pool.unclaimReward;
-        //         poolAdjustments[latestEra][deploymentId] += pool.unclaimReward;
-        //     }
-
-        //     delete eraPool.pools[deploymentId];
-        //     eraPool.totalUnclaimedDeployment -= 1;
-
-        //     // if unclaimed pool == 0, delete the era
-        //     if (eraPool.totalUnclaimedDeployment == 0) {
-        //         delete pools[era];
-        //         // delete poolAdjustments[era];
-        //     }
-        // }
-
-        _handleUnclaimedReward(era, deploymentId);
-
-        emit Collect(deploymentId, runner, era, amount);
-    }
-
-    /// @notice work for _collect()
-    function _handleUnclaimedReward(uint256 era, bytes32 deploymentId) private {
-        EraPool storage eraPool = pools[era];
-        Pool storage pool = eraPool.pools[deploymentId];
         if (pool.unclaimTotalLabor == 0) {
             // don't burn the remained, instead, move to latest era
             if (pool.unclaimReward > 0) {
-                IEraManager eraManager = IEraManager(
+                uint256 latestEra = IEraManager(
                     ISettings(settings).getContractAddress(SQContracts.EraManager)
-                );
-                uint256 latestEra = eraManager.safeUpdateAndGetEra();
+                ).safeUpdateAndGetEra();
                 require(latestEra > era, 'RP006');
-                EraPool storage latestEraPool = pools[latestEra];
-                Pool storage latestPool = latestEraPool.pools[deploymentId];
+                // EraPool storage latestEraPool = pools[latestEra];
+                // Pool storage latestPool = latestEraPool.pools[deploymentId];
                 // latestPool.totalReward += pool.unclaimReward;
-                latestPool.unclaimReward += pool.unclaimReward;
+                pools[latestEra].pools[deploymentId].unclaimReward += pool.unclaimReward;
                 poolAdjustments[latestEra][deploymentId] += pool.unclaimReward;
             }
 
@@ -392,6 +345,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
                 delete pools[era];
             }
         }
+
+        emit Collect(deploymentId, runner, era, amount);
     }
 
     /// @notice The cobb-doublas function has the form:
