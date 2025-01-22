@@ -559,7 +559,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
             bytes32 deploymentId = state.deploymentId;
             // rewards pool is reactivated
             address rewardPoolAddress = settings.getContractAddress(SQContracts.RewardsPool);
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeIncreaseAllowance(
                 rewardPoolAddress,
                 amount
             );
