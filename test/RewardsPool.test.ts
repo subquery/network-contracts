@@ -8,7 +8,7 @@ import { etherParse, eventsFrom, registerRunner, startNewEra, time, timeTravel }
 import { deployContracts } from './setup';
 import { ethers, waffle } from 'hardhat';
 
-describe.skip('RewardsPool Contract', () => {
+describe('RewardsPool Contract', () => {
     const deploymentId0 = deploymentIds[0];
     const deploymentId1 = deploymentIds[1];
     const deploymentId2 = deploymentIds[2];
@@ -125,16 +125,14 @@ describe.skip('RewardsPool Contract', () => {
             await timeTravel(time.duration.days(1).toNumber());
 
             // Auto collect
-            await rewardsDistributor.collectAndDistributeRewards(runner0.address);
-
-            const tx2 = await rewardsDistributor.collectAndDistributeRewards(runner1.address);
-            const evts2 = await eventsFrom(
-                tx2,
-                rewardsDistributor,
-                'DistributeRewards(address,uint256,uint256,uint256)'
-            );
             const tx = await rewardsDistributor.collectAndDistributeRewards(runner0.address);
             const evts = await eventsFrom(tx, rewardsDistributor, 'DistributeRewards(address,uint256,uint256,uint256)');
+            // const tx2 = await rewardsDistributor.collectAndDistributeRewards(runner1.address);
+            // const evts2 = await eventsFrom(
+            //     tx2,
+            //     rewardsDistributor,
+            //     'DistributeRewards(address,uint256,uint256,uint256)'
+            // );
             const rewards2 = await rewardsPool.getReward(deploymentId0, era, runner0.address);
             expect(rewards2[0]).to.be.eq(etherParse('0')); // already collected
             const isClaimed1 = await rewardsPool.isClaimed(era, runner0.address);
