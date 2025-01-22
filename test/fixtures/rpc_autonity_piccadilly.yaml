@@ -23,7 +23,7 @@
 #         specVersion: "1.0.0"
 #         name: autonity piccadilly - full
 #         chain:
-#           chainId: 65100003
+#           chainId: 65100004
 #         rpcFamily:
 #           - evm
 #         nodeType: full
@@ -38,6 +38,7 @@
 #         version: 1.0.0
 - kind: Project
   projectType: 1
+  id: '0x4d'
   metadata:
     name: Autonity Piccadilly RPC - Archive Node
     description: |
@@ -74,3 +75,23 @@
           - les_
       version:
         version: 1.0.0
+      deploymentId: 'QmW5RcoyWKRJdrgV1aGair8UtGZhpfK4VrYJvs4sRzGVL2'
+    - deployment: |
+        kind: ChainRpc
+        specVersion: "1.0.0"
+        name: autonity piccadilly - archive
+        chain:
+          chainId: 65100004
+        rpcFamily:
+          - evm
+        nodeType: archive
+        rpcDenyList:
+          - admin_
+          - debug_
+          - txpool_
+          - personal_
+          - miner_
+          - les_
+      version:
+        version: 2.0.0
+      deploymentId: 'QmSXV8pkxKufQNGdaJ2N15t4cCta4iYWL7QXdLvtjEaS48'
