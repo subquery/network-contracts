@@ -87,7 +87,7 @@ describe('RewardsPool Contract', () => {
         await registerRunner(token, indexerRegistry, staking, root, runner2, etherParse('1000'), 1e5);
     });
 
-    it.skip('output result', function () {
+    it.skip('data metrics calcuation', function () {
         const metrix = {
             alpha: [
                 // [1, 10],
