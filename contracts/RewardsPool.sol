@@ -76,6 +76,9 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
     /// @notice the denominator of the alpha
     int32 public alphaDenominator;
 
+    /// @notice Adjustment for Era Rewards Pools: era => deployment => adjustment
+    mapping(uint256 => mapping(bytes32 => uint256)) public poolAdjustments;
+
     /// @dev ### EVENTS
     /// @notice Emitted when update the alpha for cobb-douglas function
     event Alpha(int32 alphaNumerator, int32 alphaDenominator);
@@ -291,7 +294,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
             pool.totalReward,
             pool.labor[runner],
             pool.stake[runner],
-            pool.totalStake
+            pool.totalStake,
+            poolAdjustments[era][deploymentId]
         );
 
         address rewardDistributer = settings.getContractAddress(SQContracts.RewardsDistributor);
@@ -319,15 +323,20 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
         delete pool.stake[runner];
 
         if (pool.unclaimTotalLabor == 0) {
-            // burn the remained
+            // don't burn the remained, instead, move to latest era
             if (pool.unclaimReward > 0) {
-                address treasury = settings.getContractAddress(SQContracts.Treasury);
-                IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
-                    treasury,
-                    pool.unclaimReward
-                );
+                uint256 latestEra = IEraManager(
+                    ISettings(settings).getContractAddress(SQContracts.EraManager)
+                ).safeUpdateAndGetEra();
+                require(latestEra > era, 'RP006');
+                // EraPool storage latestEraPool = pools[latestEra];
+                // Pool storage latestPool = latestEraPool.pools[deploymentId];
+                // latestPool.totalReward += pool.unclaimReward;
+                pools[latestEra].pools[deploymentId].unclaimReward += pool.unclaimReward;
+                poolAdjustments[latestEra][deploymentId] += pool.unclaimReward;
             }
 
+            delete poolAdjustments[era][deploymentId];
             delete eraPool.pools[deploymentId];
             eraPool.totalUnclaimedDeployment -= 1;
 
@@ -353,7 +362,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
         uint256 reward,
         uint256 myLabor,
         uint256 myStake,
-        uint256 totalStake
+        uint256 totalStake,
+        uint256 adjustment
     ) private view returns (uint256) {
         if (myStake == totalStake) {
             return reward;
@@ -382,6 +392,6 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
         // depending on the choice we made earlier.
         n = feeRatio <= stakeRatio ? FixedMath.mul(stakeRatio, n) : FixedMath.div(stakeRatio, n);
         // Multiply the above with reward.
-        return FixedMath.uintMul(n, reward);
+        return FixedMath.uintMul(n, reward + adjustment);
     }
 }

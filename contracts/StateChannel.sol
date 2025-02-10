@@ -557,31 +557,32 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         if (amount > 0) {
             address indexer = state.indexer;
             bytes32 deploymentId = state.deploymentId;
-            // rewards pool is deprecated
-            //            address rewardPoolAddress = settings.getContractAddress(SQContracts.RewardsPool);
-            //            IERC20(settings.getContractAddress(SQContracts.SQToken)).approve(
-            //                rewardPoolAddress,
-            //                amount
-            //            );
-            //            IRewardsPool rewardsPool = IRewardsPool(rewardPoolAddress);
-            //            rewardsPool.labor(deploymentId, indexer, amount);
-
-            IRewardsDistributor rewardsDistributor = IRewardsDistributor(
-                ISettings(settings).getContractAddress(SQContracts.RewardsDistributor)
-            );
-            IEraManager eraManager = IEraManager(
-                ISettings(settings).getContractAddress(SQContracts.EraManager)
-            );
+            // rewards pool is reactivated
+            address rewardPoolAddress = settings.getContractAddress(SQContracts.RewardsPool);
             IERC20(settings.getContractAddress(SQContracts.SQToken)).safeIncreaseAllowance(
-                address(rewardsDistributor),
+                rewardPoolAddress,
                 amount
             );
-            rewardsDistributor.addInstantRewards(
-                indexer,
-                address(this),
-                amount,
-                eraManager.safeUpdateAndGetEra()
-            );
+            IRewardsPool rewardsPool = IRewardsPool(rewardPoolAddress);
+            rewardsPool.labor(deploymentId, indexer, amount);
+
+            // disable instant rewards
+            // IRewardsDistributor rewardsDistributor = IRewardsDistributor(
+            //     ISettings(settings).getContractAddress(SQContracts.RewardsDistributor)
+            // );
+            // IEraManager eraManager = IEraManager(
+            //     ISettings(settings).getContractAddress(SQContracts.EraManager)
+            // );
+            // IERC20(settings.getContractAddress(SQContracts.SQToken)).safeIncreaseAllowance(
+            //     address(rewardsDistributor),
+            //     amount
+            // );
+            // rewardsDistributor.addInstantRewards(
+            //     indexer,
+            //     address(this),
+            //     amount,
+            //     eraManager.safeUpdateAndGetEra()
+            // );
             emit ChannelLabor2(channelId, deploymentId, indexer, amount);
         }
 

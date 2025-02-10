@@ -281,10 +281,10 @@ describe('StateChannel Contract', () => {
             // check rewards
             const evt = await eventFrom(tx, stateChannel, 'ChannelLabor2(uint256,bytes32,address,uint256)');
             expect(evt.amount).to.be.eq(etherParse('0.1'));
-            // const currentEra = (await eraManager.eraNumber()).toNumber();
-            // const infos = await rewardsPool.getReward(deploymentId, currentEra, runner.address);
-            // expect(infos[0]).to.be.eq(etherParse('0.1')); // labor
-            // expect(infos[1]).to.be.eq(etherParse('0.1')); // reward
+            const currentEra = (await eraManager.eraNumber()).toNumber();
+            const infos = await rewardsPool.getReward(deploymentId, currentEra, runner.address);
+            expect(infos[0]).to.be.eq(etherParse('0.1')); // labor
+            expect(infos[1]).to.be.eq(etherParse('0.1')); // reward
 
             const query2 = await buildQueryState(channelId, runner, consumer, etherParse('0.2'), false);
             await stateChannel.checkpoint(query2);
@@ -687,11 +687,11 @@ describe('StateChannel Contract', () => {
 
             // start new era so we can try collect the channel reward
             const era = await startNewEra(eraManager);
-            // const unclaimed = await rewardsPool.getUnclaimDeployments(era.toNumber() - 1, runner.address);
-            // expect(unclaimed).to.be.empty;
-            // const reward = await rewardsPool.getReward(deploymentId, era.toNumber() - 1, runner.address);
-            // expect(reward[0]).to.be.eq(0);
-            // expect(reward[1]).to.be.eq(etherParse('0.4'));
+            const unclaimed = await rewardsPool.getUnclaimDeployments(era.toNumber() - 1, runner.address);
+            expect(unclaimed).to.be.empty;
+            const reward = await rewardsPool.getReward(deploymentId, era.toNumber() - 1, runner.address);
+            expect(reward[0]).to.be.eq(0); // labor
+            expect(reward[1]).to.be.eq(etherParse('0.4')); // total reward
 
             // reward distribution should be skipped due to total stake is 0
             tx = await rewardsHelper.connect(runner).indexerCatchup(runner.address);
@@ -700,7 +700,8 @@ describe('StateChannel Contract', () => {
         });
 
         /**
-         * when indexer also has delegator, after indexer unregistered, delegator can claim the rest reward
+         * when indexer also has delegator, after indexer unregistered, rewards go to
+         * pool, delegator's rewards should be 0
          */
         it('terminate State Channel after indexer unregistration #2', async () => {
             await token.connect(delegator).increaseAllowance(staking.address, etherParse('1'));
@@ -746,11 +747,11 @@ describe('StateChannel Contract', () => {
             const evts = await eventsFrom(tx, rewardsDistributor, 'DistributeRewards(address,uint256,uint256,uint256)');
             expect(evts.length).to.eq(2);
             expect(evts[0].rewards).to.eq(0);
-            expect(evts[1].rewards).to.eq(etherParse('0.4'));
+            expect(evts[1].rewards).to.eq(etherParse('0'));
 
             // delegator
             const delegatorRewards = await rewardsDistributor.userRewards(runner.address, delegator.address);
-            expect(delegatorRewards).to.eq(etherParse('0.4'));
+            expect(delegatorRewards).to.eq(etherParse('0'));
         });
 
         /**
