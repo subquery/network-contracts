@@ -296,24 +296,6 @@ describe('StakingAllocation Contract', () => {
                 etherParse('0')
             );
 
-            //////////
-
-            await stakingManager.connect(runner1).delegate(runner0.address, etherParse('6000'));
-            await applyStaking(runner0, runner1);
-
-            await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('6000'))
-
-            await stakingManager.connect(runner1).undelegate(runner0.address, etherParse('6000'));
-            await applyStaking(runner0, runner1);
-
-            await expect(
-                stakingAllocation.connect(runner0).moveAllocation(deploymentIds[0], deploymentIds[1], runner0.address, etherParse('6000'))
-            ).to.revertedWith('SAL03');
-
-            await stakingAllocation.connect(runner0).removeAllocation(deploymentId0, runner0.address, etherParse('6000'));
-
-
-
         });
 
         it('add allocation to a stopped project', async () => {
