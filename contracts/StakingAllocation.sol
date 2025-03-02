@@ -51,7 +51,6 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     // -- Events --
     event StakeAllocationAdded(bytes32 deploymentId, address runner, uint256 amount);
     event StakeAllocationRemoved(bytes32 deploymentId, address runner, uint256 amount);
-    event StakeAllocationMoved(bytes32 deploymentIdFrom, bytes32 deploymentIdTo, address runner, uint256 amount);
     event OverAllocationStarted(address runner, uint256 start);
     event OverAllocationEnded(address runner, uint256 end, uint256 time);
     // -- Functions --
@@ -120,14 +119,8 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         require(allocatedTokens[_runner][_deploymentFrom] >= _amount, 'SAL04');
         require(_deploymentFrom != _deploymentTo, 'SAL07');
 
-        RunnerAllocation storage ia = _runnerAllocations[_runner];
-
-        require(ia.used <= ia.total , 'SAL03');
-
         _removeAllocation(_deploymentFrom, _runner, _amount);
         _addAllocation(_deploymentTo, _runner, _amount);
-
-        emit StakeAllocationMoved(_deploymentFrom, _deploymentTo, _runner, _amount);
     }
 
     function stopService(bytes32 _deployment, address _runner) external {
