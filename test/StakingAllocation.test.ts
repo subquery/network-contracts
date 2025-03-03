@@ -242,6 +242,7 @@ describe('StakingAllocation Contract', () => {
             expect(da0).to.eq(etherParse('14000'));
             expect(da1).to.eq(etherParse('1000'));
 
+
             await expect(
                 stakingAllocation.connect(runner0).addAllocation(deploymentIds[1], runner0.address, etherParse('5001'))
             ).to.be.revertedWith('SAL03');
@@ -255,6 +256,8 @@ describe('StakingAllocation Contract', () => {
             await applyStaking(runner1, runner1);
             await checkAllocation(runner1, etherParse('9000'), etherParse('10000'), true, false);
             await timeTravel(10);
+
+
             await stakingAllocation
                 .connect(runner1)
                 .removeAllocation(deploymentIds[0], runner1.address, etherParse('500'));
@@ -263,6 +266,36 @@ describe('StakingAllocation Contract', () => {
                 .connect(runner1)
                 .removeAllocation(deploymentIds[0], runner1.address, etherParse('500'));
             await checkAllocation(runner1, etherParse('9000'), etherParse('9000'), false, true);
+
+            await expect(
+                stakingAllocation.connect(runner1).moveAllocation(deploymentIds[0], deploymentIds[0], runner1.address, etherParse('1000'))
+            ).to.revertedWith('SAL07');
+
+            await expect(
+                stakingAllocation.connect(runner1).moveAllocation(deploymentIds[0], deploymentIds[1], runner1.address, etherParse('1199000'))
+            ).to.revertedWith('SAL04');
+
+
+            await stakingAllocation
+                .connect(runner1)
+                .moveAllocation(deploymentIds[0], deploymentIds[1], runner1.address, etherParse('1000'));
+            expect(await stakingAllocation.allocatedTokens(runner1.address, deploymentIds[0])).to.eq(
+                etherParse('8000')
+            );
+            expect(await stakingAllocation.allocatedTokens(runner1.address, deploymentIds[1])).to.eq(
+                etherParse('1000')
+            );
+
+            await stakingAllocation
+                .connect(runner1)
+                .moveAllocation(deploymentIds[1], deploymentIds[0], runner1.address, etherParse('1000'));
+            expect(await stakingAllocation.allocatedTokens(runner1.address, deploymentIds[0])).to.eq(
+                etherParse('9000')
+            );
+            expect(await stakingAllocation.allocatedTokens(runner1.address, deploymentIds[1])).to.eq(
+                etherParse('0')
+            );
+
         });
 
         it('add allocation to a stopped project', async () => {
@@ -277,6 +310,7 @@ describe('StakingAllocation Contract', () => {
 
             await stakingAllocation.connect(runner0).addAllocation(deploymentId0, runner0.address, etherParse('5000'));
             await checkAllocation(runner0, etherParse('10000'), etherParse('5000'), false, false);
+
         });
 
         it('over-allocate and recover', async () => {

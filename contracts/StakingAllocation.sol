@@ -97,23 +97,14 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         require(_isAuth(_runner), 'SAL02');
         require(
             IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
-                .isServiceAvailable(_deployment, _runner),
+            .isServiceAvailable(_deployment, _runner),
             'SAL05'
         );
 
-        // collect rewards (if any) before change allocation
-        IRewardsBooster rb = IRewardsBooster(
-            settings.getContractAddress(SQContracts.RewardsBooster)
-        );
-        rb.collectAllocationReward(_deployment, _runner);
-
         RunnerAllocation storage ia = _runnerAllocations[_runner];
         require(ia.total - ia.used >= _amount, 'SAL03');
-        ia.used += _amount;
-        deploymentAllocations[_deployment] += _amount;
-        allocatedTokens[_runner][_deployment] += _amount;
 
-        emit StakeAllocationAdded(_deployment, _runner, _amount);
+        _addAllocation(_deployment, _runner, _amount);
     }
 
     function removeAllocation(bytes32 _deployment, address _runner, uint256 _amount) external {
@@ -121,6 +112,15 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         require(allocatedTokens[_runner][_deployment] >= _amount, 'SAL04');
 
         _removeAllocation(_deployment, _runner, _amount);
+    }
+
+    function moveAllocation(bytes32 _deploymentFrom, bytes32 _deploymentTo, address _runner, uint256 _amount) external {
+        require(_isAuth(_runner), 'SAL02');
+        require(allocatedTokens[_runner][_deploymentFrom] >= _amount, 'SAL04');
+        require(_deploymentFrom != _deploymentTo, 'SAL07');
+
+        _removeAllocation(_deploymentFrom, _runner, _amount);
+        _addAllocation(_deploymentTo, _runner, _amount);
     }
 
     function stopService(bytes32 _deployment, address _runner) external {
@@ -132,12 +132,20 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         }
     }
 
+    function _addAllocation(bytes32 _deployment, address _runner, uint256 _amount) private {
+        _collectRewards(_deployment, _runner);
+
+        RunnerAllocation storage ia = _runnerAllocations[_runner];
+
+        ia.used += _amount;
+        deploymentAllocations[_deployment] += _amount;
+        allocatedTokens[_runner][_deployment] += _amount;
+
+        emit StakeAllocationAdded(_deployment, _runner, _amount);
+    }
+
     function _removeAllocation(bytes32 _deployment, address _runner, uint256 _amount) private {
-        // collect rewards (if any) before change allocation
-        IRewardsBooster rb = IRewardsBooster(
-            settings.getContractAddress(SQContracts.RewardsBooster)
-        );
-        rb.collectAllocationReward(_deployment, _runner);
+        _collectRewards(_deployment, _runner);
 
         RunnerAllocation storage ia = _runnerAllocations[_runner];
 
@@ -154,6 +162,14 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         }
 
         emit StakeAllocationRemoved(_deployment, _runner, _amount);
+    }
+
+    function _collectRewards(bytes32 _deployment, address _runner) private {
+        // collect rewards (if any) before change allocation
+        IRewardsBooster rb = IRewardsBooster(
+            settings.getContractAddress(SQContracts.RewardsBooster)
+        );
+        rb.collectAllocationReward(_deployment, _runner);
     }
 
     function runnerAllocation(address _runner) external view returns (RunnerAllocation memory) {
