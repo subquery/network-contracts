@@ -86,6 +86,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
     event Labor(bytes32 deploymentId, address runner, uint256 amount, uint256 total);
     /// @notice Emitted when collect reward (stake) from era pool
     event Collect(bytes32 deploymentId, address runner, uint256 era, uint256 amount);
+    /// @notice Emitted when move the remained reward to latest era
+    event MoveRemained(bytes32 deploymentId, uint256 era, uint256 amount);
 
     /**
      * @dev ### FUNCTIONS
@@ -334,6 +336,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
                 // latestPool.totalReward += pool.unclaimReward;
                 pools[latestEra].pools[deploymentId].unclaimReward += pool.unclaimReward;
                 poolAdjustments[latestEra][deploymentId] += pool.unclaimReward;
+                emit MoveRemained(deploymentId, latestEra, pool.unclaimReward);
             }
 
             delete poolAdjustments[era][deploymentId];
@@ -366,7 +369,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
         uint256 adjustment
     ) private view returns (uint256) {
         if (myStake == totalStake) {
-            return reward;
+            return reward + adjustment;
         }
 
         int256 feeRatio = FixedMath.toFixed(myLabor, reward);

@@ -135,10 +135,10 @@
             "lastUpdate": "Fri, 24 Jan 2025 06:59:04 GMT"
         },
         "RewardsPool": {
-            "innerAddress": "0x6C7F6Cd6A4295D74897ae19Ab01Ea04821979d80",
+            "innerAddress": "0xfDacF3446B2Df6078CaE7317A0aE6aD19572EA44",
             "address": "0x15b64D7036667695Ee68D6619CEb162aEaFAdbA6",
-            "bytecodeHash": "e5aad7783b0e5ca7ef172b0d57df79c0aab7f116b6ab0211e7ad83be30c77ec2",
-            "lastUpdate": "Tue, 21 May 2024 22:02:45 GMT"
+            "bytecodeHash": "e84d8610221fe53056325d6e6b819628877a7b1fc12c4cf39c4a315823423604",
+            "lastUpdate": "Wed, 05 Mar 2025 07:55:55 GMT"
         },
         "RewardsStaking": {
             "innerAddress": "0x4AA3fC3848Eddf751642BDE26DBD18a8224C2679",
