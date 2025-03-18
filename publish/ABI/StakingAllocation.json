@@ -226,6 +226,34 @@
     {
         "inputs": [
             {
+                "internalType": "bytes32",
+                "name": "_deploymentFrom",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentTo",
+                "type": "bytes32"
+            },
+            {
+                "internalType": "address",
+                "name": "_runner",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "moveAllocation",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "_runner",
                 "type": "address"
