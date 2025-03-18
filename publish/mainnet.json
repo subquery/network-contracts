@@ -201,10 +201,10 @@
             "lastUpdate": "Mon, 14 Oct 2024 21:42:35 GMT"
         },
         "StakingAllocation": {
-            "innerAddress": "0x5Fa0105aa31e05d2f639Fe79DB20700AEC2B859C",
+            "innerAddress": "0x0270Cb6607550E0001eD78Fa7fDf55180B41DbB1",
             "address": "0x20E4B978b930ce17a499C33BbF958b5b920F70E1",
-            "bytecodeHash": "2798cf9ea2d3501f929d8b3c7083462f97e060774bb0197b3e161c485452ea62",
-            "lastUpdate": "Thu, 19 Sep 2024 05:25:55 GMT"
+            "bytecodeHash": "9178c0893a33861572bc79ace784f0d07041cd57b33c19bf34a034a02ddf0396",
+            "lastUpdate": "Tue, 18 Mar 2025 03:16:58 GMT"
         },
         "Airdropper": {
             "innerAddress": "0xbdF10CE01BE0d0d51c733800382b7A300f9273e4",
