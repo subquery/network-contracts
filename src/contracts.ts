@@ -36,6 +36,7 @@ import SQTRedeem from './artifacts/contracts/SQTRedeem.sol/SQTRedeem.json';
 import L2SQToken from './artifacts/contracts/l2/L2SQToken.sol/L2SQToken.json';
 import AirdropperLite from './artifacts/contracts/root/AirdropperLite.sol/AirdropperLite.json';
 import L2Vesting from './artifacts/contracts/l2/L2Vesting.sol/L2Vesting.json';
+import UniswapPriceOracle from './artifacts/contracts/l2/UniswapPriceOracle.sol/UniswapPriceOracle.json';
 
 export default {
     Settings,
@@ -73,4 +74,5 @@ export default {
     L2SQToken,
     AirdropperLite,
     L2Vesting,
+    UniswapPriceOracle,
 };

@@ -27,19 +27,24 @@ interface IUniswapV3Pool {
 
 contract UniswapPriceOracle is Ownable, IPriceOracle {
     IQuoter public quoter; // 0x222ca98f00ed15b1fae10b61c277703a194cf5d2, https://github.com/Uniswap/view-quoter-v3/tree/master
-    uint24 public poolFee;
+    mapping(bytes32 => uint24) public poolFees;
 
-    constructor(address _quoterAddress, uint24 _poolFee) Ownable() {
+    constructor(address _quoterAddress) Ownable() {
         quoter = IQuoter(_quoterAddress);
-        poolFee = _poolFee;
     }
 
     function setQuoter(address _quoterAddress) external onlyOwner {
         quoter = IQuoter(_quoterAddress);
     }
 
-    function setPoolFee(uint24 _poolFee) external onlyOwner {
-        poolFee = _poolFee;
+    function setPoolFee(address fromToken, address toToken, uint24 _poolFee) external onlyOwner {
+        bytes32 poolkey = _concatAddresses(fromToken, toToken);
+        poolFees[poolkey] = _poolFee;
+    }
+
+    function getPoolFee(address fromToken, address toToken) public view returns (uint24) {
+        bytes32 poolkey = _concatAddresses(fromToken, toToken);
+        return poolFees[poolkey] == 0 ? 3000 : poolFees[poolkey];
     }
 
     function getAssetPrice(
@@ -71,12 +76,19 @@ contract UniswapPriceOracle is Ownable, IPriceOracle {
             tokenIn: fromToken,
             tokenOut: toToken,
             amountIn: amount,
-            fee: poolFee,
+            fee: getPoolFee(fromToken, toToken),
             sqrtPriceLimitX96: 0 // No price limit
         });
 
         (uint256 amountOut, , , ) = quoter.quoteExactInputSingle(params);
 
         return amountOut;
+    }
+
+    function _concatAddresses(address addr1, address addr2) internal pure returns (bytes32) {
+        if (addr1 > addr2) {
+            (addr1, addr2) = (addr2, addr1);
+        }
+        return (bytes32(bytes20(addr1)) << 96) | bytes32(bytes20(addr2));
     }
 }

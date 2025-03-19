@@ -57,6 +57,7 @@ import {
     L2SQToken,
     AirdropperLite,
     L2Vesting,
+    UniswapPriceOracle,
 } from '../src';
 import { Config, ContractConfig, Contracts, UPGRADEBAL_CONTRACTS } from './contracts';
 import { l1StandardBridge } from './L1StandardBridge';
@@ -522,7 +523,11 @@ export async function deployContracts(
             proxyAdmin,
             initConfig: [settingsAddress],
         });
-        logger?.info('🤞 L2Vesting');
+
+        //deploy uniswapPriceOracle contract
+        const uniswapPriceOracle = await deployContract<UniswapPriceOracle>('UniswapPriceOracle', 'child', {
+            deployConfig: [...config['UniswapPriceOracle']],
+        });
 
         // Register addresses on settings contract
         logger?.info('🤞 Set settings addresses');
