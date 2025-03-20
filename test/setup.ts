@@ -42,6 +42,7 @@ export const deployContracts = async (wallet: Wallet, wallet1: Wallet, treasury 
         ConsumerRegistry: [],
         PriceOracle: [],
         RewardsBooster: [utils.parseEther('10').toString(), utils.parseEther('10000').toString()], // _issuancePerBlock, _minimumDeploymentBooster
+        UniswapPriceOracle: ['0x222ca98f00ed15b1fae10b61c277703a194cf5d2'],
     });
     await contracts.settings.setContractAddress(SQContracts.Treasury, treasury.address);
 
