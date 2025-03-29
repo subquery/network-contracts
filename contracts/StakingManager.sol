@@ -3,15 +3,16 @@
 
 pragma solidity 0.8.15;
 
+import './interfaces/IRewardsDistributor.sol';
+import './Staking.sol';
+
+import './interfaces/IEraManager.sol';
+import './interfaces/IIndexerRegistry.sol';
+import './interfaces/IStakingManager.sol';
+import './utils/MathUtil.sol';
+import './utils/StakingUtil.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
-
-import './Staking.sol';
-import './interfaces/IStakingManager.sol';
-import './interfaces/IIndexerRegistry.sol';
-import './interfaces/IEraManager.sol';
-import './utils/StakingUtil.sol';
-import './utils/MathUtil.sol';
 
 /**
  * Split from Staking, to keep contract size under control
@@ -109,7 +110,30 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         staking.checkDelegateLimitation(_toRunner, _amount);
 
         staking.removeDelegation(_source, _fromRunner, _amount);
-        staking.addDelegation(_source, _toRunner, _amount);
+        staking.addDelegation(_source, _toRunner, _amount, false);
+    }
+
+    // @dev delegate rewards to node operator, can be used by both node operator & delegator
+    // can be called even when the node operator has reached the max delegation limit
+    // can not be called when the node operator hasn't collected latest rewards
+    // can not be called when the node operator is unregistered
+    // @param _runner the node operator address
+    function delegateReward(address _runner) external {
+        Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
+        address staker = msg.sender;
+        // runner should be valid in the following era.
+        require(this.getAfterDelegationAmount(_runner, _runner) > 0, 'S012');
+        IRewardsDistributor rewardsDistributor = IRewardsDistributor(
+            settings.getContractAddress(SQContracts.RewardsDistributor)
+        );
+        // rewards sent to Staking from rewardsDistributor
+        uint256 rewards = rewardsDistributor.claimForDelegate(_runner, staker);
+        require(rewards > 0, 'S011');
+        staking.addDelegation(staker, _runner, rewards, true);
+        IRewardsStaking rewardsStaking = IRewardsStaking(
+            settings.getContractAddress(SQContracts.RewardsStaking)
+        );
+        rewardsStaking.applyRedelegation(_runner, staker);
     }
 
     function cancelUnbonding(uint256 unbondReqId) external {
@@ -127,10 +151,8 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         require(indexerRegistry.isIndexer(indexer), 'S007');
 
         staking.removeUnbondingAmount(msg.sender, unbondReqId);
-        //        if (msg.sender != indexer) {
-        //            staking.checkDelegateLimitation(indexer, amount);
-        //        }
-        staking.addDelegation(msg.sender, indexer, amount);
+
+        staking.addDelegation(msg.sender, indexer, amount, false);
     }
 
     /**
@@ -189,13 +211,21 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         return StakingUtil.currentStaking(sm, _currentEra);
     }
 
-    function getDelegationAmount(address _source, address _runner) public view returns (uint256) {
+    function getDelegationAmount(
+        address _source,
+        address _runner
+    ) external view override returns (uint256) {
         uint256 eraNumber = IEraManager(settings.getContractAddress(SQContracts.EraManager))
             .eraNumber();
-        Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        (uint256 era, uint256 valueAt, uint256 valueAfter) = staking.delegation(_source, _runner);
-        StakingAmount memory sm = StakingAmount(era, valueAt, valueAfter);
-        return StakingUtil.currentStaking(sm, eraNumber);
+        return _getCurrentDelegationAmount(_source, _runner, eraNumber);
+    }
+
+    function getEraDelegationAmount(
+        address _source,
+        address _runner,
+        uint256 _era
+    ) external view override returns (uint256) {
+        return _getCurrentDelegationAmount(_source, _runner, _era);
     }
 
     function getTotalStakingAmount(address _runner) public view override returns (uint256) {

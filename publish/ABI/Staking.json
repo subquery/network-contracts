@@ -215,6 +215,11 @@
                 "internalType": "uint256",
                 "name": "_amount",
                 "type": "uint256"
+            },
+            {
+                "internalType": "bool",
+                "name": "instant",
+                "type": "bool"
             }
         ],
         "name": "addDelegation",

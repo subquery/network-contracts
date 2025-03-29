@@ -24,4 +24,6 @@ interface IRewardsStaking {
     function getDelegationAmount(address source, address indexer) external view returns (uint256);
 
     function applyRunnerWeightChange(address _runner) external;
+
+    function applyRedelegation(address runner, address staker) external;
 }

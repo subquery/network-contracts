@@ -18,4 +18,15 @@ interface IStakingManager {
         address _delegator,
         address _runner
     ) external view returns (uint256);
+
+    function getDelegationAmount(
+        address _delegator,
+        address _runner
+    ) external view returns (uint256);
+
+    function getEraDelegationAmount(
+        address _delegator,
+        address _runner,
+        uint256 _era
+    ) external view returns (uint256);
 }

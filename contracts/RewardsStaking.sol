@@ -120,6 +120,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
         _;
     }
 
+    modifier onlyStakingManager() {
+        require(msg.sender == settings.getContractAddress(SQContracts.StakingManager), 'G016');
+        _;
+    }
+
     modifier onlyIndexerRegistry() {
         require(msg.sender == settings.getContractAddress(SQContracts.IndexerRegistry), 'G017');
         _;
@@ -174,7 +179,7 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             //make sure the eraReward be 0, when runner reregister
             rewardsDistributor.resetEraReward(_runner, currentEra);
 
-            _updateTotalStakingAmount(stakingManager, _runner, 0, false);
+            _updateTotalStakingAmount(stakingManager, _runner, 0, currentEra, false);
 
             //apply first onICRChgange
             uint256 newCommissionRate = IIndexerRegistry(
@@ -254,7 +259,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
         IStakingManager stakingManager = IStakingManager(
             settings.getContractAddress(SQContracts.StakingManager)
         );
-        uint256 newDelegation = stakingManager.getAfterDelegationAmount(staker, runner);
+        uint256 currentEra = _getCurrentEra();
+        uint256 newDelegation = stakingManager.getEraDelegationAmount(staker, runner, currentEra);
 
         // test whether it is runner's Stake Change
         if (staker == runner) {
@@ -277,8 +283,59 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
         pendingStakerNos[runner][lastStaker] = stakerIndex;
         pendingStakeChangeLength[runner]--;
 
-        _updateTotalStakingAmount(stakingManager, runner, lastClaimEra, true);
+        _updateTotalStakingAmount(stakingManager, runner, lastClaimEra, currentEra, true);
         emit StakeChanged(runner, staker, newDelegation);
+
+        // notify stake allocation
+        IStakingAllocation stakingAllocation = IStakingAllocation(
+            settings.getContractAddress(SQContracts.StakingAllocation)
+        );
+        stakingAllocation.onStakeUpdate(runner);
+    }
+
+    function applyRedelegation(address runner, address staker) external onlyStakingManager {
+        IRewardsDistributor rewardsDistributor = _getRewardsDistributor();
+        IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(runner);
+        //        uint256 lastClaimEra = rewardInfo.lastClaimEra;
+        uint256 currentEra = _getCurrentEra();
+
+        //        require(_pendingStakeChange(runner, staker), 'RS005');
+        require(lastSettledEra[runner] == currentEra - 1, 'RS007');
+
+        // run hook for delegation change
+        IStakingManager stakingManager = IStakingManager(
+            settings.getContractAddress(SQContracts.StakingManager)
+        );
+        uint256 newDelegation = stakingManager.getEraDelegationAmount(staker, runner, currentEra);
+
+        // test whether it is runner's Stake Change
+        if (staker == runner) {
+            uint256 _runnerStakeWeight = runnerStakeWeight();
+            newDelegation = MathUtil.mulDiv(newDelegation, _runnerStakeWeight, PER_MILL);
+            if (_previousRunnerStakeWeights[runner] != _runnerStakeWeight) {
+                _setPreviousRunnerStakeWeights(runner, _runnerStakeWeight);
+            }
+        }
+        delegation[staker][runner] = newDelegation;
+
+        uint256 newRewardDebt = MathUtil.mulDiv(
+            delegation[staker][runner],
+            rewardInfo.accSQTPerStake,
+            PER_TRILL
+        );
+        rewardsDistributor.setRewardDebt(runner, staker, newRewardDebt);
+        //
+        //        // Remove the pending stake change of the staker.
+        //        uint256 stakerIndex = pendingStakerNos[runner][staker];
+        //        pendingStakers[runner][stakerIndex] = address(0x00);
+        //        address lastStaker = pendingStakers[runner][pendingStakeChangeLength[runner] - 1];
+        //        pendingStakers[runner][stakerIndex] = lastStaker;
+        //        pendingStakerNos[runner][lastStaker] = stakerIndex;
+        //        pendingStakeChangeLength[runner]--;
+
+        // when lastSettledEra is (currentEra - 1), lastClaimedEra must equal to lastSettledEra
+        _updateTotalStakingAmount(stakingManager, runner, lastSettledEra[runner], currentEra, true);
+        emit StakeChanged(runner, staker, delegation[staker][runner]);
 
         // notify stake allocation
         IStakingAllocation stakingAllocation = IStakingAllocation(
@@ -310,7 +367,13 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
         ).getCommissionRate(runner);
         commissionRates[runner] = newCommissionRate;
         pendingCommissionRateChange[runner] = 0;
-        _updateTotalStakingAmount(stakingManager, runner, rewardInfo.lastClaimEra, true);
+        _updateTotalStakingAmount(
+            stakingManager,
+            runner,
+            rewardInfo.lastClaimEra,
+            currentEra,
+            true
+        );
         emit ICRChanged(runner, newCommissionRate);
     }
 
@@ -382,10 +445,11 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
         IStakingManager stakingManager,
         address runner,
         uint256 lastClaimEra,
+        uint256 currentEra,
         bool doCheck
     ) private {
         if (!doCheck || checkAndReflectSettlement(runner, lastClaimEra)) {
-            uint256 runnerStake = stakingManager.getAfterDelegationAmount(runner, runner);
+            uint256 runnerStake = stakingManager.getEraDelegationAmount(runner, runner, currentEra);
             totalStakingAmount[runner] =
                 stakingManager.getTotalStakingAmount(runner) +
                 MathUtil.mulDiv(runnerStake, (runnerStakeWeight() - PER_MILL), PER_MILL);
