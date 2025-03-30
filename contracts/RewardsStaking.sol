@@ -296,10 +296,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
     function applyRedelegation(address runner, address staker) external onlyStakingManager {
         IRewardsDistributor rewardsDistributor = _getRewardsDistributor();
         IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(runner);
-        //        uint256 lastClaimEra = rewardInfo.lastClaimEra;
         uint256 currentEra = _getCurrentEra();
 
-        //        require(_pendingStakeChange(runner, staker), 'RS005');
         require(lastSettledEra[runner] == currentEra - 1, 'RS007');
 
         // run hook for delegation change
@@ -324,16 +322,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
             PER_TRILL
         );
         rewardsDistributor.setRewardDebt(runner, staker, newRewardDebt);
-        //
-        //        // Remove the pending stake change of the staker.
-        //        uint256 stakerIndex = pendingStakerNos[runner][staker];
-        //        pendingStakers[runner][stakerIndex] = address(0x00);
-        //        address lastStaker = pendingStakers[runner][pendingStakeChangeLength[runner] - 1];
-        //        pendingStakers[runner][stakerIndex] = lastStaker;
-        //        pendingStakerNos[runner][lastStaker] = stakerIndex;
-        //        pendingStakeChangeLength[runner]--;
 
-        // when lastSettledEra is (currentEra - 1), lastClaimedEra must equal to lastSettledEra
+        // since lastSettledEra is (currentEra - 1), lastClaimedEra must equal to lastSettledEra
         _updateTotalStakingAmount(stakingManager, runner, lastSettledEra[runner], currentEra, true);
         emit StakeChanged(runner, staker, delegation[staker][runner]);
 
