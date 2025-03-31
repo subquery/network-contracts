@@ -22,6 +22,7 @@ export default {
         RewardsBooster: [utils.parseEther('6.3419584'), utils.parseEther('1000')], // _issuancePerBlock, _minimumDeploymentBooster
         L2SQToken: ['0x4200000000000000000000000000000000000010', '0x09395a2A58DB45db0da254c7EAa5AC469D8bDc85'], // l2bridge, l1token
         PriceOracle: [10, 3600],
+        UniswapPriceOracle: ['0x222ca98f00ed15b1fae10b61c277703a194cf5d2'],
     },
     kepler: {
         InflationController: [0, '0x34c35136ECe9CBD6DfDf2F896C6e29be01587c0C'], // inflationRate, inflationDestination
@@ -64,6 +65,7 @@ export default {
         // base: 2s a block, 31536000/2 = 15768000 blocks a year, 1% rewards = 100000000 / 15768000 = about 6.3419584 SQT per block
         RewardsBooster: [utils.parseEther('6.34'), utils.parseEther('10000')], // _issuancePerBlock, _minimumDeploymentBooster
         L2SQToken: ['0x4200000000000000000000000000000000000010', '0xE6E15Ffc71AbDAe8D34D65bB695959fbd6c15435'], // l2bridge, l1token
+        UniswapPriceOracle: ['0x222ca98f00ed15b1fae10b61c277703a194cf5d2'],
     },
     local: {
         InflationController: [1000, '0x4ae8fcdddc859e2984ce0b8f4ef490d61a7a9b7f'], // inflationRate, inflationDestination

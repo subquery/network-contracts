@@ -217,6 +217,12 @@
             "address": "0x915FbbfF55775B6243A3edB42BE08554C44DE45a",
             "bytecodeHash": "5994844f015a7b599b6e5a10a50cec76be5e60fa20439f0fdd2cfd49df3a15ed",
             "lastUpdate": "Tue, 16 Apr 2024 05:16:47 GMT"
+        },
+        "UniswapPriceOracle": {
+            "innerAddress": "",
+            "address": "0xDACAfD570e55eD179f2A37c6A1B20fD4FceC62AE",
+            "bytecodeHash": "4f491154f798bcad9bb40e8a538e43bab1e6a2cce5468504d776a44d3926e721",
+            "lastUpdate": "Wed, 19 Mar 2025 01:21:59 GMT"
         }
     }
 }
