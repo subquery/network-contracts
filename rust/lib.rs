@@ -156,6 +156,16 @@ impl Network {
 }
 
 #[inline]
+pub fn price_contract_with_dynamic_address<M: Middleware>(
+    client: Arc<M>,
+    contract_address: Address,
+) -> Result<Contract<M>, ()> {
+    let file = include_str!("../publish/ABI/PriceOracle.json");
+    let abi: Abi = serde_json::from_str(file).map_err(|_| ())?;
+    Ok(Contract::new(contract_address, abi, client))
+}
+
+#[inline]
 fn contract_parse(name: &str, file: &str, network: Network) -> Result<(Abi, Address), ()> {
     let address: Value = serde_json::from_str(network.address()).map_err(|_| ())?;
     let (ctype, name) = if name.starts_with("Root") {
