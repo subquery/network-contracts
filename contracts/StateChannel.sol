@@ -225,9 +225,6 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         if (rewardsAmount < amount) {
             // transfer the balance to contract
             uint256 realAmount = amount - rewardsAmount;
-            if (_isContract(consumer)) {
-                IConsumer(consumer).paid(channelId, msg.sender, realAmount, callback);
-            }
             IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
                 consumer,
                 address(this),
