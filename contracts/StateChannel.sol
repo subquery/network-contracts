@@ -662,11 +662,9 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
                 address(this),
                 realAmount
             );
-            //            return realAmount;
         }
 
         channels[channelId].realTotal += realAmount;
         channels[channelId].total += amount;
-        //        return 0;
     }
 }
