@@ -213,12 +213,27 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
 
         _checkSign(payload, indexerSign, indexer, true);
 
-        // transfer the balance to contract
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
-            consumer,
-            address(this),
-            amount
+        // transfer the rewards to channel
+        address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
+        uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(
+            channels[channelId].deploymentId,
+            realConsumer,
+            amount,
+            abi.encode(channelId)
         );
+
+        if (rewardsAmount < amount) {
+            // transfer the balance to contract
+            uint256 realAmount = amount - rewardsAmount;
+            if (_isContract(consumer)) {
+                IConsumer(consumer).paid(channelId, msg.sender, realAmount, callback);
+            }
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
+                consumer,
+                address(this),
+                realAmount
+            );
+        }
 
         // initial the channel
         ChannelState storage state = channels[channelId];
