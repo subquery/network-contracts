@@ -136,6 +136,16 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
     event DelegationAdded(address indexed source, address indexed runner, uint256 amount);
 
     /**
+     * @dev Emitted when stake to an Runner, with instant indicator.
+     */
+    event DelegationAdded2(
+        address indexed source,
+        address indexed runner,
+        uint256 amount,
+        bool instant
+    );
+
+    /**
      * @dev Emitted when unstake to an Runner.
      */
     event DelegationRemoved(address indexed source, address indexed runner, uint256 amount);
@@ -338,6 +348,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         _onDelegationChange(_source, _runner);
 
         emit DelegationAdded(_source, _runner, _amount);
+        emit DelegationAdded2(_source, _runner, _amount, instant);
     }
 
     function delegateToIndexer(
