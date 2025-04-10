@@ -299,6 +299,80 @@ describe('StateChannel Contract', () => {
         });
     });
 
+    describe('State Channel Rewards Open', () => {
+        const consumerInit = etherParse('10005');
+        beforeEach(async () => {
+            await registerRunner(token, indexerRegistry, staking, wallet_0, runner, etherParse('2000'));
+            await token.connect(wallet_0).transfer(treasury.address, etherParse('100000'));
+            await token.connect(wallet_0).transfer(consumer.address, consumerInit);
+            await token.connect(consumer).increaseAllowance(stateChannel.address, etherParse('5'));
+            await token.connect(wallet_0).transfer(rewardsBooster.address, etherParse('5'));
+
+            await boosterDeployment(token, rewardsBooster, consumer, deploymentId, etherParse('10000'));
+        });
+
+        it('open State Channel with booster rewards more than channel amount should work', async () => {
+            // 1000 blocks passed
+            await blockTravel(1000);
+            const queryRewardsBeforeCreating = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
+            // one block passed
+            await blockTravel(1);
+            const oneBlockRewards = (await rewardsBooster.getQueryRewards(deploymentId, consumer.address)).sub(
+                queryRewardsBeforeCreating
+            );
+            // one block passed
+            await openChannel(
+                stateChannel,
+                defaultChannelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('1'),
+                etherParse('1'),
+                time.duration.days(1).toString()
+            );
+
+            const queryRewardsAfterCreating = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
+
+            expect((await stateChannel.channel(defaultChannelId)).realTotal).to.equal(etherParse('0'));
+            expect((await stateChannel.channel(defaultChannelId)).total).to.equal(etherParse('1'));
+
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('5'));
+            expect(queryRewardsAfterCreating as BigNumber).to.equal(
+                queryRewardsBeforeCreating.sub(etherParse('1')).add(oneBlockRewards.mul(2))
+            );
+        });
+
+        it('open State Channel with booster rewards less than channel amount should work', async () => {
+            // one block passed
+            await blockTravel(1);
+            const oneBlockRewards = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
+            // one block passed
+            await openChannel(
+                stateChannel,
+                defaultChannelId,
+                deploymentId,
+                runner,
+                consumer,
+                etherParse('1'),
+                etherParse('1'),
+                time.duration.days(1).toString()
+            );
+
+            const queryRewardsAfterCreating = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
+
+            expect((await stateChannel.channel(defaultChannelId)).realTotal).to.equal(
+                etherParse('1').sub(oneBlockRewards.mul(2))
+            );
+            expect((await stateChannel.channel(defaultChannelId)).total).to.equal(etherParse('1'));
+
+            expect(await token.balanceOf(consumer.address)).to.equal(
+                etherParse('5').sub(etherParse('1').sub(oneBlockRewards.mul(2)))
+            );
+            expect(queryRewardsAfterCreating as BigNumber).to.equal(etherParse('0'));
+        });
+    });
+
     describe('State Channel Rewards Fund', () => {
         const consumerInit = etherParse('10005');
         beforeEach(async () => {
