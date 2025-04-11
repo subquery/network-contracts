@@ -76,6 +76,8 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
     /// @notice The price of the channel
     mapping(uint256 => uint256) public channelPrice;
 
+    mapping(address => bool) public consumerContractWhitelist;
+
     /// @dev ### EVENTS
     /// @notice Emitted when open a channel for Pay-as-you-go service
     event ChannelOpen(
@@ -112,6 +114,8 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         address indexer,
         uint256 amount
     );
+    /// @notice Emitted when set the parameter
+    event ConsumerContractWhitelistChanged(address consumerContract, bool status);
 
     /**
      * @dev ### FUNCTIONS
@@ -142,6 +146,14 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
     function setTerminateExpiration(uint256 expiration) external onlyOwner {
         terminateExpiration = expiration;
         emit Parameter('terminateExpiration', abi.encodePacked(terminateExpiration));
+    }
+
+    function setConsumerContractWhitelist(
+        address consumerContract,
+        bool status
+    ) external onlyOwner {
+        consumerContractWhitelist[consumerContract] = status;
+        emit ConsumerContractWhitelistChanged(consumerContract, status);
     }
 
     /**
@@ -203,7 +215,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
                 callback
             )
         );
-        if (_isContract(consumer)) {
+        if (_isValidContractConsumer(consumer)) {
             require(consumer.supportsInterface(type(IConsumer).interfaceId), 'G018');
             require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'C006');
         } else {
@@ -270,7 +282,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         bytes32 payload = keccak256(
             abi.encode(channelId, indexer, consumer, price, preExpirationAt, expiration)
         );
-        if (_isContract(consumer)) {
+        if (_isValidContractConsumer(consumer)) {
             require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'C006');
         } else {
             _checkSign(payload, consumerSign, consumer, false);
@@ -308,7 +320,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         );
 
         // check sign
-        if (_isContract(consumer)) {
+        if (_isValidContractConsumer(consumer)) {
             require(IConsumer(consumer).checkSign(channelId, payload, sign), 'C006');
         } else {
             _checkSign(payload, sign, consumer, false);
@@ -361,7 +373,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
             ).getController(state.indexer);
             isIndexer = msg.sender == controller;
         }
-        if (_isContract(state.consumer)) {
+        if (_isValidContractConsumer(state.consumer)) {
             isConsumer = IConsumer(state.consumer).checkSender(query.channelId, msg.sender);
         }
         require(isIndexer || isConsumer, 'G008');
@@ -401,7 +413,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
             ).getController(state.indexer);
             isIndexer = msg.sender == controller;
         }
-        if (_isContract(state.consumer)) {
+        if (_isValidContractConsumer(state.consumer)) {
             isConsumer = IConsumer(state.consumer).checkSender(channelId, msg.sender);
         }
         require(isIndexer || isConsumer, 'G008');
@@ -429,7 +441,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         require(state.status == ChannelStatus.Terminating, 'SC007');
         if (state.terminateByIndexer) {
             bool isConsumer = msg.sender == state.consumer;
-            if (_isContract(state.consumer)) {
+            if (_isValidContractConsumer(state.consumer)) {
                 isConsumer = IConsumer(state.consumer).checkSender(query.channelId, msg.sender);
             }
             require(isConsumer, 'G008');
@@ -471,7 +483,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
     ) private view {
         address indexer = channels[channelId].indexer;
         address consumer = channels[channelId].consumer;
-        if (_isContract(consumer)) {
+        if (_isValidContractConsumer(consumer)) {
             require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'C006');
         } else {
             _checkSign(payload, consumerSign, consumer, false);
@@ -572,7 +584,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         uint256 spent = channels[channelId].spent;
 
         address realConsumer = consumer;
-        if (_isContract(consumer)) {
+        if (_isValidContractConsumer(consumer)) {
             realConsumer = IConsumer(consumer).channelConsumer(channelId);
         }
 
@@ -615,7 +627,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
             );
         }
 
-        if (_isContract(consumer)) {
+        if (_isValidContractConsumer(consumer)) {
             IConsumer(consumer).claimed(channelId, realRemain);
         }
 
@@ -643,7 +655,8 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         bytes memory callback
     ) internal {
         address realConsumer = consumer;
-        if (_isContract(consumer)) {
+        bool isCConsumer = _isValidContractConsumer(consumer);
+        if (isCConsumer) {
             IConsumer cConsumer = IConsumer(consumer);
             realConsumer = cConsumer.channelConsumer(channelId);
         }
@@ -654,7 +667,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         uint256 realAmount = 0;
         if (fundByReward < amount) {
             realAmount = amount - fundByReward;
-            if (_isContract(consumer)) {
+            if (isCConsumer) {
                 IConsumer(consumer).paid(channelId, msg.sender, realAmount, callback);
             }
             IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
@@ -666,5 +679,22 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
 
         channels[channelId].realTotal += realAmount;
         channels[channelId].total += amount;
+    }
+
+    /// @dev check if consumer is valid contract consumer
+    /// @return false if it is not a contract
+    ///         true if it is a contract and implements IConsumer interface and in the whitelist
+    /// throw G018 if it doesn't implements IConsumer or not in the whitelist
+    function _isValidContractConsumer(address consumer) private view returns (bool) {
+        if (_isContract(consumer)) {
+            require(
+                consumer.supportsInterface(type(IConsumer).interfaceId) &&
+                    consumerContractWhitelist[consumer],
+                'G018'
+            );
+            return true;
+        } else {
+            return false;
+        }
     }
 }
