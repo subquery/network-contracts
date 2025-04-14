@@ -342,6 +342,7 @@ describe('RewardsBooster Contract', () => {
                 // spend query rewards
                 await token.connect(consumer0).increaseAllowance(stateChannel.address, etherParse('5'));
 
+                // open channel will consume query rewards now
                 await openChannel(
                     stateChannel,
                     defaultChannelId,
@@ -352,6 +353,9 @@ describe('RewardsBooster Contract', () => {
                     etherParse('1'),
                     60
                 );
+                const channel = await stateChannel.channel(defaultChannelId);
+                const consumedQueryReward = channel.total.sub(channel.realTotal);
+
                 const abi = ethers.utils.defaultAbiCoder;
                 const msg = abi.encode(
                     ['uint256', 'address', 'address', 'uint256', 'uint256', 'bytes'],
@@ -366,7 +370,9 @@ describe('RewardsBooster Contract', () => {
                 const queryReward1 = await rewardsBooster.getQueryRewards(deploymentId3, consumer0.address);
                 const reward1 = await rewardsBooster.getAccRewardsForDeployment(deploymentId3);
                 // has at least 1 block's reward, not zero
-                expect(queryReward1).to.eq(getQueryReward(reward1.sub(reward0), queryRewardRatePerMill));
+                expect(queryReward1.add(consumedQueryReward)).to.eq(
+                    getQueryReward(reward1.sub(reward0), queryRewardRatePerMill)
+                );
             });
 
             it('can add/remove booster - 1 booster account', async () => {
