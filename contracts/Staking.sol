@@ -347,7 +347,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         lockedAmount[_source] += _amount;
         _onDelegationChange(_source, _runner);
 
-        emit DelegationAdded(_source, _runner, _amount);
         emit DelegationAdded2(_source, _runner, _amount, instant);
     }
 
