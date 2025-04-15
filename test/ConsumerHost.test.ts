@@ -279,6 +279,7 @@ describe('ConsumerHost Contract', () => {
 
     describe('Consumer Host State Channel should work', () => {
         beforeEach(async () => {
+            await stateChannel.setConsumerContractWhitelist(consumerHost.address, true);
             await registerRunner(token, indexerRegistry, staking, wallet_0, runner, etherParse('2000'));
             await consumerHost.connect(wallet_0).addSigner(hoster.address);
             await token.connect(wallet_0).transfer(consumer.address, etherParse('10'));
@@ -463,6 +464,62 @@ describe('ConsumerHost Contract', () => {
             await consumerHost.connect(consumer).withdraw(etherParse('9.5'));
             const cBalance4 = await consumerHost.consumers(consumer.address);
             expect(cBalance4.balance).to.equal(etherParse('0.28'));
+        });
+
+        it('non whitelisted cconsumer will fail', async () => {
+            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('20'));
+            await stateChannel.setConsumerContractWhitelist(consumerHost.address, false);
+
+            const channelId = ethers.utils.randomBytes(32);
+
+            const abi = ethers.utils.defaultAbiCoder;
+            const consumerSign = '0x';
+            const amount = etherParse('2');
+            const price = etherParse('0.1');
+            const expiration = 60;
+
+            const consumerCallback = abi.encode(['address', 'bytes'], [consumer.address, consumerSign]);
+
+            const msg = abi.encode(
+                ['uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'bytes32', 'bytes'],
+                [
+                    channelId,
+                    runner.address,
+                    consumerHost.address,
+                    amount,
+                    price,
+                    expiration,
+                    deploymentId,
+                    consumerCallback,
+                ]
+            );
+            const payloadHash = ethers.utils.keccak256(msg);
+
+            const indexerSign = await runner.signMessage(ethers.utils.arrayify(payloadHash));
+            const hosterSign = await hoster.signMessage(ethers.utils.arrayify(payloadHash));
+
+            const recoveredIndexer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), indexerSign);
+            expect(runner.address).to.equal(recoveredIndexer);
+
+            const recoveredHoster = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), hosterSign);
+            expect(hoster.address).to.equal(recoveredHoster);
+
+            await expect(
+                stateChannel
+                    .connect(hoster)
+                    .open(
+                        channelId,
+                        runner.address,
+                        consumerHost.address,
+                        amount,
+                        price,
+                        expiration,
+                        deploymentId,
+                        consumerCallback,
+                        indexerSign,
+                        hosterSign
+                    )
+            ).to.revertedWith('G018');
         });
     });
 });
