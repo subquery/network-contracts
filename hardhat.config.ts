@@ -398,11 +398,13 @@ task('publishChild', 'verify and publish contracts on etherscan')
                 address: deployment.L2Vesting.innerAddress,
                 constructorArguments: [],
             });
-            //UniswapPriceOracle
-            await hre.run('verify:verify', {
-                address: deployment.UniswapPriceOracle.address,
-                constructorArguments: contractsConfig[taskArgs.networkpair].UniswapPriceOracle,
-            });
+            if (taskArgs.networkpair === 'mainnet') {
+                //UniswapPriceOracle
+                await hre.run('verify:verify', {
+                    address: deployment.UniswapPriceOracle.address,
+                    constructorArguments: contractsConfig[taskArgs.networkpair].UniswapPriceOracle,
+                });
+            }
         } catch (err) {
             console.log(err);
         }
