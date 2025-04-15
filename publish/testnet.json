@@ -81,16 +81,16 @@
             "lastUpdate": "Thu, 18 Jan 2024 08:43:36 GMT"
         },
         "Staking": {
-            "innerAddress": "0xe8DD3fe0FB9888E729739daF1e7e05578Ab0C6d0",
+            "innerAddress": "0x7200A93A56441623F169E9b104dAE5F44EF09681",
             "address": "0x520c2A23000D134780a90bd9dec533df434140a2",
-            "bytecodeHash": "3d1ee8f210e6156fc0e721c764597c2d11cad16237abb1e1e4ccae82ff04369d",
-            "lastUpdate": "Tue, 21 May 2024 22:11:46 GMT"
+            "bytecodeHash": "ac1882534cde71ad80bebc3b7e8089ca254f16368f1fbba4c07a87c175fa146b",
+            "lastUpdate": "Tue, 15 Apr 2025 02:58:26 GMT"
         },
         "StakingManager": {
-            "innerAddress": "0xcE63bf7849472b9A2269a77323aefAB41255c06C",
+            "innerAddress": "0xf854F12a65A43a0bae9f0E9eDAd6e46AC3a4822A",
             "address": "0x9a789E2BB2FB8446ECabF40eea57AAb9aD078bbe",
-            "bytecodeHash": "3dc12c9893ece3bc500bdcceff15a11f4b22d4776068a8fe5e8f8dbbbc965454",
-            "lastUpdate": "Wed, 01 May 2024 04:32:12 GMT"
+            "bytecodeHash": "c63f5039d538661371d6cd325605cd04299870acd5365d2c387981edd1b378f4",
+            "lastUpdate": "Tue, 15 Apr 2025 02:58:40 GMT"
         },
         "EraManager": {
             "innerAddress": "0xA759196b440e6e46E662E1173c983Eb2A4f8f8Cd",
@@ -129,10 +129,10 @@
             "lastUpdate": "Thu, 01 Aug 2024 08:55:43 GMT"
         },
         "RewardsDistributor": {
-            "innerAddress": "0x9eC4A8a31f6545002Ca1d5F7e4d7045aa36e6791",
+            "innerAddress": "0x65B15bC9A60F4F5b61451574978793088F073d84",
             "address": "0x5c0d1F22C4D7aaF35Ade34CA7c7491dBB0A91Cb7",
-            "bytecodeHash": "381e3fab7024f94442d22d91cbb1a4ae4ecc0dbe39670ea54d1ca080217db295",
-            "lastUpdate": "Fri, 24 Jan 2025 06:59:04 GMT"
+            "bytecodeHash": "3ea33c35b751d1b7f0af0fec0a560adc0c2718663bab9dc0570db1d1ea4d13f4",
+            "lastUpdate": "Tue, 15 Apr 2025 02:57:58 GMT"
         },
         "RewardsPool": {
             "innerAddress": "0xfDacF3446B2Df6078CaE7317A0aE6aD19572EA44",
@@ -141,10 +141,10 @@
             "lastUpdate": "Wed, 05 Mar 2025 07:55:55 GMT"
         },
         "RewardsStaking": {
-            "innerAddress": "0x4AA3fC3848Eddf751642BDE26DBD18a8224C2679",
+            "innerAddress": "0xF0D88933f89723c875cB66e67C6462DF3Df577a3",
             "address": "0xB64D73B96358855075576D66746D2a88e043CC1E",
-            "bytecodeHash": "0150db578b495dbc48d4c16d5d7f7125f350fad0c9de11fc5d20f950e06178e4",
-            "lastUpdate": "Wed, 11 Sep 2024 11:31:36 GMT"
+            "bytecodeHash": "b7ea386b1b987be564f8ce09ab9c027393e41b15ee582ef01da7c74170e1fe18",
+            "lastUpdate": "Tue, 15 Apr 2025 02:58:12 GMT"
         },
         "RewardsHelper": {
             "innerAddress": "0xa7eE3bFD854bd609D1485FE845d996EEDE87aF7B",
@@ -153,10 +153,10 @@
             "lastUpdate": "Fri, 09 Feb 2024 05:52:35 GMT"
         },
         "StateChannel": {
-            "innerAddress": "0x8F40E8bC3C10DfAdbc2a3c4261aB01e6CABBd28E",
+            "innerAddress": "0x0fBaDC1D0630fb2D14B51bb052410e2A72F13cA5",
             "address": "0x8C3d312291CC666757daFbb6eD20874Ae573C895",
-            "bytecodeHash": "c0391673bb6d0d96beca30bc98e709aefa5edd9f60a95e6afaf0437fd90e64d2",
-            "lastUpdate": "Fri, 24 Jan 2025 06:59:37 GMT"
+            "bytecodeHash": "5e3a1d54051af36862969744d97c0f6ec8ac37aabf61fad8d9aed4e6ef7b76a8",
+            "lastUpdate": "Tue, 15 Apr 2025 02:58:53 GMT"
         },
         "ConsumerHost": {
             "innerAddress": "0x07B1C6beeF0455135C37F8680f136bbE9aE8a9Ad",
