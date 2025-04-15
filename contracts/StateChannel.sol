@@ -183,10 +183,12 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         require(channels[channelId].status == ChannelStatus.Finalized, 'SC001');
 
         // check indexer registered
-        IIndexerRegistry indexerRegistry = IIndexerRegistry(
-            settings.getContractAddress(SQContracts.IndexerRegistry)
+        require(
+            IIndexerRegistry(settings.getContractAddress(SQContracts.IndexerRegistry)).isIndexer(
+                indexer
+            ),
+            'G002'
         );
-        require(indexerRegistry.isIndexer(indexer), 'G002');
 
         // check sign
         bytes32 payload = keccak256(
@@ -203,9 +205,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         );
         if (_isContract(consumer)) {
             require(consumer.supportsInterface(type(IConsumer).interfaceId), 'G018');
-            IConsumer cConsumer = IConsumer(consumer);
-            require(cConsumer.checkSign(channelId, payload, consumerSign), 'C006');
-            cConsumer.paid(channelId, msg.sender, amount, callback);
+            require(IConsumer(consumer).checkSign(channelId, payload, consumerSign), 'C006');
         } else {
             _checkSign(payload, consumerSign, consumer, false);
             require(msg.sender == consumer, 'SC111');
@@ -213,25 +213,23 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
 
         _checkSign(payload, indexerSign, indexer, true);
 
-        // transfer the balance to contract
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
-            consumer,
-            address(this),
-            amount
-        );
-
         // initial the channel
         ChannelState storage state = channels[channelId];
         state.status = ChannelStatus.Open;
         state.indexer = indexer;
         state.consumer = consumer;
         state.expiredAt = block.timestamp + expiration;
-        state.realTotal = amount;
-        state.total = amount;
+        // commented by @ian, now they will be set in _fundChannel()
+        //        state.realTotal = real;
+        //        state.total = amount;
         state.spent = 0;
         state.terminatedAt = 0;
         state.deploymentId = deploymentId;
         state.terminateByIndexer = false;
+
+        // transfer the rewards to channel
+        _fundChannel(channelId, deploymentId, consumer, amount, callback);
+
         // set channel price
         channelPrice[channelId] = price;
 
@@ -308,42 +306,16 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         bytes32 payload = keccak256(
             abi.encode(channelId, indexer, consumer, preTotal, amount, callback)
         );
-        address realConsumer = consumer;
 
         // check sign
         if (_isContract(consumer)) {
-            IConsumer cConsumer = IConsumer(consumer);
-            require(cConsumer.checkSign(channelId, payload, sign), 'C006');
-            realConsumer = cConsumer.channelConsumer(channelId);
+            require(IConsumer(consumer).checkSign(channelId, payload, sign), 'C006');
         } else {
             _checkSign(payload, sign, consumer, false);
         }
 
         // transfer the rewards to channel
-        address rbAddress = settings.getContractAddress(SQContracts.RewardsBooster);
-        uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(
-            channels[channelId].deploymentId,
-            realConsumer,
-            amount,
-            abi.encode(channelId)
-        );
-
-        if (rewardsAmount < amount) {
-            // transfer the balance to contract
-            uint256 realAmount = amount - rewardsAmount;
-            if (_isContract(consumer)) {
-                IConsumer(consumer).paid(channelId, msg.sender, realAmount, callback);
-            }
-            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
-                consumer,
-                address(this),
-                realAmount
-            );
-
-            channels[channelId].realTotal += realAmount;
-        }
-
-        channels[channelId].total += amount;
+        _fundChannel(channelId, channels[channelId].deploymentId, consumer, amount, callback);
 
         emit ChannelFund(channelId, channels[channelId].realTotal, channels[channelId].total);
     }
@@ -661,5 +633,38 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
             size := extcodesize(_addr)
         }
         return (size > 0);
+    }
+
+    function _fundChannel(
+        uint256 channelId,
+        bytes32 deploymentId,
+        address consumer,
+        uint256 amount,
+        bytes memory callback
+    ) internal {
+        address realConsumer = consumer;
+        if (_isContract(consumer)) {
+            IConsumer cConsumer = IConsumer(consumer);
+            realConsumer = cConsumer.channelConsumer(channelId);
+        }
+        // transfer the rewards to channel
+        uint256 fundByReward = IRewardsBooster(
+            settings.getContractAddress(SQContracts.RewardsBooster)
+        ).spendQueryRewards(deploymentId, realConsumer, amount, abi.encode(channelId));
+        uint256 realAmount = 0;
+        if (fundByReward < amount) {
+            realAmount = amount - fundByReward;
+            if (_isContract(consumer)) {
+                IConsumer(consumer).paid(channelId, msg.sender, realAmount, callback);
+            }
+            IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
+                consumer,
+                address(this),
+                realAmount
+            );
+        }
+
+        channels[channelId].realTotal += realAmount;
+        channels[channelId].total += amount;
     }
 }

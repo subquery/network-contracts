@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { ethers, waffle } from 'hardhat';
 import { deployContracts } from './setup';
-import { deploymentIds } from './constants';
+import { deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
 import {
     IndexerRegistry,
     RewardsPool,
@@ -12,8 +12,10 @@ import {
     StateChannel,
     StakingManager,
     RewardsHelper,
+    ProjectRegistry,
+    ProjectType,
 } from '../src';
-import { registerRunner, startNewEra, time, etherParse } from './helper';
+import { registerRunner, startNewEra, time, etherParse, createProject } from './helper';
 import { Wallet, BigNumber } from 'ethers';
 
 describe('StateChannel Workflow Tests', () => {
@@ -23,6 +25,7 @@ describe('StateChannel Workflow Tests', () => {
     let token: ERC20;
     let staking: Staking;
     let indexerRegistry: IndexerRegistry;
+    let projectRegistry: ProjectRegistry;
     let eraManager: EraManager;
     let rewardsDistributor: RewardsDistributor;
     let rewardsPool: RewardsPool;
@@ -105,6 +108,7 @@ describe('StateChannel Workflow Tests', () => {
     beforeEach(async () => {
         const deployment = await waffle.loadFixture(deployer);
         indexerRegistry = deployment.indexerRegistry;
+        projectRegistry = deployment.projectRegistry;
         staking = deployment.staking;
         token = deployment.token;
         rewardsDistributor = deployment.rewardsDistributor;
@@ -125,6 +129,24 @@ describe('StateChannel Workflow Tests', () => {
 
         await eraManager.connect(wallet_0).updateEraPeriod(time.duration.days(1).toString());
         await startNewEra(eraManager);
+
+        // create projects
+        await createProject(
+            projectRegistry,
+            wallet_0,
+            projectMetadatas[0],
+            deploymentMetadatas[0],
+            deploymentIds[0],
+            ProjectType.SUBQUERY
+        );
+        await createProject(
+            projectRegistry,
+            wallet_0,
+            projectMetadatas[0],
+            deploymentMetadatas[0],
+            deploymentIds[1],
+            ProjectType.SUBQUERY
+        );
 
         //create statechannels
         channelId = ethers.utils.randomBytes(32);
