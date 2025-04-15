@@ -136,6 +136,16 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
     event DelegationAdded(address indexed source, address indexed runner, uint256 amount);
 
     /**
+     * @dev Emitted when stake to an Runner, with instant indicator.
+     */
+    event DelegationAdded2(
+        address indexed source,
+        address indexed runner,
+        uint256 amount,
+        bool instant
+    );
+
+    /**
      * @dev Emitted when unstake to an Runner.
      */
     event DelegationRemoved(address indexed source, address indexed runner, uint256 amount);
@@ -296,7 +306,12 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         emit UnbondCancelled(_source, ua.indexer, ua.amount, _unbondReqId);
     }
 
-    function addDelegation(address _source, address _runner, uint256 _amount) external {
+    function addDelegation(
+        address _source,
+        address _runner,
+        uint256 _amount,
+        bool instant
+    ) external {
         require(
             msg.sender == settings.getContractAddress(SQContracts.StakingManager) ||
                 msg.sender == address(this),
@@ -322,13 +337,17 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
             delegation[_source][_runner].valueAfter = _amount;
             totalStakingAmount[_runner].valueAfter = _amount;
         } else {
+            if (instant) {
+                delegation[_source][_runner].valueAt += _amount;
+                totalStakingAmount[_runner].valueAt += _amount;
+            }
             delegation[_source][_runner].valueAfter += _amount;
             totalStakingAmount[_runner].valueAfter += _amount;
         }
         lockedAmount[_source] += _amount;
         _onDelegationChange(_source, _runner);
 
-        emit DelegationAdded(_source, _runner, _amount);
+        emit DelegationAdded2(_source, _runner, _amount, instant);
     }
 
     function delegateToIndexer(
@@ -342,7 +361,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
             _amount
         );
 
-        this.addDelegation(_source, _runner, _amount);
+        this.addDelegation(_source, _runner, _amount, false);
     }
 
     function removeDelegation(address _source, address _runner, uint256 _amount) external {

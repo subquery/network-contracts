@@ -450,6 +450,25 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
         return rewards;
     }
 
+    function claimForDelegate(address runner, address user) public returns (uint256) {
+        require(
+            !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
+            'G019'
+        );
+        uint256 rewards = userRewards(runner, user);
+        if (rewards == 0) return 0;
+        info[runner].rewardDebt[user] += rewards;
+
+        // delegate
+        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
+            settings.getContractAddress(SQContracts.Staking),
+            rewards
+        );
+
+        emit ClaimRewards(runner, user, rewards);
+        return rewards;
+    }
+
     /**
      * @notice extract for reuse emit RewardsChanged event
      */

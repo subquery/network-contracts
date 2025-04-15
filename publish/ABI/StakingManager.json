@@ -66,6 +66,19 @@
         "inputs": [
             {
                 "internalType": "address",
+                "name": "_runner",
+                "type": "address"
+            }
+        ],
+        "name": "delegateReward",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
                 "name": "_source",
                 "type": "address"
             },
@@ -119,6 +132,35 @@
             }
         ],
         "name": "getEffectiveTotalStake",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_source",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_runner",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_era",
+                "type": "uint256"
+            }
+        ],
+        "name": "getEraDelegationAmount",
         "outputs": [
             {
                 "internalType": "uint256",

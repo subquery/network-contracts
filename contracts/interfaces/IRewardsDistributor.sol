@@ -42,4 +42,6 @@ interface IRewardsDistributor {
     function userRewards(address indexer, address user) external view returns (uint256);
 
     function getRewardInfo(address indexer) external view returns (IndexerRewardInfo memory);
+
+    function claimForDelegate(address runner, address user) external returns (uint256);
 }
