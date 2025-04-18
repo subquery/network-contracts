@@ -1285,7 +1285,7 @@ describe('RewardsDistributor Contract', () => {
 
         // earn rewards from runner, runner2
         // no rewards from runner3
-        it.only('should allow delegator to batch claim collect and delegate', async () => {
+        it('should allow delegator to batch claim collect and delegate', async () => {
             expect(await eraManager.eraNumber()).to.be.eq(3);
             expect((await rewardsDistributor.getRewardInfo(runner.address)).lastClaimEra).to.be.eq(2);
             //move to next era
