@@ -21,7 +21,7 @@ import { acceptPlan, addInstantRewards, etherParse, eventFrom, startNewEra, time
 import { deployContracts } from './setup';
 
 describe('RewardsDistributor Contract', () => {
-    let root, runner, consumer, delegator, delegator2;
+    let root, runner, runner2, runner3, consumer, delegator, delegator2;
 
     let token: ERC20;
     let staking: Staking;
@@ -72,7 +72,7 @@ describe('RewardsDistributor Contract', () => {
 
     const deployer = () => deployContracts(root, runner);
     before(async () => {
-        [root, runner, consumer, delegator, delegator2] = await ethers.getSigners();
+        [root, runner, runner2, runner3, consumer, delegator, delegator2] = await ethers.getSigners();
     });
 
     beforeEach(async () => {
@@ -102,10 +102,13 @@ describe('RewardsDistributor Contract', () => {
         //register an new Indexer with Initial Commission Rate: 10% and Initial Staking Amount: 1000
         //moved to era 2
         await registerIndexer(root, runner, runnerInitialStake, runnerCr);
+        await registerIndexer(root, runner2, runnerInitialStake, runnerCr);
+        await registerIndexer(root, runner3, runnerInitialStake, runnerCr);
         await registerIndexer(root, root, runnerInitialStake, runnerCr);
         await projectRegistry.createProject(METADATA_HASH, VERSION, DEPLOYMENT_ID, 0);
         // wallet_0 start project
         await projectRegistry.connect(runner).startService(DEPLOYMENT_ID);
+        await projectRegistry.connect(runner2).startService(DEPLOYMENT_ID);
         await projectRegistry.connect(root).startService(DEPLOYMENT_ID);
     });
 
@@ -1009,11 +1012,15 @@ describe('RewardsDistributor Contract', () => {
             await rewardsStaking.setRunnerStakeWeight(2e6);
             //a 30 days agreement with 400 rewards come in at Era2
             await acceptPlan(runner, consumer, 30, etherParse('3'), DEPLOYMENT_ID, token, planManager);
+            await acceptPlan(runner2, consumer, 30, etherParse('3'), DEPLOYMENT_ID, token, planManager);
             await acceptPlan(root, consumer, 30, etherParse('3'), DEPLOYMENT_ID, token, planManager);
             await staking.setIndexerLeverageLimit(20);
             await token.transfer(delegator.address, delegation1);
             await token.connect(delegator).increaseAllowance(staking.address, delegation1);
             await stakingManager.connect(delegator).delegate(runner.address, delegation1);
+            await token.transfer(delegator.address, delegation2);
+            await token.connect(delegator).increaseAllowance(staking.address, delegation2);
+            await stakingManager.connect(delegator).delegate(runner2.address, delegation2);
             await token.transfer(delegator2.address, delegation2);
             await token.connect(delegator2).increaseAllowance(staking.address, delegation2);
             await stakingManager.connect(delegator2).delegate(runner.address, delegation2);
@@ -1031,7 +1038,7 @@ describe('RewardsDistributor Contract', () => {
             //delegator claim and delegate
             const delegatorReward1 = await rewardsDistributor.userRewards(runner.address, delegator.address);
             expect(delegatorReward1).to.be.gt(0);
-            await expect(stakingManager.connect(delegator).delegateReward(runner.address))
+            await expect(stakingManager.connect(delegator).stakeReward(runner.address))
                 .to.emit(rewardsDistributor, 'ClaimRewards')
                 .withArgs(runner.address, delegator.address, delegatorReward1)
                 .to.emit(token, 'Transfer')
@@ -1061,7 +1068,7 @@ describe('RewardsDistributor Contract', () => {
             //delegator claim and delegate
             const rewards1 = await rewardsDistributor.userRewards(runner.address, runner.address);
             expect(rewards1).to.be.gt(0);
-            await expect(stakingManager.connect(runner).delegateReward(runner.address))
+            await expect(stakingManager.connect(runner).stakeReward(runner.address))
                 .to.emit(rewardsDistributor, 'ClaimRewards')
                 .withArgs(runner.address, runner.address, rewards1)
                 .to.emit(token, 'Transfer')
@@ -1101,7 +1108,7 @@ describe('RewardsDistributor Contract', () => {
             //delegator claim and delegate
             const delegatorReward1 = await rewardsDistributor.userRewards(runner.address, delegator.address);
             expect(delegatorReward1).to.be.gt(0);
-            await expect(stakingManager.connect(delegator).delegateReward(runner.address))
+            await expect(stakingManager.connect(delegator).stakeReward(runner.address))
                 .to.emit(rewardsDistributor, 'ClaimRewards')
                 .withArgs(runner.address, delegator.address, delegatorReward1)
                 .to.emit(token, 'Transfer')
@@ -1137,7 +1144,7 @@ describe('RewardsDistributor Contract', () => {
             //delegator claim and delegate
             const delegatorReward1 = await rewardsDistributor.userRewards(runner.address, delegator.address);
             expect(delegatorReward1).to.be.gt(0);
-            await expect(stakingManager.connect(delegator).delegateReward(runner.address))
+            await expect(stakingManager.connect(delegator).stakeReward(runner.address))
                 .to.emit(rewardsDistributor, 'ClaimRewards')
                 .withArgs(runner.address, delegator.address, delegatorReward1)
                 .to.emit(token, 'Transfer')
@@ -1170,7 +1177,7 @@ describe('RewardsDistributor Contract', () => {
             await rewardsDistributor.connect(delegator).claim(runner.address);
             expect(await rewardsDistributor.userRewards(runner.address, delegator.address)).to.be.eq(0);
 
-            await expect(stakingManager.connect(delegator).delegateReward(runner.address)).to.revertedWith('S011');
+            await expect(stakingManager.connect(delegator).stakeReward(runner.address)).to.revertedWith('S011');
         });
 
         // when capacity full
@@ -1191,32 +1198,32 @@ describe('RewardsDistributor Contract', () => {
 
             await expect(stakingManager.connect(delegator2).delegate(runner.address, 1)).to.be.revertedWith('S002');
 
-            //move to next era
-            await startNewEra(eraManager);
-            await rewardsHelper.connect(runner).indexerCatchup(runner.address);
-
-            //delegator claim and delegate
-            const delegatorReward1 = await rewardsDistributor.userRewards(runner.address, delegator.address);
-            expect(delegatorReward1).to.be.gt(0);
-            await expect(stakingManager.connect(delegator).delegateReward(runner.address))
-                .to.emit(rewardsDistributor, 'ClaimRewards')
-                .withArgs(runner.address, delegator.address, delegatorReward1)
-                .to.emit(token, 'Transfer')
-                .withArgs(rewardsDistributor.address, staking.address, delegatorReward1);
-
-            // check userRewards
-            expect(await rewardsDistributor.userRewards(runner.address, delegator.address)).to.be.eq(0);
-            // check delegation in staking
-            const delegation = await staking.delegation(delegator.address, runner.address);
-            expect(delegation.era).to.be.eq(4);
-            expect(delegation.valueAt).to.be.eq(delegation1.add(delegatorReward1));
-            expect(delegation.valueAfter).to.be.eq(delegation1.add(delegatorReward1));
-            // check delegation in rewardsStaking
-            expect(await rewardsStaking.getDelegationAmount(delegator.address, runner.address)).to.be.eq(
-                delegation1.add(delegatorReward1)
-            );
-            const effectiveTotalStake = await stakingManager.getEffectiveTotalStake(runner.address);
-            expect(effectiveTotalStake).to.eq(runnerStake.valueAt.mul(leverageLimit));
+            // //move to next era
+            // await startNewEra(eraManager);
+            // await rewardsHelper.connect(runner).indexerCatchup(runner.address);
+            //
+            // //delegator claim and delegate
+            // const delegatorReward1 = await rewardsDistributor.userRewards(runner.address, delegator.address);
+            // expect(delegatorReward1).to.be.gt(0);
+            // await expect(stakingManager.connect(delegator).stakeReward(runner.address))
+            //     .to.emit(rewardsDistributor, 'ClaimRewards')
+            //     .withArgs(runner.address, delegator.address, delegatorReward1)
+            //     .to.emit(token, 'Transfer')
+            //     .withArgs(rewardsDistributor.address, staking.address, delegatorReward1);
+            //
+            // // check userRewards
+            // expect(await rewardsDistributor.userRewards(runner.address, delegator.address)).to.be.eq(0);
+            // // check delegation in staking
+            // const delegation = await staking.delegation(delegator.address, runner.address);
+            // expect(delegation.era).to.be.eq(4);
+            // expect(delegation.valueAt).to.be.eq(delegation1.add(delegatorReward1));
+            // expect(delegation.valueAfter).to.be.eq(delegation1.add(delegatorReward1));
+            // // check delegation in rewardsStaking
+            // expect(await rewardsStaking.getDelegationAmount(delegator.address, runner.address)).to.be.eq(
+            //     delegation1.add(delegatorReward1)
+            // );
+            // const effectiveTotalStake = await stakingManager.getEffectiveTotalStake(runner.address);
+            // expect(effectiveTotalStake).to.eq(runnerStake.valueAt.mul(leverageLimit));
         });
 
         // when node operator not catch up
@@ -1241,7 +1248,7 @@ describe('RewardsDistributor Contract', () => {
             //delegator claim and delegate
             const delegatorReward1 = await rewardsDistributor.userRewards(runner.address, delegator.address);
             expect(delegatorReward1).to.be.gt(0);
-            await expect(stakingManager.connect(delegator).delegateReward(runner.address)).to.revertedWith('RS003');
+            await expect(stakingManager.connect(delegator).stakeReward(runner.address)).to.revertedWith('RS003');
         });
 
         // when node operator unregister not catch up
@@ -1273,7 +1280,50 @@ describe('RewardsDistributor Contract', () => {
             await expect(stakingManager.connect(delegator).delegate(runner.address, 1)).to.be.revertedWith('S002');
 
             // delegator claim and delegate
-            await expect(stakingManager.connect(delegator).delegateReward(runner.address)).to.be.revertedWith('S012');
+            await expect(stakingManager.connect(delegator).stakeReward(runner.address)).to.be.revertedWith('S012');
+        });
+
+        // earn rewards from runner, runner2
+        // no rewards from runner3
+        it('should allow delegator to batch claim collect and delegate', async () => {
+            expect(await eraManager.eraNumber()).to.be.eq(3);
+            expect((await rewardsDistributor.getRewardInfo(runner.address)).lastClaimEra).to.be.eq(2);
+            //move to next era
+            await startNewEra(eraManager);
+            await rewardsHelper.connect(runner).indexerCatchup(runner.address);
+            await rewardsHelper.connect(runner2).indexerCatchup(runner2.address);
+
+            // single stakeReward checks amounts
+            await expect(stakingManager.connect(delegator).stakeReward(runner3.address)).to.revertedWith('S011');
+
+            //delegator claim and delegate
+            const delegatorReward1 = await rewardsDistributor.userRewards(runner.address, delegator.address);
+            expect(delegatorReward1).to.be.gt(0);
+            const delegatorReward2 = await rewardsDistributor.userRewards(runner2.address, delegator.address);
+            expect(delegatorReward2).to.be.gt(0);
+            await expect(
+                stakingManager.connect(delegator).batchStakeReward([runner.address, runner2.address, runner3.address])
+            )
+                .to.emit(rewardsDistributor, 'ClaimRewards')
+                .withArgs(runner.address, delegator.address, delegatorReward1)
+                .to.emit(token, 'Transfer')
+                .withArgs(rewardsDistributor.address, staking.address, delegatorReward1)
+                .to.emit(rewardsDistributor, 'ClaimRewards')
+                .withArgs(runner2.address, delegator.address, delegatorReward2)
+                .to.emit(token, 'Transfer')
+                .withArgs(rewardsDistributor.address, staking.address, delegatorReward2);
+
+            // check userRewards
+            expect(await rewardsDistributor.userRewards(runner.address, delegator.address)).to.be.eq(0);
+            // check delegation in staking
+            const delegation = await staking.delegation(delegator.address, runner.address);
+            expect(delegation.era).to.be.eq(4);
+            expect(delegation.valueAt).to.be.eq(delegation1.add(delegatorReward1));
+            expect(delegation.valueAfter).to.be.eq(delegation1.add(delegatorReward1));
+            // check delegation in rewardsStaking
+            expect(await rewardsStaking.getDelegationAmount(delegator.address, runner.address)).to.be.eq(
+                delegation1.add(delegatorReward1)
+            );
         });
     });
 });

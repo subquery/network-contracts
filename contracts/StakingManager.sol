@@ -118,22 +118,38 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
     // can not be called when the node operator hasn't collected latest rewards
     // can not be called when the node operator is unregistered
     // @param _runner the node operator address
-    function delegateReward(address _runner) external {
+    function stakeReward(address _runner) external {
+        _stakeReward(msg.sender, _runner, false);
+    }
+
+    // @dev batch version of stakeReward
+    function batchStakeReward(address[] calldata _runners) external {
+        for (uint256 i = 0; i < _runners.length; i++) {
+            _stakeReward(msg.sender, _runners[i], true);
+        }
+    }
+
+    function _stakeReward(address _staker, address _runner, bool _skipError) internal {
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        address staker = msg.sender;
         // runner should be valid in the following era.
+        if (_skipError && this.getAfterDelegationAmount(_runner, _runner) == 0) {
+            return;
+        }
         require(this.getAfterDelegationAmount(_runner, _runner) > 0, 'S012');
         IRewardsDistributor rewardsDistributor = IRewardsDistributor(
             settings.getContractAddress(SQContracts.RewardsDistributor)
         );
         // rewards sent to Staking from rewardsDistributor
-        uint256 rewards = rewardsDistributor.claimForDelegate(_runner, staker);
+        uint256 rewards = rewardsDistributor.claimForDelegate(_runner, _staker);
+        if (_skipError && rewards == 0) {
+            return;
+        }
         require(rewards > 0, 'S011');
-        staking.addDelegation(staker, _runner, rewards, true);
+        staking.addDelegation(_staker, _runner, rewards, true);
         IRewardsStaking rewardsStaking = IRewardsStaking(
             settings.getContractAddress(SQContracts.RewardsStaking)
         );
-        rewardsStaking.applyRedelegation(_runner, staker);
+        rewardsStaking.applyRedelegation(_runner, _staker);
     }
 
     function cancelUnbonding(uint256 unbondReqId) external {
