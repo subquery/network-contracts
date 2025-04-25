@@ -418,6 +418,12 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
         return channels[channelId];
     }
 
+    function decodeConsumerCallback(
+        bytes memory callback
+    ) external pure returns (address, bytes memory) {
+        return abi.decode(callback, (address, bytes));
+    }
+
     /**
      * @notice Check ERC165 interface
      * @param interfaceId interface ID

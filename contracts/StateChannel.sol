@@ -658,7 +658,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         bool isCConsumer = _isValidContractConsumer(consumer);
         if (isCConsumer) {
             IConsumer cConsumer = IConsumer(consumer);
-            realConsumer = cConsumer.channelConsumer(channelId);
+            (realConsumer, ) = cConsumer.decodeConsumerCallback(callback);
         }
         // transfer the rewards to channel
         uint256 fundByReward = IRewardsBooster(
