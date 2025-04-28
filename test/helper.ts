@@ -27,6 +27,7 @@ import {
     StateChannel,
     SQToken,
     RewardsDistributor,
+    ConsumerHost,
 } from '../src';
 import { METADATA_HASH } from './constants';
 import { expect } from 'chai';
@@ -261,6 +262,50 @@ export async function openChannel(
             expiration,
             deploymentId,
             '0x',
+            indexerSign,
+            consumerSign
+        );
+}
+
+export async function openChannelWithSigner(
+    stateChannel: StateChannel,
+    channelId: Uint8Array,
+    deploymentId: string,
+    indexer: Wallet,
+    signer: Wallet,
+    amount: BigNumber,
+    price: BigNumber,
+    expiration: number,
+    consumerCallback: string,
+    consumerHost: ConsumerHost
+) {
+    const abi = ethers.utils.defaultAbiCoder;
+    const msg = abi.encode(
+        ['uint256', 'address', 'address', 'uint256', 'uint256', 'uint256', 'bytes32', 'bytes'],
+        [channelId, indexer.address, consumerHost.address, amount, price, expiration, deploymentId, consumerCallback]
+    );
+    const payloadHash = ethers.utils.keccak256(msg);
+
+    const indexerSign = await indexer.signMessage(ethers.utils.arrayify(payloadHash));
+    const consumerSign = await signer.signMessage(ethers.utils.arrayify(payloadHash));
+
+    const recoveredIndexer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), indexerSign);
+    expect(indexer.address).to.equal(recoveredIndexer);
+
+    const recoveredConsumer = ethers.utils.verifyMessage(ethers.utils.arrayify(payloadHash), consumerSign);
+    expect(signer.address).to.equal(recoveredConsumer);
+
+    await stateChannel
+        .connect(signer)
+        .open(
+            channelId,
+            indexer.address,
+            consumerHost.address,
+            amount,
+            price,
+            expiration,
+            deploymentId,
+            consumerCallback,
             indexerSign,
             consumerSign
         );

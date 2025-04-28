@@ -18,6 +18,7 @@ import {
     ProjectType,
     ProjectRegistry,
     StakingManager,
+    ConsumerHost,
 } from '../src';
 import { deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
 import {
@@ -33,6 +34,7 @@ import {
     openChannel,
     revertMsg,
     eventFrom,
+    openChannelWithSigner,
 } from './helper';
 import { root } from '../src/typechain/contracts';
 
@@ -41,7 +43,7 @@ describe('StateChannel Contract', () => {
     const defaultChannelId = ethers.utils.randomBytes(32);
     let queryRewards0;
 
-    let wallet_0, runner, controller, consumer, runner2, runner3, treasury, delegator;
+    let wallet_0, runner, controller, consumer, runner2, runner3, treasury, delegator, signer;
 
     let token: ERC20;
     let staking: Staking;
@@ -54,6 +56,7 @@ describe('StateChannel Contract', () => {
     let stateChannel: StateChannel;
     let projectRegistry: ProjectRegistry;
     let stakingManager: StakingManager;
+    let consumerHost: ConsumerHost;
 
     const buildQueryState = async (
         channelId: Uint8Array,
@@ -110,7 +113,8 @@ describe('StateChannel Contract', () => {
 
     const deployer = () => deployContracts(wallet_0, runner, treasury);
     before(async () => {
-        [wallet_0, runner, controller, consumer, runner2, runner3, treasury, delegator] = await ethers.getSigners();
+        [wallet_0, runner, controller, consumer, runner2, runner3, treasury, delegator, signer] =
+            await ethers.getSigners();
     });
 
     beforeEach(async () => {
@@ -126,6 +130,7 @@ describe('StateChannel Contract', () => {
         stateChannel = deployment.stateChannel;
         projectRegistry = deployment.projectRegistry;
         stakingManager = deployment.stakingManager;
+        consumerHost = deployment.consumerHost;
 
         // createProject
         await createProject(
@@ -338,6 +343,53 @@ describe('StateChannel Contract', () => {
             expect((await stateChannel.channel(defaultChannelId)).total).to.equal(etherParse('1'));
 
             expect(await token.balanceOf(consumer.address)).to.equal(etherParse('5'));
+            expect(queryRewardsAfterCreating as BigNumber).to.equal(
+                queryRewardsBeforeCreating.sub(etherParse('1')).add(oneBlockRewards.mul(2))
+            );
+        });
+
+        it('open State Channel WITH SIGNER with booster rewards more than channel amount should work', async () => {
+            const abi = ethers.utils.defaultAbiCoder;
+            const consumerSign = '0x';
+            const consumerCallback = abi.encode(['address', 'bytes'], [consumer.address, consumerSign]);
+            await consumerHost.connect(wallet_0).addSigner(signer.address);
+            await stateChannel.connect(wallet_0).setConsumerContractWhitelist(consumerHost.address, true);
+
+            await token.connect(consumer).increaseAllowance(consumerHost.address, etherParse('5'));
+            await expect(consumerHost.connect(consumer).deposit(etherParse('5'), true))
+                .to.be.emit(consumerHost, 'Deposit')
+                .withArgs(consumer.address, etherParse('5'), etherParse('5'));
+            expect(await token.balanceOf(consumer.address)).to.equal(etherParse('0'));
+            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('5'));
+
+            // 1000 blocks passed
+            await blockTravel(1000);
+            const queryRewardsBeforeCreating = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
+            // one block passed
+            await blockTravel(1);
+            const oneBlockRewards = (await rewardsBooster.getQueryRewards(deploymentId, consumer.address)).sub(
+                queryRewardsBeforeCreating
+            );
+            // one block passed
+            await openChannelWithSigner(
+                stateChannel,
+                defaultChannelId,
+                deploymentId,
+                runner,
+                signer,
+                etherParse('1'),
+                etherParse('1'),
+                time.duration.days(1).toString(),
+                consumerCallback,
+                consumerHost
+            );
+
+            const queryRewardsAfterCreating = await rewardsBooster.getQueryRewards(deploymentId, consumer.address);
+
+            expect((await stateChannel.channel(defaultChannelId)).realTotal).to.equal(etherParse('0'));
+            expect((await stateChannel.channel(defaultChannelId)).total).to.equal(etherParse('1'));
+
+            expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('5'));
             expect(queryRewardsAfterCreating as BigNumber).to.equal(
                 queryRewardsBeforeCreating.sub(etherParse('1')).add(oneBlockRewards.mul(2))
             );
