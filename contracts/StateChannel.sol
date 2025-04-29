@@ -239,12 +239,6 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         state.deploymentId = deploymentId;
         state.terminateByIndexer = false;
 
-        // transfer the rewards to channel
-        _fundChannel(channelId, deploymentId, consumer, amount, callback);
-
-        // set channel price
-        channelPrice[channelId] = price;
-
         emit ChannelOpen(
             channelId,
             indexer,
@@ -255,6 +249,12 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
             deploymentId,
             callback
         );
+
+        // transfer the rewards to channel
+        _fundChannel(channelId, deploymentId, consumer, amount, callback);
+
+        // set channel price
+        channelPrice[channelId] = price;
     }
 
     /**
@@ -328,8 +328,6 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
 
         // transfer the rewards to channel
         _fundChannel(channelId, channels[channelId].deploymentId, consumer, amount, callback);
-
-        emit ChannelFund(channelId, channels[channelId].realTotal, channels[channelId].total);
     }
 
     /**
@@ -679,6 +677,8 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
 
         channels[channelId].realTotal += realAmount;
         channels[channelId].total += amount;
+
+        emit ChannelFund(channelId, channels[channelId].realTotal, channels[channelId].total);
     }
 
     /// @dev check if consumer is valid contract consumer
