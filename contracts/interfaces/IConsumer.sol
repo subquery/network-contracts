@@ -32,4 +32,8 @@ interface IConsumer {
 
     // Params: channel id
     function channelConsumer(uint256 channelId) external view returns (address);
+
+    function decodeConsumerCallback(
+        bytes memory callback
+    ) external pure returns (address, bytes memory);
 }

@@ -404,6 +404,7 @@ describe('ConsumerHost Contract', () => {
             const tBalance2 = await token.balanceOf(consumer.address);
             expect(tBalance2).to.equal(etherParse('9.51'));
         });
+
         it('open a State Channel with approved should work', async () => {
             expect(await token.balanceOf(consumerHost.address)).to.equal(etherParse('20'));
 
