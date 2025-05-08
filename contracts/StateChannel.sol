@@ -657,6 +657,9 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         if (isCConsumer) {
             IConsumer cConsumer = IConsumer(consumer);
             (realConsumer, ) = cConsumer.decodeConsumerCallback(callback);
+            if (cConsumer.channelConsumer(channelId) == address(0)) {
+                cConsumer.setChannelConsumer(channelId, callback);
+            }
         }
         // transfer the rewards to channel
         uint256 fundByReward = IRewardsBooster(
@@ -673,9 +676,6 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
                 address(this),
                 realAmount
             );
-        } else if (isCConsumer) {
-            // so consumer contract know about relation between channelId and realconsumer
-            IConsumer(consumer).paid(channelId, msg.sender, 0, callback);
         }
 
         channels[channelId].realTotal += realAmount;

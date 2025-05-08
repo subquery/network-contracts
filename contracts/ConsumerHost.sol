@@ -424,6 +424,12 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
         return abi.decode(callback, (address, bytes));
     }
 
+    function setChannelConsumer(uint256 channelId, bytes memory callback) external {
+        require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'G011');
+        (consumer, ) = this.decodeConsumerCallback(callback);
+        channels[channelId] = consumer;
+    }
+
     function fixChannelConsumer(uint256 channelId, address consumer) external {
         require(msg.sender == address(0x70d0AFeE4A6A314d71046DA9B4BbcFB8Fd1722Ce), 'G011');
         channels[channelId] = consumer;
