@@ -688,6 +688,24 @@
     {
         "inputs": [
             {
+                "internalType": "uint256",
+                "name": "channelId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes",
+                "name": "callback",
+                "type": "bytes"
+            }
+        ],
+        "name": "setChannelConsumer",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "controller",
                 "type": "address"

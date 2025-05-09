@@ -426,6 +426,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
 
     function setChannelConsumer(uint256 channelId, bytes memory callback) external {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'G011');
+        address consumer;
         (consumer, ) = this.decodeConsumerCallback(callback);
         channels[channelId] = consumer;
     }
