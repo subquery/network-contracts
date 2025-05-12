@@ -433,7 +433,9 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
 
     function fixChannelConsumer(uint256 channelId, address consumer) external {
         require(msg.sender == address(0x70d0AFeE4A6A314d71046DA9B4BbcFB8Fd1722Ce), 'G011');
-        channels[channelId] = consumer;
+        if (channels[channelId] == address(0)) {
+            channels[channelId] = consumer;
+        }
     }
 
     /**
