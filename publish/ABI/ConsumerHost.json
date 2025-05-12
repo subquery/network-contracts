@@ -533,6 +533,24 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "channelId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "consumer",
+                "type": "address"
+            }
+        ],
+        "name": "fixChannelConsumer",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "getSigners",
         "outputs": [
@@ -663,6 +681,24 @@
     {
         "inputs": [],
         "name": "resetAllowance",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "channelId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes",
+                "name": "callback",
+                "type": "bytes"
+            }
+        ],
+        "name": "setChannelConsumer",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
