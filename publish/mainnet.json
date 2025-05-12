@@ -159,16 +159,16 @@
             "lastUpdate": "Wed, 14 Feb 2024 02:42:07 GMT"
         },
         "StateChannel": {
-            "innerAddress": "0xE62009CBd11910D7915fDFfDae810fee2676E605",
+            "innerAddress": "0x2C493FDc57b0F35839656039c8879b983e1BA35a",
             "address": "0x6797Df373589dF2AA37FA353c4254FD7834B751A",
-            "bytecodeHash": "2dd4eac3ae975fe32e83d3f56d60826f7e68e8cf092939ca4cf8b994e49888b3",
-            "lastUpdate": "Wed, 30 Apr 2025 01:54:54 GMT"
+            "bytecodeHash": "bb3d108e42429ce773225191d355ccf0762af6a8fd38301e7ac5f44a6451fd44",
+            "lastUpdate": "Mon, 12 May 2025 01:52:46 GMT"
         },
         "ConsumerHost": {
-            "innerAddress": "0x0089a535231759FbA7D135f534cFA957E75ED985",
+            "innerAddress": "0xADE7098d9fa3E712e252e4207240e7E2e68811c5",
             "address": "0x1185FD5a8B1dcdea654790219eAfA87105F201C5",
-            "bytecodeHash": "fc1bc2e66e8fd1c115825f64a9af7528576695916c7f0e19d1b7194fa5179cfc",
-            "lastUpdate": "Wed, 30 Apr 2025 01:55:00 GMT"
+            "bytecodeHash": "16a3a1b83ee23e2822a8db2e7fe955a33e3363fe8cee7b02930f907451f1767c",
+            "lastUpdate": "Mon, 12 May 2025 01:52:52 GMT"
         },
         "DisputeManager": {
             "innerAddress": "0xbec62e17BBF014c748ce2913f8F4108183566a07",
