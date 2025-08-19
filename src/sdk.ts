@@ -32,6 +32,7 @@ import {
     RewardsBooster,
     StakingAllocation,
     L2Vesting,
+    SubnetProjectVote,
 } from './typechain';
 import { CONTRACT_FACTORY, ContractDeploymentInner, ContractName, FactoryContstructor, SdkOptions } from './types';
 import assert from 'assert';
@@ -73,6 +74,7 @@ export class ContractSDK {
     readonly sqtRedeem!: SQTRedeem;
     readonly stakingAllocation!: StakingAllocation;
     readonly l2Vesting!: L2Vesting;
+    readonly subnetProjectVote!: SubnetProjectVote;
 
     constructor(
         // eslint-disable-next-line no-unused-vars

@@ -65,6 +65,8 @@ import {
     L2Vesting,
     L2Vesting__factory,
     Airdropper__factory,
+    SubnetProjectVote,
+    SubnetProjectVote__factory,
 } from '../src';
 
 export type Contracts = {
@@ -103,6 +105,7 @@ export type Contracts = {
     sqtRedeem: SQTRedeem;
     airdropperLite: AirdropperLite;
     l2Vesting: L2Vesting;
+    subnetProjectVote: SubnetProjectVote;
 };
 
 export const UPGRADEBAL_CONTRACTS: Partial<
@@ -135,6 +138,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<
     SQTRedeem: [CONTRACTS.SQTRedeem, SQTRedeem__factory],
     L2Vesting: [CONTRACTS.L2Vesting, L2Vesting__factory],
     Airdropper: [CONTRACTS.Airdropper, Airdropper__factory],
+    SubnetProjectVote: [CONTRACTS.SubnetProjectVote, SubnetProjectVote__factory],
 };
 
 export type Config = number | string | string[];

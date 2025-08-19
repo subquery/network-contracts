@@ -58,6 +58,7 @@ import {
     AirdropperLite,
     L2Vesting,
     UniswapPriceOracle,
+    SubnetProjectVote,
 } from '../src';
 import { Config, ContractConfig, Contracts, UPGRADEBAL_CONTRACTS } from './contracts';
 import { l1StandardBridge } from './L1StandardBridge';
@@ -524,9 +525,17 @@ export async function deployContracts(
             initConfig: [settingsAddress],
         });
 
-        //deploy uniswapPriceOracle contract
-        const uniswapPriceOracle = await deployContract<UniswapPriceOracle>('UniswapPriceOracle', 'child', {
-            deployConfig: [...config['UniswapPriceOracle']],
+        if (network === 'mainnet') {
+            //deploy uniswapPriceOracle contract
+            const uniswapPriceOracle = await deployContract<UniswapPriceOracle>('UniswapPriceOracle', 'child', {
+                deployConfig: [...config['UniswapPriceOracle']],
+            });
+        }
+
+        //deploy subnetProjectVote contract
+        const subnetProjectVote = await deployContract<SubnetProjectVote>('SubnetProjectVote', 'child', {
+            proxyAdmin,
+            initConfig: [settingsAddress],
         });
 
         // Register addresses on settings contract
