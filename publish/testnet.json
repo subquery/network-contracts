@@ -217,6 +217,12 @@
             "address": "0x45B94e2D1373eC761f8f322c37Fa80ea7eDe61D7",
             "bytecodeHash": "d38c34ddc8be512acb83f9fa950a52a4a48119c348759db8334c190c4e6296cf",
             "lastUpdate": "Tue, 16 Apr 2024 03:16:07 GMT"
+        },
+        "SubnetProjectVote": {
+            "innerAddress": "0x897391d9EBE527429b275cf194D36f9E8826aBcB",
+            "address": "0x117fB7631b269efefd4c6b2393a8b24B7939CB82",
+            "bytecodeHash": "d3fec5dfe9a0fae6aafb5dbd1aa6c5db333971d3a8ab50fc3e150f62d7b674ce",
+            "lastUpdate": "Mon, 18 Aug 2025 07:22:47 GMT"
         }
     }
 }
