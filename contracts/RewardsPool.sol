@@ -49,11 +49,11 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
     /// @notice Runner Deployment
     struct RunnerDeployment {
         // unclaimed deployments count
-        uint unclaim;
+        uint256 unclaim;
         // deployments list
         bytes32[] deployments;
         // deployments list index
-        mapping(bytes32 => uint) index;
+        mapping(bytes32 => uint256) index;
     }
 
     /// @notice Era Reward Pool
@@ -278,8 +278,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
     function _batchCollect(uint256 era, address runner) private {
         EraPool storage eraPool = pools[era];
         RunnerDeployment storage runnerDeployment = eraPool.unclaimedDeployments[runner];
-        uint lastIndex = runnerDeployment.unclaim;
-        for (uint i = lastIndex; i > 0; i--) {
+        uint256 lastIndex = runnerDeployment.unclaim;
+        for (uint256 i = lastIndex; i > 0; i--) {
             bytes32 deploymentId = runnerDeployment.deployments[i];
             _collect(era, deploymentId, runner);
         }
@@ -308,7 +308,7 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
         }
 
         RunnerDeployment storage runnerDeployment = eraPool.unclaimedDeployments[runner];
-        uint index = runnerDeployment.index[deploymentId];
+        uint256 index = runnerDeployment.index[deploymentId];
         bytes32 lastDeployment = runnerDeployment.deployments[runnerDeployment.unclaim];
         runnerDeployment.deployments[index] = lastDeployment;
         runnerDeployment.deployments.pop();
