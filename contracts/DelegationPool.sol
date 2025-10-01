@@ -8,13 +8,21 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol';
 
 import './interfaces/ISettings.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/IRewardsDistributor.sol';
 import './utils/MathUtil.sol';
+import './Constants.sol';
+import './Staking.sol';
 
-contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract DelegationPool is
+    Initializable,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    ERC20Upgradeable
+{
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
@@ -22,15 +30,6 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
 
     /// @notice Settings contract for getting other contract addresses
     ISettings public settings;
-
-    /// @notice Total shares issued to delegators
-    uint256 public totalShares;
-
-    /// @notice Mapping of user addresses to their share balances
-    mapping(address => uint256) public shares;
-
-    /// @notice Mapping of indexer addresses to delegated amounts
-    mapping(address => uint256) public delegatedToIndexer;
 
     /// @notice Array of indexers that pool has delegated to
     address[] public activeIndexers;
@@ -46,6 +45,12 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
 
     /// @notice Available SQT in the pool (not yet delegated)
     uint256 public availableAssets;
+
+    /// @notice Fee percentage in per-million (1000000 = 100%, 10000 = 1%)
+    uint256 public feePerMill;
+
+    /// @notice Accumulated fees available for withdrawal by controller
+    uint256 public accumulatedFees;
 
     /// @notice Struct for unbonding requests
     struct UnbondRequest {
@@ -81,19 +86,35 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
     /// @notice Emitted when rewards are auto-compounded
     event RewardsCompounded(uint256 totalRewards, uint256 newShares);
 
-    /// @notice Emitted when settings contract is updated
-    event SettingsUpdated(address indexed newSettings);
+    /// @notice Emitted when fee percentage is updated
+    event FeeRateUpdated(uint256 newFeePerMill);
+
+    /// @notice Emitted when fees are collected by controller
+    event FeesCollected(address indexed controller, uint256 amount);
+
+    /// @notice Emitted when fees are deducted from rewards
+    event FeesDeducted(uint256 rewardAmount, uint256 feeAmount);
+
+    /// @notice Emitted when manager needs to undelegate from indexers to fulfill withdrawal
+    event UndelegationRequired(
+        address indexed user,
+        uint256 requiredAmount,
+        uint256 remainingAmount
+    );
 
     // -- Functions --
 
     /**
      * @dev Initialize this contract.
      * @param _settings Address of the Settings contract
+     * @param _feePerMill Fee percentage in per-million (1000000 = 100%, 10000 = 1%)
      */
-    function initialize(ISettings _settings) public initializer {
+    function initialize(ISettings _settings, uint256 _feePerMill) public initializer {
         __Ownable_init();
         __ReentrancyGuard_init();
+        __ERC20_init('SubQuery Delegation Pool Share', 'SQTdp');
         settings = _settings;
+        feePerMill = _feePerMill;
     }
 
     /**
@@ -102,7 +123,46 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
      */
     function updateSettings(ISettings _settings) external onlyOwner {
         settings = _settings;
-        emit SettingsUpdated(address(_settings));
+    }
+
+    /**
+     * @dev Set the fee percentage for reward collection
+     * @param _feePerMill Fee percentage in per-million (1000000 = 100%, 10000 = 1%)
+     */
+    function setFeeRate(uint256 _feePerMill) external onlyOwner {
+        feePerMill = _feePerMill;
+        emit FeeRateUpdated(_feePerMill);
+    }
+
+    /**
+     * @dev Collect a specific amount of accumulated fees
+     * @param _amount Amount of fees to collect
+     */
+    function collectFees(uint256 _amount) external onlyOwner {
+        require(_amount > 0, 'DP014');
+        require(accumulatedFees >= _amount, 'DP015');
+
+        IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
+
+        accumulatedFees -= _amount;
+        sqToken.safeTransfer(msg.sender, _amount);
+
+        emit FeesCollected(msg.sender, _amount);
+    }
+
+    /**
+     * @dev Collect all accumulated fees
+     */
+    function collectAllFees() external onlyOwner {
+        require(accumulatedFees > 0, 'DP015');
+
+        IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
+        uint256 amount = accumulatedFees;
+
+        accumulatedFees = 0;
+        sqToken.safeTransfer(msg.sender, amount);
+
+        emit FeesCollected(msg.sender, amount);
     }
 
     /**
@@ -110,10 +170,10 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
      * @param _amount Amount of SQT tokens to delegate
      */
     function delegate(uint256 _amount) external nonReentrant {
-        require(_amount > 0, 'DP001: Amount must be greater than 0');
+        require(_amount > 0, 'DP001');
 
         IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
-        require(sqToken.balanceOf(msg.sender) >= _amount, 'DP002: Insufficient balance');
+        require(sqToken.balanceOf(msg.sender) >= _amount, 'DP002');
 
         // Calculate shares to mint
         uint256 sharesToMint = _calculateSharesToMint(_amount);
@@ -122,8 +182,7 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
         sqToken.safeTransferFrom(msg.sender, address(this), _amount);
 
         // Update state
-        shares[msg.sender] += sharesToMint;
-        totalShares += sharesToMint;
+        _mint(msg.sender, sharesToMint);
         availableAssets += _amount;
 
         emit Delegated(msg.sender, _amount, sharesToMint);
@@ -131,19 +190,18 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
 
     /**
      * @dev Start undelegation process by burning shares
-     * @param _shares Number of shares to burn for undelegation
+     * @param shareAmount Number of shares to burn for undelegation
      */
-    function undelegate(uint256 _shares) external nonReentrant {
-        require(_shares > 0, 'DP003: Shares must be greater than 0');
-        require(shares[msg.sender] >= _shares, 'DP004: Insufficient shares');
+    function undelegate(uint256 shareAmount) external nonReentrant {
+        require(shareAmount > 0, 'DP003');
+        require(balanceOf(msg.sender) >= shareAmount, 'DP004');
 
         // Calculate SQT amount to undelegate
-        uint256 sqtAmount = _calculateAssetsFromShares(_shares);
-        require(sqtAmount > 0, 'DP005: No assets to undelegate');
+        uint256 sqtAmount = _calculateAssetsFromShares(shareAmount);
+        require(sqtAmount > 0, 'DP005');
 
         // Burn user shares
-        shares[msg.sender] -= _shares;
-        totalShares -= _shares;
+        _burn(msg.sender, shareAmount);
 
         // Handle undelegation based on available assets
         if (availableAssets >= sqtAmount) {
@@ -155,17 +213,14 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
             _handleUndelegationFromIndexers(msg.sender, sqtAmount);
         }
 
-        emit UndelegationStarted(msg.sender, _shares, sqtAmount);
+        emit UndelegationStarted(msg.sender, shareAmount, sqtAmount);
     }
 
     /**
      * @dev Withdraw matured unbonding requests
      */
     function withdraw() external nonReentrant {
-        require(
-            unbondingRequests[msg.sender].length > withdrawnLength[msg.sender],
-            'DP006: No pending withdrawals'
-        );
+        require(unbondingRequests[msg.sender].length > withdrawnLength[msg.sender], 'DP006');
 
         IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
 
@@ -186,16 +241,15 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
 
             // Check if unbonding period has passed
             uint256 lockPeriod = _getLockPeriod();
-            if (block.timestamp - request.startTime >= lockPeriod) {
-                totalWithdrawable += request.amount;
-                request.completed = true;
-                withdrawnLength[msg.sender]++;
-            } else {
+            if (block.timestamp - request.startTime < lockPeriod) {
                 break; // Stop at first non-mature request
             }
+            totalWithdrawable += request.amount;
+            request.completed = true;
+            withdrawnLength[msg.sender]++;
         }
 
-        require(totalWithdrawable > 0, 'DP007: No mature withdrawals');
+        require(totalWithdrawable > 0, 'DP007');
 
         // Transfer SQT to user
         sqToken.safeTransfer(msg.sender, totalWithdrawable);
@@ -209,16 +263,18 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
      * @param _amount Amount of SQT to delegate
      */
     function managerDelegate(address _runner, uint256 _amount) external onlyOwner {
-        require(_runner != address(0), 'DP008: Invalid runner address');
-        require(_amount > 0, 'DP009: Amount must be greater than 0');
-        require(availableAssets >= _amount, 'DP010: Insufficient available assets');
+        require(_runner != address(0), 'DP008');
+        require(_amount > 0, 'DP001');
+        require(availableAssets >= _amount, 'DP010');
 
         IStakingManager stakingManager = IStakingManager(
             settings.getContractAddress(SQContracts.StakingManager)
         );
         IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
 
-        // Approve StakingManager to spend tokens
+        // Approve both Staking and StakingManager contracts to handle different implementations
+        address stakingContract = settings.getContractAddress(SQContracts.Staking);
+        sqToken.approve(stakingContract, _amount);
         sqToken.approve(address(stakingManager), _amount);
 
         // Delegate through StakingManager
@@ -226,7 +282,6 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
 
         // Update pool state
         availableAssets -= _amount;
-        delegatedToIndexer[_runner] += _amount;
 
         // Add to active indexers if not already present
         if (!isActiveIndexer[_runner]) {
@@ -243,9 +298,9 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
      * @param _amount Amount of SQT to undelegate
      */
     function managerUndelegate(address _runner, uint256 _amount) external onlyOwner {
-        require(_runner != address(0), 'DP011: Invalid runner address');
-        require(_amount > 0, 'DP012: Amount must be greater than 0');
-        require(delegatedToIndexer[_runner] >= _amount, 'DP013: Insufficient delegated amount');
+        require(_runner != address(0), 'DP008');
+        require(_amount > 0, 'DP009');
+        require(getDelegatedToIndexer(_runner) >= _amount, 'DP011');
 
         IStakingManager stakingManager = IStakingManager(
             settings.getContractAddress(SQContracts.StakingManager)
@@ -253,9 +308,6 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
 
         // Undelegate through StakingManager
         stakingManager.undelegate(_runner, _amount);
-
-        // Update pool state
-        delegatedToIndexer[_runner] -= _amount;
 
         // Clean up indexer from active list if no more delegation
         _cleanupIndexerIfEmpty(_runner);
@@ -274,13 +326,10 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
         address _toRunner,
         uint256 _amount
     ) external onlyOwner {
-        require(
-            _fromRunner != address(0) && _toRunner != address(0),
-            'DP014: Invalid runner addresses'
-        );
-        require(_fromRunner != _toRunner, 'DP015: Cannot redelegate to same runner');
-        require(_amount > 0, 'DP016: Amount must be greater than 0');
-        require(delegatedToIndexer[_fromRunner] >= _amount, 'DP017: Insufficient delegated amount');
+        require(_fromRunner != address(0) && _toRunner != address(0), 'DP008');
+        require(_fromRunner != _toRunner, 'DP012');
+        require(_amount > 0, 'DP009');
+        require(getDelegatedToIndexer(_fromRunner) >= _amount, 'DP011');
 
         IStakingManager stakingManager = IStakingManager(
             settings.getContractAddress(SQContracts.StakingManager)
@@ -288,10 +337,6 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
 
         // Redelegate through StakingManager
         stakingManager.redelegate(_fromRunner, _toRunner, _amount);
-
-        // Update pool state
-        delegatedToIndexer[_fromRunner] -= _amount;
-        delegatedToIndexer[_toRunner] += _amount;
 
         // Add destination to active indexers if not present
         if (!isActiveIndexer[_toRunner]) {
@@ -305,61 +350,63 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
         emit ManagerRedelegated(_fromRunner, _toRunner, _amount);
     }
 
+    function managerCancelUnbonding(uint256 unbondReqId) external onlyOwner {
+        IStakingManager stakingManager = IStakingManager(
+            settings.getContractAddress(SQContracts.StakingManager)
+        );
+
+        // Cancel unbonding through StakingManager
+        stakingManager.cancelUnbonding(unbondReqId);
+    }
+
     /**
      * @dev Automatic compound rewards for all active delegations
      */
     function autoCompound() external {
-        require(activeIndexers.length > 0, 'DP018: No active delegations');
+        require(activeIndexers.length > 0, 'DP013');
 
         IStakingManager stakingManager = IStakingManager(
             settings.getContractAddress(SQContracts.StakingManager)
         );
-        uint256 totalRewards = 0;
+        IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
 
-        // Compound rewards for each active indexer
-        for (uint256 i = 0; i < activeIndexers.length; i++) {
-            address indexer = activeIndexers[i];
-            uint256 rewardsBefore = IERC20(settings.getContractAddress(SQContracts.SQToken))
-                .balanceOf(address(this));
+        uint256 rewardsBefore = sqToken.balanceOf(address(this));
+        stakingManager.batchStakeReward(activeIndexers);
+        uint256 rewardsAfter = sqToken.balanceOf(address(this));
 
-            // Stake rewards through StakingManager (this claims and restakes rewards)
-            try stakingManager.stakeReward(indexer) {
-                uint256 rewardsAfter = IERC20(settings.getContractAddress(SQContracts.SQToken))
-                    .balanceOf(address(this));
-                uint256 indexerRewards = rewardsAfter - rewardsBefore;
-
-                if (indexerRewards > 0) {
-                    totalRewards += indexerRewards;
-                    availableAssets += indexerRewards;
-                }
-            } catch {
-                // Skip if no rewards available for this indexer
-                continue;
-            }
-        }
+        uint256 totalRewards = rewardsAfter - rewardsBefore;
 
         if (totalRewards > 0) {
-            // Mint new shares proportionally to existing shareholders
-            uint256 newShares = _calculateSharesToMint(totalRewards);
+            // Calculate and deduct fees from rewards
+            uint256 feeAmount = 0;
+            if (feePerMill > 0) {
+                feeAmount = (totalRewards * feePerMill) / PER_MILL;
+                accumulatedFees += feeAmount;
+                emit FeesDeducted(totalRewards, feeAmount);
+            }
 
-            // Distribute new shares proportionally to existing holders
-            // This is done automatically through the share calculation mechanism
-            totalShares += newShares;
+            // Add remaining rewards to available assets for compounding
+            uint256 compoundAmount = totalRewards - feeAmount;
+            availableAssets += compoundAmount;
 
-            emit RewardsCompounded(totalRewards, newShares);
+            // With ERC20 shares, rewards automatically compound through increased asset base
+            // The share value increases rather than minting new shares
+            // This maintains existing share holders' proportional ownership while increasing their value
+
+            emit RewardsCompounded(totalRewards, 0);
         }
     }
 
     // -- Views --
 
-    /**
-     * @dev Get user's delegation amount in the pool
-     * @param _user User address
-     * @return User's delegation amount in SQT
-     */
+    // /**
+    //  * @dev Get user's delegation amount in the pool
+    //  * @param _user User address
+    //  * @return User's delegation amount in SQT
+    //  */
     function getDelegationAmount(address _user) external view returns (uint256) {
-        if (totalShares == 0) return 0;
-        return _calculateAssetsFromShares(shares[_user]);
+        if (totalSupply() == 0) return 0;
+        return _calculateAssetsFromShares(balanceOf(_user));
     }
 
     /**
@@ -368,15 +415,6 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
      */
     function getTotalAssets() external view returns (uint256) {
         return _calculateTotalAssets();
-    }
-
-    /**
-     * @dev Get user's share balance
-     * @param _user User address
-     * @return Number of shares owned by user
-     */
-    function getShares(address _user) external view returns (uint256) {
-        return shares[_user];
     }
 
     /**
@@ -400,8 +438,13 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
      * @param _indexer Indexer address
      * @return Amount delegated to the indexer
      */
-    function getDelegatedToIndexer(address _indexer) external view returns (uint256) {
-        return delegatedToIndexer[_indexer];
+    function getDelegatedToIndexer(address _indexer) public view returns (uint256) {
+        IStakingManager stakingManager = IStakingManager(
+            settings.getContractAddress(SQContracts.StakingManager)
+        );
+
+        // Use the after (current era) amount here so we get the amount locked, even if its not active yet
+        return stakingManager.getAfterDelegationAmount(address(this), _indexer);
     }
 
     /**
@@ -442,13 +485,29 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
         return _calculateAssetsFromShares(_shares);
     }
 
+    /**
+     * @dev Get accumulated fees available for collection
+     * @return Amount of accumulated fees
+     */
+    function getAccumulatedFees() external view returns (uint256) {
+        return accumulatedFees;
+    }
+
+    /**
+     * @dev Get current fee rate
+     * @return Fee percentage in per-million
+     */
+    function getFeeRate() external view returns (uint256) {
+        return feePerMill;
+    }
+
     // -- Internal Helper Functions --
 
     /**
      * @dev Calculate shares to mint for given SQT amount
      */
     function _calculateSharesToMint(uint256 _amount) internal view returns (uint256) {
-        if (totalShares == 0) {
+        if (totalSupply() == 0) {
             return _amount; // 1:1 ratio for first deposit
         }
 
@@ -457,19 +516,19 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
             return _amount; // Fallback to 1:1 if no assets
         }
 
-        return (_amount * totalShares) / totalAssets;
+        return (_amount * totalSupply()) / totalAssets;
     }
 
     /**
      * @dev Calculate SQT assets from share amount
      */
     function _calculateAssetsFromShares(uint256 _shares) internal view returns (uint256) {
-        if (totalShares == 0 || _shares == 0) {
+        if (totalSupply() == 0 || _shares == 0) {
             return 0;
         }
 
         uint256 totalAssets = _calculateTotalAssets();
-        return (_shares * totalAssets) / totalShares;
+        return (_shares * totalAssets) / totalSupply();
     }
 
     /**
@@ -480,7 +539,7 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
 
         // Sum up all delegated amounts
         for (uint256 i = 0; i < activeIndexers.length; i++) {
-            totalDelegated += delegatedToIndexer[activeIndexers[i]];
+            totalDelegated += getDelegatedToIndexer(activeIndexers[i]);
         }
 
         return availableAssets + totalDelegated;
@@ -503,6 +562,8 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
         // This ensures the undelegation follows the same timing as direct delegation
         _addUnbondRequest(_user, _amount, block.timestamp);
 
+        uint256 originalAmount = _amount;
+
         // Reduce available assets (will be negative, manager needs to undelegate)
         if (availableAssets > 0) {
             if (_amount > availableAssets) {
@@ -514,7 +575,11 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
             }
         }
 
-        // TODO: Could emit event for manager to handle required undelegation
+        // Emit event for manager to handle required undelegation
+        // The remaining amount indicates how much the manager needs to undelegate from indexers
+        if (_amount > 0) {
+            emit UndelegationRequired(_user, originalAmount, _amount);
+        }
     }
 
     /**
@@ -522,15 +587,15 @@ contract DelegationPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
      */
     function _getLockPeriod() internal view returns (uint256) {
         // Get lock period from Staking contract through StakingManager
-        // For now, return a default value - will need to implement proper access
-        return 28 days; // Default SubQuery unbonding period
+        Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
+        return staking.lockPeriod();
     }
 
     /**
      * @dev Remove indexer from active list if delegation is zero
      */
     function _cleanupIndexerIfEmpty(address _indexer) internal {
-        if (delegatedToIndexer[_indexer] == 0 && isActiveIndexer[_indexer]) {
+        if (getDelegatedToIndexer(_indexer) == 0 && isActiveIndexer[_indexer]) {
             // Find and remove from array
             for (uint256 i = 0; i < activeIndexers.length; i++) {
                 if (activeIndexers[i] == _indexer) {

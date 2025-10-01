@@ -14,7 +14,11 @@ interface IStakingManager {
 
     function redelegate(address _fromRunner, address _toRunner, uint256 _amount) external;
 
+    function cancelUnbonding(uint256 unbondReqId) external;
+
     function stakeReward(address _runner) external;
+
+    function batchStakeReward(address[] calldata _runners) external;
 
     function slashRunner(address _runner, uint256 _amount) external;
 

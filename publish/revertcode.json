@@ -221,5 +221,19 @@
     "RB014": "Caller is not a controller of the account",
     "RB015": "Deployment booster is too small, need add more",
     "RB016": "Deployment booster already too small, need remove all",
-    "OPD01": "l2token address is empty"
+    "OPD01": "l2token address is empty",
+    "DP001": "Amount must be greater than 0",
+    "DP002": "Insufficient balance",
+    "DP003": "Share amount must be greater than 0",
+    "DP004": "Insufficient shares",
+    "DP005": "No assets to undelegate",
+    "DP006": "No unbond request to widthdraw",
+    "DP007": "No mature withdrawals",
+    "DP008": "Invalid runner address",
+    "DP010": "Insufficient available assets",
+    "DP011": "Insufficient delegated amount",
+    "DP012": "Cannot redelegate to same runner",
+    "DP013": "No active delegations",
+    "DP014": "Invalid fee amount",
+    "DP015": "Insufficient accumulated fees"
 }
