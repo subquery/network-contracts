@@ -1,0 +1,12 @@
+- kind: Project
+  projectType: 3 # subgraph
+  metadata:
+    name: Example SubGraph - Gravity
+    description: Gravity SubGraph
+    websiteUrl: https://github.com/graphprotocol/example-subgraph
+    codeUrl: https://github.com/graphprotocol/example-subgraph
+  deployments:
+    - deploymentId: QmbaLc7fEfLGUioKWehRhq838rRzeR8cBoapNJWNSAZE8u
+      version:
+        version: 1.0.0
+        description: Gravity SubGraph

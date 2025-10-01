@@ -1,0 +1,476 @@
+- kind: Project
+  projectType: 0
+  metadata:
+      name: Nova Wallet - Subsocial
+      description: |
+        Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+
+        Make sure that you add filters and sorting rules to your queries!
+
+        Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+        ```
+        query {
+          historyElements{nodes{transfer extrinsic}}
+        }
+        ```
+
+        ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+        ```
+        query {
+          historyElements{nodes{assetTransfer}}
+        }
+        ```
+        
+        👷‍ Node Operator Instruction
+        - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+        - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+      websiteUrl: https://novawallet.io/
+      codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+      image: QmQKYs4Y3Deyyg9DK3PmGCj5E8HptpGJyQ9bJ4znueCnfy
+  deployments:
+      - deploymentId: QmWtjALhGB9QEkf2GqVJued71xpLpP4jVUVh4vQDdrgXhv
+        version:
+            version: 1.0.0
+            description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Statemint
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: QmYpdGYuL7sUTUzb9Dj2VszuiaNHsFkrSsWXJDNUFLfbSf
+  deployments:
+    - deploymentId: QmWeQZWNrmHUvac2yz9ePpQqVwJM9QFpK9ULwt7ype3CmP
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Calamari
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: Qme1qoGGFDFd68C2CW3opKkx8KNFe7vXm2zCShsgcQD2iW
+  deployments:
+    - deploymentId: QmeBhTYHBcqJTJgfN7HDeSM4nHFR1c7fryZfRxGmRpwNHU
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Altair
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: Qmd2QAa49Ev1Cx2vXAsfNCZkpD8Rt4oyfghcEfmUr4XtZ2
+  deployments:
+    - deploymentId: QmPFbMgwgC9EcePX8tUjgLZ1s49PcWy3h3Rvf59bFoGndx
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Bifrost
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: QmRUd65kd9gSGiuyxNitcyoMncqE7gpTE21jjSqsFdrefY
+  deployments:
+    - deploymentId: QmPo8kuJUYjM4LEdTkVmPWuW6doP2BusY2BLy9vxKgLpG9
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Karura
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: QmbQzdTm3TCPe2dDTixWdm3eV9ad9saD8fUTtjQxnqJvot
+  deployments:
+    - deploymentId: QmTAMaR4j1JBXPNaWhTf3tj5ccAW4wLh2zxrgKhqt4ZDJ5
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Khala
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: QmW4b1sCdgxuWFqTrBgcViGiWKmWn11Cb6ZqEJ8hEwzgaA
+  deployments:
+    - deploymentId: QmbtvVmnw2xsFrLEyp5oQWfunmaoDcJYPDttDHofkSM5j2
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Picasso
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: Qmf7T1JBK2YgWJwPa7oNcieibPUc6SAn3js4dtdkuX8gra
+  deployments:
+    - deploymentId: QmPYABw93FKwx8zhzzCw6J69Y664RzFn8mUmThUsP1YWUR
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Acala
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: Qmdkj5CYzHmXjgqsjbLtxnx95qrEXyb6nvPWkpQfEYREEx
+  deployments:
+    - deploymentId: QmeKUwv1ThJerboGV8t6zBYGCpJXkht1QMHY6QMU9xmWWm
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Kilt
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: QmQjsBrAH4Hufmcfjf9SuLV3SaYhCwnXgCLMTGP42izdMN
+  deployments:
+    - deploymentId: QmXb1uHC673iHM2DLuxWRRn28W9Gevb6WkMHpkXwzPC9sW
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Quartz
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: QmXaeGmuXBQcrYX5dT73qfHkRvnW2yPgGwtF1G84H2oRRy
+  deployments:
+    - deploymentId: QmaUJQgjMw8ufsFW8nPnbgP3iGRknhKHB3z6S1WyHahsZ8
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Basilisk
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: QmNWfinmsJDyqZvayZg6kmztor9npSeENyiwwojPsT9bPf
+  deployments:
+    - deploymentId: QmdbxBVjARyGtCgqvyeXN9JAmsskFnVD7ngzrzrBRRknTS
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Shiden
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: QmbVab3bgVjcZAddoGY2pbARVHTvyjS6nUU8wCUf4wbsXJ
+  deployments:
+    - deploymentId: QmPeUqCW1Sf3gz9JKbLy48pi1a5mcmeqC2WR8opTHNjn3V
+      version:
+        version: 1.0.0
+        description:
+- kind: Project
+  projectType: 0
+  metadata:
+    name: Nova Wallet - Bit Country
+    description: |
+      Nova SubQuery project is indexing the blockchain and provides a convenient API for fetching operation history & analytics data. It is used by the Nova Wallet Feel free to use this API for your app! 💖
+      
+      Make sure that you add filters and sorting rules to your queries!
+      
+      Following API & datasource is supported: 📚 Transfers and extrinsics (transactions). Both or either can be fetched, for example: 
+      ```
+      query {
+        historyElements{nodes{transfer extrinsic}}
+      }
+      ```
+      
+      ✨ Transfer history for additional assets in the network (based on "assets"/"ORML" Substrate pallet): 
+      ```
+      query {
+        historyElements{nodes{assetTransfer}}
+      }
+      ```
+      
+      👷‍ Node Operator Instruction
+      - Rpc can be find at [https://onfinality.io](https://onfinality.io)
+      - Can leave dictionary empty, it should be automatically filled by the sdk if there are any available.
+    websiteUrl: https://novawallet.io/
+    codeUrl: https://github.com/subquery/subquery-common-api-polkadot-transactions
+    image: QmcJ7CNUaLXEhcMTNg65cHfQ2RBzzNspGxKjSe5L97c9Xr
+  deployments:
+    - deploymentId: Qmd3hcVGc61HWxFF9JYVYn2LuxMXZxZqGq58XLxEq6TGpy
+      version:
+        version: 1.0.0
+        description:

@@ -1,0 +1,245 @@
+// Copyright (C) 2020-2024 SubQuery Pte Ltd authors & contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+import { expect } from 'chai';
+import { utils } from 'ethers';
+import { EraManager, ERC20, IndexerRegistry, RewardsDistributor, RewardsHelper, RewardsPool, Staking } from '../src';
+import { deploymentIds } from './constants';
+import { etherParse, eventFrom, eventsFrom, registerRunner, startNewEra, time, timeTravel } from './helper';
+import { deployContracts } from './setup';
+import { ethers, waffle } from 'hardhat';
+
+describe('RewardsPool Contract', () => {
+    const deploymentId0 = deploymentIds[0];
+    const deploymentId1 = deploymentIds[1];
+    const deploymentId2 = deploymentIds[2];
+
+    let root, runner0, runner1, runner2, delegator0, delegator1;
+
+    let token: ERC20;
+    let staking: Staking;
+    let indexerRegistry: IndexerRegistry;
+    let eraManager: EraManager;
+    let rewardsDistributor: RewardsDistributor;
+    let rewardsHelper: RewardsHelper;
+    let rewardsPool: RewardsPool;
+
+    const deployer = () => deployContracts(root, runner0);
+    before(async () => {
+        [root, runner0, runner1, runner2, delegator0, delegator1] = await ethers.getSigners();
+    });
+
+    beforeEach(async () => {
+        const deployment = await waffle.loadFixture(deployer);
+        indexerRegistry = deployment.indexerRegistry;
+        staking = deployment.staking;
+        token = deployment.token;
+        rewardsDistributor = deployment.rewardsDistributor;
+        rewardsHelper = deployment.rewardsHelper;
+        rewardsPool = deployment.rewardsPool;
+        eraManager = deployment.eraManager;
+
+        // Init indexer and delegator account.
+        // await token.connect(root).transfer(runner0.address, etherParse('10'));
+        // await token.connect(root).transfer(runner1.address, etherParse('10'));
+        // await token.connect(root).transfer(runner2.address, etherParse('10'));
+        await token.connect(root).transfer(delegator0.address, etherParse('10'));
+        await token.connect(root).transfer(delegator1.address, etherParse('10'));
+        await token.connect(delegator0).increaseAllowance(staking.address, etherParse('10'));
+        await token.connect(delegator1).increaseAllowance(staking.address, etherParse('10'));
+        await token.connect(root).increaseAllowance(rewardsDistributor.address, etherParse('10'));
+        await token.connect(root).increaseAllowance(rewardsPool.address, etherParse('1000000000'));
+
+        // Setup era period be 1 days.
+        await eraManager.connect(root).updateEraPeriod(time.duration.days(1).toString());
+
+        // Moved to era 2.
+        // await registerRunner(token, indexerRegistry, staking, root, root, etherParse('1000'), 1e5);
+        // await registerRunner(token, indexerRegistry, staking, root, runner0, etherParse('100000'), 1e5);
+        // await registerRunner(token, indexerRegistry, staking, root, runner1, etherParse('1000'), 1e5);
+        // await registerRunner(token, indexerRegistry, staking, root, runner2, etherParse('1000'), 1e5);
+    });
+
+
+    const metrix = {
+        alpha: [
+            [1, 10],
+            [3, 10],
+            [5, 10],
+            [7, 10],
+            [8, 10],
+            [9, 10],
+        ],
+        operatorStakes: [
+            [etherParse('200000'), etherParse('200000')], // 1:1
+            [etherParse('200000'), etherParse('800000')], // 1:4
+            [etherParse('200000'), etherParse('2000000')], // 1:10
+            [etherParse('200000'), etherParse('20000000')], // 1:100
+            [etherParse('200000'), etherParse('200000000')], // 1:1000
+        ],
+        labors: [
+            [etherParse('2000'), etherParse('2000')], // 1:1
+            [etherParse('2000'), etherParse('6000')], // 1:3
+            [etherParse('1000'), etherParse('20000')], // 1:20
+            [etherParse('1000'), etherParse('1000000')], // 1:1000
+        ],
+    }
+    // alpha,total stake ratio,labor(unadjusted reward) ratio,rewards adjustment - A,rewards adjustment - B,total rewards loss
+    const results = [];
+    for (const [alphaIdx, alpha] of metrix.alpha.entries()) {
+        for (const [stakeIdx, [runnerStake0, runnerStake1]] of metrix.operatorStakes.entries()) {
+            for (const [laborIdx, [labor0, labor1]] of metrix.labors.entries()) {
+                it(`Reward pool adjustment loss with alphaId ${alphaIdx} and operatorStakesId ${stakeIdx} and laborsId ${laborIdx}`, async () => {
+                    await rewardsPool.setAlpha(alpha[0], alpha[1]);
+                    await registerRunner(token, indexerRegistry, staking, root, runner0, runnerStake0, 1e5);
+                    await registerRunner(token, indexerRegistry, staking, root, runner1, runnerStake1, 1e5);
+                    await startNewEra(eraManager);
+                    await rewardsDistributor.collectAndDistributeRewards(runner0.address);
+                    await rewardsDistributor.collectAndDistributeRewards(runner1.address);
+                    const era = await eraManager.eraNumber();
+
+                    await rewardsPool.connect(root).labor(deploymentId0, runner0.address, labor0);
+                    await rewardsPool.connect(root).labor(deploymentId0, runner1.address, labor1);
+
+                    // Check the status.
+                    const rewards1 = await rewardsPool.getReward(deploymentId0, era, runner0.address);
+                    const rewards1_1 = await rewardsPool.getReward(deploymentId0, era, runner1.address);
+                    // const totalRewardDiff = rewards1[1].sub(rewards1[0].add(rewards1_1[0]));
+                    // const runner0RewardDiff = rewards1
+                    // // expect(rewards1[0]).to.be.eq(etherParse('1')); // labor
+                    // // expect(rewards1[1]).to.be.eq(etherParse('3')); // reward
+
+                    await timeTravel(time.duration.days(1).toNumber());
+
+                    let tx = await rewardsPool.collect(deploymentId0, runner0.address);
+                    const {amount: runner0Reward} = await eventFrom(tx, rewardsPool, 'Collect(bytes32,address,uint256,uint256)');
+                    tx = await rewardsPool.collect(deploymentId0, runner1.address);
+                    const {amount: runner1Reward} = await eventFrom(tx, rewardsPool, 'Collect(bytes32,address,uint256,uint256)');
+                    const totalRewardDiff = runner0Reward.add(runner1Reward).sub(rewards1[1]);
+                    const runner0RewardDiff = runner0Reward.sub(labor0);
+                    const runner1RewardDiff = runner1Reward.sub(labor1);
+
+                    console.log(`totalLabor: ${utils.formatEther(labor0.add(labor1))}`);
+                    console.log(`totalRewardDiff: ${utils.formatEther(totalRewardDiff)}`);
+                    console.log(`runner0RewardDiff: ${utils.formatEther(runner0RewardDiff)}`);
+                    console.log(`runner1RewardDiff: ${utils.formatEther(runner1RewardDiff)}`);
+                    results.push([alphaIdx, stakeIdx,laborIdx, runner0RewardDiff.div(labor0).toString(),
+                        runner1RewardDiff.div(labor1).toString()], totalRewardDiff.div(rewards1[1]).toString());
+                });
+            }
+        }
+    }
+
+    it('output result', function (){
+        results.forEach((result) => {
+            console.log(result.join(','))
+        })
+    })
+
+    describe.skip('RewardsPool workflow', async () => {
+        it('Directly rewards also will work correctly', async () => {
+            const era = await eraManager.eraNumber();
+            const indexerAmount0 = etherParse('1');
+            const indexerAmount1 = etherParse('2');
+            const indexerAmount2 = etherParse('3');
+            await rewardsPool.connect(root).labor(deploymentId0, runner0.address, indexerAmount0);
+            await rewardsPool.connect(root).labor(deploymentId0, runner1.address, indexerAmount1);
+            await rewardsPool.connect(root).labor(deploymentId0, runner2.address, indexerAmount2);
+            await rewardsPool.connect(root).labor(deploymentId1, runner0.address, indexerAmount0);
+            await rewardsPool.connect(root).labor(deploymentId2, runner1.address, indexerAmount1);
+
+            // Check the status.
+            const rewards1 = await rewardsPool.getReward(deploymentId0, era, runner0.address);
+            // expect(rewards1[0]).to.be.eq(etherParse('1')); // labor
+            // expect(rewards1[1]).to.be.eq(etherParse('6')); // reward
+
+            await timeTravel(time.duration.days(1).toNumber());
+
+            // Start collect.
+            let tx = await rewardsPool.collect(deploymentId0, runner0.address);
+            const {amount: runner0Reward} = await eventFrom(tx, rewardsPool, 'Collect(bytes32,address,uint256,uint256)');
+            tx = await rewardsPool.collect(deploymentId0, runner1.address);
+            const {amount: runner1Reward} = await eventFrom(tx, rewardsPool, 'Collect(bytes32,address,uint256,uint256)');
+
+            // Check the status.
+            const rewards2 = await rewardsPool.getReward(deploymentId0, era, runner0.address);
+            expect(rewards2[0]).to.be.eq(0); // claimed
+            expect(rewards2[1]).to.be.eq(etherParse('6')); // reward
+            await expect(rewardsPool.collect(deploymentId0, runner0.address)).to.be.revertedWith('RP005');
+
+            await rewardsPool.collect(deploymentId0, runner1.address);
+            await rewardsPool.collect(deploymentId0, runner2.address);
+            const rewards3 = await rewardsPool.getReward(deploymentId0, era, runner0.address);
+            expect(rewards3[0]).to.be.eq(0); // claimed
+            expect(rewards3[1]).to.be.eq(0); // deleted
+
+            await rewardsPool.collect(deploymentId1, runner0.address);
+            await rewardsPool.collect(deploymentId2, runner1.address);
+            // Check the status.
+            const rewards4 = await rewardsPool.getReward(deploymentId1, era, runner0.address);
+            const rewards5 = await rewardsPool.getReward(deploymentId2, era, runner1.address);
+            expect(rewards4[0]).to.be.eq(0); // claimed
+            expect(rewards4[1]).to.be.eq(0); // deleted
+            expect(rewards5[0]).to.be.eq(0); // claimed
+            expect(rewards5[1]).to.be.eq(0); // deleted
+        });
+
+        it('Batch collect from RewardsDistributor', async () => {
+            await rewardsPool.setAlpha(9, 10);
+            await startNewEra(eraManager);
+            await rewardsDistributor.collectAndDistributeRewards(runner0.address);
+            await rewardsDistributor.collectAndDistributeRewards(runner1.address);
+            const era = await eraManager.eraNumber();
+
+            const indexerAmount0 = etherParse('1');
+            const indexerAmount1 = etherParse('2');
+            await rewardsPool.connect(root).labor(deploymentId0, runner0.address, indexerAmount0);
+            // await rewardsPool.connect(root).labor(deploymentId1, runner0.address, indexerAmount0);
+            await rewardsPool.connect(root).labor(deploymentId0, runner1.address, indexerAmount1);
+
+            // Check the status.
+            const rewards1 = await rewardsPool.getReward(deploymentId0, era, runner0.address);
+            // expect(rewards1[0]).to.be.eq(etherParse('1')); // labor
+            // expect(rewards1[1]).to.be.eq(etherParse('3')); // reward
+            const rewards1_1 = await rewardsPool.getReward(deploymentId0, era, runner1.address);
+
+            await timeTravel(time.duration.days(1).toNumber());
+
+            // Auto collect
+            await rewardsDistributor.collectAndDistributeRewards(runner0.address);
+
+            const tx2 = await rewardsDistributor.collectAndDistributeRewards(runner1.address);
+            const evts2 = await eventsFrom(
+                tx2,
+                rewardsDistributor,
+                'DistributeRewards(address,uint256,uint256,uint256)'
+            );
+            const tx = await rewardsDistributor.collectAndDistributeRewards(runner0.address);
+            const evts = await eventsFrom(tx, rewardsDistributor, 'DistributeRewards(address,uint256,uint256,uint256)');
+            const rewards2 = await rewardsPool.getReward(deploymentId0, era, runner0.address);
+            expect(rewards2[0]).to.be.eq(etherParse('0')); // already collected
+            const isClaimed1 = await rewardsPool.isClaimed(era, runner0.address);
+            expect(isClaimed1).to.be.eq(true);
+            const isClaimed2 = await rewardsPool.isClaimed(era, runner1.address);
+            expect(isClaimed2).to.be.eq(false);
+
+            await rewardsPool.batchCollect(runner1.address);
+
+            // Check the status.
+            const rewards3 = await rewardsPool.getReward(deploymentId1, era, runner0.address);
+            const rewards4 = await rewardsPool.getReward(deploymentId0, era, runner1.address);
+            expect(rewards3[0]).to.be.eq(0); // claimed
+            expect(rewards3[1]).to.be.eq(0); // deleted
+            expect(rewards4[0]).to.be.eq(0); // claimed
+            expect(rewards4[1]).to.be.eq(0); // deleted
+        });
+
+        it('Batch collect from RewardsHelper', async () => {
+            const indexerAmount0 = etherParse('1');
+            await rewardsPool.connect(root).labor(deploymentId0, runner0.address, indexerAmount0);
+            await rewardsPool.connect(root).labor(deploymentId1, runner0.address, indexerAmount0);
+            await timeTravel(time.duration.days(1).toNumber());
+            await rewardsHelper.batchCollectWithPool(runner0.address, [deploymentId0, deploymentId1]);
+        });
+    });
+});

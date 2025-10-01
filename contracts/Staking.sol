@@ -135,10 +135,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
     uint256 public instantEraWindowPercent;
 
     // Instant quota usage tracking
-    struct InstantQuotaUsage {
-        uint256 era;
-        uint256 amount;
-    }
 
     // Track instant quota used per delegator: delegator => QuotaUsage
     mapping(address => InstantQuotaUsage) public instantQuotaUsed;
@@ -363,20 +359,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         _onDelegationChange(_source, _runner);
 
         emit DelegationAdded2(_source, _runner, _amount, instant);
-    }
-
-    function delegateToIndexer(
-        address _source,
-        address _runner,
-        uint256 _amount
-    ) external onlyStakingManager {
-        IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
-            _source,
-            address(this),
-            _amount
-        );
-
-        this.addDelegation(_source, _runner, _amount, false);
     }
 
     /**

@@ -52,7 +52,8 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         } else {
             require(msg.sender == _runner, 'G002');
         }
-        staking.delegateToIndexer(_runner, _runner, _amount);
+        staking.transferDelegationTokens(_runner, _amount);
+        staking.addDelegation(_runner, _runner, _amount, false);
     }
 
     /**
@@ -66,14 +67,17 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         // Check delegation limitation
         staking.checkDelegateLimitation(_runner, _amount);
 
+        // Transfer tokens first
+        staking.transferDelegationTokens(msg.sender, _amount);
+
         // Check era progress (70% window by default)
         uint256 eraProgress = _calculateEraProgress();
         uint256 windowPercent = staking.instantEraWindowPercent();
         bool inInstantWindow = windowPercent > 0 && eraProgress <= windowPercent;
 
         if (!inInstantWindow) {
-            // After window: all delegation is pending (use original flow)
-            staking.delegateToIndexer(msg.sender, _runner, _amount);
+            // After window: all delegation is pending
+            staking.addDelegation(msg.sender, _runner, _amount, false);
             return;
         }
 
@@ -82,7 +86,6 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
 
         if (_amount <= remainingQuota) {
             // Case A: Fully instant
-            staking.transferDelegationTokens(msg.sender, _amount);
             staking.addDelegation(msg.sender, _runner, _amount, true);
             _applyInstantDelegation(msg.sender, _runner);
             _consumeInstantQuota(msg.sender, _amount);
@@ -90,9 +93,6 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
             // Case B: Split - instant + pending
             uint256 instantAmount = remainingQuota;
             uint256 pendingAmount = _amount - remainingQuota;
-
-            // Transfer all tokens first
-            staking.transferDelegationTokens(msg.sender, _amount);
 
             // Instant portion
             staking.addDelegation(msg.sender, _runner, instantAmount, true);
@@ -102,8 +102,8 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
             // Pending portion
             staking.addDelegation(msg.sender, _runner, pendingAmount, false);
         } else {
-            // Case C: Quota exhausted - all pending (use original flow)
-            staking.delegateToIndexer(msg.sender, _runner, _amount);
+            // Case C: Quota exhausted - all pending
+            staking.addDelegation(msg.sender, _runner, _amount, false);
         }
     }
 

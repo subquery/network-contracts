@@ -30,6 +30,15 @@ enum UnbondType {
     Merge
 }
 
+/**
+ * @dev Instant delegation quota tracking. One per Delegator.
+ * Tracks quota usage within current era, auto-resets on era change.
+ */
+struct InstantQuotaUsage {
+    uint256 era; // era of quota usage
+    uint256 amount; // quota used in this era
+}
+
 interface IStaking {
     function lockedAmount(address _delegator) external view returns (uint256);
 

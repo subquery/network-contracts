@@ -1,0 +1,119 @@
+#- kind: Account
+#  name: consumer1
+#  pk:
+- kind: Project
+  projectType: 1 # rpc
+  metadata:
+      name: Fuse RPC - Full Node
+      description: |
+        **Public RPC endpoint**: coming soon
+
+        Connect in seconds to SubQuery's decentralised network of RPC node operators running around the world so your dApps benefit from more reliable, scalable, and affordable RPC services. By accessing this public RPC endpoint, you agree to our [Free Public RPC terms of service](https://subquery.foundation/public-rpc-terms).
+      websiteUrl: https://www.bnbchain.org/en
+      image: QmeTgBsQNvzLdbum6bHXVwmE41t4wLg9R126bDRG6MAbxc
+  deployments:
+      - deployment: |
+            kind: ChainRpc
+            specVersion: 1.0.0
+            chain:
+              chainId: 56
+            rpcFamily:
+              - evm
+            nodeType: full
+            rpcDenyList:
+              - admin
+              - debug
+              - txpool
+              - personal
+              - miner
+              - les
+        version:
+            version: 1.0.0
+            description: ''
+- kind: Project
+  projectType: 1 # rpc
+  metadata:
+      name: BNB RPC - Archive Node
+      description: |
+        **Public RPC endpoint**: coming soon
+
+        Connect in seconds to SubQuery's decentralised network of RPC node operators running around the world so your dApps benefit from more reliable, scalable, and affordable RPC services. By accessing this public RPC endpoint, you agree to our [Free Public RPC terms of service](https://subquery.foundation/public-rpc-terms).
+      websiteUrl: https://www.bnbchain.org/en
+      image: QmeTgBsQNvzLdbum6bHXVwmE41t4wLg9R126bDRG6MAbxc
+  deployments:
+      - deployment: |
+            kind: ChainRpc
+            specVersion: 1.0.0
+            chain:
+              chainId: 56
+            rpcFamily:
+              - evm
+            nodeType: archive
+            rpcDenyList:
+              - admin
+              - debug
+              - txpool
+              - personal
+              - miner
+              - les
+        version:
+            version: 1.0.0
+            description: ''
+- kind: Project
+  projectType: 1 # rpc
+  metadata:
+    name: Optimism RPC - Full Node
+    description: |
+      **Public RPC endpoint**: coming soon
+      
+      Connect in seconds to SubQuery's decentralised network of RPC node operators running around the world so your dApps benefit from more reliable, scalable, and affordable RPC services. By accessing this public RPC endpoint, you agree to our [Free Public RPC terms of service](https://subquery.foundation/public-rpc-terms).
+    websiteUrl: https://optimism.io/
+    image: QmNS4d8iU6rtR44pGQaSwPVjyrqTiXQo8u1tEsqijDqQFr
+  deployments:
+    - deployment: |
+        kind: ChainRpc
+        specVersion: 1.0.0
+        chain:
+          chainId: 10
+        rpcFamily:
+          - evm
+        nodeType: full
+        rpcDenyList:
+          - admin
+          - debug
+          - txpool
+          - personal
+          - miner
+          - les
+      version:
+        version: 1.0.0
+        description: ''
+- kind: Project
+  projectType: 1 # rpc
+  metadata:
+    name: Optimism RPC - Archive Node
+    description: |
+      **Public RPC endpoint**: coming soon
+      
+      Connect in seconds to SubQuery's decentralised network of RPC node operators running around the world so your dApps benefit from more reliable, scalable, and affordable RPC services. By accessing this public RPC endpoint, you agree to our [Free Public RPC terms of service](https://subquery.foundation/public-rpc-terms).
+    websiteUrl: https://optimism.io/
+    image: QmNS4d8iU6rtR44pGQaSwPVjyrqTiXQo8u1tEsqijDqQFr
+  deployments:
+    - deployment: |
+        kind: ChainRpc
+        specVersion: 1.0.0
+        chain:
+          chainId: 10
+        rpcFamily:
+          - evm
+        nodeType: archive
+        rpcDenyList:
+          - admin
+          - debug
+          - txpool
+          - personal
+          - miner
+          - les
+      version:
+        version: 1.0.0
+        description: ''

@@ -101,5 +101,5 @@
             "prettier --write --plugin=prettier-plugin-solidity"
         ]
     },
-    "packageManager": "yarn@3.6.4"
+    "packageManager": "yarn@4.10.3"
 }

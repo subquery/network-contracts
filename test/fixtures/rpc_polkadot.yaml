@@ -1,0 +1,92 @@
+- kind: Project
+  projectType: 1 # rpc
+  metadata:
+      name: Polkadot RPC - Archive Node
+      description: |
+        **Public RPC endpoint**: coming soon
+        
+        Connect in seconds to SubQuery's decentralised network of RPC node operators running around the world so your dApps benefit from more reliable, scalable, and affordable RPC services. By accessing this public RPC endpoint, you agree to our [Free Public RPC terms of service](https://subquery.foundation/public-rpc-terms).
+      websiteUrl: https://polkadot.network/
+      codeUrl: https://github.com/paritytech/polkadot-sdk
+      image: QmSGnHgLiv2WSmMLSpLjmZ5DrUKyM1rwYkNREtcdBcK73X
+  deployments:
+      - deployment: |
+            kind: ChainRpc
+            specVersion: "1.0.0"
+            chain:
+              genesisHash: 0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3
+            rpcFamily:
+              - polkadot
+            nodeType: archive
+            rpcDenyList:
+              - author_hasKey
+              - author_hasSessionKeys
+              - author_insertKey
+              - author_removeExtrinsic
+              - author_rotateKeys
+              - babe_
+              - dev_
+              - engine_
+              - offchain_
+              - state_getPairs
+              - state_queryStorage
+              - state_traceBlock
+              - state_trieMigrationStatus
+              - system_addLogFilter
+              - system_addReservedPeer
+              - system_dryRun
+              - system_networkState
+              - system_peers
+              - system_removeReservedPeer
+              - system_resetLogFilter
+
+        version:
+            version: 1.0.0
+            description: |
+              use latest subquerynetwork/indexer-coordinator (>= v2.1.0)
+- kind: Project
+  projectType: 1 # rpc
+  metadata:
+    name: Kusama RPC - Archive Node
+    description: |
+      **Public RPC endpoint**: coming soon
+      
+      Connect in seconds to SubQuery's decentralised network of RPC node operators running around the world so your dApps benefit from more reliable, scalable, and affordable RPC services. By accessing this public RPC endpoint, you agree to our [Free Public RPC terms of service](https://subquery.foundation/public-rpc-terms).
+    websiteUrl: https://polkadot.network/
+    codeUrl: https://github.com/paritytech/polkadot-sdk
+    image: Qmf1zsAJ54nngUbUFef6E2tKsmDBPp6Nnez7KvCNnva6Wc
+  deployments:
+    - deployment: |
+        kind: ChainRpc
+        specVersion: "1.0.0"
+        chain:
+          genesisHash: 0xb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe
+        rpcFamily:
+          - polkadot
+        nodeType: archive
+        rpcDenyList:
+          - author_hasKey
+          - author_hasSessionKeys
+          - author_insertKey
+          - author_removeExtrinsic
+          - author_rotateKeys
+          - babe_
+          - dev_
+          - engine_
+          - offchain_
+          - state_getPairs
+          - state_queryStorage
+          - state_traceBlock
+          - state_trieMigrationStatus
+          - system_addLogFilter
+          - system_addReservedPeer
+          - system_dryRun
+          - system_networkState
+          - system_peers
+          - system_removeReservedPeer
+          - system_resetLogFilter
+
+      version:
+        version: 1.0.0
+        description: |
+          use latest subquerynetwork/indexer-coordinator (>= v2.1.0)
