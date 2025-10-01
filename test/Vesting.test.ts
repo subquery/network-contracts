@@ -193,9 +193,9 @@ describe('Vesting Contract', () => {
             await vestingContract.batchAllocateVesting([0], [wallet1.address], [parseEther(1000)]);
             const balance1 = await vtSQToken.balanceOf(wallet1.address);
             expect(balance1).to.eq(parseEther(1000));
-            expect(vtSQToken.connect(wallet2).burnFrom(wallet1.address, balance1)).to.reverted;
+            await expect(vtSQToken.connect(wallet2).burnFrom(wallet1.address, balance1)).to.be.reverted;
             await vtSQToken.setMinter(wallet2.address);
-            expect(vtSQToken.connect(wallet2).burnFrom(wallet1.address, balance1)).not.to.reverted;
+            await expect(vtSQToken.connect(wallet2).burnFrom(wallet1.address, balance1)).not.to.be.reverted;
             const balance2 = await vtSQToken.balanceOf(wallet1.address);
             expect(balance2).to.eq(0);
         });
