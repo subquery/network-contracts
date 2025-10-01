@@ -18,6 +18,8 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
  * Split from Staking, to keep contract size under control
  */
 contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
+    using MathUtil for uint256;
+
     ISettings public settings;
 
     /**
@@ -55,13 +57,54 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
 
     /**
      * @dev Delegator stake to Indexer, Indexer cannot call this.
+     * Supports instant delegation with quota-based limits and era window restrictions.
      */
     function delegate(address _runner, uint256 _amount) external {
         require(msg.sender != _runner, 'G004');
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
-        // delegation limit should not exceed
+
+        // Check delegation limitation
         staking.checkDelegateLimitation(_runner, _amount);
-        staking.delegateToIndexer(msg.sender, _runner, _amount);
+
+        // Check era progress (70% window by default)
+        uint256 eraProgress = _calculateEraProgress();
+        uint256 windowPercent = staking.instantEraWindowPercent();
+        bool inInstantWindow = windowPercent > 0 && eraProgress <= windowPercent;
+
+        if (!inInstantWindow) {
+            // After window: all delegation is pending (use original flow)
+            staking.delegateToIndexer(msg.sender, _runner, _amount);
+            return;
+        }
+
+        // Within window: check quota
+        uint256 remainingQuota = _getRemainingQuota(msg.sender);
+
+        if (_amount <= remainingQuota) {
+            // Case A: Fully instant
+            staking.transferDelegationTokens(msg.sender, _amount);
+            staking.addDelegation(msg.sender, _runner, _amount, true);
+            _applyInstantDelegation(msg.sender, _runner);
+            _consumeInstantQuota(msg.sender, _amount);
+        } else if (remainingQuota > 0) {
+            // Case B: Split - instant + pending
+            uint256 instantAmount = remainingQuota;
+            uint256 pendingAmount = _amount - remainingQuota;
+
+            // Transfer all tokens first
+            staking.transferDelegationTokens(msg.sender, _amount);
+
+            // Instant portion
+            staking.addDelegation(msg.sender, _runner, instantAmount, true);
+            _applyInstantDelegation(msg.sender, _runner);
+            _consumeInstantQuota(msg.sender, instantAmount);
+
+            // Pending portion
+            staking.addDelegation(msg.sender, _runner, pendingAmount, false);
+        } else {
+            // Case C: Quota exhausted - all pending (use original flow)
+            staking.delegateToIndexer(msg.sender, _runner, _amount);
+        }
     }
 
     /**
@@ -212,6 +255,64 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
         require(_amount <= this.getSlashableAmount(_indexer), 'S010');
 
         staking.slashRunner(_indexer, _amount);
+    }
+
+    /**
+     * @dev Calculate current era progress as a percentage (in perMill)
+     * @return Progress value (0-1000, where 1000 = 100%)
+     */
+    function _calculateEraProgress() internal view returns (uint256) {
+        IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
+
+        uint256 eraStartTime = eraManager.eraStartTime();
+        uint256 eraPeriod = eraManager.eraPeriod();
+
+        uint256 elapsed = block.timestamp - eraStartTime;
+
+        // Prevent overflow: if elapsed >= eraPeriod, return 100%
+        if (elapsed >= eraPeriod) {
+            return PER_MILL;
+        }
+
+        return MathUtil.mulDiv(elapsed, PER_MILL, eraPeriod);
+    }
+
+    /**
+     * @dev Get remaining instant delegation quota for a delegator
+     * @param delegator The delegator address
+     * @return Remaining quota amount
+     */
+    function _getRemainingQuota(address delegator) internal view returns (uint256) {
+        IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
+        Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
+
+        uint256 currentEra = eraManager.eraNumber();
+        return staking.getInstantQuotaRemaining(delegator, currentEra);
+    }
+
+    /**
+     * @dev Apply instant delegation to rewards system
+     * @param delegator The delegator address
+     * @param runner The runner address
+     */
+    function _applyInstantDelegation(address delegator, address runner) internal {
+        IRewardsStaking rewardsStaking = IRewardsStaking(
+            settings.getContractAddress(SQContracts.RewardsStaking)
+        );
+        rewardsStaking.applyRedelegation(runner, delegator);
+    }
+
+    /**
+     * @dev Consume instant quota for a delegator
+     * @param delegator The delegator address
+     * @param amount The amount to consume
+     */
+    function _consumeInstantQuota(address delegator, uint256 amount) internal {
+        IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
+        Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
+
+        uint256 currentEra = eraManager.eraNumber();
+        staking.updateInstantQuotaUsed(delegator, currentEra, amount);
     }
 
     // -- Views --

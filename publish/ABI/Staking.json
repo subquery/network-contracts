@@ -347,6 +347,30 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "delegator",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "era",
+                "type": "uint256"
+            }
+        ],
+        "name": "getInstantQuotaRemaining",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "indexerLength",
         "outputs": [
@@ -431,6 +455,56 @@
         "name": "initialize",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "instantDelegationQuota",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "instantEraWindowPercent",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "instantQuotaUsed",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "era",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -603,6 +677,24 @@
             }
         ],
         "name": "setIndexerLeverageLimit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_perEraQuota",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_windowPercent",
+                "type": "uint256"
+            }
+        ],
+        "name": "setInstantDelegationParams",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -818,6 +910,24 @@
         "inputs": [
             {
                 "internalType": "address",
+                "name": "_source",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "transferDelegationTokens",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
                 "name": "newOwner",
                 "type": "address"
             }
@@ -909,6 +1019,29 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "delegator",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "era",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "updateInstantQuotaUsed",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
