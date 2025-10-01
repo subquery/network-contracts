@@ -101,5 +101,24 @@
             "prettier --write --plugin=prettier-plugin-solidity"
         ]
     },
+    "resolutions": {
+        "@ethersproject/abstract-provider": "~5.5.1",
+        "@ethersproject/abstract-signer": "~5.5.0",
+        "@ethersproject/address": "~5.5.0",
+        "@ethersproject/bignumber": "~5.5.0",
+        "@ethersproject/bytes": "~5.5.0",
+        "@ethersproject/constants": "~5.5.0",
+        "@ethersproject/contracts": "~5.5.0",
+        "@ethersproject/hash": "~5.5.0",
+        "@ethersproject/keccak256": "~5.5.0",
+        "@ethersproject/logger": "~5.5.0",
+        "@ethersproject/networks": "~5.5.2",
+        "@ethersproject/properties": "~5.5.0",
+        "@ethersproject/providers": "~5.5.3",
+        "@ethersproject/signing-key": "~5.5.0",
+        "@ethersproject/strings": "~5.5.0",
+        "@ethersproject/transactions": "~5.5.0",
+        "@ethersproject/wallet": "~5.5.0"
+    },
     "packageManager": "yarn@4.10.3"
 }
