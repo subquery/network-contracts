@@ -18,6 +18,32 @@ import './utils/MathUtil.sol';
 import './Constants.sol';
 import './Staking.sol';
 
+/**
+ * @title DelegationPool
+ * @notice ## Overview
+ * A Delegation Pool contract that allows aggregation of SQT to be pooled together and used to delegate to indexers.
+ * Delegation should behave the same as if the user had delegated directly to an indexer. There is a manager (owner) of the pool
+ * that determines the delegation strategy to indexers.
+ *
+ * ## Details
+ *
+ * ### Delegation
+ * Users delegate their SQT to the pool and receive pool shares (ERC20 tokens) representing their stake in the pool. The pool manager can then
+ * allocate those funds to the indexers they choose to optimise rewards.
+ *
+ * ### Undelegation
+ * Users can then trigger undelegation which will burn their shares and
+ * start a withdrawal process that then allows the user to withdraw their SQT after the lock period which is the same duration as if they had
+ * directly delegated.
+ *
+ * ### Withdrawls
+ * After the lock period, users can withdraw their SQT and rewards from the pool, minus and pool and unbonding fees.
+ *
+ * ### Managers
+ * The pool manager is responsible for making sure the available assets in the pool are delegated to indexers to earn rewards.
+ * The manager can do all the same functionality as delegating directly to an indexer such as delegate, undelegate, redelegate and claim rewards.
+ * The manager can also trigger auto-compounding of rewards which claims rewards from all indexers as well as set a reward fee.
+ */
 contract DelegationPool is
     Initializable,
     OwnableUpgradeable,
