@@ -13,6 +13,7 @@ import '@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol';
 import './interfaces/ISettings.sol';
 import './interfaces/IStakingManager.sol';
 import './interfaces/IRewardsDistributor.sol';
+import './interfaces/IEraManager.sol';
 import './utils/MathUtil.sol';
 import './Constants.sol';
 import './Staking.sol';
@@ -51,6 +52,28 @@ contract DelegationPool is
 
     /// @notice Accumulated fees available for withdrawal by controller
     uint256 public accumulatedFees;
+
+    /// @notice Cached share price (assets per share) for current era, scaled by 1e18
+    uint256 public currentEraSharePrice;
+
+    /// @notice Last era when share price was updated
+    uint256 public lastPriceUpdateEra;
+
+    /// @notice Total assets at last price update
+    uint256 public totalAssetsAtLastUpdate;
+
+    /// @notice Total shares at last price update
+    uint256 public totalSharesAtLastUpdate;
+
+    /// @notice Total amount of unbond fees expected to be lost when withdrawing from Staking
+    uint256 public expectedUnbondFees;
+
+    /// @notice Total amount that needs to be undelegated from indexers (reserved for user withdrawals)
+    /// This tracks assets still counted in delegated amounts but reserved for withdrawals
+    uint256 public pendingUndelegationsFromIndexers;
+
+    /// @notice Accumulated unbond fees collected from available asset withdrawals (to be sent to treasury)
+    uint256 public accumulatedUnbondFees;
 
     /// @notice Struct for unbonding requests
     struct UnbondRequest {
@@ -102,6 +125,12 @@ contract DelegationPool is
         uint256 remainingAmount
     );
 
+    /// @notice Emitted when share price is updated for a new era
+    event SharePriceUpdated(uint256 indexed era, uint256 pricePerShare);
+
+    /// @notice Emitted when unbond fee is tracked for accounting
+    event UnbondFeeTracked(uint256 amount, uint256 totalExpected);
+
     // -- Functions --
 
     /**
@@ -115,6 +144,9 @@ contract DelegationPool is
         __ERC20_init('SubQuery Delegation Pool Share', 'SQTdp');
         settings = _settings;
         feePerMill = _feePerMill;
+        // Initialize share price at 1:1 ratio (1e18 = 1 SQT per share with 18 decimals precision)
+        currentEraSharePrice = 1e18;
+        lastPriceUpdateEra = 0;
     }
 
     /**
@@ -175,7 +207,10 @@ contract DelegationPool is
         IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
         require(sqToken.balanceOf(msg.sender) >= _amount, 'DP002');
 
-        // Calculate shares to mint
+        // Update share price if era has changed before calculating shares
+        _updateSharePriceIfNeeded();
+
+        // Calculate shares to mint using era-locked price
         uint256 sharesToMint = _calculateSharesToMint(_amount);
 
         // Transfer tokens from user
@@ -203,14 +238,53 @@ contract DelegationPool is
         // Burn user shares
         _burn(msg.sender, shareAmount);
 
+        uint256 unbondFeeRate = _getUnbondFeeRate();
+
         // Handle undelegation based on available assets
         if (availableAssets >= sqtAmount) {
+            // Calculate unbond fee (applies to all undelegations)
+            uint256 fee = MathUtil.mulDiv(unbondFeeRate, sqtAmount, PER_MILL);
+            uint256 netAmount = sqtAmount - fee;
+
             // Direct withdrawal from available assets
             availableAssets -= sqtAmount;
-            _addUnbondRequest(msg.sender, sqtAmount, block.timestamp);
+            accumulatedUnbondFees += fee;
+            _addUnbondRequest(msg.sender, netAmount, block.timestamp);
         } else {
-            // Need to undelegate from indexers
-            _handleUndelegationFromIndexers(msg.sender, sqtAmount);
+            // Need to undelegate from indexers via Staking
+            // Amount from available assest is the whole amount because they would all be consumed by this undelegation
+            uint256 amountFromAvailable = availableAssets;
+            uint256 amountFromIndexers = sqtAmount - amountFromAvailable;
+
+            // Calculate fees from each source
+            uint256 feeFromAvailable = MathUtil.mulDiv(
+                unbondFeeRate,
+                amountFromAvailable,
+                PER_MILL
+            );
+            uint256 feeFromIndexers = MathUtil.mulDiv(unbondFeeRate, amountFromIndexers, PER_MILL);
+
+            // Calculate net amounts after fees
+            uint256 netFromAvailable = amountFromAvailable - feeFromAvailable;
+            uint256 netFromIndexers = amountFromIndexers - feeFromIndexers;
+
+            // Track fees: accumulated (from available) and expected (from indexers)
+            accumulatedUnbondFees += feeFromAvailable;
+            expectedUnbondFees += feeFromIndexers;
+            emit UnbondFeeTracked(feeFromIndexers, expectedUnbondFees);
+
+            // Consume available assets (gross amount including fee)
+            availableAssets -= amountFromAvailable;
+
+            // Create unbond request for net total and trigger indexer undelegation
+            uint256 netTotal = netFromAvailable + netFromIndexers;
+            _addUnbondRequest(msg.sender, netTotal, block.timestamp);
+
+            if (amountFromIndexers > 0) {
+                // Track GROSS amount from indexers (still counted in delegated amounts)
+                pendingUndelegationsFromIndexers += amountFromIndexers;
+                emit UndelegationRequired(msg.sender, netTotal, amountFromIndexers);
+            }
         }
 
         emit UndelegationStarted(msg.sender, shareAmount, sqtAmount);
@@ -251,7 +325,15 @@ contract DelegationPool is
 
         require(totalWithdrawable > 0, 'DP007');
 
-        // Transfer SQT to user
+        // Transfer accumulated fees to treasury if any
+        if (accumulatedUnbondFees > 0) {
+            address treasury = settings.getContractAddress(SQContracts.Treasury);
+            uint256 feesToTransfer = accumulatedUnbondFees;
+            accumulatedUnbondFees = 0;
+            sqToken.safeTransfer(treasury, feesToTransfer);
+        }
+
+        // Transfer net amount to user (fee already deducted when undelegating)
         sqToken.safeTransfer(msg.sender, totalWithdrawable);
 
         emit Withdrawn(msg.sender, totalWithdrawable);
@@ -365,6 +447,10 @@ contract DelegationPool is
     function autoCompound() external {
         require(activeIndexers.length > 0, 'DP013');
 
+        // Update share price for new era BEFORE claiming rewards
+        // This ensures any new deposits use the old price (no reward benefit)
+        _updateSharePriceIfNeeded();
+
         IStakingManager stakingManager = IStakingManager(
             settings.getContractAddress(SQContracts.StakingManager)
         );
@@ -376,25 +462,27 @@ contract DelegationPool is
 
         uint256 totalRewards = rewardsAfter - rewardsBefore;
 
-        if (totalRewards > 0) {
-            // Calculate and deduct fees from rewards
-            uint256 feeAmount = 0;
-            if (feePerMill > 0) {
-                feeAmount = (totalRewards * feePerMill) / PER_MILL;
-                accumulatedFees += feeAmount;
-                emit FeesDeducted(totalRewards, feeAmount);
-            }
-
-            // Add remaining rewards to available assets for compounding
-            uint256 compoundAmount = totalRewards - feeAmount;
-            availableAssets += compoundAmount;
-
-            // With ERC20 shares, rewards automatically compound through increased asset base
-            // The share value increases rather than minting new shares
-            // This maintains existing share holders' proportional ownership while increasing their value
-
-            emit RewardsCompounded(totalRewards, 0);
+        if (totalRewards == 0) {
+            return; // No rewards to compound
         }
+
+        // Calculate and deduct fees from rewards
+        uint256 feeAmount = 0;
+        if (feePerMill > 0) {
+            feeAmount = (totalRewards * feePerMill) / PER_MILL;
+            accumulatedFees += feeAmount;
+            emit FeesDeducted(totalRewards, feeAmount);
+        }
+
+        // Add remaining rewards to available assets for compounding
+        uint256 compoundAmount = totalRewards - feeAmount;
+        availableAssets += compoundAmount;
+
+        // With ERC20 shares, rewards automatically compound through increased asset base
+        // The share value increases rather than minting new shares
+        // This maintains existing share holders' proportional ownership while increasing their value
+
+        emit RewardsCompounded(totalRewards, 0);
     }
 
     // -- Views --
@@ -431,6 +519,38 @@ contract DelegationPool is
      */
     function getActiveIndexers() external view returns (address[] memory) {
         return activeIndexers;
+    }
+
+    /**
+     * @dev Get total pending rewards available for compounding
+     * @return Total pending rewards across all active indexers
+     */
+    function getPendingRewards() external view returns (uint256) {
+        if (activeIndexers.length == 0) {
+            return 0;
+        }
+
+        address rewardsDistributorAddress = settings.getContractAddress(
+            SQContracts.RewardsDistributor
+        );
+
+        // Return 0 if RewardsDistributor is not configured
+        if (rewardsDistributorAddress == address(0)) {
+            return 0;
+        }
+
+        IRewardsDistributor rewardsDistributor = IRewardsDistributor(rewardsDistributorAddress);
+
+        uint256 totalPendingRewards = 0;
+        for (uint256 i = 0; i < activeIndexers.length; i++) {
+            uint256 pendingReward = rewardsDistributor.userRewards(
+                activeIndexers[i],
+                address(this)
+            );
+            totalPendingRewards += pendingReward;
+        }
+
+        return totalPendingRewards;
     }
 
     /**
@@ -501,21 +621,44 @@ contract DelegationPool is
         return feePerMill;
     }
 
+    /**
+     * @dev Get the current era share price
+     * @return Share price with 18 decimals precision (1e18 = 1 SQT per share)
+     */
+    function getCurrentSharePrice() external view returns (uint256) {
+        return currentEraSharePrice;
+    }
+
+    /**
+     * @dev Get the era of last price update
+     * @return Era number when share price was last updated
+     */
+    function getLastPriceUpdateEra() external view returns (uint256) {
+        return lastPriceUpdateEra;
+    }
+
     // -- Internal Helper Functions --
 
     /**
      * @dev Calculate shares to mint for given SQT amount
+     * Uses era-locked share price to prevent reward manipulation
      */
     function _calculateSharesToMint(uint256 _amount) internal view returns (uint256) {
         if (totalSupply() == 0) {
             return _amount; // 1:1 ratio for first deposit
         }
 
-        uint256 totalAssets = _calculateTotalAssets();
-        if (totalAssets == 0) {
-            return _amount; // Fallback to 1:1 if no assets
+        // Use the current era's locked share price
+        // shares = (amount * 1e18) / pricePerShare
+        if (currentEraSharePrice > 0) {
+            return (_amount * 1e18) / currentEraSharePrice;
         }
 
+        // Fallback to current calculation if price not set (should rarely happen)
+        uint256 totalAssets = _calculateTotalAssets();
+        if (totalAssets == 0) {
+            return _amount;
+        }
         return (_amount * totalSupply()) / totalAssets;
     }
 
@@ -533,6 +676,10 @@ contract DelegationPool is
 
     /**
      * @dev Calculate total assets under management
+     * Accounts for:
+     * - Pending undelegations from indexers (assets reserved for withdrawal but still counted in delegated amounts)
+     * - Expected unbond fees that will be lost when withdrawing from Staking
+     * - Accumulated unbond fees (collected but not yet sent to treasury)
      */
     function _calculateTotalAssets() internal view returns (uint256) {
         uint256 totalDelegated = 0;
@@ -542,7 +689,21 @@ contract DelegationPool is
             totalDelegated += getDelegatedToIndexer(activeIndexers[i]);
         }
 
-        return availableAssets + totalDelegated;
+        uint256 grossAssets = availableAssets + totalDelegated;
+
+        // Subtract:
+        // - pending undelegations from indexers (reserved for withdrawals, no longer backing shares)
+        // - expected fees that will be lost when manager withdraws from Staking
+        // - accumulated fees (still in availableAssets but reserved for treasury)
+        uint256 totalDeductions = pendingUndelegationsFromIndexers +
+            expectedUnbondFees +
+            accumulatedUnbondFees;
+
+        if (grossAssets > totalDeductions) {
+            return grossAssets - totalDeductions;
+        }
+
+        return 0;
     }
 
     /**
@@ -555,40 +716,20 @@ contract DelegationPool is
     }
 
     /**
-     * @dev Handle undelegation when need to withdraw from indexers
-     */
-    function _handleUndelegationFromIndexers(address _user, uint256 _amount) internal {
-        // For now, add to unbond queue and let manager handle the actual undelegation
-        // This ensures the undelegation follows the same timing as direct delegation
-        _addUnbondRequest(_user, _amount, block.timestamp);
-
-        uint256 originalAmount = _amount;
-
-        // Reduce available assets (will be negative, manager needs to undelegate)
-        if (availableAssets > 0) {
-            if (_amount > availableAssets) {
-                _amount -= availableAssets;
-                availableAssets = 0;
-            } else {
-                availableAssets -= _amount;
-                _amount = 0;
-            }
-        }
-
-        // Emit event for manager to handle required undelegation
-        // The remaining amount indicates how much the manager needs to undelegate from indexers
-        if (_amount > 0) {
-            emit UndelegationRequired(_user, originalAmount, _amount);
-        }
-    }
-
-    /**
      * @dev Get lock period from Staking contract
      */
     function _getLockPeriod() internal view returns (uint256) {
         // Get lock period from Staking contract through StakingManager
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         return staking.lockPeriod();
+    }
+
+    /**
+     * @dev Get unbond fee rate from Staking contract
+     */
+    function _getUnbondFeeRate() internal view returns (uint256) {
+        Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
+        return staking.unbondFeeRate();
     }
 
     /**
@@ -605,6 +746,30 @@ contract DelegationPool is
                 }
             }
             isActiveIndexer[_indexer] = false;
+        }
+    }
+
+    /**
+     * @dev Updates share price checkpoint if we're in a new era
+     * This prevents reward manipulation by locking share prices within each era
+     */
+    function _updateSharePriceIfNeeded() internal {
+        IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
+        uint256 currentEra = eraManager.eraNumber();
+
+        // Only update if era has changed and we have shares outstanding
+        if (currentEra > lastPriceUpdateEra && totalSupply() > 0) {
+            uint256 totalAssets = _calculateTotalAssets();
+
+            // Calculate new share price: (totalAssets * 1e18) / totalSupply
+            // This gives us price per share with 18 decimals precision
+            currentEraSharePrice = (totalAssets * 1e18) / totalSupply();
+
+            lastPriceUpdateEra = currentEra;
+            totalAssetsAtLastUpdate = totalAssets;
+            totalSharesAtLastUpdate = totalSupply();
+
+            emit SharePriceUpdated(currentEra, currentEraSharePrice);
         }
     }
 }
