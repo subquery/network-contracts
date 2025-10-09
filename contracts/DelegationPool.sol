@@ -244,7 +244,22 @@ contract DelegationPool is
 
         // Update state
         _mint(msg.sender, sharesToMint);
-        availableAssets += _amount;
+
+        // Update the pending undelegations to use this new deposit first and offset the available assets
+        if (pendingUndelegationsFromIndexers > 0) {
+            // Use new deposit to cover pending undelegations first
+            if (_amount >= pendingUndelegationsFromIndexers) {
+                // Fully cover pending undelegations
+                availableAssets += (_amount - pendingUndelegationsFromIndexers);
+                pendingUndelegationsFromIndexers = 0;
+            } else {
+                // Partially cover pending undelegations
+                pendingUndelegationsFromIndexers -= _amount;
+                // No change to availableAssets as all new deposit is used
+            }
+        } else {
+            availableAssets += _amount;
+        }
 
         emit Delegated(msg.sender, _amount, sharesToMint);
     }

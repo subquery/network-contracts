@@ -198,6 +198,8 @@ describe('DelegationPool Contract', () => {
 
                 // Verify pool state
                 expect(await delegationPool.availableAssets()).to.equal(0); // All available assets consumed
+
+                expect(await delegationPool.pendingUndelegationsFromIndexers()).to.equal(requiredFromIndexers);
             });
 
             it('should not emit UndelegationRequired event when sufficient assets available', async () => {
@@ -224,6 +226,44 @@ describe('DelegationPool Contract', () => {
 
                 // Verify pool state
                 expect(await delegationPool.availableAssets()).to.equal(etherParse('200')); // 500 - 300 = 200 remaining
+            });
+
+            it('should allocate new deposits towards required undelegations', async () => {
+                // beforeEach already set up user1 with 1000 SQT delegation
+                // Manager delegates only part of the pool, leaving enough available
+                await delegationPool.connect(poolManager).managerDelegate(runner1.address, etherParse('1000'));
+
+                // Check that all pool assets are delegated
+                expect(await delegationPool.availableAssets()).to.equal(etherParse('0'));
+
+                const undelegateShares = etherParse('1000');
+                const delegateAmount = etherParse('500');
+                const delegateAmount2 = etherParse('600');
+                const undelegatedAmount = etherParse('999'); // Less fees
+
+                await token.connect(user2).approve(delegationPool.address, delegateAmount.add(delegateAmount2));
+
+                // User1 undelegates 500 shares, requiring undelegation from indexers
+                await expect(delegationPool.connect(user1).undelegate(undelegateShares))
+                    .to.emit(delegationPool, 'UndelegationRequired')
+                    .withArgs(user1.address, undelegatedAmount, undelegateShares);
+
+                expect(await delegationPool.availableAssets()).to.equal(etherParse('0'));
+                expect(await delegationPool.pendingUndelegationsFromIndexers()).to.equal(undelegateShares);
+
+                // User2's delegation should go towards the pending undelegation
+                await delegationPool.connect(user2).delegate(delegateAmount);
+
+                expect(await delegationPool.availableAssets()).to.equal(etherParse('0'));
+                // The pending undelegation should be reduced by the new delegation
+                expect(await delegationPool.pendingUndelegationsFromIndexers()).to.equal(etherParse('500'));
+
+                // User2's delegation should use up the remaining pending undelegation
+                await delegationPool.connect(user2).delegate(delegateAmount2);
+                // The amount avalable assets should now reflect the excess delegation
+                expect(await delegationPool.availableAssets()).to.equal(etherParse('100'));
+                // The pending undelegation should be reduced to zero
+                expect(await delegationPool.pendingUndelegationsFromIndexers()).to.equal(etherParse('0'));
             });
         });
 
