@@ -230,10 +230,10 @@
     "DP006": "No unbond request to withdraw",
     "DP007": "No mature withdrawals",
     "DP008": "Invalid runner address",
-    "DP010": "Insufficient available assets",
-    "DP011": "Insufficient delegated amount",
-    "DP012": "Cannot redelegate to same runner",
-    "DP013": "No active delegations",
-    "DP014": "Invalid fee amount",
-    "DP015": "Insufficient accumulated fees"
+    "DP009": "Insufficient available assets",
+    "DP010": "Insufficient delegated amount",
+    "DP011": "Cannot redelegate to same runner",
+    "DP012": "No active delegations",
+    "DP013": "Invalid fee amount",
+    "DP014": "Insufficient accumulated fees"
 }

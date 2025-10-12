@@ -197,8 +197,8 @@ contract DelegationPool is
      * @param _amount Amount of fees to collect
      */
     function collectFees(uint256 _amount) external onlyOwner {
-        require(_amount > 0, 'DP014');
-        require(accumulatedFees >= _amount, 'DP015');
+        require(_amount > 0, 'DP013');
+        require(accumulatedFees >= _amount, 'DP014');
 
         IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
 
@@ -212,7 +212,7 @@ contract DelegationPool is
      * @dev Collect all accumulated fees
      */
     function collectAllFees() external onlyOwner {
-        require(accumulatedFees > 0, 'DP015');
+        require(accumulatedFees > 0, 'DP014');
 
         IERC20 sqToken = IERC20(settings.getContractAddress(SQContracts.SQToken));
         uint256 amount = accumulatedFees;
@@ -388,7 +388,7 @@ contract DelegationPool is
     function managerDelegate(address _runner, uint256 _amount) external onlyOwner {
         require(_runner != address(0), 'DP008');
         require(_amount > 0, 'DP001');
-        require(availableAssets >= _amount, 'DP010');
+        require(availableAssets >= _amount, 'DP009');
 
         IStakingManager stakingManager = IStakingManager(
             settings.getContractAddress(SQContracts.StakingManager)
@@ -423,7 +423,7 @@ contract DelegationPool is
     function managerUndelegate(address _runner, uint256 _amount) external onlyOwner {
         require(_runner != address(0), 'DP008');
         require(_amount > 0, 'DP001');
-        require(getDelegatedToIndexer(_runner) >= _amount, 'DP011');
+        require(getDelegatedToIndexer(_runner) >= _amount, 'DP010');
 
         IStakingManager stakingManager = IStakingManager(
             settings.getContractAddress(SQContracts.StakingManager)
@@ -450,9 +450,9 @@ contract DelegationPool is
         uint256 _amount
     ) external onlyOwner {
         require(_fromRunner != address(0) && _toRunner != address(0), 'DP008');
-        require(_fromRunner != _toRunner, 'DP012');
+        require(_fromRunner != _toRunner, 'DP011');
         require(_amount > 0, 'DP001');
-        require(getDelegatedToIndexer(_fromRunner) >= _amount, 'DP011');
+        require(getDelegatedToIndexer(_fromRunner) >= _amount, 'DP010');
 
         IStakingManager stakingManager = IStakingManager(
             settings.getContractAddress(SQContracts.StakingManager)
@@ -486,7 +486,7 @@ contract DelegationPool is
      * @dev Automatic compound rewards for all active delegations
      */
     function autoCompound() external {
-        require(activeIndexers.length > 0, 'DP013');
+        require(activeIndexers.length > 0, 'DP012');
 
         // Update share price for new era BEFORE claiming rewards
         // This ensures any new deposits use the old price (no reward benefit)
