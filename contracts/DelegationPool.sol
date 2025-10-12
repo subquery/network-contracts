@@ -36,7 +36,7 @@ import './Staking.sol';
  * start a withdrawal process that then allows the user to withdraw their SQT after the lock period which is the same duration as if they had
  * directly delegated.
  *
- * ### Withdrawls
+ * ### Withdrawals
  * After the lock period, users can withdraw their SQT and rewards from the pool, minus and pool and unbonding fees.
  *
  * ### Managers
@@ -293,7 +293,7 @@ contract DelegationPool is
             _addUnbondRequest(msg.sender, netAmount, block.timestamp);
         } else {
             // Need to undelegate from indexers via Staking
-            // Amount from available assest is the whole amount because they would all be consumed by this undelegation
+            // Amount from available assets is the whole amount because they would all be consumed by this undelegation
             uint256 amountFromAvailable = availableAssets;
             uint256 amountFromIndexers = sqtAmount - amountFromAvailable;
 
@@ -422,7 +422,7 @@ contract DelegationPool is
      */
     function managerUndelegate(address _runner, uint256 _amount) external onlyOwner {
         require(_runner != address(0), 'DP008');
-        require(_amount > 0, 'DP009');
+        require(_amount > 0, 'DP001');
         require(getDelegatedToIndexer(_runner) >= _amount, 'DP011');
 
         IStakingManager stakingManager = IStakingManager(
@@ -451,7 +451,7 @@ contract DelegationPool is
     ) external onlyOwner {
         require(_fromRunner != address(0) && _toRunner != address(0), 'DP008');
         require(_fromRunner != _toRunner, 'DP012');
-        require(_amount > 0, 'DP009');
+        require(_amount > 0, 'DP001');
         require(getDelegatedToIndexer(_fromRunner) >= _amount, 'DP011');
 
         IStakingManager stakingManager = IStakingManager(

@@ -227,7 +227,7 @@
     "DP003": "Share amount must be greater than 0",
     "DP004": "Insufficient shares",
     "DP005": "No assets to undelegate",
-    "DP006": "No unbond request to widthdraw",
+    "DP006": "No unbond request to withdraw",
     "DP007": "No mature withdrawals",
     "DP008": "Invalid runner address",
     "DP010": "Insufficient available assets",

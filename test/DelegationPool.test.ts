@@ -260,7 +260,7 @@ describe('DelegationPool Contract', () => {
 
                 // User2's delegation should use up the remaining pending undelegation
                 await delegationPool.connect(user2).delegate(delegateAmount2);
-                // The amount avalable assets should now reflect the excess delegation
+                // The amount available assets should now reflect the excess delegation
                 expect(await delegationPool.availableAssets()).to.equal(etherParse('100'));
                 // The pending undelegation should be reduced to zero
                 expect(await delegationPool.pendingUndelegationsFromIndexers()).to.equal(etherParse('0'));
