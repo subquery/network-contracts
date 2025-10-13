@@ -429,7 +429,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         address _account
     ) public returns (ProjectType) {
         DeploymentPool storage deploymentPool = deploymentPools[_deploymentId];
-        uint _amount = deploymentPool.accountBooster[_account];
+        uint256 _amount = deploymentPool.accountBooster[_account];
 
         ProjectType projectType = IProjectRegistry(
             settings.getContractAddress(SQContracts.ProjectRegistry)

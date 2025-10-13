@@ -8,6 +8,18 @@ interface IStakingManager {
 
     function unstake(address _runner, uint256 _amount) external;
 
+    function delegate(address _runner, uint256 _amount) external;
+
+    function undelegate(address _runner, uint256 _amount) external;
+
+    function redelegate(address _fromRunner, address _toRunner, uint256 _amount) external;
+
+    function cancelUnbonding(uint256 unbondReqId) external;
+
+    function stakeReward(address _runner) external;
+
+    function batchStakeReward(address[] calldata _runners) external;
+
     function slashRunner(address _runner, uint256 _amount) external;
 
     function getTotalStakingAmount(address _runner) external view returns (uint256);
