@@ -133,7 +133,7 @@ contract DelegationPool is
     );
 
     /// @notice Emitted when rewards are auto-compounded
-    event RewardsCompounded(uint256 totalRewards, uint256 newShares);
+    event RewardsCompounded(uint256 totalRewards);
 
     /// @notice Emitted when fee percentage is updated
     event FeeRateUpdated(uint256 newFeePerMill);
@@ -523,7 +523,7 @@ contract DelegationPool is
         // The share value increases rather than minting new shares
         // This maintains existing share holders' proportional ownership while increasing their value
 
-        emit RewardsCompounded(totalRewards, 0);
+        emit RewardsCompounded(totalRewards);
     }
 
     // -- Views --
