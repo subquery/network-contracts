@@ -67,6 +67,7 @@ import {
     Airdropper__factory,
     SubnetProjectVote,
     SubnetProjectVote__factory,
+    DelegationPool,
 } from '../src';
 
 export type Contracts = {
@@ -106,6 +107,7 @@ export type Contracts = {
     airdropperLite: AirdropperLite;
     l2Vesting: L2Vesting;
     subnetProjectVote: SubnetProjectVote;
+    delegationPool: DelegationPool;
 };
 
 export const UPGRADEBAL_CONTRACTS: Partial<

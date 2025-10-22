@@ -33,6 +33,7 @@ import {
     StakingAllocation,
     L2Vesting,
     SubnetProjectVote,
+    DelegationPool,
 } from './typechain';
 import { CONTRACT_FACTORY, ContractDeploymentInner, ContractName, FactoryContstructor, SdkOptions } from './types';
 import assert from 'assert';
@@ -75,6 +76,7 @@ export class ContractSDK {
     readonly stakingAllocation!: StakingAllocation;
     readonly l2Vesting!: L2Vesting;
     readonly subnetProjectVote!: SubnetProjectVote;
+    readonly delegationPool!: DelegationPool;
 
     constructor(
         // eslint-disable-next-line no-unused-vars

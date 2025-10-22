@@ -59,6 +59,7 @@ import {
     L2Vesting,
     UniswapPriceOracle,
     SubnetProjectVote,
+    DelegationPool,
 } from '../src';
 import { Config, ContractConfig, Contracts, UPGRADEBAL_CONTRACTS } from './contracts';
 import { l1StandardBridge } from './L1StandardBridge';
@@ -538,6 +539,12 @@ export async function deployContracts(
             initConfig: [settingsAddress],
         });
 
+        //deploy DelegationPool contract
+        const delegationPool = await deployContract<DelegationPool>('DelegationPool', 'child', {
+            proxyAdmin,
+            initConfig: [settingsAddress, 10000 /* 1% fee */],
+        });
+
         // Register addresses on settings contract
         logger?.info('🤞 Set settings addresses');
         const txToken = await settings.setBatchAddress(
@@ -618,6 +625,7 @@ export async function deployContracts(
                 airdropper,
                 stakingAllocation,
                 l2Vesting,
+                delegationPool,
             },
         ];
     } catch (error) {

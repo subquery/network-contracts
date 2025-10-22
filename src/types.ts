@@ -45,6 +45,7 @@ import {
     L2Vesting__factory,
     UniswapPriceOracle__factory,
     SubnetProjectVote__factory,
+    DelegationPool__factory,
 } from './typechain';
 
 export type SubqueryNetwork = 'testnet' | 'testnet-mumbai' | 'mainnet' | 'local';
@@ -141,6 +142,7 @@ export const CONTRACT_FACTORY: Record<ContractName, FactoryContstructor> = {
     L2Vesting: L2Vesting__factory,
     UniswapPriceOracle: UniswapPriceOracle__factory,
     SubnetProjectVote: SubnetProjectVote__factory,
+    DelegationPool: DelegationPool__factory,
 };
 
 export enum SQContracts {
@@ -165,6 +167,7 @@ export enum SQContracts {
     Treasury,
     RewardsBooster,
     StakingAllocation,
+    DelegationPool,
 }
 
 export enum ServiceStatus {

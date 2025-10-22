@@ -38,6 +38,7 @@ import AirdropperLite from './artifacts/contracts/root/AirdropperLite.sol/Airdro
 import L2Vesting from './artifacts/contracts/l2/L2Vesting.sol/L2Vesting.json';
 import UniswapPriceOracle from './artifacts/contracts/l2/UniswapPriceOracle.sol/UniswapPriceOracle.json';
 import SubnetProjectVote from './artifacts/contracts/SubnetProjectVote.sol/SubnetProjectVote.json';
+import DelegationPool from './artifacts/contracts/DelegationPool.sol/DelegationPool.json';
 
 export default {
     Settings,
@@ -77,4 +78,5 @@ export default {
     L2Vesting,
     UniswapPriceOracle,
     SubnetProjectVote,
+    DelegationPool,
 };
