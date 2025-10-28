@@ -131,7 +131,7 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
     // Instant delegation quota per era (per wallet)
     uint256 public instantDelegationQuota;
 
-    // Era window percentage for instant delegation (in perMill, e.g., 700 = 70%)
+    // Era window percentage for instant delegation (in perMill, e.g., 700,000 = 70%)
     uint256 public instantEraWindowPercent;
 
     // Instant quota usage tracking

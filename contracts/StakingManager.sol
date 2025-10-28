@@ -11,6 +11,7 @@ import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IStakingManager.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
+import './Constants.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
@@ -259,7 +260,7 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
 
     /**
      * @dev Calculate current era progress as a percentage (in perMill)
-     * @return Progress value (0-1000, where 1000 = 100%)
+     * @return Progress value (0-PER_MILL, where PER_MILL = 100%)
      */
     function _calculateEraProgress() internal view returns (uint256) {
         IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));

@@ -24,8 +24,10 @@ import {
     revertMsg,
     startNewEra,
     timeTravel,
+    timeTravelTo,
 } from './helper';
 import { deployContracts } from './setup';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 describe('Staking Contract', () => {
     let root, runner, runner2, delegator, delegator2;
@@ -656,15 +658,24 @@ describe('Staking Contract', () => {
     describe('Instant Delegation with Quota', () => {
         beforeEach(async () => {
             // Set instant delegation params: 1000 SQT quota, 70% era window
-            await staking.connect(root).setInstantDelegationParams(etherParse('1000'), 700);
+            await staking.connect(root).setInstantDelegationParams(etherParse('1000'), 700_000);
         });
 
         it('should delegate fully instant within quota and era window', async () => {
+            const eraPeriod = await eraManager.eraPeriod();
+            // Travel to 50% of era
+            await timeTravel(eraPeriod.mul(50).div(100).toNumber());
+
             const delegateAmount = etherParse('500');
             await token.connect(delegator).approve(staking.address, delegateAmount);
 
             // Delegate within quota
-            await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+            const tx = await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+
+            // Check DelegationAdded2 event with instant=true
+            await expect(tx)
+                .to.emit(staking, 'DelegationAdded2')
+                .withArgs(delegator.address, runner.address, delegateAmount, true);
 
             // Check delegation is instant
             const delegation = await staking.delegation(delegator.address, runner.address);
@@ -683,7 +694,12 @@ describe('Staking Contract', () => {
             await token.connect(delegator).approve(staking.address, delegateAmount);
 
             // Delegate exceeding quota
-            await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+            const tx = await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+
+            // Check DelegationAdded2 event with instant=true for the instant portion (quota amount)
+            await expect(tx)
+                .to.emit(staking, 'DelegationAdded2')
+                .withArgs(delegator.address, runner.address, quota, true);
 
             // Check instant portion (quota)
             const delegation = await staking.delegation(delegator.address, runner.address);
@@ -707,7 +723,12 @@ describe('Staking Contract', () => {
             await stakingManager.connect(delegator).delegate(runner.address, firstDelegate);
 
             // Second delegation should be all pending
-            await stakingManager.connect(delegator).delegate(runner.address, secondDelegate);
+            const tx = await stakingManager.connect(delegator).delegate(runner.address, secondDelegate);
+
+            // Check DelegationAdded2 event with instant=false for pending delegation
+            await expect(tx)
+                .to.emit(staking, 'DelegationAdded2')
+                .withArgs(delegator.address, runner.address, secondDelegate, false);
 
             const delegation = await staking.delegation(delegator.address, runner.address);
             expect(delegation.valueAt).to.equal(firstDelegate); // Only first is instant
@@ -723,7 +744,12 @@ describe('Staking Contract', () => {
             await token.connect(delegator).approve(staking.address, delegateAmount);
 
             // Delegate after window
-            await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+            const tx = await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+
+            // Check DelegationAdded2 event with instant=false for delegation after window
+            await expect(tx)
+                .to.emit(staking, 'DelegationAdded2')
+                .withArgs(delegator.address, runner.address, delegateAmount, false);
 
             const delegation = await staking.delegation(delegator.address, runner.address);
             expect(delegation.valueAt).to.equal(0); // Not instant
@@ -787,7 +813,7 @@ describe('Staking Contract', () => {
 
         it('should update instant params correctly', async () => {
             const newQuota = etherParse('2000');
-            const newWindow = 800; // 80%
+            const newWindow = 800_000; // 80%
 
             const tx = await staking.connect(root).setInstantDelegationParams(newQuota, newWindow);
 
@@ -807,6 +833,261 @@ describe('Staking Contract', () => {
             await expect(
                 staking.connect(root).setInstantDelegationParams(etherParse('1000'), 1000001)
             ).to.be.revertedWith('S015');
+        });
+
+        // Exact boundary tests for era progress window
+        describe('Era Window Boundary Tests', () => {
+            it('should delegate instant before 70% and pending after 70% era boundary', async () => {
+                const delegateAmount = etherParse('300');
+                await token.connect(delegator).approve(staking.address, delegateAmount.mul(2));
+
+                const eraPeriod = await eraManager.eraPeriod();
+                const start = await eraManager.eraStartTime();
+
+                // Travel to 70% of era - 2 sec to ensure we're past window
+                const timeToTravel = eraPeriod.mul(70).div(100).sub(2); // 71%
+                await timeTravelTo(start.add(timeToTravel).toNumber());
+
+                // this tx happens at 70% of era - 1 sec
+                const tx = await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+
+                // Should be pending after 70%
+                await expect(tx)
+                    .to.emit(staking, 'DelegationAdded2')
+                    .withArgs(delegator.address, runner.address, delegateAmount, true);
+
+                const delegation = await staking.delegation(delegator.address, runner.address);
+                expect(delegation.valueAt).to.equal(delegateAmount);
+                expect(delegation.valueAfter).to.equal(delegateAmount);
+
+                // this tx happens at exact 70% of era
+                const tx2 = await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+
+                // Should be pending after 70%
+                await expect(tx2)
+                    .to.emit(staking, 'DelegationAdded2')
+                    .withArgs(delegator.address, runner.address, delegateAmount, false);
+
+                const delegation2 = await staking.delegation(delegator.address, runner.address);
+                expect(delegation2.valueAt).to.equal(delegateAmount);
+                expect(delegation2.valueAfter).to.equal(delegateAmount.add(delegateAmount));
+            });
+
+            it('should handle custom window boundaries correctly', async () => {
+                // Set custom window to 50%
+                await staking.connect(root).setInstantDelegationParams(etherParse('1000'), 500_000);
+
+                const eraPeriod = await eraManager.eraPeriod();
+                // Travel to 49.9% of era to ensure we're within window
+                const timeToTravel = eraPeriod.mul(499).div(1000); // 49.9%
+                await timeTravel(timeToTravel.toNumber());
+
+                const delegateAmount = etherParse('500');
+                await token.connect(delegator).approve(staking.address, delegateAmount);
+
+                const tx = await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+
+                // Should be instant before 50%
+                await expect(tx)
+                    .to.emit(staking, 'DelegationAdded2')
+                    .withArgs(delegator.address, runner.address, delegateAmount, true);
+            });
+        });
+
+        // Era boundary tests (simplified to avoid rewards system conflicts)
+        describe('Era Boundary Tests', () => {
+            it('should properly reset quota without requiring indexer catchup when no pending rewards exist', async () => {
+                const eraPeriod = await eraManager.eraPeriod();
+
+                // Delegate within window in era 1
+                await timeTravel(eraPeriod.mul(50).div(100).toNumber());
+                const delegateAmount = etherParse('500');
+                await token.connect(delegator).approve(staking.address, delegateAmount.mul(2));
+                await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+
+                const currentEra = await eraManager.eraNumber();
+                let quotaRemaining = await staking.getInstantQuotaRemaining(delegator.address, currentEra);
+                expect(quotaRemaining).to.equal(etherParse('500'));
+
+                // Start new era
+                await startNewEra(eraManager);
+
+                // Quota should be reset even without indexer catchup
+                const newEra = await eraManager.eraNumber();
+                quotaRemaining = await staking.getInstantQuotaRemaining(delegator.address, newEra);
+                expect(quotaRemaining).to.equal(etherParse('1000'));
+            });
+
+            it('should maintain quota reset behavior across delegations in same era', async () => {
+                const eraPeriod = await eraManager.eraPeriod();
+
+                // Start within window
+                await timeTravel(eraPeriod.mul(50).div(100).toNumber());
+
+                // First delegation
+                const firstAmount = etherParse('300');
+                await token.connect(delegator).approve(staking.address, etherParse('1000'));
+                await stakingManager.connect(delegator).delegate(runner.address, firstAmount);
+
+                const currentEra = await eraManager.eraNumber();
+                let quotaRemaining = await staking.getInstantQuotaRemaining(delegator.address, currentEra);
+                expect(quotaRemaining).to.equal(etherParse('700'));
+
+                // Second delegation in same era
+                const secondAmount = etherParse('200');
+                await stakingManager.connect(delegator).delegate(runner.address, secondAmount);
+
+                quotaRemaining = await staking.getInstantQuotaRemaining(delegator.address, currentEra);
+                expect(quotaRemaining).to.equal(etherParse('500'));
+
+                // Third delegation uses remaining quota
+                const thirdAmount = etherParse('500');
+                await stakingManager.connect(delegator).delegate(runner.address, thirdAmount);
+
+                quotaRemaining = await staking.getInstantQuotaRemaining(delegator.address, currentEra);
+                expect(quotaRemaining).to.equal(etherParse('0'));
+            });
+        });
+
+        // Disabled mode tests
+        describe('Disabled Mode Tests', () => {
+            it('should delegate as pending when quota is set to 0', async () => {
+                // Disable by setting quota to 0
+                await staking.connect(root).setInstantDelegationParams(0, 700_000);
+
+                const delegateAmount = etherParse('500');
+                await token.connect(delegator).approve(staking.address, delegateAmount);
+
+                const tx = await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+
+                // Should be pending regardless of other factors
+                await expect(tx)
+                    .to.emit(staking, 'DelegationAdded2')
+                    .withArgs(delegator.address, runner.address, delegateAmount, false);
+
+                const delegation = await staking.delegation(delegator.address, runner.address);
+                expect(delegation.valueAt).to.equal(0);
+                expect(delegation.valueAfter).to.equal(delegateAmount);
+
+                // Quota should remain 0
+                const currentEra = await eraManager.eraNumber();
+                const quotaRemaining = await staking.getInstantQuotaRemaining(delegator.address, currentEra);
+                expect(quotaRemaining).to.equal(0);
+            });
+
+            it('should delegate as pending when window is set to 0', async () => {
+                // Disable by setting window to 0
+                await staking.connect(root).setInstantDelegationParams(etherParse('1000'), 0);
+
+                const delegateAmount = etherParse('500');
+                await token.connect(delegator).approve(staking.address, delegateAmount);
+
+                const tx = await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+
+                // Should be pending regardless of quota
+                await expect(tx)
+                    .to.emit(staking, 'DelegationAdded2')
+                    .withArgs(delegator.address, runner.address, delegateAmount, false);
+
+                const delegation = await staking.delegation(delegator.address, runner.address);
+                expect(delegation.valueAt).to.equal(0);
+                expect(delegation.valueAfter).to.equal(delegateAmount);
+
+                // Quota should not be consumed when window is 0
+                const currentEra = await eraManager.eraNumber();
+                const quotaRemaining = await staking.getInstantQuotaRemaining(delegator.address, currentEra);
+                expect(quotaRemaining).to.equal(etherParse('1000'));
+            });
+        });
+
+        // Multi-delegator quota isolation tests
+        describe('Multi-Delegator Quota Isolation', () => {
+            let delegator2: SignerWithAddress;
+
+            beforeEach(async () => {
+                [delegator2] = await ethers.getSigners();
+
+                // Setup second delegator with tokens
+                await token.connect(root).transfer(delegator2.address, etherParse('10000'));
+                await token.connect(delegator2).approve(staking.address, etherParse('5000'));
+                await token.connect(delegator).approve(staking.address, etherParse('5000'));
+            });
+
+            it('should maintain separate quota tracking for different delegators', async () => {
+                const eraPeriod = await eraManager.eraPeriod();
+                await timeTravel(eraPeriod.mul(50).div(100).toNumber());
+
+                const delegateAmount = etherParse('600');
+
+                // First delegator uses part of quota
+                await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
+
+                // Check first delegator's quota
+                const currentEra = await eraManager.eraNumber();
+                let quotaRemaining1 = await staking.getInstantQuotaRemaining(delegator.address, currentEra);
+                expect(quotaRemaining1).to.equal(etherParse('400'));
+
+                // Second delegator should have full quota available
+                let quotaRemaining2 = await staking.getInstantQuotaRemaining(delegator2.address, currentEra);
+                expect(quotaRemaining2).to.equal(etherParse('1000'));
+
+                // Second delegator can use full quota
+                await stakingManager.connect(delegator2).delegate(runner.address, delegateAmount);
+
+                quotaRemaining2 = await staking.getInstantQuotaRemaining(delegator2.address, currentEra);
+                expect(quotaRemaining2).to.equal(etherParse('400'));
+
+                // First delegator's quota should be unchanged
+                quotaRemaining1 = await staking.getInstantQuotaRemaining(delegator.address, currentEra);
+                expect(quotaRemaining1).to.equal(etherParse('400'));
+            });
+
+            it('should handle quota exhaustion independently per delegator', async () => {
+                const eraPeriod = await eraManager.eraPeriod();
+                await timeTravel(eraPeriod.mul(50).div(100).toNumber());
+
+                // First delegator exhausts quota
+                await stakingManager.connect(delegator).delegate(runner.address, etherParse('1000'));
+                await stakingManager.connect(delegator).delegate(runner.address, etherParse('500'));
+
+                // Second delegator should still have full quota
+                const tx = await stakingManager.connect(delegator2).delegate(runner.address, etherParse('1000'));
+
+                // Second delegator's delegation should be instant
+                await expect(tx)
+                    .to.emit(staking, 'DelegationAdded2')
+                    .withArgs(delegator2.address, runner.address, etherParse('1000'), true);
+
+                const currentEra = await eraManager.eraNumber();
+                const quotaRemaining2 = await staking.getInstantQuotaRemaining(delegator2.address, currentEra);
+                expect(quotaRemaining2).to.equal(0);
+            });
+
+            it('should reset quota independently for each delegator at era boundary', async () => {
+                const eraPeriod = await eraManager.eraPeriod();
+                await timeTravel(eraPeriod.mul(50).div(100).toNumber());
+
+                // Both delegators use their quota
+                await stakingManager.connect(delegator).delegate(runner.address, etherParse('800'));
+                await stakingManager.connect(delegator2).delegate(runner.address, etherParse('600'));
+
+                const currentEra = await eraManager.eraNumber();
+                let quotaRemaining1 = await staking.getInstantQuotaRemaining(delegator.address, currentEra);
+                let quotaRemaining2 = await staking.getInstantQuotaRemaining(delegator2.address, currentEra);
+                expect(quotaRemaining1).to.equal(etherParse('200'));
+                expect(quotaRemaining2).to.equal(etherParse('400'));
+
+                // Start new era
+                await startNewEra(eraManager);
+                await rewardsHelper.connect(runner).indexerCatchup(runner.address);
+
+                // Both should have quota reset independently
+                const newEra = await eraManager.eraNumber();
+                quotaRemaining1 = await staking.getInstantQuotaRemaining(delegator.address, newEra);
+                quotaRemaining2 = await staking.getInstantQuotaRemaining(delegator2.address, newEra);
+                expect(quotaRemaining1).to.equal(etherParse('1000'));
+                expect(quotaRemaining2).to.equal(etherParse('1000'));
+            });
         });
     });
 });
