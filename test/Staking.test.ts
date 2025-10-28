@@ -844,9 +844,8 @@ describe('Staking Contract', () => {
                 const eraPeriod = await eraManager.eraPeriod();
                 const start = await eraManager.eraStartTime();
 
-                // Travel to 70% of era - 2 sec to ensure we're past window
-                const timeToTravel = eraPeriod.mul(70).div(100).sub(2); // 71%
-                await timeTravelTo(start.add(timeToTravel).toNumber());
+                // Travel to 70% of era - 5 sec to ensure we're within and close to the window
+                await timeTravelTo(start.add(eraPeriod.mul(70).div(100).sub(5)).toNumber());
 
                 // this tx happens at 70% of era - 1 sec
                 const tx = await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
@@ -861,6 +860,7 @@ describe('Staking Contract', () => {
                 expect(delegation.valueAfter).to.equal(delegateAmount);
 
                 // this tx happens at exact 70% of era
+                await timeTravelTo(start.add(eraPeriod.mul(70).div(100)).toNumber());
                 const tx2 = await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
 
                 // Should be pending after 70%
