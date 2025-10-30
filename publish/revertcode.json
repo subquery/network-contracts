@@ -235,5 +235,6 @@
     "DP011": "Cannot redelegate to same runner",
     "DP012": "No active delegations",
     "DP013": "Invalid fee amount",
-    "DP014": "Insufficient accumulated fees"
+    "DP014": "Insufficient accumulated fees",
+    "DP015": "No additional undelegations",
 }

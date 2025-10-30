@@ -96,7 +96,7 @@ contract DelegationPool is
 
     /// @notice Total amount that needs to be undelegated from indexers (reserved for user withdrawals)
     /// This tracks assets still counted in delegated amounts but reserved for withdrawals
-    uint256 public pendingUndelegationsFromIndexers;
+    uint256 public pendingUndelegationsForUsers;
 
     /// @notice Accumulated unbond fees collected from available asset withdrawals (to be sent to treasury)
     uint256 public accumulatedUnbondFees;
@@ -246,15 +246,15 @@ contract DelegationPool is
         _mint(msg.sender, sharesToMint);
 
         // Update the pending undelegations to use this new deposit first and offset the available assets
-        if (pendingUndelegationsFromIndexers > 0) {
+        if (pendingUndelegationsForUsers > 0) {
             // Use new deposit to cover pending undelegations first
-            if (_amount >= pendingUndelegationsFromIndexers) {
+            if (_amount >= pendingUndelegationsForUsers) {
                 // Fully cover pending undelegations
-                availableAssets += (_amount - pendingUndelegationsFromIndexers);
-                pendingUndelegationsFromIndexers = 0;
+                availableAssets += (_amount - pendingUndelegationsForUsers);
+                pendingUndelegationsForUsers = 0;
             } else {
                 // Partially cover pending undelegations
-                pendingUndelegationsFromIndexers -= _amount;
+                pendingUndelegationsForUsers -= _amount;
                 // No change to availableAssets as all new deposit is used
             }
         } else {
@@ -323,7 +323,7 @@ contract DelegationPool is
 
             if (amountFromIndexers > 0) {
                 // Track GROSS amount from indexers (still counted in delegated amounts)
-                pendingUndelegationsFromIndexers += amountFromIndexers;
+                pendingUndelegationsForUsers += amountFromIndexers;
                 emit UndelegationRequired(msg.sender, netTotal, amountFromIndexers);
             }
         }
@@ -425,6 +425,11 @@ contract DelegationPool is
         require(_amount > 0, 'DP001');
         require(getDelegatedToIndexer(_runner) >= _amount, 'DP010');
 
+        // Limit manager undelegation to only the amount reserved for user withdrawals
+        // This is done to simplify accounting as tracking assets to go back to availableAssets would be complex
+        // Managers should instead redelegate if they want to move funds between indexers
+        require(_amount <= pendingUndelegationsForUsers, 'DP015');
+
         IStakingManager stakingManager = IStakingManager(
             settings.getContractAddress(SQContracts.StakingManager)
         );
@@ -432,10 +437,25 @@ contract DelegationPool is
         // Undelegate through StakingManager
         stakingManager.undelegate(_runner, _amount);
 
+        // Reduce the pending undelegations
+        pendingUndelegationsForUsers -= _amount;
+
         // Clean up indexer from active list if no more delegation
         _cleanupIndexerIfEmpty(_runner);
 
         emit ManagerUndelegated(_runner, _amount);
+    }
+
+    /**
+     * @dev Withdraw any indexer unbonding assets, so users can withdraw their assets
+     * Anyone can call this function to trigger the withdrawal
+     */
+    function managerWithdraw() external {
+        IStakingManager stakingManager = IStakingManager(
+            settings.getContractAddress(SQContracts.StakingManager)
+        );
+
+        stakingManager.widthdraw();
     }
 
     /**
@@ -736,7 +756,7 @@ contract DelegationPool is
         // - pending undelegations from indexers (reserved for withdrawals, no longer backing shares)
         // - expected fees that will be lost when manager withdraws from Staking
         // - accumulated fees (still in availableAssets but reserved for treasury)
-        uint256 totalDeductions = pendingUndelegationsFromIndexers +
+        uint256 totalDeductions = pendingUndelegationsForUsers +
             expectedUnbondFees +
             accumulatedUnbondFees;
 

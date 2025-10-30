@@ -16,6 +16,8 @@ interface IStakingManager {
 
     function cancelUnbonding(uint256 unbondReqId) external;
 
+    function widthdraw() external;
+
     function stakeReward(address _runner) external;
 
     function batchStakeReward(address[] calldata _runners) external;

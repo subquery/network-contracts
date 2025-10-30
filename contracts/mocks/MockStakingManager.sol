@@ -92,11 +92,7 @@ contract MockStakingManager is IStakingManager {
         emit Undelegated(msg.sender, _runner, _amount);
     }
 
-    function redelegate(
-        address _fromRunner,
-        address _toRunner,
-        uint256 _amount
-    ) external override {
+    function redelegate(address _fromRunner, address _toRunner, uint256 _amount) external override {
         require(_amount > 0, 'Amount must be greater than 0');
         require(delegations[msg.sender][_fromRunner] >= _amount, 'Insufficient delegation');
 
@@ -107,6 +103,10 @@ contract MockStakingManager is IStakingManager {
         totalDelegationsPerRunner[_toRunner] += _amount;
 
         emit Redelegated(msg.sender, _fromRunner, _toRunner, _amount);
+    }
+
+    function widthdraw() external {
+        // No-op this is handled in undelegate currently
     }
 
     function cancelUnbonding(uint256 unbondReqId) external override {

@@ -21,6 +21,7 @@
         "docs:generate": "hardhat docgen",
         "debug": "node --inspect-brk -r ts-node/register -r tsconfig-paths/register -r dotenv/config",
         "deploy": "ts-node --transpileOnly scripts/deploy.ts",
+        "deploy:delegation-pool": "ts-node --transpileOnly scripts/delegationPool.ts",
         "upgrade": "ts-node --transpileOnly scripts/upgrade.ts",
         "setup": "ts-node --transpileOnly scripts/startup.ts",
         "scan-verify:testnet": "hardhat publishChild --deployment publish/testnet.json --network base-sepolia --networkpair testnet ",

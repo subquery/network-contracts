@@ -82,7 +82,7 @@ function codeToHash(code: string) {
     return sha256(Buffer.from(code.replace(/^0x/, ''), 'hex'));
 }
 
-async function getOverrides(): Promise<Overrides> {
+async function getOverrides(wallet: Wallet): Promise<Overrides> {
     const price = await wallet.provider.getGasPrice();
     // console.log(`gasprice: ${price.toString()}`)
     // price = price.add(15000000000); // add extra 15 gwei
@@ -102,7 +102,7 @@ function loadDeployment(name: string) {
     return deployment;
 }
 
-async function deployContract<T extends BaseContract>(
+export async function deployContract<T extends BaseContract>(
     name: ContractName,
     target: 'root' | 'child',
     options?: {
@@ -130,7 +130,7 @@ async function deployContract<T extends BaseContract>(
     if (proxyAdmin) {
         [contract, innerAddress] = await deployProxy<T>(proxyAdmin, CONTRACT_FACTORY[name], wallet, confirms);
     } else {
-        const overrides = await getOverrides();
+        const overrides = await getOverrides(wallet);
         contract = (await new CONTRACT_FACTORY[name](wallet).deploy(...deployConfig, overrides)) as T;
         logger?.info(`🔎 Tx hash: ${contract.deployTransaction.hash}`);
         await contract.deployTransaction.wait(confirms);
@@ -142,7 +142,7 @@ async function deployContract<T extends BaseContract>(
         logger?.info('🤞 Init contract');
         const defaultConfig = config[name] ?? [];
         const params = [...initConfig, ...defaultConfig];
-        const overrides = await getOverrides();
+        const overrides = await getOverrides(wallet);
 
         // @ts-expect-error type missing
         const tx = await contract.initialize(...params, overrides);
@@ -162,7 +162,7 @@ export const deployProxy = async <C extends Contract>(
     confirms: number
 ): Promise<[C, string]> => {
     const contractFactory = new ContractFactory(wallet);
-    const contractLogic = await contractFactory.deploy(await getOverrides());
+    const contractLogic = await contractFactory.deploy(await getOverrides(wallet));
     logger?.info(`🔎 Tx hash: contractLogic ${contractLogic.deployTransaction.hash}`);
     await contractLogic.deployTransaction.wait(confirms);
 
@@ -172,7 +172,7 @@ export const deployProxy = async <C extends Contract>(
         contractLogic.address,
         proxyAdmin.address,
         [],
-        await getOverrides()
+        await getOverrides(wallet)
     );
     logger?.info(`🔎 Tx hash: contractProxy ${contractProxy.deployTransaction.hash}`);
     await contractProxy.deployTransaction.wait(confirms);
@@ -644,7 +644,7 @@ export const upgradeContract = async (
 ): Promise<[string, Contract]> => {
     wallet = _wallet;
     const contractFactory = new ContractFactory(wallet);
-    const contract = await contractFactory.deploy(await getOverrides());
+    const contract = await contractFactory.deploy(await getOverrides(wallet));
     await contract.deployTransaction.wait(confirms);
 
     if (!implementationOnly) {

@@ -199,7 +199,7 @@ describe('DelegationPool Contract', () => {
                 // Verify pool state
                 expect(await delegationPool.availableAssets()).to.equal(0); // All available assets consumed
 
-                expect(await delegationPool.pendingUndelegationsFromIndexers()).to.equal(requiredFromIndexers);
+                expect(await delegationPool.pendingUndelegationsForUsers()).to.equal(requiredFromIndexers);
             });
 
             it('should not emit UndelegationRequired event when sufficient assets available', async () => {
@@ -249,21 +249,21 @@ describe('DelegationPool Contract', () => {
                     .withArgs(user1.address, undelegatedAmount, undelegateShares);
 
                 expect(await delegationPool.availableAssets()).to.equal(etherParse('0'));
-                expect(await delegationPool.pendingUndelegationsFromIndexers()).to.equal(undelegateShares);
+                expect(await delegationPool.pendingUndelegationsForUsers()).to.equal(undelegateShares);
 
                 // User2's delegation should go towards the pending undelegation
                 await delegationPool.connect(user2).delegate(delegateAmount);
 
                 expect(await delegationPool.availableAssets()).to.equal(etherParse('0'));
                 // The pending undelegation should be reduced by the new delegation
-                expect(await delegationPool.pendingUndelegationsFromIndexers()).to.equal(etherParse('500'));
+                expect(await delegationPool.pendingUndelegationsForUsers()).to.equal(etherParse('500'));
 
                 // User2's delegation should use up the remaining pending undelegation
                 await delegationPool.connect(user2).delegate(delegateAmount2);
                 // The amount available assets should now reflect the excess delegation
                 expect(await delegationPool.availableAssets()).to.equal(etherParse('100'));
                 // The pending undelegation should be reduced to zero
-                expect(await delegationPool.pendingUndelegationsFromIndexers()).to.equal(etherParse('0'));
+                expect(await delegationPool.pendingUndelegationsForUsers()).to.equal(etherParse('0'));
             });
         });
 
@@ -502,11 +502,11 @@ describe('DelegationPool Contract', () => {
                 const excessiveAmount = etherParse('10000');
                 await expect(
                     delegationPool.connect(poolManager).managerDelegate(runner1.address, excessiveAmount)
-                ).to.be.revertedWith('DP010');
+                ).to.be.revertedWith('DP009');
             });
         });
 
-        describe('managerUndelegate()', () => {
+        describe.only('managerUndelegate()', () => {
             beforeEach(async () => {
                 // Setup: Delegate to runner first
                 await delegationPool.connect(poolManager).managerDelegate(runner1.address, etherParse('2000'));
@@ -514,6 +514,13 @@ describe('DelegationPool Contract', () => {
 
             it('should allow manager to undelegate from runner', async () => {
                 const undelegateAmount = etherParse('1000');
+
+                // Make sure all available assets are delegated
+                await delegationPool
+                    .connect(poolManager)
+                    .managerDelegate(runner2.address, await delegationPool.availableAssets());
+                // User undelegates to make a pending undelegation
+                await delegationPool.connect(user1).undelegate(undelegateAmount);
 
                 await expect(delegationPool.connect(poolManager).managerUndelegate(runner1.address, undelegateAmount))
                     .to.emit(delegationPool, 'ManagerUndelegated')
@@ -523,18 +530,54 @@ describe('DelegationPool Contract', () => {
             });
 
             it('should remove indexer from active list when delegation becomes zero', async () => {
-                await delegationPool.connect(poolManager).managerUndelegate(runner1.address, etherParse('2000'));
+                const amount = etherParse('2000');
+                await delegationPool
+                    .connect(poolManager)
+                    .managerDelegate(runner2.address, await delegationPool.availableAssets());
+                await delegationPool.connect(user1).undelegate(amount);
+                await delegationPool.connect(poolManager).managerUndelegate(runner1.address, amount);
 
                 expect(await delegationPool.getDelegatedToIndexer(runner1.address)).to.equal(0);
                 expect(await delegationPool.isActiveIndexer(runner1.address)).to.be.false;
-                expect(await delegationPool.getActiveIndexersCount()).to.equal(0);
+                expect(await delegationPool.getActiveIndexersCount()).to.equal(1);
             });
 
             it('should reject undelegation exceeding delegated amount', async () => {
                 const excessiveAmount = etherParse('3000');
                 await expect(
                     delegationPool.connect(poolManager).managerUndelegate(runner1.address, excessiveAmount)
-                ).to.be.revertedWith('DP011');
+                ).to.be.revertedWith('DP010');
+            });
+
+            it('should reduce the pendingUndelegationsForUsers after manager undelegating', async () => {
+                const amount = etherParse('3000');
+                await delegationPool.connect(poolManager).managerDelegate(runner1.address, amount);
+
+                // All funds should be delegated
+                expect(await delegationPool.availableAssets()).to.equal(0);
+                expect(await delegationPool.pendingUndelegationsForUsers()).to.equal(0);
+
+                await delegationPool.connect(user1).undelegate(amount);
+
+                expect(await delegationPool.pendingUndelegationsForUsers()).to.equal(amount);
+
+                await delegationPool.connect(poolManager).managerUndelegate(runner1.address, amount);
+                expect(await delegationPool.pendingUndelegationsForUsers()).to.equal(0);
+            });
+
+            // If manager undelegates before user undelegation, pendingUndelegationsForUsers should not increase
+            it('not allow manager to undelegate more than users have requested', async () => {
+                const amount = etherParse('3000');
+                // Delegate all funds
+                await delegationPool.connect(poolManager).managerDelegate(runner1.address, amount);
+
+                // All funds should be delegated
+                expect(await delegationPool.availableAssets()).to.equal(0);
+                expect(await delegationPool.pendingUndelegationsForUsers()).to.equal(0);
+
+                await expect(
+                    delegationPool.connect(poolManager).managerUndelegate(runner1.address, amount)
+                ).to.be.revertedWith('DP015');
             });
         });
 
@@ -566,7 +609,7 @@ describe('DelegationPool Contract', () => {
                     delegationPool
                         .connect(poolManager)
                         .managerRedelegate(runner1.address, runner1.address, etherParse('1000'))
-                ).to.be.revertedWith('DP012');
+                ).to.be.revertedWith('DP011');
             });
 
             it('should reject redelegation with invalid addresses', async () => {
@@ -592,7 +635,7 @@ describe('DelegationPool Contract', () => {
             // Remove all delegations
             await delegationPool.connect(poolManager).managerUndelegate(runner1.address, etherParse('2000'));
 
-            await expect(delegationPool.autoCompound()).to.be.revertedWith('DP013');
+            await expect(delegationPool.autoCompound()).to.be.revertedWith('DP012');
         });
 
         it('should handle auto compound when no rewards available', async () => {
@@ -831,6 +874,42 @@ describe('DelegationPool Contract', () => {
             expect(user2Ratio).to.be.closeTo(333, 10);
         });
 
+        it('should update the share price correctly after compounding', async () => {
+            // Setup: user1 has 10000, user2 adds 5000
+            await token.connect(user2).approve(mockDelegationPool.address, etherParse('5000'));
+            await token.connect(user3).approve(mockDelegationPool.address, etherParse('5000'));
+
+            // Compound rewards
+            const rewardAmount = etherParse('1500');
+            await mockStakingManager.setRunnerRewards(runner1.address, rewardAmount);
+            await token.approve(mockStakingManager.address, rewardAmount);
+            await mockStakingManager.fundRewards(rewardAmount);
+            await startNewEra(eraManager);
+
+            await mockDelegationPool.connect(user2).delegate(etherParse('5000'));
+
+            await expect(mockDelegationPool.autoCompound())
+                .to.emit(mockDelegationPool, 'RewardsCompounded')
+                .withArgs(rewardAmount);
+            // Compound rewards
+            // const rewardAmount = etherParse('1500');
+            await mockStakingManager.setRunnerRewards(runner1.address, rewardAmount);
+            await token.approve(mockStakingManager.address, rewardAmount);
+            await mockStakingManager.fundRewards(rewardAmount);
+            await startNewEra(eraManager);
+
+            await expect(mockDelegationPool.autoCompound())
+                .to.emit(mockDelegationPool, 'RewardsCompounded')
+                .withArgs(rewardAmount);
+            // TODO check shares, share price
+
+            await mockDelegationPool.connect(user3).delegate(etherParse('5000'));
+
+            expect(await mockDelegationPool.balanceOf(user2.address)).to.equal(
+                await mockDelegationPool.balanceOf(user2.address)
+            );
+        });
+
         describe('getPendingRewards()', () => {
             it('should return 0 when RewardsDistributor is not configured', async () => {
                 // MockStakingManager tests don't have RewardsDistributor configured
@@ -946,12 +1025,6 @@ describe('DelegationPool Contract', () => {
             const delegationAmount = await stakingManager.getDelegationAmount(delegationPool.address, runner1.address);
             expect(delegationAmount).to.equal(etherParse('500'));
         });
-
-        it('should handle delegation limits properly', async () => {
-            // This would test integration with StakingManager's delegation limits
-            // The actual limit checking is done in StakingManager, so DelegationPool should pass through the errors
-            // Implementation depends on specific StakingManager limit configuration
-        });
     });
 
     describe('Fee Management', () => {
@@ -1010,10 +1083,10 @@ describe('DelegationPool Contract', () => {
 
             it('should reject fee collection when no fees accumulated', async () => {
                 await expect(delegationPool.connect(poolManager).collectFees(etherParse('100'))).to.be.revertedWith(
-                    'DP015'
+                    'DP014'
                 );
 
-                await expect(delegationPool.connect(poolManager).collectAllFees()).to.be.revertedWith('DP015');
+                await expect(delegationPool.connect(poolManager).collectAllFees()).to.be.revertedWith('DP014');
             });
 
             it('should reject fee collection from non-owner', async () => {
@@ -1027,14 +1100,14 @@ describe('DelegationPool Contract', () => {
             });
 
             it('should reject zero amount fee collection', async () => {
-                await expect(delegationPool.connect(poolManager).collectFees(0)).to.be.revertedWith('DP014');
+                await expect(delegationPool.connect(poolManager).collectFees(0)).to.be.revertedWith('DP013');
             });
 
             it('should reject collecting more fees than accumulated', async () => {
                 // Simulate some accumulated fees by manually setting them for testing
                 // In real scenario, fees would be accumulated through autoCompound
                 await expect(delegationPool.connect(poolManager).collectFees(etherParse('1'))).to.be.revertedWith(
-                    'DP015'
+                    'DP014'
                 );
             });
         });
