@@ -701,6 +701,12 @@ describe('Staking Contract', () => {
                 .to.emit(staking, 'DelegationAdded2')
                 .withArgs(delegator.address, runner.address, quota, true);
 
+            // Check DelegationAdded2 event with instant=false for the pending portion (1500 - 1000 = 500)
+            const pendingAmount = delegateAmount.sub(quota); // 1500 - 1000 = 500
+            await expect(tx)
+                .to.emit(staking, 'DelegationAdded2')
+                .withArgs(delegator.address, runner.address, pendingAmount, false);
+
             // Check instant portion (quota)
             const delegation = await staking.delegation(delegator.address, runner.address);
             expect(delegation.valueAt).to.equal(quota);
@@ -850,7 +856,7 @@ describe('Staking Contract', () => {
                 // this tx happens at 70% of era - 1 sec
                 const tx = await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
 
-                // Should be pending after 70%
+                // Should be instant when executed just before 70% boundary
                 await expect(tx)
                     .to.emit(staking, 'DelegationAdded2')
                     .withArgs(delegator.address, runner.address, delegateAmount, true);
@@ -1002,12 +1008,7 @@ describe('Staking Contract', () => {
 
         // Multi-delegator quota isolation tests
         describe('Multi-Delegator Quota Isolation', () => {
-            let delegator2: SignerWithAddress;
-
             beforeEach(async () => {
-                [delegator2] = await ethers.getSigners();
-
-                // Setup second delegator with tokens
                 await token.connect(root).transfer(delegator2.address, etherParse('10000'));
                 await token.connect(delegator2).approve(staking.address, etherParse('5000'));
                 await token.connect(delegator).approve(staking.address, etherParse('5000'));
