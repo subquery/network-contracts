@@ -837,7 +837,7 @@ describe('Staking Contract', () => {
 
         // Exact boundary tests for era progress window
         describe('Era Window Boundary Tests', () => {
-            it.only('should delegate instant before 70% and pending after 70% era boundary', async () => {
+            it('should delegate instant before 70% and pending after 70% era boundary', async () => {
                 const delegateAmount = etherParse('300');
                 await token.connect(delegator).approve(staking.address, delegateAmount.mul(2));
 
