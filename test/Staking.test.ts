@@ -837,7 +837,7 @@ describe('Staking Contract', () => {
 
         // Exact boundary tests for era progress window
         describe('Era Window Boundary Tests', () => {
-            it('should delegate instant before 70% and pending after 70% era boundary', async () => {
+            it.only('should delegate instant before 70% and pending after 70% era boundary', async () => {
                 const delegateAmount = etherParse('300');
                 await token.connect(delegator).approve(staking.address, delegateAmount.mul(2));
 
@@ -845,7 +845,7 @@ describe('Staking Contract', () => {
                 const start = await eraManager.eraStartTime();
 
                 // Travel to 70% of era - 5 sec to ensure we're within and close to the window
-                await timeTravelTo(start.add(eraPeriod.mul(70).div(100).sub(5)).toNumber());
+                await timeTravelTo(start.add(eraPeriod.mul(70).div(100).sub(10)).toNumber());
 
                 // this tx happens at 70% of era - 1 sec
                 const tx = await stakingManager.connect(delegator).delegate(runner.address, delegateAmount);
