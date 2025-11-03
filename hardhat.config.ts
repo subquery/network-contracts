@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-import '@nomiclabs/hardhat-etherscan';
+import '@nomicfoundation/hardhat-verify';
 import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
 import 'hardhat-contract-sizer';
@@ -453,33 +453,7 @@ const config: HardhatUserConfig = {
         gasPrice: 21,
     },
     etherscan: {
-        apiKey: {
-            polygonMumbai: process.env.POLYGONSCAN_API_KEY,
-            goerli: process.env.ETHERSCAN_API_KEY,
-            sepolia: process.env.ETHERSCAN_API_KEY,
-            base: process.env.BASESCAN_API_KEY,
-            'base-sepolia': process.env.BASESCAN_API_KEY,
-            polygon: process.env.POLYGONSCAN_API_KEY,
-            mainnet: process.env.ETHERSCAN_API_KEY,
-        },
-        customChains: [
-            {
-                network: 'base-sepolia',
-                chainId: 84532,
-                urls: {
-                    apiURL: 'https://api-sepolia.basescan.org/api',
-                    browserURL: 'https://sepolia.basescan.org',
-                },
-            },
-            {
-                network: 'base',
-                chainId: 8453,
-                urls: {
-                    apiURL: 'https://api.basescan.org/api',
-                    browserURL: 'https://basescan.org',
-                },
-            },
-        ],
+        apiKey: process.env.ETHERSCAN_API_KEY,
     },
     typechain: {
         outDir: 'src/typechain',
