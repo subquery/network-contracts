@@ -128,6 +128,17 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
     // Staking runner lengths
     mapping(address => uint256) public stakingIndexerLengths;
 
+    // Instant delegation quota per era (per wallet)
+    uint256 public instantDelegationQuota;
+
+    // Era window percentage for instant delegation (in perMill, e.g., 700,000 = 70%)
+    uint256 public instantEraWindowPercent;
+
+    // Instant quota usage tracking
+
+    // Track instant quota used per delegator: delegator => QuotaUsage
+    mapping(address => InstantQuotaUsage) public instantQuotaUsed;
+
     // -- Events --
 
     /**
@@ -350,9 +361,13 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         emit DelegationAdded2(_source, _runner, _amount, instant);
     }
 
-    function delegateToIndexer(
+    /**
+     * @dev Transfer tokens from source to this contract (for instant delegation)
+     * @param _source The source address
+     * @param _amount The amount to transfer
+     */
+    function transferDelegationTokens(
         address _source,
-        address _runner,
         uint256 _amount
     ) external onlyStakingManager {
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
@@ -360,8 +375,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
             address(this),
             _amount
         );
-
-        this.addDelegation(_source, _runner, _amount, false);
     }
 
     function removeDelegation(address _source, address _runner, uint256 _amount) external {
@@ -492,11 +505,72 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         this.startUnbond(_runner, _runner, _amount, UnbondType.Commission);
     }
 
+    /**
+     * @notice Update instant quota used for a delegator in a specific era
+     * @param delegator The delegator address
+     * @param era The era number
+     * @param amount The amount to add to used quota
+     */
+    function updateInstantQuotaUsed(
+        address delegator,
+        uint256 era,
+        uint256 amount
+    ) external onlyStakingManager {
+        InstantQuotaUsage storage usage = instantQuotaUsed[delegator];
+
+        // If era changed, reset the quota usage
+        if (usage.era != era) {
+            usage.era = era;
+            usage.amount = amount;
+        } else {
+            // Same era, accumulate
+            usage.amount += amount;
+        }
+    }
+
+    /**
+     * @notice Set instant delegation parameters
+     * @param _perEraQuota The quota per era per wallet
+     * @param _windowPercent The era window percentage (in perMill)
+     */
+    function setInstantDelegationParams(
+        uint256 _perEraQuota,
+        uint256 _windowPercent
+    ) external onlyOwner {
+        require(_windowPercent <= PER_MILL, 'S015');
+        instantDelegationQuota = _perEraQuota;
+        instantEraWindowPercent = _windowPercent;
+
+        emit Parameter('instantDelegationQuota', abi.encode(_perEraQuota));
+        emit Parameter('instantEraWindowPercent', abi.encode(_windowPercent));
+    }
+
     // -- Views --
 
     function isEmptyDelegation(address _source, address _runner) external view returns (bool) {
         return
             delegation[_source][_runner].valueAt == 0 &&
             delegation[_source][_runner].valueAfter == 0;
+    }
+
+    /**
+     * @notice Get remaining instant quota for a delegator in a specific era
+     * @param delegator The delegator address
+     * @param era The era number
+     * @return The remaining quota amount
+     */
+    function getInstantQuotaRemaining(
+        address delegator,
+        uint256 era
+    ) external view returns (uint256) {
+        InstantQuotaUsage memory usage = instantQuotaUsed[delegator];
+
+        // If different era or not yet used, full quota available
+        if (usage.era != era) {
+            return instantDelegationQuota;
+        }
+
+        // Same era, return remaining
+        return instantDelegationQuota > usage.amount ? instantDelegationQuota - usage.amount : 0;
     }
 }
