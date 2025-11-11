@@ -37,6 +37,7 @@ jobs:
                   node-version: 18
                   registry-url: 'https://registry.npmjs.org'
 
+            - run: corepack enable
             - run: yarn
 
             - name: Bump & Build

@@ -13,6 +13,7 @@ jobs:
               uses: actions/setup-node@v1
               with:
                   node-version: 18
+            - run: corepack enable
             - run: yarn
             - name: clean cache
               run: yarn clean

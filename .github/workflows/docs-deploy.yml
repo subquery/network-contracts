@@ -10,7 +10,7 @@ jobs:
               uses: actions/checkout@master
 
             - name: Yarn
-              run: yarn
+              run: corepack enable && yarn
 
             - name: Generate Contract Documents
               run: yarn docs:generate

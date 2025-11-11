@@ -28,6 +28,7 @@ jobs:
               with:
                   paths: contracts src publish
 
+            - run: corepack enable
             - run: yarn
 
             - name: Bump & build

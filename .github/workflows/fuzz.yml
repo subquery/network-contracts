@@ -35,6 +35,7 @@ jobs:
               with:
                   node-version: 18
 
+            - run: corepack enable
             - run: yarn
 
             - name: Set up Python 3.8
