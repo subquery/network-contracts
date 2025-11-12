@@ -81,16 +81,16 @@
             "lastUpdate": "Tue, 13 Feb 2024 09:10:08 GMT"
         },
         "Staking": {
-            "innerAddress": "0x648211f7Ff0E16e32EB7f391049fe5c84536F15F",
+            "innerAddress": "0xf6C913C506881D7EB37Ce52af4Dc8E59FD61694d",
             "address": "0x7A68b10EB116a8b71A9b6f77B32B47EB591B6Ded",
-            "bytecodeHash": "ac1882534cde71ad80bebc3b7e8089ca254f16368f1fbba4c07a87c175fa146b",
-            "lastUpdate": "Wed, 30 Apr 2025 01:54:42 GMT"
+            "bytecodeHash": "bb8fbc9eae5a63035103c1a375a90fe249aa0f404598f6bbc00246b362d27655",
+            "lastUpdate": "Tue, 11 Nov 2025 03:01:21 GMT"
         },
         "StakingManager": {
-            "innerAddress": "0x58297de82a98f27563d1CA8F690Ef55cFA9C6563",
+            "innerAddress": "0xd40cCE79C65a1c08474819a8ceCF6b37CEc8F686",
             "address": "0x09395a2A58DB45db0da254c7EAa5AC469D8bDc85",
-            "bytecodeHash": "7624b8793cf3ab8c7d6aa5b31ba31fcf146ba346ea096c5bdfbca7c8a6a1acb3",
-            "lastUpdate": "Wed, 30 Apr 2025 01:54:48 GMT"
+            "bytecodeHash": "37edec3315f4dd87c67851de6a149709bf68290a7598154169b5e19872047401",
+            "lastUpdate": "Tue, 11 Nov 2025 03:01:23 GMT"
         },
         "EraManager": {
             "innerAddress": "0x94A8E45E9D6dCA44A95BEc33E828B9E9257443D6",
