@@ -2,8 +2,9 @@ import fs from 'node:fs';
 import setup from './setup';
 import { Wallet } from 'ethers';
 import { ContractDeployment, CONTRACT_FACTORY, ProxyAdmin__factory } from '../src';
-import { deployProxy } from './deployContracts';
+import { deployProxy, upgradeContract } from './deployContracts';
 import { getLogger } from './logger';
+import { UPGRADEBAL_CONTRACTS } from './contracts';
 
 const logger = getLogger('Delegation Pool Deployment');
 
@@ -24,6 +25,28 @@ export async function deployDelegationPool({ wallet, deployment }: { wallet: Wal
     return contract;
 }
 
+export async function upgradeDelegationPool({
+    address,
+    wallet,
+    deployment,
+}: {
+    address: string;
+    wallet: Wallet;
+    deployment: ContractDeployment;
+}) {
+    const proxyAdmin = ProxyAdmin__factory.connect(deployment.child.ProxyAdmin.address, wallet);
+
+    logger.info(`Upgrading delegationPool`);
+
+    const [, factory] = UPGRADEBAL_CONTRACTS['DelegationPool'];
+
+    const [implAddress] = await upgradeContract(proxyAdmin, address, factory, wallet, 1, false);
+
+    logger.info(`Implementation deployed to ${implAddress}`);
+
+    logger.info(`🚀 DelegationPool upgraded`);
+}
+
 async function run() {
     const { name, wallet, target, childProvider } = await setup();
 
@@ -36,12 +59,18 @@ async function run() {
 
     const connectedWallet = wallet.connect(childProvider);
 
-    console.log('PROVIDER', connectedWallet.provider);
-
-    await deployDelegationPool({
-        wallet: connectedWallet,
-        deployment,
-    });
+    if (process.env.DELEGATION_POOL_ADDRESS) {
+        await upgradeDelegationPool({
+            address: process.env.DELEGATION_POOL_ADDRESS,
+            wallet: connectedWallet,
+            deployment,
+        });
+    } else {
+        await deployDelegationPool({
+            wallet: connectedWallet,
+            deployment,
+        });
+    }
 }
 
 run();

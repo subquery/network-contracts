@@ -68,6 +68,7 @@ import {
     SubnetProjectVote,
     SubnetProjectVote__factory,
     DelegationPool,
+    DelegationPool__factory,
 } from '../src';
 
 export type Contracts = {
@@ -141,6 +142,7 @@ export const UPGRADEBAL_CONTRACTS: Partial<
     L2Vesting: [CONTRACTS.L2Vesting, L2Vesting__factory],
     Airdropper: [CONTRACTS.Airdropper, Airdropper__factory],
     SubnetProjectVote: [CONTRACTS.SubnetProjectVote, SubnetProjectVote__factory],
+    DelegationPool: [CONTRACTS.DelegationPool, DelegationPool__factory],
 };
 
 export type Config = number | string | string[];
