@@ -80,10 +80,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
             .getEffectiveTotalStake(_runner);
 
         if (ia.overflowAt == 0 && ia.total < ia.used) {
-            // new overflow
-            emit OverAllocationStarted(_runner, block.timestamp);
-
-            ia.overflowAt = block.timestamp;
+            _startOverAllocation(ia, _runner);
         } else if (ia.overflowAt != 0 && ia.total >= ia.used) {
             // recover from overflow
             emit OverAllocationEnded(_runner, block.timestamp, block.timestamp - ia.overflowAt);
@@ -97,7 +94,7 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         require(_isAuth(_runner), 'SAL02');
         require(
             IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
-            .isServiceAvailable(_deployment, _runner),
+                .isServiceAvailable(_deployment, _runner),
             'SAL05'
         );
 
@@ -114,10 +111,17 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         _removeAllocation(_deployment, _runner, _amount);
     }
 
-    function moveAllocation(bytes32 _deploymentFrom, bytes32 _deploymentTo, address _runner, uint256 _amount) external {
+    function moveAllocation(
+        bytes32 _deploymentFrom,
+        bytes32 _deploymentTo,
+        address _runner,
+        uint256 _amount
+    ) external {
         require(_isAuth(_runner), 'SAL02');
         require(allocatedTokens[_runner][_deploymentFrom] >= _amount, 'SAL04');
         require(_deploymentFrom != _deploymentTo, 'SAL07');
+        RunnerAllocation storage ia = _runnerAllocations[_runner];
+        require(ia.total >= ia.used, 'SAL03');
 
         _removeAllocation(_deploymentFrom, _runner, _amount);
         _addAllocation(_deploymentTo, _runner, _amount);
@@ -176,12 +180,19 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         return _runnerAllocations[_runner];
     }
 
+    function syncOverflowStatus(address _runner) external override {
+        _syncOverflowStatus(_runner);
+    }
+
     /**
      * @notice this returns the accumulated overflowTime of given runner
      */
     function overAllocationTime(address _runner) external view returns (uint256) {
         RunnerAllocation memory ia = _runnerAllocations[_runner];
         if (ia.total < ia.used) {
+            if (ia.overflowAt == 0) {
+                return ia.overflowTime;
+            }
             return ia.overflowTime + block.timestamp - ia.overflowAt;
         } else {
             return ia.overflowTime;
@@ -198,5 +209,17 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         );
         address controller = indexerRegistry.getController(_runner);
         return msg.sender == _runner || msg.sender == controller;
+    }
+
+    function _syncOverflowStatus(address _runner) private {
+        RunnerAllocation storage ia = _runnerAllocations[_runner];
+        if (ia.overflowAt == 0 && ia.total < ia.used) {
+            _startOverAllocation(ia, _runner);
+        }
+    }
+
+    function _startOverAllocation(RunnerAllocation storage ia, address _runner) private {
+        emit OverAllocationStarted(_runner, block.timestamp);
+        ia.overflowAt = block.timestamp;
     }
 }

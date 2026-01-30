@@ -1018,6 +1018,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
 
         runnerDeplReward.accRewardsPerToken = accRewardsPerAllocatedToken;
         uint256 burnt;
+        sa.syncOverflowStatus(_runner);
         uint256 totalOverflowTime = sa.overAllocationTime(_runner);
         (reward, burnt) = _fixRewardsWithMissedLaborAndOverflow(
             reward,
@@ -1078,6 +1079,7 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
 
         runnerDeplReward.accRewardsPerToken = accRewardsPerAllocatedToken;
         uint256 burnt;
+        sa.syncOverflowStatus(_runner);
         uint256 totalOverflowTime = sa.overAllocationTime(_runner);
         (reward, burnt) = _fixRewardsWithMissedLaborAndOverflow(
             reward,
