@@ -16,6 +16,8 @@ interface IStakingAllocation {
 
     function allocatedTokens(address _runner, bytes32 _deployment) external view returns (uint256);
 
+    function syncOverflowStatus(address _runner) external;
+
     function runnerAllocation(address _runner) external view returns (RunnerAllocation memory);
 
     function overAllocationTime(address _runner) external view returns (uint256);
