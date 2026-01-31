@@ -109,7 +109,7 @@ const setup = async (network?: string) => {
         config.network.child.rpcUrls = [process.env.CHILD_ENDPOINT];
     }
 
-    let confirms = 1;
+    let confirms = 3;
     if (['Polygon'].includes(config.network.child.chainName)) {
         confirms = 20;
     }

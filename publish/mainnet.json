@@ -195,16 +195,16 @@
             "lastUpdate": "Tue, 21 May 2024 22:09:56 GMT"
         },
         "RewardsBooster": {
-            "innerAddress": "0xF265b1B3526FE55138a86dc299e559e76960020f",
+            "innerAddress": "0x5391935FF85a062ADF8087E3deeee05e66D4db49",
             "address": "0x7F138D57A5e05b6FBF3bCAdDa9a1252354245464",
-            "bytecodeHash": "10ded472cbfa2afbcfd1ac3a8b44414e12339fdd8018fcfd4c47a5b338e08af9",
-            "lastUpdate": "Mon, 14 Oct 2024 21:42:35 GMT"
+            "bytecodeHash": "024bc32b1c971607259b8f89791c5d0c6eb936ea39c5df0924681fc583cae040",
+            "lastUpdate": "Sat, 31 Jan 2026 06:13:07 GMT"
         },
         "StakingAllocation": {
-            "innerAddress": "0x0270Cb6607550E0001eD78Fa7fDf55180B41DbB1",
+            "innerAddress": "0xF01E9D5AEC5BE9a149362628cC5B4d20F05473A1",
             "address": "0x20E4B978b930ce17a499C33BbF958b5b920F70E1",
-            "bytecodeHash": "9178c0893a33861572bc79ace784f0d07041cd57b33c19bf34a034a02ddf0396",
-            "lastUpdate": "Tue, 18 Mar 2025 03:16:58 GMT"
+            "bytecodeHash": "5b7a4526cd014752bfb043183847be9fc0e458704e7429e857b5f8c3befeadde",
+            "lastUpdate": "Sat, 31 Jan 2026 06:13:17 GMT"
         },
         "Airdropper": {
             "innerAddress": "0xbdF10CE01BE0d0d51c733800382b7A300f9273e4",
