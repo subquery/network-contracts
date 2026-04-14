@@ -15,6 +15,7 @@ import {
     RewardsStaking,
     Staking,
     StakingManager,
+    Settings,
 } from '../src';
 import { DEPLOYMENT_ID, METADATA_HASH, VERSION } from './constants';
 import { acceptPlan, addInstantRewards, etherParse, eventFrom, startNewEra, time, timeTravel } from './helper';
@@ -33,6 +34,7 @@ describe('RewardsDistributor Contract', () => {
     let rewardsDistributor: RewardsDistributor;
     let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
+    let settings: Settings;
 
     //rewrite registerIndexer to registe indexer with stakeAmount and commissionRate
     const registerIndexer = async (rootWallet, wallet, amount, rate) => {
@@ -87,6 +89,7 @@ describe('RewardsDistributor Contract', () => {
         rewardsStaking = deployment.rewardsStaking;
         rewardsHelper = deployment.rewardsHelper;
         eraManager = deployment.eraManager;
+        settings = deployment.settings;
 
         //init delegator account
         await token.connect(root).transfer(delegator.address, etherParse('10'));
@@ -634,6 +637,12 @@ describe('RewardsDistributor Contract', () => {
 
         it('claim 0 reward should fail', async () => {
             await expect(rewardsDistributor.connect(delegator).claim(runner.address)).to.be.revertedWith('RD007');
+        });
+
+        it('blacklisted wallet can not claim rewards', async () => {
+            await settings.setWalletBlacklisted(delegator.address, true);
+
+            await expect(rewardsDistributor.connect(delegator).claim(runner.address)).to.be.reverted;
         });
 
         // it('claim each era should get same rewards with claim once', async () => {

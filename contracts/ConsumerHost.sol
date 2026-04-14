@@ -149,6 +149,9 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
      * @param controller The address of controller account, consumer to set
      */
     function setControllerAccount(address controller) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireNotBlacklisted(settings, controller);
+
         controllers[msg.sender] = controller;
 
         emit SetControllerAccount(msg.sender, controller);
@@ -158,6 +161,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
      * @notice consumer call to remove the controller account.
      */
     function removeControllerAccount() public {
+        _requireNotBlacklisted(settings, msg.sender);
+
         address controller = controllers[msg.sender];
         delete controllers[msg.sender];
 
@@ -221,6 +226,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
      * @notice Approve host can use consumer balance
      */
     function approve() external {
+        _requireNotBlacklisted(settings, msg.sender);
+
         require(
             !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
             'G019'
@@ -234,6 +241,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
      * @notice Disapprove host can use consumer balance
      */
     function disapprove() external {
+        _requireNotBlacklisted(settings, msg.sender);
+
         require(
             !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
             'G019'
@@ -249,6 +258,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
      * @param isApprove approve consumer host agent to act on user's behalf
      */
     function deposit(uint256 amount, bool isApprove) external {
+        _requireNotBlacklisted(settings, msg.sender);
+
         require(
             !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
             'G019'
@@ -273,6 +284,9 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
      * @param _for account
      */
     function depositFor(uint256 _amount, address _for) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireNotBlacklisted(settings, _for);
+
         require(
             !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
             'G019'
@@ -292,6 +306,8 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
      * @param amount the amount
      */
     function withdraw(uint256 amount) external {
+        _requireNotBlacklisted(settings, msg.sender);
+
         require(
             !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
             'G019'
@@ -320,6 +336,9 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
     ) external {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'G011');
         (address consumer, bytes memory sign) = abi.decode(callback, (address, bytes));
+        _requireNotBlacklisted(settings, consumer);
+        _requireNotBlacklisted(settings, sender);
+
         if (channels[channelId] == address(0)) {
             channels[channelId] = consumer;
         } else {
@@ -364,6 +383,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'G011');
 
         address consumer = channels[channelId];
+        _requireNotBlacklisted(settings, consumer);
         Consumer storage info = consumers[consumer];
         info.balance += amount;
 
@@ -428,6 +448,7 @@ contract ConsumerHost is Initializable, OwnableUpgradeable, IConsumer, ERC165, S
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'G011');
         address consumer;
         (consumer, ) = this.decodeConsumerCallback(callback);
+        _requireNotBlacklisted(settings, consumer);
         channels[channelId] = consumer;
     }
 

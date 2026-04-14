@@ -191,6 +191,10 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         bytes memory indexerSign,
         bytes memory consumerSign
     ) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireNotBlacklisted(settings, indexer);
+        _requireNotBlacklisted(settings, consumer);
+
         // check channel exist
         require(channels[channelId].status == ChannelStatus.Finalized, 'SC001');
 
@@ -274,6 +278,9 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         bytes memory consumerSign,
         uint256 price
     ) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireChannelWalletsNotBlacklisted(channelId);
+
         address indexer = channels[channelId].indexer;
         address consumer = channels[channelId].consumer;
         require(channels[channelId].expiredAt == preExpirationAt, 'SC002');
@@ -310,6 +317,9 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         bytes memory callback,
         bytes memory sign
     ) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireChannelWalletsNotBlacklisted(channelId);
+
         require(channels[channelId].status == ChannelStatus.Open, 'SC003');
         require(channels[channelId].total == preTotal, 'SC010');
 
@@ -336,6 +346,9 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
      * @param query the state of the channel
      */
     function checkpoint(QueryState calldata query) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireChannelWalletsNotBlacklisted(query.channelId);
+
         // check channel status
         require(channels[query.channelId].status == ChannelStatus.Open, 'SC004');
 
@@ -360,6 +373,9 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
      * @param query the state of the channel
      */
     function terminate(QueryState calldata query) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireChannelWalletsNotBlacklisted(query.channelId);
+
         ChannelState storage state = channels[query.channelId];
 
         // check sender
@@ -400,6 +416,9 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
     }
 
     function terminateWithCurrentState(uint256 channelId) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireChannelWalletsNotBlacklisted(channelId);
+
         ChannelState storage state = channels[channelId];
 
         // check sender
@@ -433,6 +452,9 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
      * @param query the state of the channel
      */
     function respond(QueryState calldata query) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireChannelWalletsNotBlacklisted(query.channelId);
+
         ChannelState storage state = channels[query.channelId];
 
         // check state and sender
@@ -463,6 +485,9 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
      * @param channelId channel id
      */
     function claim(uint256 channelId) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireChannelWalletsNotBlacklisted(channelId);
+
         // check if terminate success
         bool isClaimable1 = channels[channelId].status == ChannelStatus.Terminating &&
             channels[channelId].terminatedAt < block.timestamp;
@@ -595,6 +620,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
             uint256 rewardsAmount = IRewardsBooster(rbAddress).spendQueryRewards(
                 channels[channelId].deploymentId,
                 realConsumer,
+                channels[channelId].indexer,
                 spent - rewardsTotal,
                 abi.encode(channelId)
             );
@@ -657,6 +683,7 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         if (isCConsumer) {
             IConsumer cConsumer = IConsumer(consumer);
             (realConsumer, ) = cConsumer.decodeConsumerCallback(callback);
+            _requireNotBlacklisted(settings, realConsumer);
             if (cConsumer.channelConsumer(channelId) == address(0)) {
                 cConsumer.setChannelConsumer(channelId, callback);
             }
@@ -664,7 +691,13 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         // transfer the rewards to channel
         uint256 fundByReward = IRewardsBooster(
             settings.getContractAddress(SQContracts.RewardsBooster)
-        ).spendQueryRewards(deploymentId, realConsumer, amount, abi.encode(channelId));
+        ).spendQueryRewards(
+                deploymentId,
+                realConsumer,
+                channels[channelId].indexer,
+                amount,
+                abi.encode(channelId)
+            );
         uint256 realAmount = 0;
         if (fundByReward < amount) {
             realAmount = amount - fundByReward;
@@ -682,6 +715,11 @@ contract StateChannel is Initializable, OwnableUpgradeable, SQParameter {
         channels[channelId].total += amount;
 
         emit ChannelFund(channelId, channels[channelId].realTotal, channels[channelId].total);
+    }
+
+    function _requireChannelWalletsNotBlacklisted(uint256 channelId) private view {
+        _requireNotBlacklisted(settings, channels[channelId].indexer);
+        _requireNotBlacklisted(settings, channels[channelId].consumer);
     }
 
     /// @dev check if consumer is valid contract consumer

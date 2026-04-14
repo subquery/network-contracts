@@ -17,6 +17,7 @@ import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IProjectRegistry.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title Staking Allocation Contract
@@ -30,7 +31,7 @@ import './utils/MathUtil.sol';
  * Accumulated over allocation time is also tracked in this contract. How much of it will affect the allocation rewards is
  * further tracked and calculated from RewardsBooster contract, with an additional storage per deployment
  */
-contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradeable {
+contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradeable, SQParameter {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
@@ -75,6 +76,8 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
      */
     function onStakeUpdate(address _runner) external {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsStaking), 'SAL01');
+        _requireNotBlacklisted(settings, _runner);
+
         RunnerAllocation storage ia = _runnerAllocations[_runner];
         ia.total = IStakingManager(settings.getContractAddress(SQContracts.StakingManager))
             .getEffectiveTotalStake(_runner);
@@ -91,6 +94,9 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     }
 
     function addAllocation(bytes32 _deployment, address _runner, uint256 _amount) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireNotBlacklisted(settings, _runner);
+
         require(_isAuth(_runner), 'SAL02');
         require(
             IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
@@ -105,6 +111,9 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
     }
 
     function removeAllocation(bytes32 _deployment, address _runner, uint256 _amount) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireNotBlacklisted(settings, _runner);
+
         require(_isAuth(_runner), 'SAL02');
         require(allocatedTokens[_runner][_deployment] >= _amount, 'SAL04');
 
@@ -117,6 +126,9 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
         address _runner,
         uint256 _amount
     ) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireNotBlacklisted(settings, _runner);
+
         require(_isAuth(_runner), 'SAL02');
         require(allocatedTokens[_runner][_deploymentFrom] >= _amount, 'SAL04');
         require(_deploymentFrom != _deploymentTo, 'SAL07');
@@ -129,6 +141,8 @@ contract StakingAllocation is IStakingAllocation, Initializable, OwnableUpgradea
 
     function stopService(bytes32 _deployment, address _runner) external {
         require(msg.sender == settings.getContractAddress(SQContracts.ProjectRegistry), 'SAL06');
+        _requireNotBlacklisted(settings, _runner);
+
         uint256 amount = allocatedTokens[_runner][_deployment];
 
         if (amount > 0) {

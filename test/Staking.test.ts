@@ -15,6 +15,7 @@ import {
     Staking,
     StakingManager,
     RewardsHelper,
+    Settings,
 } from '../src';
 import {
     addInstantRewards,
@@ -39,6 +40,7 @@ describe('Staking Contract', () => {
     let rewardsDistributor: RewardsDistributor;
     let rewardsStaking: RewardsStaking;
     let rewardsHelper: RewardsHelper;
+    let settings: Settings;
 
     const selfStake = etherParse('2002');
 
@@ -86,6 +88,7 @@ describe('Staking Contract', () => {
         rewardsDistributor = deployment.rewardsDistributor;
         rewardsStaking = deployment.rewardsStaking;
         rewardsHelper = deployment.rewardsHelper;
+        settings = deployment.settings;
         await configWallet();
     });
 
@@ -142,6 +145,12 @@ describe('Staking Contract', () => {
             expect(await stakingManager.getAfterDelegationAmount(runner.address, runner.address)).to.equal(
                 selfStake.add(moreStakingAmount)
             );
+        });
+
+        it('blacklisted wallet can not use staking actions', async () => {
+            await settings.setWalletBlacklisted(delegator.address, true);
+
+            await expect(stakingManager.connect(delegator).delegate(runner.address, etherParse('1'))).to.be.reverted;
         });
 
         it('unstaking by indexer should work', async () => {

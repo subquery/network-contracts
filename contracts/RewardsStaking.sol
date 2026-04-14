@@ -19,6 +19,7 @@ import './interfaces/IStakingAllocation.sol';
 import './interfaces/IIndexerRegistry.sol';
 import './Constants.sol';
 import './utils/MathUtil.sol';
+import './utils/SQParameter.sol';
 
 /**
  * @title Rewards Staking Contract
@@ -39,7 +40,7 @@ import './utils/MathUtil.sol';
  * 2. These management functions are permissionless, so delegators can call them on runner's behalf so they can remove their delegation from the runner.
  *
  */
-contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
+contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable, SQParameter {
     using SafeERC20 for IERC20;
     using MathUtil for uint256;
 
@@ -144,6 +145,9 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      * Last era's reward need to be collected before this can pass.
      */
     function onStakeChange(address _runner, address _source) external onlyStaking {
+        _requireNotBlacklisted(settings, _runner);
+        _requireNotBlacklisted(settings, _source);
+
         uint256 currentEra = _getCurrentEra();
         uint256 lastEra = currentEra - 1;
 
@@ -228,6 +232,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      * Last era's reward need to be collected before this can pass.
      */
     function onICRChange(address runner, uint256 startEra) external onlyIndexerRegistry {
+        _requireNotBlacklisted(settings, runner);
+
         uint256 currentEra = _getCurrentEra();
         require(startEra > currentEra, 'RS004');
 
@@ -246,6 +252,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      * @dev Apply the stake change and calaulate the new rewardDebt for staker.
      */
     function applyStakeChange(address runner, address staker) external {
+        _requireNotBlacklisted(settings, staker);
+
         IRewardsDistributor rewardsDistributor = _getRewardsDistributor();
         IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(runner);
         uint256 lastClaimEra = rewardInfo.lastClaimEra;
@@ -294,6 +302,9 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
     }
 
     function applyRedelegation(address runner, address staker) external onlyStakingManager {
+        _requireNotBlacklisted(settings, runner);
+        _requireNotBlacklisted(settings, staker);
+
         IRewardsDistributor rewardsDistributor = _getRewardsDistributor();
         IndexerRewardInfo memory rewardInfo = rewardsDistributor.getRewardInfo(runner);
         uint256 currentEra = _getCurrentEra();
@@ -338,6 +349,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      * @dev Apply the CommissionRate change and update the commissionRates stored in contract states.
      */
     function applyICRChange(address runner) external {
+        _requireNotBlacklisted(settings, runner);
+
         uint256 currentEra = _getCurrentEra();
         require(
             pendingCommissionRateChange[runner] != 0 &&
@@ -397,6 +410,8 @@ contract RewardsStaking is IRewardsStaking, Initializable, OwnableUpgradeable {
      * Require to be true when someone try to claimRewards() or onStakeChangeRequested().
      */
     function applyRunnerWeightChange(address _runner) public {
+        _requireNotBlacklisted(settings, _runner);
+
         uint256 _runnerStakeWeight = runnerStakeWeight();
         uint256 _previousRunnerStakeWeight = previousRunnerStakeWeight(_runner);
         if (_runnerStakeWeight != _previousRunnerStakeWeight) {

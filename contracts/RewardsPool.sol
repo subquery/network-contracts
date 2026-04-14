@@ -150,6 +150,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
      * @param amount the labor of services
      */
     function labor(bytes32 deploymentId, address runner, uint256 amount) external {
+        _requireNotBlacklisted(settings, runner);
+
         require(amount > 0, 'RP002');
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
             msg.sender,
@@ -210,6 +212,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
      * @param runner runner address
      */
     function collect(bytes32 deploymentId, address runner) external {
+        _requireNotBlacklisted(settings, runner);
+
         uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager))
             .safeUpdateAndGetEra();
         _collect(currentEra - 1, deploymentId, runner);
@@ -220,6 +224,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
      * @param runner runner address
      */
     function batchCollect(address runner) external {
+        _requireNotBlacklisted(settings, runner);
+
         uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager))
             .safeUpdateAndGetEra();
         _batchCollect(currentEra - 1, runner);
@@ -232,6 +238,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
      * @param runner runner address
      */
     function collectEra(uint256 era, bytes32 deploymentId, address runner) external {
+        _requireNotBlacklisted(settings, runner);
+
         uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager))
             .safeUpdateAndGetEra();
         require(currentEra > era, 'RP004');
@@ -244,6 +252,8 @@ contract RewardsPool is IRewardsPool, Initializable, OwnableUpgradeable, SQParam
      * @param runner runner address
      */
     function batchCollectEra(uint256 era, address runner) external {
+        _requireNotBlacklisted(settings, runner);
+
         uint256 currentEra = IEraManager(settings.getContractAddress(SQContracts.EraManager))
             .safeUpdateAndGetEra();
         require(currentEra > era, 'RP004');

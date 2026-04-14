@@ -11,6 +11,7 @@ import './interfaces/IIndexerRegistry.sol';
 import './interfaces/IStakingManager.sol';
 import './utils/MathUtil.sol';
 import './utils/StakingUtil.sol';
+import './utils/SQParameter.sol';
 import './Constants.sol';
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
@@ -18,7 +19,7 @@ import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 /**
  * Split from Staking, to keep contract size under control
  */
-contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
+contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable, SQParameter {
     using MathUtil for uint256;
 
     ISettings public settings;
@@ -46,6 +47,8 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      * The caller can be either an existing indexer or IndexerRegistry contract. The staking change will be applied immediately if the caller is IndexerRegistry.
      */
     function stake(address _runner, uint256 _amount) external override {
+        _requireNotBlacklisted(settings, _runner);
+
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         if (staking.isEmptyDelegation(_runner, _runner)) {
             require(msg.sender == settings.getContractAddress(SQContracts.IndexerRegistry), 'G001');
@@ -62,6 +65,9 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      * Supports instant delegation with quota-based limits and era window restrictions.
      */
     function delegate(address _runner, uint256 _amount) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireNotBlacklisted(settings, _runner);
+
         require(msg.sender != _runner, 'G004');
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
 
@@ -114,6 +120,8 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      * If the caller is from IndexerRegistry, this function will unstake all the staking token for the indexer.
      */
     function unstake(address _runner, uint256 _amount) external {
+        _requireNotBlacklisted(settings, _runner);
+
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         if (msg.sender == settings.getContractAddress(SQContracts.IndexerRegistry)) {
             staking.removeRunner(_runner);
@@ -136,6 +144,8 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      * @dev Request a unbond from an indexer for specific amount.
      */
     function undelegate(address _runner, uint256 _amount) external {
+        _requireNotBlacklisted(settings, msg.sender);
+
         // check if called by an indexer
         require(_runner != msg.sender, 'G004');
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
@@ -147,6 +157,9 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      * Indexer's self delegations are not allow to redelegate.
      */
     function redelegate(address _fromRunner, address _toRunner, uint256 _amount) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireNotBlacklisted(settings, _toRunner);
+
         Staking staking = Staking(settings.getContractAddress(SQContracts.Staking));
         address _source = msg.sender;
         require(_fromRunner != msg.sender, 'G004');
@@ -163,12 +176,18 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
     // can not be called when the node operator is unregistered
     // @param _runner the node operator address
     function stakeReward(address _runner) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireNotBlacklisted(settings, _runner);
+
         _stakeReward(msg.sender, _runner, false);
     }
 
     // @dev batch version of stakeReward
     function batchStakeReward(address[] calldata _runners) external {
+        _requireNotBlacklisted(settings, msg.sender);
+
         for (uint256 i = 0; i < _runners.length; i++) {
+            _requireNotBlacklisted(settings, _runners[i]);
             _stakeReward(msg.sender, _runners[i], true);
         }
     }
@@ -197,6 +216,8 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
     }
 
     function cancelUnbonding(uint256 unbondReqId) external {
+        _requireNotBlacklisted(settings, msg.sender);
+
         require(
             !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
             'G019'
@@ -220,6 +241,8 @@ contract StakingManager is IStakingManager, Initializable, OwnableUpgradeable {
      * Each withdraw need to exceed lockPeriod.
      */
     function widthdraw() external {
+        _requireNotBlacklisted(settings, msg.sender);
+
         require(
             !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
             'G019'

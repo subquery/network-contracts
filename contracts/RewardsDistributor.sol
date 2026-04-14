@@ -197,6 +197,9 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
             settings.getContractAddress(SQContracts.ServiceAgreementRegistry)
         ).getClosedServiceAgreement(agreementId);
         require(agreement.consumer != address(0), 'SA001');
+        _requireNotBlacklisted(settings, agreement.consumer);
+        _requireNotBlacklisted(settings, agreement.indexer);
+
         IEraManager eraManager = IEraManager(settings.getContractAddress(SQContracts.EraManager));
 
         address runner = agreement.indexer;
@@ -303,6 +306,10 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
         uint256 amount,
         uint256 era
     ) external {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireNotBlacklisted(settings, sender);
+        _requireNotBlacklisted(settings, runner);
+
         require(era <= _getCurrentEra(), 'RD001');
         require(era >= info[runner].lastClaimEra, 'RD002');
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
@@ -328,6 +335,8 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
      * @notice check if the current Era is claimed.
      */
     function collectAndDistributeRewards(address runner) public {
+        _requireNotBlacklisted(settings, runner);
+
         // check current era is after lastClaimEra
         uint256 currentEra = _getCurrentEra();
         require(info[runner].lastClaimEra < currentEra - 1, 'RD003');
@@ -343,6 +352,8 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
         uint256 currentEra,
         address runner
     ) public returns (uint256) {
+        _requireNotBlacklisted(settings, runner);
+
         RewardInfo storage rewardInfo = info[runner];
         require(rewardInfo.lastClaimEra > 0, 'RD004');
         // skip when it has been claimed for currentEra - 1, no throws
@@ -429,6 +440,8 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
      * @notice Claim rewards of msg.sender for specific runner.
      */
     function claim(address runner) public {
+        _requireNotBlacklisted(settings, msg.sender);
+
         require(claimFrom(runner, msg.sender) > 0, 'RD007');
     }
 
@@ -436,6 +449,9 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
      * @notice Claculate the Rewards for user and tranfrer token to user.
      */
     function claimFrom(address runner, address user) public returns (uint256) {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireNotBlacklisted(settings, user);
+
         require(
             !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
             'G019'
@@ -451,6 +467,10 @@ contract RewardsDistributor is IRewardsDistributor, Initializable, OwnableUpgrad
     }
 
     function claimForDelegate(address runner, address user) public returns (uint256) {
+        _requireNotBlacklisted(settings, msg.sender);
+        _requireNotBlacklisted(settings, user);
+        _requireNotBlacklisted(settings, runner);
+
         require(
             !(IEraManager(settings.getContractAddress(SQContracts.EraManager)).maintenance()),
             'G019'

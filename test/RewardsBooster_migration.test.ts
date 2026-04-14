@@ -134,7 +134,7 @@ describe('RewardsBooster Contract', () => {
         token = deployment.token;
         eraManager = deployment.eraManager;
         rewardsBooster = deployment.rewardsBooster;
-        rewardsBoosterOld = rewardsBoosterOldContract.connect(deployment.rewardsBooster.address);
+        rewardsBoosterOld = rewardsBoosterOldContract.attach(deployment.rewardsBooster.address);
         rewardsStaking = deployment.rewardsStaking;
         rewardsDistributor = deployment.rewardsDistributor;
         rewardsHelper = deployment.rewardsHelper;
@@ -446,8 +446,13 @@ describe('RewardsBooster Contract', () => {
             expect(deploymentPool0Before.boosterPoint).to.eq(etherParse('40000'));
             // migrate
             await upgrade();
-            await rewardsBooster.spendQueryRewards(deploymentId0, consumer0.address, etherParse('1'), '0x00');
-            // check boost changes
+            await rewardsBooster.spendQueryRewards(
+                deploymentId0,
+                consumer0.address,
+                runner0.address,
+                etherParse('1'),
+                '0x00'
+            );
             const deploymentPool0After = await rewardsBooster.deploymentPools(deploymentId0);
             const deploymentPoolByType0After = await rewardsBooster.deploymentPoolsByType(deploymentId0);
             const totalBoostAfter = await rewardsBooster.totalBoosterPoint();
@@ -484,7 +489,7 @@ describe('RewardsBooster Contract', () => {
             const deploymentPool0Before = await rewardsBooster.deploymentPools(deploymentId0);
             const totalBoostBefore = await rewardsBooster.totalBoosterPoint();
             expect(deploymentPool0Before.boosterPoint).to.eq(etherParse('40000'));
-            await rewardsBooster.spendQueryRewards(deploymentId0, consumer0.address, etherParse('1'), '0x00');
+            await rewardsBoosterOld.spendQueryRewards(deploymentId0, consumer0.address, etherParse('1'), '0x00');
             // migrate
             await upgrade();
             await token.increaseAllowance(rewardsBooster.address, etherParse('1'));
@@ -526,7 +531,7 @@ describe('RewardsBooster Contract', () => {
             expect(alReward0).to.gt(0);
             const deploymentPool0Before = await rewardsBooster.deploymentPools(deploymentId0);
             expect(deploymentPool0Before.boosterPoint).to.eq(etherParse('40000'));
-            await rewardsBooster.spendQueryRewards(deploymentId0, consumer0.address, etherParse('1'), '0x00');
+            await rewardsBoosterOld.spendQueryRewards(deploymentId0, consumer0.address, etherParse('1'), '0x00');
             // migrate
             await upgrade();
             await rewardsBooster.migrateDeploymentBoost(deploymentId0, consumer0.address);
@@ -537,13 +542,25 @@ describe('RewardsBooster Contract', () => {
             ).to.revertedWith('RB007');
             await blockTravel(2000);
             // spend query rewards from old pool
-            await rewardsBooster.spendQueryRewards(deploymentId0, consumer0.address, existingRewards, '0x00');
+            await rewardsBooster.spendQueryRewards(
+                deploymentId0,
+                consumer0.address,
+                runner0.address,
+                existingRewards,
+                '0x00'
+            );
             // fail because neither old pool nor new pool has spent >= existingRewards X2
             await expect(
                 rewardsBooster.refundQueryRewards(deploymentId0, consumer0.address, existingRewards.mul(2), '0x00')
             ).to.revertedWith('RB007');
             // spend query rewards from new pool
-            await rewardsBooster.spendQueryRewards(deploymentId0, consumer0.address, existingRewards.mul(2), '0x00');
+            await rewardsBooster.spendQueryRewards(
+                deploymentId0,
+                consumer0.address,
+                runner0.address,
+                existingRewards.mul(2),
+                '0x00'
+            );
             // refund to new pool
             // await rewardsBooster.refundQueryRewards(deploymentId0, consumer0.address, existingRewards.mul(2), '0x00');
             await expect(
@@ -598,6 +615,7 @@ describe('RewardsBooster Contract', () => {
             const tx = await rewardsBooster.spendQueryRewards(
                 deploymentId0,
                 consumer0.address,
+                runner0.address,
                 queryReward0After2,
                 '0x00'
             );

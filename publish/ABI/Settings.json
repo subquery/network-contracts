@@ -32,6 +32,25 @@
         "type": "event"
     },
     {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "wallet",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "bool",
+                "name": "blacklisted",
+                "type": "bool"
+            }
+        ],
+        "name": "WalletBlacklistUpdated",
+        "type": "event"
+    },
+    {
         "inputs": [
             {
                 "internalType": "enum SQContracts",
@@ -74,6 +93,25 @@
         "name": "initialize",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "wallet",
+                "type": "address"
+            }
+        ],
+        "name": "isWalletBlacklisted",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -128,6 +166,42 @@
             }
         ],
         "name": "setContractAddress",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "wallet",
+                "type": "address"
+            },
+            {
+                "internalType": "bool",
+                "name": "blacklisted",
+                "type": "bool"
+            }
+        ],
+        "name": "setWalletBlacklisted",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address[]",
+                "name": "wallets",
+                "type": "address[]"
+            },
+            {
+                "internalType": "bool",
+                "name": "blacklisted",
+                "type": "bool"
+            }
+        ],
+        "name": "setWalletBlacklistedBatch",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

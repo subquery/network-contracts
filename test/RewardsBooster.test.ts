@@ -17,6 +17,7 @@ import {
     StakingManager,
     RewardsDistributor,
     RewardsStaking,
+    Settings,
 } from '../src';
 import { deploymentIds, deploymentMetadatas, projectMetadatas } from './constants';
 import {
@@ -70,6 +71,7 @@ describe('RewardsBooster Contract', () => {
     let projectRegistry: ProjectRegistry;
     let stateChannel: StateChannel;
     let consumerRegistry: ConsumerRegistry;
+    let settings: Settings;
 
     const getAllocationReward = (deploymentReward: BigNumber, queryRewardRatePerMill: BigNumber): BigNumber => {
         return deploymentReward.mul(PER_MILL.sub(queryRewardRatePerMill)).div(PER_MILL);
@@ -142,6 +144,7 @@ describe('RewardsBooster Contract', () => {
         projectRegistry = deployment.projectRegistry;
         stateChannel = deployment.stateChannel;
         consumerRegistry = deployment.consumerRegistry;
+        settings = deployment.settings;
         await token.approve(rewardsBooster.address, constants.MaxInt256);
 
         // config rewards booster
@@ -252,6 +255,21 @@ describe('RewardsBooster Contract', () => {
                 revertMsg.notOwner
             );
         });
+
+        it('owner can blacklist wallets', async () => {
+            await expect(settings.connect(runner0).setWalletBlacklisted(consumer0.address, true)).to.be.revertedWith(
+                revertMsg.notOwner
+            );
+
+            await expect(settings.setWalletBlacklisted(consumer0.address, true))
+                .to.emit(settings, 'WalletBlacklistUpdated')
+                .withArgs(consumer0.address, true);
+            expect(await settings.isWalletBlacklisted(consumer0.address)).to.eq(true);
+
+            await settings.setWalletBlacklistedBatch([consumer0.address, consumer1.address], false);
+            expect(await settings.isWalletBlacklisted(consumer0.address)).to.eq(false);
+            expect(await settings.isWalletBlacklisted(consumer1.address)).to.eq(false);
+        });
     });
 
     describe('boost deployments', () => {
@@ -278,6 +296,38 @@ describe('RewardsBooster Contract', () => {
             await rewardsBooster.removeBoosterDeployment(deploymentId0, boosterAmount);
             expect(await token.balanceOf(root.address)).to.eq(balanceBefore);
         });
+
+        it('owner can remove booster accounting without transferring tokens', async () => {
+            const boosterAmount = etherParse('10000');
+            const removeAmount = boosterAmount;
+            await token.increaseAllowance(rewardsBooster.address, boosterAmount);
+            await rewardsBooster.boostDeployment(deploymentId0, boosterAmount);
+
+            const ownerBalanceBefore = await token.balanceOf(root.address);
+            const boosterBalanceBefore = await token.balanceOf(rewardsBooster.address);
+
+            await expect(
+                rewardsBooster.connect(runner0).adminRemoveBoosterDeployment(deploymentId0, root.address, removeAmount)
+            ).to.be.revertedWith(revertMsg.notOwner);
+
+            await expect(rewardsBooster.adminRemoveBoosterDeployment(deploymentId0, root.address, removeAmount))
+                .to.emit(rewardsBooster, 'DeploymentBoosterRemoved')
+                .withArgs(deploymentId0, root.address, removeAmount);
+
+            expect(await rewardsBooster.getRunnerDeploymentBooster(deploymentId0, root.address)).to.eq(0);
+            expect(await token.balanceOf(root.address)).to.eq(ownerBalanceBefore);
+            expect(await token.balanceOf(rewardsBooster.address)).to.eq(boosterBalanceBefore);
+        });
+
+        it('blacklisted wallet can not use RewardsBooster', async () => {
+            const boosterAmount = etherParse('10000');
+            await token.connect(consumer0).increaseAllowance(rewardsBooster.address, boosterAmount);
+            await settings.setWalletBlacklisted(consumer0.address, true);
+
+            await expect(rewardsBooster.connect(consumer0).boostDeployment(deploymentId0, boosterAmount)).to.be
+                .reverted;
+        });
+
         it('can add and remove booster to a deployment from controller', async () => {
             const boosterAmount = etherParse('10000');
             const balanceBefore = await token.balanceOf(runner0.address);
