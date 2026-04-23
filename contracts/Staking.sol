@@ -119,9 +119,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
     // LockedAmount include stakedAmount + amount in locked period
     mapping(address => uint256) public lockedAmount;
 
-    // Expected token balance: tracks actual transfers in/out for balance invariant check
-    uint256 public expectedBalance;
-
     // Actively staking runners by delegator
     mapping(address => mapping(uint256 => address)) public stakingIndexers;
 
@@ -385,7 +382,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
             address(this),
             _amount
         );
-        expectedBalance += _amount;
     }
 
     function removeDelegation(address _source, address _runner, uint256 _amount) external {
@@ -479,8 +475,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
             IERC20(SQToken).safeTransfer(_source, availableAmount);
 
             lockedAmount[_source] -= amount;
-            expectedBalance -= amount;
-            require(IERC20(SQToken).balanceOf(address(this)) >= expectedBalance, 'S023');
 
             emit UnbondWithdrawn(_source, availableAmount, feeAmount, _index);
         }
@@ -514,7 +508,6 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         }
 
         lockedAmount[_runner] -= _amount;
-        expectedBalance -= _amount;
 
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
             settings.getContractAddress(SQContracts.DisputeManager),
