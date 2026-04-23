@@ -81,10 +81,10 @@
             "lastUpdate": "Tue, 13 Feb 2024 09:10:08 GMT"
         },
         "Staking": {
-            "innerAddress": "0xBF9C6d0084c6677599D65457e0FFff31014627FC",
+            "innerAddress": "0x27AA37Ad388Ee3F559016aea806C5BCc98E37e70",
             "address": "0x7A68b10EB116a8b71A9b6f77B32B47EB591B6Ded",
-            "bytecodeHash": "9c1dd3a5a0727beffa1442b47694658111abef4d5993814cc4a24df592e37945",
-            "lastUpdate": "Tue, 14 Apr 2026 03:55:23 GMT"
+            "bytecodeHash": "1fb348297ecc1e94ab8de76be8b97a6624576249cfda70a2450bef06e016af53",
+            "lastUpdate": "Thu, 23 Apr 2026 01:51:03 GMT"
         },
         "StakingManager": {
             "innerAddress": "0xD7C2cB905ddee644b96007f3cf2a01cdCb2B36d8",
