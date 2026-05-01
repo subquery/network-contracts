@@ -366,6 +366,29 @@
                 "type": "bytes32"
             },
             {
+                "internalType": "address",
+                "name": "_account",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "adminRemoveBoosterDeployment",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "bytes32",
+                "name": "_deploymentId",
+                "type": "bytes32"
+            },
+            {
                 "internalType": "uint256",
                 "name": "_amount",
                 "type": "uint256"
@@ -1361,6 +1384,11 @@
             {
                 "internalType": "address",
                 "name": "_spender",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_runner",
                 "type": "address"
             },
             {

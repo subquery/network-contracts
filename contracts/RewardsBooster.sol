@@ -122,6 +122,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     /// @dev MODIFIER
     /// @notice only consumer or its controller can call
     modifier consumerAuthorised(address consumer) {
+        _requireNotBlacklisted(settings, consumer);
+
         if (msg.sender != consumer) {
             bool isController = IConsumerRegistry(
                 settings.getContractAddress(SQContracts.ConsumerRegistry)
@@ -236,6 +238,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
         bytes32 _deploymentId,
         uint256 _amount
     ) external onlyRegisteredDeployment(_deploymentId) {
+        _requireNotBlacklisted(settings, msg.sender);
+
         // migrate deployment pool
         ProjectType projectType = migrateDeploymentBoost(_deploymentId, msg.sender);
 
@@ -277,6 +281,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
      * @param _amount the added amount
      */
     function removeBoosterDeployment(bytes32 _deploymentId, uint256 _amount) external {
+        _requireNotBlacklisted(settings, msg.sender);
+
         // migrate deployment pool
         ProjectType projectType = migrateDeploymentBoost(_deploymentId, msg.sender);
         require(
@@ -286,6 +292,15 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
 
         _removeBoosterDeployment(projectType, _deploymentId, msg.sender, _amount);
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(msg.sender, _amount);
+    }
+
+    function adminRemoveBoosterDeployment(
+        bytes32 _deploymentId,
+        address _account,
+        uint256 _amount
+    ) external onlyOwner {
+        ProjectType projectType = migrateDeploymentBoost(_deploymentId, _account);
+        _removeBoosterDeployment(projectType, _deploymentId, _account, _amount);
     }
 
     /**
@@ -979,6 +994,8 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     }
 
     function collectAllocationReward(bytes32 _deploymentId, address _runner) external override {
+        _requireNotBlacklisted(settings, _runner);
+
         IIndexerRegistry indexerRegistry = IIndexerRegistry(
             ISettings(settings).getContractAddress(SQContracts.IndexerRegistry)
         );
@@ -1317,10 +1334,17 @@ contract RewardsBooster is Initializable, OwnableUpgradeable, IRewardsBooster, S
     function spendQueryRewards(
         bytes32 _deploymentId,
         address _spender,
+        address _runner,
         uint256 _amount,
         bytes calldata _data
     ) external override returns (uint256) {
         require(msg.sender == settings.getContractAddress(SQContracts.StateChannel), 'RB006');
+        _requireNotBlacklisted(settings, _spender);
+        require(
+            IProjectRegistry(settings.getContractAddress(SQContracts.ProjectRegistry))
+                .isDeploymentRegistered(_deploymentId),
+            'RB052'
+        );
         migrateDeploymentBoost(_deploymentId, _spender);
 
         uint256 spend1 = _spendQueryRewards(_deploymentId, _spender, _amount, _data);

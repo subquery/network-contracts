@@ -273,6 +273,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
     }
 
     function addRunner(address _runner) external onlyStakingManager {
+        _requireNotBlacklisted(settings, _runner);
+
         indexers[indexerLength] = _runner;
         indexerNo[_runner] = indexerLength;
         indexerLength++;
@@ -323,6 +325,9 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         uint256 _amount,
         bool instant
     ) external {
+        _requireNotBlacklisted(settings, _source);
+        _requireNotBlacklisted(settings, _runner);
+
         require(
             msg.sender == settings.getContractAddress(SQContracts.StakingManager) ||
                 msg.sender == address(this),
@@ -370,6 +375,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         address _source,
         uint256 _amount
     ) external onlyStakingManager {
+        _requireNotBlacklisted(settings, _source);
+
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransferFrom(
             _source,
             address(this),
@@ -378,6 +385,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
     }
 
     function removeDelegation(address _source, address _runner, uint256 _amount) external {
+        _requireNotBlacklisted(settings, _source);
+
         require(
             msg.sender == settings.getContractAddress(SQContracts.StakingManager) ||
                 msg.sender == address(this),
@@ -412,6 +421,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
         uint256 _amount,
         UnbondType _type
     ) external {
+        _requireNotBlacklisted(settings, _source);
+
         require(
             msg.sender == settings.getContractAddress(SQContracts.StakingManager) ||
                 msg.sender == address(this),
@@ -446,7 +457,10 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
      * burn the withdrawn fees and transfer the rest to delegator.
      */
     function withdrawARequest(address _source, uint256 _index) external onlyStakingManager {
+        _requireNotBlacklisted(settings, _source);
+
         require(_index == withdrawnLength[_source], 'S009');
+        require(block.timestamp >= unbondingAmount[_source][_index].startTime + lockPeriod, 'S016');
         withdrawnLength[_source]++;
 
         uint256 amount = unbondingAmount[_source][_index].amount;
@@ -493,6 +507,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
             totalStakingAmount[_runner].valueAfter -= amount;
         }
 
+        lockedAmount[_runner] -= _amount;
+
         IERC20(settings.getContractAddress(SQContracts.SQToken)).safeTransfer(
             settings.getContractAddress(SQContracts.DisputeManager),
             _amount
@@ -501,6 +517,8 @@ contract Staking is IStaking, Initializable, OwnableUpgradeable, SQParameter {
 
     function unbondCommission(address _runner, uint256 _amount) external {
         require(msg.sender == settings.getContractAddress(SQContracts.RewardsDistributor), 'G003');
+        _requireNotBlacklisted(settings, _runner);
+
         lockedAmount[_runner] += _amount;
         this.startUnbond(_runner, _runner, _amount, UnbondType.Commission);
     }

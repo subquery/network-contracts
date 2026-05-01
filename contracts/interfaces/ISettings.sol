@@ -28,9 +28,17 @@ enum SQContracts {
 }
 
 interface ISettings {
+    event WalletBlacklistUpdated(address indexed wallet, bool blacklisted);
+
     function setBatchAddress(SQContracts[] calldata sq, address[] calldata _address) external;
 
     function setContractAddress(SQContracts sq, address _address) external;
 
     function getContractAddress(SQContracts sq) external view returns (address);
+
+    function setWalletBlacklisted(address wallet, bool blacklisted) external;
+
+    function setWalletBlacklistedBatch(address[] calldata wallets, bool blacklisted) external;
+
+    function isWalletBlacklisted(address wallet) external view returns (bool);
 }
